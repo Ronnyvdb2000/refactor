@@ -19,11 +19,7 @@ def trade_cost(amount: float) -> float:
 def bereken_positie(portfolio_waarde: float, entry_prijs: float,
                     stop_prijs: float,
                     risico_pct: float = RISICO_PCT_DEFAULT):
-    """Aantal aandelen op basis van risico-per-trade en stopafstand.
-
-    Retourneert (aandelen, max_verlies). Geeft (0, 0.0) terug als de
-    stopafstand ongeldig is.
-    """
+    """Aantal aandelen op basis van risico-per-trade en stopafstand."""
     risico_eur = portfolio_waarde * risico_pct
     stop_afstand = entry_prijs - stop_prijs
     if stop_afstand <= 0 or entry_prijs <= 0:
@@ -36,10 +32,7 @@ def bereken_positie(portfolio_waarde: float, entry_prijs: float,
 def bereken_atr_positie(portfolio_waarde: float, entry_prijs: float,
                         atr: float, sl_mult: float = 2.0,
                         risico_pct: float = RISICO_PCT_DEFAULT):
-    """Zoals bereken_positie, maar stop = entry - sl_mult * atr.
-
-    Retourneert (aandelen, stop_loss, max_verlies).
-    """
+    """Zoals bereken_positie, maar stop = entry - sl_mult * atr."""
     if math.isnan(atr) or atr <= 0 or entry_prijs <= 0:
         return 0, entry_prijs, 0.0
     stop_afstand = sl_mult * atr
