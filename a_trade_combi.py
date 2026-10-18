@@ -1,36 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_combi_volatiel.py — GEWOGEN KWALITEITSSCORE x VOLATILITEIT  (v6)
+a_trade_combi.py — GEWOGEN KWALITEITSSCORE x VOLATILITEIT v2.0
 
-Wijzigingen t.o.v. v5:
-  - DYNAMISCHE GEWICHTEN: de hardcoded GEWICHTEN-tabel wordt bij elke run
-    vervangen door een berekening uit `forward_returns`. Per strategie
-    wordt de Sharpe-ratio (gemiddeld rendement / standaardafwijking)
-    berekend op fwd_ret_10d en genormaliseerd naar [0,1]. Als een
-    strategie minder dan MIN_OBSERVATIES picks heeft, valt die terug op
-    het hardcoded gewicht. Als de DB-query volledig faalt, gebruikt de
-    hele run de hardcoded fallback.
-  - Alle overige logica (opwarm-retry, trechter, retry-backoff, ATR-filter,
-    rapportage) is ONGEWIJZIGD t.o.v. v5.
-
-Fix (2026-10-08): hoogl.analyse_ticker() retourneert sinds de rate-limit-
-backoff een tuple (signaal, was_rate_limited). selecties_hoogl() verwachtte
-nog een los signaal en crashte met "AttributeError: 'tuple' object has no
-attribute 'score'". Opgelost via _hoogl_analyse_met_retry(). kasstr en fisher
-zijn ongewijzigd (hun analyse_ticker is niet nagekeken).
-
-Ratio: wegen op Sharpe i.p.v. ruwe return compenseert voor strategieën
-met veel variantie (zoals bot_00oshaughnessy met n=24 en gem +1.54% maar
-grote uitschieters).
-
-Fallback-gewichten (identiek aan v5, afgeleid van ruwe gemiddelde returns):
-    kasstr 0.85 | fisher 0.55 | vcp 0.55 | hoogl 0.50 | repititief 0.15
-
-Als je eenmalig wilt forceren op de fallback, zet FORCE_STATIC_GEWICHTEN=1.
-
-De rest van de architectuur (trechter, retry-backoff, opwarm-stap) blijft
-zoals in v5 -- zie die docstring in Git voor de volledige onderbouwing.
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Dynamische gewichten op basis van Sharpe (uit forward_returns).
 """
 
 import os
@@ -39,6 +13,12 @@ from typing import Dict, List, Set, Tuple
 
 import psycopg2
 import psycopg2.extras
+
+from common import (
+    today_str, safe_float, yahoo_link, download_history,
+    load_tickers_from_file, bouw_bestandslijst, label_voor,
+    send_telegram, send_email
+)
 
 import bot_00kr as kr
 import bot_01kasstr as kasstr
@@ -62,7 +42,6 @@ RETRY_BASIS_WACHT  = float(os.getenv("RETRY_BASIS_WACHT", "8"))
 WARMUP_POGINGEN    = int(os.getenv("WARMUP_POGINGEN", "6"))
 WARMUP_WACHT       = float(os.getenv("WARMUP_WACHT", "60"))
 
-# Statische fallback-gewichten (identiek aan v5)
 GEWICHTEN_FALLBACK = {
     "kasstr":     0.85,
     "fisher":     0.55,
@@ -71,19 +50,17 @@ GEWICHTEN_FALLBACK = {
     "repititief": 0.15,
 }
 
-# Dynamische gewicht-berekening
 FORCE_STATIC_GEWICHTEN = os.getenv("FORCE_STATIC_GEWICHTEN", "0") == "1"
 MIN_OBSERVATIES        = int(os.getenv("MIN_OBSERVATIES", "30"))
-GEWICHT_HORIZON        = os.getenv("GEWICHT_HORIZON", "10d")  # 10d / 30d / 60d
-GEWICHTEN_MIN          = 0.05   # ondergrens na normalisatie
-GEWICHTEN_MAX          = 1.00   # bovengrens na normalisatie
+GEWICHT_HORIZON        = os.getenv("GEWICHT_HORIZON", "10d")
+GEWICHTEN_MIN          = 0.05
+GEWICHTEN_MAX          = 1.00
 
 STRATEGIE_LABELS = {
     "kasstr": "bot_01kasstr", "fisher": "bot_00Fisher",
     "vcp": "bot_00vcp", "hoogl": "bot_01hoogl", "repititief": "bot_01repititief",
 }
 
-# Mapping van interne key -> DB-strategienaam in forward_returns
 STRATEGIE_DB_NAAM = {
     "kasstr":     "bot_01kasstr",
     "fisher":     "bot_00Fisher",
@@ -92,9 +69,6 @@ STRATEGIE_DB_NAAM = {
     "repititief": "bot_01repititief",
 }
 
-LIVE_FETCH_STRATEGIEEN = {"kasstr", "fisher", "hoogl"}
-
-
 # ============================================================
 # HULPFUNCTIES
 # ============================================================
@@ -102,20 +76,18 @@ LIVE_FETCH_STRATEGIEEN = {"kasstr", "fisher", "hoogl"}
 def bouw_exchange_tickers() -> Tuple[Dict[str, List[str]], List[str]]:
     exchange_tickers: Dict[str, List[str]] = {}
     all_tickers: List[str] = []
-    for f_name in kr.bouw_bestandslijst():
-        tlist = kr.load_tickers_from_file(f_name)
+    for f_name in bouw_bestandslijst():
+        tlist = load_tickers_from_file(f_name)
         if not tlist:
             continue
-        ex_name = kr.label_voor(f_name)
+        ex_name = label_voor(f_name)
         exchange_tickers[ex_name] = tlist
         all_tickers.extend(tlist)
     all_tickers = sorted(set(all_tickers))
     return exchange_tickers, all_tickers
 
-
 def _yahoo_link(ticker: str) -> str:
-    return kr._yahoo_link(ticker)
-
+    return f"https://finance.yahoo.com/quote/{ticker}"
 
 def met_retry(fn, ticker: str, label: str):
     for poging in range(RETRY_POGINGEN):
@@ -134,11 +106,10 @@ def met_retry(fn, ticker: str, label: str):
             return None
     return None
 
-
 def warm_up_yfinance() -> bool:
     for poging in range(WARMUP_POGINGEN):
         try:
-            test = kr.download_history(["AAPL"], period="5d")
+            test = download_history(["AAPL"], period="5d")
             if test is not None and not test.empty:
                 print(f"[opwarm] Yahoo-sessie actief na poging {poging+1}/{WARMUP_POGINGEN}")
                 return True
@@ -150,16 +121,11 @@ def warm_up_yfinance() -> bool:
     print("[opwarm] Yahoo blijft ontoegankelijk na alle opwarm-pogingen — run gaat toch door.")
     return False
 
-
 # ============================================================
 # DYNAMISCHE GEWICHTEN
 # ============================================================
 
 def herbereken_gewichten() -> Dict[str, float]:
-    """
-    Berekent gewichten uit forward_returns via Sharpe-ratio per strategie.
-    Fallback naar GEWICHTEN_FALLBACK bij onvoldoende data of DB-fout.
-    """
     if FORCE_STATIC_GEWICHTEN:
         print("[gewichten] FORCE_STATIC_GEWICHTEN=1 — statische fallback gebruikt.")
         return dict(GEWICHTEN_FALLBACK)
@@ -193,10 +159,7 @@ def herbereken_gewichten() -> Dict[str, float]:
         print(f"[gewichten] DB-query faalde: {e} — statische fallback gebruikt.")
         return dict(GEWICHTEN_FALLBACK)
 
-    # Mapping db_naam -> interne key
     db_naar_key = {v: k for k, v in STRATEGIE_DB_NAAM.items()}
-
-    # Sharpe per strategie
     sharpe_per_key: Dict[str, float] = {}
     n_per_key: Dict[str, int] = {}
 
@@ -211,14 +174,11 @@ def herbereken_gewichten() -> Dict[str, float]:
             continue
         gem = float(r["gem"]) if r["gem"] is not None else 0.0
         std = float(r["std"]) if r["std"] is not None else 0.0
-        # Sharpe met kleine-deler-epsilon om deling-door-nul te vermijden
         sharpe = gem / std if std > 1e-9 else 0.0
         sharpe_per_key[key] = sharpe
 
-    print()
-    print("=" * 70)
-    print(f"DYNAMISCHE GEWICHTEN (horizon={GEWICHT_HORIZON}, "
-          f"min_n={MIN_OBSERVATIES})")
+    print("\n" + "=" * 70)
+    print(f"DYNAMISCHE GEWICHTEN (horizon={GEWICHT_HORIZON}, min_n={MIN_OBSERVATIES})")
     print("=" * 70)
     print(f"  {'Strategie':<14} {'n':>7} {'Sharpe':>9} {'Gewicht':>9}  Status")
     print("  " + "-" * 60)
@@ -231,7 +191,6 @@ def herbereken_gewichten() -> Dict[str, float]:
         print("=" * 70)
         return dict(GEWICHTEN_FALLBACK)
 
-    # Normaliseer Sharpe naar [GEWICHTEN_MIN, GEWICHTEN_MAX]
     sharpe_waarden = list(sharpe_per_key.values())
     min_s = min(sharpe_waarden)
     max_s = max(sharpe_waarden)
@@ -240,14 +199,12 @@ def herbereken_gewichten() -> Dict[str, float]:
     gewichten: Dict[str, float] = {}
     for key, sharpe in sharpe_per_key.items():
         if bereik < 1e-9:
-            # Alle Sharpe-waarden identiek: geef ze allemaal hetzelfde gewicht
             gewicht = (GEWICHTEN_MIN + GEWICHTEN_MAX) / 2
         else:
             genorm = (sharpe - min_s) / bereik
             gewicht = GEWICHTEN_MIN + genorm * (GEWICHTEN_MAX - GEWICHTEN_MIN)
         gewichten[key] = round(gewicht, 3)
 
-    # Vul aan met fallback voor strategieën zonder data
     for key, fallback in GEWICHTEN_FALLBACK.items():
         if key not in gewichten:
             gewichten[key] = fallback
@@ -256,20 +213,18 @@ def herbereken_gewichten() -> Dict[str, float]:
         n = n_per_key.get(key, 0)
         sharpe_str = f"{sharpe_per_key[key]:.4f}" if key in sharpe_per_key else "-"
         status = "dynamisch" if key in sharpe_per_key else "fallback"
-        print(f"  {key:<14} {n:>7} {sharpe_str:>9} "
-              f"{gewichten[key]:>9.3f}  {status}")
+        print(f"  {key:<14} {n:>7} {sharpe_str:>9} {gewichten[key]:>9.3f}  {status}")
 
     print("=" * 70)
     return gewichten
 
-
 # ============================================================
-# STAP 1 — bulk-strategieën
+# SELECTIES
 # ============================================================
 
 def compute_atr_pct(exchange_tickers, all_tickers) -> Dict[str, float]:
     print("[atr] Koersdata (3y) via bot_00kr's ATR-berekening...")
-    df = kr.download_history(all_tickers, period="3y")
+    df = download_history(all_tickers, period="3y")
     if df.empty:
         return {}
     atr_pct: Dict[str, float] = {}
@@ -281,11 +236,10 @@ def compute_atr_pct(exchange_tickers, all_tickers) -> Dict[str, float]:
                 atr_pct[ticker] = round(sig.atr / sig.price * 100, 2)
     return atr_pct
 
-
 def selecties_repititief(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
     lookback = repititief.SZ_CFG["lookback_years"]
     print(f"[repititief] Koersdata ({lookback}y)...")
-    df = repititief.download_history(all_tickers, period=f"{lookback}y")
+    df = download_history(all_tickers, period=f"{lookback}y")
     if df.empty:
         return {}
     result: Dict[str, Set[str]] = {}
@@ -303,10 +257,9 @@ def selecties_repititief(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
         result[ex_name] = {s.ticker for s in fdr_significant}
     return result
 
-
 def selecties_vcp(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
     print("[vcp] Koersdata (2y)...")
-    df = vcp.download_history(all_tickers, period="2y")
+    df = download_history(all_tickers, period="2y")
     if df.empty:
         return {}
     result: Dict[str, Set[str]] = {}
@@ -315,11 +268,6 @@ def selecties_vcp(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
         geselecteerd = {t for t, g in df_ex.groupby("Ticker", sort=False) if vcp.analyse_ticker(t, g)}
         result[ex_name] = geselecteerd
     return result
-
-
-# ============================================================
-# STAP 2 — live-fetch-strategieën
-# ============================================================
 
 def selecties_kasstr(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
     totaal = sum(len(s) for s in shortlist_per_beurs.values())
@@ -334,7 +282,6 @@ def selecties_kasstr(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[
             time.sleep(0.15)
         result[ex_name] = geselecteerd
     return result
-
 
 def selecties_fisher(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
     totaal = sum(len(s) for s in shortlist_per_beurs.values())
@@ -351,11 +298,7 @@ def selecties_fisher(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[
         result[ex_name] = geselecteerd
     return result
 
-
 def _hoogl_analyse_met_retry(ticker: str, cfg: dict):
-    """hoogl.analyse_ticker retourneert (signaal, was_rate_limited).
-    Probeert opnieuw met backoff bij rate limiting en geeft enkel het
-    signaal (of None) terug, zodat de aanroeper niet hoeft te unpacken."""
     for poging in range(RETRY_POGINGEN):
         sig, was_rate_limited = hoogl.analyse_ticker(ticker, cfg)
         if not was_rate_limited:
@@ -366,7 +309,6 @@ def _hoogl_analyse_met_retry(ticker: str, cfg: dict):
             time.sleep(wacht)
     return None
 
-
 def selecties_hoogl(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[str]]:
     totaal = sum(len(s) for s in shortlist_per_beurs.values())
     print(f"[hoogl] Fundamentals per ticker (live yfinance-calls) — {totaal} tickers op shortlist...")
@@ -375,8 +317,6 @@ def selecties_hoogl(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[s
     for ex_name, shortlist in shortlist_per_beurs.items():
         geselecteerd = set()
         for ticker in shortlist:
-            # OUD (crashte: analyse_ticker retourneert een tuple):
-            # sig = met_retry(lambda t=ticker: hoogl.analyse_ticker(t, cfg), ticker, "hoogl")
             sig = _hoogl_analyse_met_retry(ticker, cfg)
             if sig is not None and sig.score >= cfg["min_score"]:
                 geselecteerd.add(ticker)
@@ -384,18 +324,16 @@ def selecties_hoogl(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[s
         result[ex_name] = geselecteerd
     return result
 
-
 # ============================================================
-# STAP 3 — combineren + rapporteren
+# MAIN
 # ============================================================
 
 def run_live_engine():
     print(f"{'='*60}")
-    print(f"COMBI-SELECTIE VOLATIEL v6 (dynamische gewichten)  {kr.today_str()}")
+    print(f"COMBI-SELECTIE VOLATIEL v2.0 (dynamische gewichten)  {today_str()}")
     print(f"  ATR% tussen {MIN_ATR_PCT} en {MAX_ATR_PCT}")
     print(f"{'='*60}")
 
-    # --- Dynamische gewichten berekenen ---
     gewichten = herbereken_gewichten()
     print(f"Gewichten: {gewichten}\n")
 
@@ -406,7 +344,6 @@ def run_live_engine():
     print(f"Totaal universum: {len(all_tickers)} unieke tickers over {len(exchange_tickers)} beurzen\n")
 
     warm_up_yfinance()
-
     atr_pct = compute_atr_pct(exchange_tickers, all_tickers)
 
     per_strategie: Dict[str, Dict[str, Set[str]]] = {}
@@ -420,8 +357,7 @@ def run_live_engine():
             shortlist |= per_strategie[strat_key].get(ex_name, set())
         shortlist_per_beurs[ex_name] = shortlist
     totaal_shortlist = sum(len(s) for s in shortlist_per_beurs.values())
-    print(f"\n[trechter] {totaal_shortlist} tickers op de shortlist "
-          f"(van {len(all_tickers)} in het volledige universum)\n")
+    print(f"\n[trechter] {totaal_shortlist} tickers op de shortlist (van {len(all_tickers)} in het volledige universum)\n")
 
     per_strategie["kasstr"] = selecties_kasstr(shortlist_per_beurs)
     per_strategie["fisher"] = selecties_fisher(shortlist_per_beurs)
@@ -449,56 +385,44 @@ def run_live_engine():
         kandidaten.sort(key=lambda x: (x[1], x[2]), reverse=True)
         top = kandidaten[:TOP_N]
 
-        print(f"\n{ex_name}: {len(gewogen_score)} tickers met >=1 selectie, "
-              f"{len(kandidaten)} na volatiliteitsfilter, top {len(top)} gerapporteerd")
+        print(f"\n{ex_name}: {len(gewogen_score)} tickers met >=1 selectie, {len(kandidaten)} na volatiliteitsfilter, top {len(top)} gerapporteerd")
 
         for ticker, score, atr, strategieen in top:
             db_logger.log_selectie(
-                ticker=ticker,
-                datum=kr.today_str(),
-                strategie="bot_combi_volatiel",
-                beurs=ex_name,
-                koers=None,
+                ticker=ticker, datum=today_str(), strategie="bot_combi_volatiel",
+                beurs=ex_name, koers=None,
                 parameters={
                     "gewogen_score": round(score, 2),
                     "strategieen": ", ".join(sorted(strategieen)),
                     "atr_pct": atr,
-                    "grafiek": f"https://finance.yahoo.com/quote/{ticker}",
+                    "grafiek": _yahoo_link(ticker),
                 },
             )
 
         if not top:
             continue
 
-        gewicht_str = ", ".join(
-            f"{k}={v:.2f}" for k, v in gewichten.items()
-        )
+        gewicht_str = ", ".join(f"{k}={v:.2f}" for k, v in gewichten.items())
         delen = [
             f"🎯 *Combi-Selectie Volatiel — {ex_name}*",
-            f"_{kr.today_str()} | gewichten: {gewicht_str} "
-            f"| ATR% {MIN_ATR_PCT}-{MAX_ATR_PCT}%_",
+            f"_{today_str()} | gewichten: {gewicht_str} | ATR% {MIN_ATR_PCT}-{MAX_ATR_PCT}%_",
             "─────────────────────────────",
         ]
         for ticker, score, atr, strategieen in top:
-            delen.append(
-                f"• `{ticker}` — score {score:.2f} | ATR {atr:.1f}% "
-                f"{_yahoo_link(ticker)}\n"
-                f"  {', '.join(sorted(strategieen))}"
-            )
+            delen.append(f"• `{ticker}` — score {score:.2f} | ATR {atr:.1f}% {_yahoo_link(ticker)}\n  {', '.join(sorted(strategieen))}")
+        
         bericht = "\n\n".join(delen)
-        kr.send_telegram_message(bericht)
+        send_telegram(bericht, parse_mode="Markdown")
         email_delen.append(bericht)
         print(f"  → Telegram verstuurd: {ex_name}")
 
     if email_delen:
-        kr.send_email(
-            subject=f"Combi-Selectie Volatiel rapport {kr.today_str()}",
+        send_email(
+            subject=f"Combi-Selectie Volatiel rapport {today_str()}",
             body="\n\n" + ("=" * 40 + "\n\n").join(email_delen),
         )
 
-    print(f"\n{'='*60}")
-    print("Klaar.")
-
+    print(f"\n{'='*60}\nKlaar.")
 
 if __name__ == "__main__":
     run_live_engine()
