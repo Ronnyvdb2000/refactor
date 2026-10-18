@@ -1,89 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_01hoogl.py  —  GARP ONDERWAARDERING SELECTIE ENGINE v2.1
+bot_01hoogl.py — GARP ONDERWAARDERING v2.0
 
-Screent op "Growth At a Reasonable Price", geïnspireerd op de
-selectiecriteria uit de TopAandelen.com-rapporten (Jack Hoogland):
-terugverdienperiode t.o.v. boekwaarde, koers-winstverhouding op
-verwachte winst, winstgroei en rendement op eigen vermogen (RoE).
-
-Criteria (score 0-6):
-  1. RoE                — returnOnEquity >= roe_min (winst wordt goed herbelegd)
-  2. Terugverdienperiode  — (koers - boekwaarde/aandeel) / winst huidig jaar <= terugverdien_max_jaar
-                            (boekwaarde >= koers geeft een negatieve/lage periode en telt ook mee)
-  3. Forward P/E          — koers / verwachte winst komend jaar, tussen 0 en fwd_pe_max
-  4. Verwachte winstgroei — (forwardEps - trailingEps) / trailingEps > 0%
-  5. Marktkap (small/midcap) — marketCap <= marktkap_max (BeursBrink-stijl: focus op kleinere,
-                                onderbelichte bedrijven i.p.v. large caps)
-  6. Lage analist-coverage    — numberOfAnalystOpinions <= analisten_max (hoe minder analisten volgen
-                                het aandeel, hoe groter de kans op een "vergeten pareltje")
-
-TWEE MODI:
-  live      — dagelijks (ma-vr), scant de voorgefilterde tickers_0NNx.txt
-              (Nitro-kwaliteitslijsten), top 5 per beurs, score>=3.
-              Universum: ~1.200 tickers, run duurt ~15-20 minuten.
-  full      — wekelijks (zaterdag), scant de RUWE tickers_0NNa.txt
-              (alle tickers per beurs, ~15.300 in totaal), top 3 per
-              beurs, strenger (score>=4 = perfecte score). Draait op
-              een moment dat geen enkele beurs wereldwijd open is, om
-              GitHub Actions-wachtrijen op populaire cron-tijden te
-              vermijden. Logt onder een aparte strategienaam
-              ("bot_01hoogl_full") zodat dit niet door de dagelijkse
-              resultaten heen loopt in Supabase.
-
-Rapportage: Telegram + email, één bericht per beurs, lege beurzen worden
-overgeslagen.
-
-Supabase: logt naar de bestaande gedeelde `selecties`-tabel (db_logger.py).
-De parameters van deze bot (roe_pct, terugverdienperiode, forward_pe,
-verwachte_winstgroei_pct) zijn toegevoegd aan db_logger.py's
-_KOLOM_WHITELIST — vereist de bijhorende ALTER TABLE-migratie op
-Supabase, zie migratie_hoogl_kolommen.sql.
-
-Wijziging (2026-09-22): adaptieve rate-limit-backoff toegevoegd n.a.v. de
-full-scan-run van 2026-09-22, waar Yahoo vanaf beurs 044 (Spanje/Portugal)
-op VRIJWEL ELKE resterende ticker "Too Many Requests" teruggaf -- 16 van
-de 19 beurzen leverden daardoor 0 geanalyseerde tickers op, zonder dat de
-run zelf crashte of dat zichtbaar was in de eindstatus ("Klaar."). Er was
-geen enkele backoff-logica: de bot bleef in exact hetzelfde tempo
-doorbeuken tegen de rate limit voor de volledige resterende looptijd
-(~27 minuten, ~13.150 tickers, allemaal zinloos).
-
-Nieuwe aanpak: analyse_ticker() herkent een rate-limit-fout specifiek
-(tekst "Too Many Requests"/"Rate limited" in de exception) en meldt dit
-terug aan run_engine() via een tweede returnwaarde. run_engine() houdt
-een lopende teller van OPEENVOLGENDE rate-limit-fouten bij over de HELE
-run (niet per beurs -- de vorige run toonde dat de blokkade beursgrenzen
-overschrijdt). Bij het bereiken van RATE_LIMIT_CONSECUTIVE_DREMPEL wordt
-er RATE_LIMIT_PAUZE_SEC gepauzeerd en de doorlopende throttle blijvend
-opgehoogd, tot een maximum van RATE_LIMIT_MAX_PAUZES pauzes; wordt dat
-budget overschreden, dan stopt de run bewust vroegtijdig (i.p.v. de
-resterende duizenden tickers zinloos te blijven proberen tot de GH
-Actions-timeout van 300 minuten) en wordt dat expliciet gemeld in
-Telegram/e-mail zodat het niet stilzwijgend verborgen blijft.
-
-Gebruik:
-  python bot_01hoogl.py live      # dagelijks rapport (x-lijsten)
-  python bot_01hoogl.py full      # wekelijks full-scan rapport (a-lijsten, strenger)
-  python bot_01hoogl.py backtest  # niet ondersteund (analyst-EPS-schattingen hebben geen
-                                    # bruikbare historische reeks via yfinance) — print uitleg en stopt
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Bevat rate-limit-backoff en ondersteunt live/full modus.
 """
 
-import os
 import sys
 import math
-import warnings
-import datetime as dt
 import time
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import smtplib
 
 import yfinance as yf
-import requests
+
+from common import (
+    today_str, safe_float, yahoo_link,
+    load_tickers_from_file, bouw_bestandslijst, label_voor,
+    send_telegram, send_email
+)
 
 try:
     from db_logger import log_selectie
@@ -92,65 +28,24 @@ except Exception as _e:
     def log_selectie(*args, **kwargs):
         return False
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 # ============================================================
 # CONFIG
 # ============================================================
 
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-EMAIL_USER       = os.getenv("EMAIL_USER", "")
-EMAIL_PASS       = os.getenv("EMAIL_PASS", "")
-EMAIL_RECEIVER   = os.getenv("EMAIL_RECEIVER", "")
+RATE_LIMIT_CONSECUTIVE_DREMPEL = 5
+RATE_LIMIT_PAUZE_SEC           = 300
+RATE_LIMIT_MAX_PAUZES          = 6
+RATE_LIMIT_THROTTLE_VERHOGING  = 0.5
 
-# Rate-limit-backoff (zie moduledocstring, 2026-09-22).
-RATE_LIMIT_CONSECUTIVE_DREMPEL = 5      # na zoveel opeenvolgende rate-limit-fouten: pauzeren
-RATE_LIMIT_PAUZE_SEC           = 300    # 5 minuten pauze bij het bereiken van de drempel
-RATE_LIMIT_MAX_PAUZES          = 6      # max. aantal pauzes per run (budget: 6x5min = 30min)
-RATE_LIMIT_THROTTLE_VERHOGING  = 0.5    # throttle_sec blijvend verhogen na elke pauze
-
-# Beursnamen per nummer (suffix-onafhankelijk: x of a wordt los toegevoegd)
-BEURS_NAMEN = {
-    "041": "041 Benelux Ierland",
-    "042": "042 Parijs",
-    "043": "043 Frankfurt",
-    "044": "044 Spanje/Portugal",
-    "045": "045 Londen",
-    "046": "046 Milaan",
-    "047": "047 Toronto",
-    "048": "048 Nasdaq/NYSE",
-    "049": "049 Stockholm",
-    "050": "050 Zurich",
-    "051": "051 Warschau",
-    "052": "052 Oslo",
-    "053": "053 Kopenhagen",
-    "054": "054 Helsinki",
-    "055": "055 CSE",
-    "056": "056 NYSE int",
-    "057": "057 NYSE",
-    "058": "058 TSXV",
-    "059": "059 Oostenrijk Slovenie Slovakije",
-}
-
-def bouw_bestandslijst(suffix: str) -> List[str]:
-    """Dynamische 041-059 opbouw. suffix='x' -> kwaliteitslijst, suffix='a' -> alle tickers."""
-    return [f"tickers_{n:03d}{suffix}.txt" for n in range(41, 60)]
-
-def label_voor(f_name: str) -> str:
-    getal = f_name.replace("tickers_", "")[:3]
-    return BEURS_NAMEN.get(getal, f_name.replace(".txt", ""))
-
-# Twee configuraties: dagelijks (x-lijsten, ruimer) vs wekelijks (a-lijsten, strenger)
 MODUS_CFG = {
     "live": {
         "bestand_suffix":       "x",
         "roe_min":              15.0,
         "terugverdien_max_jaar": 15.0,
         "fwd_pe_max":           15.0,
-        "marktkap_max":         5_000_000_000.0,  # small/midcap-plafond (valuta van de ticker zelf)
+        "marktkap_max":         5_000_000_000.0,
         "analisten_max":        5,
-        "min_score":            4,   # was 3/4 (75%) — op 4/6 (~67%) vergelijkbaar strikt
+        "min_score":            4,
         "top_n":                5,
         "strategie":            "bot_01hoogl",
         "label":                "GARP ONDERWAARDERING",
@@ -158,12 +53,12 @@ MODUS_CFG = {
     },
     "full": {
         "bestand_suffix":       "a",
-        "roe_min":              18.0,   # strenger: hogere kwaliteitsdrempel op ongefilterd universum
-        "terugverdien_max_jaar": 10.0,  # strenger: kortere terugverdienperiode
-        "fwd_pe_max":           12.0,   # strenger: lagere forward P/E-cap
+        "roe_min":              18.0,
+        "terugverdien_max_jaar": 10.0,
+        "fwd_pe_max":           12.0,
         "marktkap_max":         5_000_000_000.0,
         "analisten_max":        5,
-        "min_score":            6,      # strenger: enkel de perfecte score
+        "min_score":            6,
         "top_n":                3,
         "strategie":            "bot_01hoogl_full",
         "label":                "GARP ONDERWAARDERING — WEEKLY FULL SCAN",
@@ -172,77 +67,18 @@ MODUS_CFG = {
 }
 
 # ============================================================
-# HULPFUNCTIES  (identiek patroon aan bot_01kasstr.py)
+# HULPFUNCTIES
 # ============================================================
 
-def today_str() -> str:
-    return dt.date.today().strftime("%Y-%m-%d")
-
-def safe_float(val, default: float = float("nan")) -> float:
-    try:
-        f = float(val)
-        return default if math.isnan(f) else f
-    except Exception:
-        return default
-
-def load_tickers_from_file(path: str) -> List[str]:
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        raw = f.read().replace(";", ",").replace(",", "\n").replace("$", "")
-    result = []
-    for line in raw.splitlines():
-        t = line.strip().upper()
-        if t and not t.startswith("#"):
-            result.append(t)
-    return sorted(list(set(result)))
-
 def is_rate_limit_fout(e: Exception) -> bool:
-    """Herkent Yahoo's rate-limit-fout specifiek, om te onderscheiden van
-    andere fouten (delisted ticker, ontbrekende data, netwerkfout, ...) die
-    niet in de opeenvolgende-rate-limit-teller mogen meetellen."""
     tekst = str(e)
     return "Too Many Requests" in tekst or "Rate limited" in tekst
 
-def send_telegram_message(text: str) -> None:
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print(text)
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    try:
-        requests.post(
-            url,
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "Markdown"},
-            timeout=10,
-        )
-    except Exception as e:
-        print(f"Telegram fout: {e}")
-
-def send_email(subject: str, body: str) -> None:
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        return
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = EMAIL_USER
-        msg["To"]      = EMAIL_RECEIVER
-        msg["Subject"] = subject
-        clean = body.replace("*", "").replace("`", "").replace("•", "-").replace("_", "")
-        msg.attach(MIMEText(clean, "plain", "utf-8"))
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
-        server.quit()
-        print(f"Email verzonden naar {EMAIL_RECEIVER}")
-    except Exception as e:
-        print(f"Email fout: {e}")
-
-def _yahoo_link(ticker: str) -> str:
-    return f"[Grafiek](https://finance.yahoo.com/quote/{ticker})"
-
+def _score_bar(score: int) -> str:
+    return "█" * score + "░" * (6 - score) + f" {score}/6"
 
 # ============================================================
-# FUNDAMENTELE DATA — RoE, TERUGVERDIENPERIODE, FORWARD P/E, GROEI
+# FUNDAMENTELE DATA
 # ============================================================
 
 @dataclass
@@ -265,10 +101,6 @@ class HooglSignaal:
     analisten_label:          str
 
 def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool]:
-    """Retourneert (signaal, was_rate_limited). signaal is None bij elke
-    fout of als de ticker geen bruikbare koers heeft; was_rate_limited is
-    enkel True bij een specifiek herkende Yahoo-rate-limit-fout, zodat de
-    caller dat apart kan tellen voor de backoff-logica."""
     try:
         tk   = yf.Ticker(ticker)
         info = tk.info or {}
@@ -287,7 +119,6 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
 
         score = 0
 
-        # 1. RoE (winst wordt goed herbelegd)
         roe_pct = roe * 100 if not math.isnan(roe) else float("nan")
         if not math.isnan(roe_pct) and roe_pct >= cfg["roe_min"]:
             score += 1
@@ -295,7 +126,6 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
         else:
             roe_label = f"✗ {roe_pct:.1f}%" if not math.isnan(roe_pct) else "✗ onbekend"
 
-        # 2. Terugverdienperiode: (koers - boekwaarde/aandeel) / winst huidig jaar
         if not math.isnan(boekwaarde) and not math.isnan(winst_nu) and winst_nu > 0:
             terug_te_verdienen = price - boekwaarde
             terugverdienperiode = terug_te_verdienen / winst_nu
@@ -308,14 +138,12 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
             terugverdienperiode = float("nan")
             terugverdien_label = "✗ onbekend (geen winst/boekwaarde)"
 
-        # 3. Forward P/E
         if not math.isnan(fwd_pe) and 0 < fwd_pe <= cfg["fwd_pe_max"]:
             score += 1
             fwd_pe_label = f"✓ {fwd_pe:.1f}x (<= {cfg['fwd_pe_max']:.0f}x)"
         else:
             fwd_pe_label = f"✗ {fwd_pe:.1f}x" if not math.isnan(fwd_pe) else "✗ onbekend"
 
-        # 4. Verwachte winstgroei (forward EPS vs huidige EPS)
         if not math.isnan(winst_nu) and not math.isnan(winst_verw) and winst_nu > 0:
             verwachte_groei_pct = (winst_verw - winst_nu) / winst_nu * 100
             if verwachte_groei_pct > 0:
@@ -327,14 +155,12 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
             verwachte_groei_pct = float("nan")
             groei_label = "✗ onbekend"
 
-        # 5. Marktkap (small/midcap) — BeursBrink-stijl: kleinere, onderbelichte bedrijven
         if not math.isnan(market_cap) and market_cap > 0 and market_cap <= cfg["marktkap_max"]:
             score += 1
             marktkap_label = f"✓ {market_cap/1e9:.2f}B (<= {cfg['marktkap_max']/1e9:.0f}B)"
         else:
             marktkap_label = f"✗ {market_cap/1e9:.2f}B" if not math.isnan(market_cap) else "✗ onbekend"
 
-        # 6. Lage analist-coverage — hoe minder gevolgd, hoe groter de kans op een "vergeten pareltje"
         analisten_raw = safe_float(info.get("numberOfAnalystOpinions"))
         if not math.isnan(analisten_raw):
             analisten_count = analisten_raw
@@ -344,7 +170,6 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
             else:
                 analisten_label = f"✗ {analisten_count:.0f} analisten"
         else:
-            # onbekend aantal analisten telt niet mee als punt, maar sluit de ticker niet uit
             analisten_count = float("nan")
             analisten_label = "✗ coverage onbekend"
 
@@ -364,23 +189,15 @@ def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool
         return signaal, False
     except Exception as e:
         if is_rate_limit_fout(e):
-            # Geen eigen print hier -- run_engine() logt dit gebundeld via
-            # de opeenvolgende-teller, om de log niet vol te spammen met
-            # duizenden identieke regels zoals in de 2026-09-22-run.
             return None, True
         print(f"[WARN] {ticker}: fout — {e}")
         return None, False
 
-
 # ============================================================
-# TELEGRAM + EMAIL OUTPUT  — één bericht per exchange
+# OUTPUT
 # ============================================================
-
-def _score_bar(score: int) -> str:
-    return "█" * score + "░" * (6 - score) + f" {score}/6"
 
 def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[HooglSignaal], cfg: dict) -> Optional[str]:
-    """Eén bericht per exchange. Lege exchanges -> None."""
     if not alle:
         return None
 
@@ -391,16 +208,9 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
     lbl       = {6: "⭐ PERFECTE SCORE (6/6)", 5: "🟡 STERK (5/6)", 4: "🟠 GOED (4/6)"}.get(max_sc, "📊")
 
     def sig_regel(s: HooglSignaal, detail: bool = False) -> str:
-        r = (
-            f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | "
-            f"RoE:{s.roe_pct:.1f}% | Terugverdien:{s.terugverdienperiode:.1f}j | {_yahoo_link(s.ticker)}"
-        )
+        r = f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | RoE:{s.roe_pct:.1f}% | Terugverdien:{s.terugverdienperiode:.1f}j | {yahoo_link(s.ticker)}"
         if detail:
-            r += (
-                f"\n  {s.roe_label} | {s.terugverdien_label}"
-                f"\n  Fwd P/E: {s.fwd_pe_label} | Verw. winstgroei: {s.groei_label}"
-                f"\n  Marktkap: {s.marktkap_label} | Coverage: {s.analisten_label}"
-            )
+            r += f"\n  {s.roe_label} | {s.terugverdien_label}\n  Fwd P/E: {s.fwd_pe_label} | Verw. winstgroei: {s.groei_label}\n  Marktkap: {s.marktkap_label} | Coverage: {s.analisten_label}"
         return r
 
     delen = [
@@ -417,23 +227,16 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
         for s in overige:
             delen.append(sig_regel(s))
 
-    delen.append(
-        f"⚙️ _RoE>={cfg['roe_min']:.0f}% | terugverdienperiode<={cfg['terugverdien_max_jaar']:.0f}j | "
-        f"forward P/E<={cfg['fwd_pe_max']:.0f}x | verwachte winstgroei>0% | "
-        f"marktkap<={cfg['marktkap_max']/1e9:.0f}B | analisten<={cfg['analisten_max']}_"
-    )
+    delen.append(f"⚙️ _RoE>={cfg['roe_min']:.0f}% | terugverdienperiode<={cfg['terugverdien_max_jaar']:.0f}j | forward P/E<={cfg['fwd_pe_max']:.0f}x | verwachte winstgroei>0% | marktkap<={cfg['marktkap_max']/1e9:.0f}B | analisten<={cfg['analisten_max']}_")
     return "\n\n".join(delen)
 
-
 # ============================================================
-# ENGINE  — gedeeld door live (x-lijsten) en full (a-lijsten)
+# ENGINE
 # ============================================================
 
 def run_engine(modus: str):
     cfg = MODUS_CFG[modus]
-    print(f"{'='*60}")
-    print(f"{cfg['label']}  {today_str()}  [bestand-suffix: {cfg['bestand_suffix']}]")
-    print(f"{'='*60}")
+    print(f"{'='*60}\n{cfg['label']}  {today_str()}  [suffix: {cfg['bestand_suffix']}]\n{'='*60}")
 
     exchange_tickers: Dict[str, List[str]] = {}
     for f_name in bouw_bestandslijst(cfg["bestand_suffix"]):
@@ -451,9 +254,6 @@ def run_engine(modus: str):
 
     email_delen: List[str] = []
 
-    # Rate-limit-backoff-status: loopt over de HELE run, niet per beurs --
-    # de run van 2026-09-22 toonde dat een Yahoo-blokkade beursgrenzen
-    # overschrijdt en niet vanzelf herstelt binnen dezelfde sessie.
     opeenvolgende_rate_limits = 0
     aantal_pauzes = 0
     huidige_throttle = cfg["throttle_sec"]
@@ -483,22 +283,12 @@ def run_engine(modus: str):
 
             if opeenvolgende_rate_limits >= RATE_LIMIT_CONSECUTIVE_DREMPEL:
                 if aantal_pauzes >= RATE_LIMIT_MAX_PAUZES:
-                    print(
-                        f"[RATE LIMIT] Pauzebudget ({RATE_LIMIT_MAX_PAUZES}x{RATE_LIMIT_PAUZE_SEC}s) "
-                        f"uitgeput na {totaal_rate_limit_fouten} rate-limit-fouten in totaal -- "
-                        f"run wordt bewust vroegtijdig gestopt i.p.v. de resterende tickers "
-                        f"zinloos te blijven proberen."
-                    )
+                    print(f"[RATE LIMIT] Pauzebudget uitgeput na {totaal_rate_limit_fouten} fouten -- run stopt.")
                     vroegtijdig_gestopt = True
                     break
                 aantal_pauzes += 1
                 huidige_throttle += RATE_LIMIT_THROTTLE_VERHOGING
-                print(
-                    f"[RATE LIMIT] {opeenvolgende_rate_limits} opeenvolgende rate-limit-fouten "
-                    f"(bij {ex_name}, ticker {ticker}) -- pauze {RATE_LIMIT_PAUZE_SEC}s "
-                    f"(pauze {aantal_pauzes}/{RATE_LIMIT_MAX_PAUZES}), throttle blijvend "
-                    f"verhoogd naar {huidige_throttle:.2f}s"
-                )
+                print(f"[RATE LIMIT] Pauze {RATE_LIMIT_PAUZE_SEC}s ({aantal_pauzes}/{RATE_LIMIT_MAX_PAUZES})")
                 time.sleep(RATE_LIMIT_PAUZE_SEC)
                 opeenvolgende_rate_limits = 0
 
@@ -512,64 +302,36 @@ def run_engine(modus: str):
 
         for rank, s in enumerate(signalen, start=1):
             log_selectie(
-                ticker=s.ticker,
-                datum=today_str(),
-                strategie=cfg["strategie"],
-                beurs=ex_name,
-                koers=s.price,
+                ticker=s.ticker, datum=today_str(), strategie=cfg["strategie"], beurs=ex_name, koers=s.price,
                 parameters={
-                    "score": s.score,
-                    "rank": rank,
-                    "roe_pct": s.roe_pct,
-                    "terugverdienperiode": s.terugverdienperiode,
-                    "forward_pe": s.forward_pe,
-                    "verwachte_winstgroei_pct": s.verwachte_winstgroei_pct,
-                    "div_yield": s.div_yield,
-                    "market_cap": s.market_cap,
-                    "analisten_count": s.analisten_count,
-                    "grafiek": f"https://finance.yahoo.com/quote/{s.ticker}",
+                    "score": s.score, "rank": rank, "roe_pct": s.roe_pct,
+                    "terugverdienperiode": s.terugverdienperiode, "forward_pe": s.forward_pe,
+                    "verwachte_winstgroei_pct": s.verwachte_winstgroei_pct, "div_yield": s.div_yield,
+                    "market_cap": s.market_cap, "analisten_count": s.analisten_count,
+                    "grafiek": yahoo_link(s.ticker),
                 },
             )
 
         bericht = format_bericht(ex_name, signalen, alle, cfg)
         if bericht:
-            send_telegram_message(bericht)
+            send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
             print(f"  → Telegram verstuurd")
         else:
             print(f"  → Overgeslagen: {ex_name}")
 
     if vroegtijdig_gestopt:
-        waarschuwing = (
-            f"⚠️ *{cfg['label']}*: run vroegtijdig gestopt wegens aanhoudende Yahoo-rate-limiting "
-            f"({totaal_rate_limit_fouten} fouten in totaal, pauzebudget van "
-            f"{RATE_LIMIT_MAX_PAUZES}x{RATE_LIMIT_PAUZE_SEC}s uitgeput). Niet alle beurzen "
-            f"zijn (volledig) gescand deze run."
-        )
-        send_telegram_message(waarschuwing)
+        waarschuwing = f"⚠️ Run vroegtijdig gestopt wegens rate limiting ({totaal_rate_limit_fouten} fouten)."
+        send_telegram(waarschuwing)
         email_delen.append(waarschuwing)
-    elif totaal_rate_limit_fouten:
-        print(f"\n[INFO] {totaal_rate_limit_fouten} rate-limit-fouten opgevangen tijdens deze run "
-              f"({aantal_pauzes} pauze(s) van {RATE_LIMIT_PAUZE_SEC}s), run toch volledig doorlopen.")
 
     if email_delen:
-        send_email(
-            f"{cfg['label']} {today_str()}",
-            "\n\n" + ("=" * 40 + "\n\n").join(email_delen),
-        )
+        send_email(f"{cfg['label']} {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
 
-    print(f"\n{'='*60}")
-    print("Klaar." if not vroegtijdig_gestopt else "Vroegtijdig gestopt (rate limiting).")
-
+    print(f"\n{'='*60}\nKlaar.")
 
 def run_backtest():
-    print(
-        "Backtest wordt niet ondersteund voor bot_01hoogl: yfinance biedt geen "
-        "betrouwbare historische reeks van analyst-EPS-schattingen (forwardEps/forwardPE) "
-        "per scandatum in het verleden, enkel de actuele consensus. "
-        "Gebruik 'live' of 'full' om het huidige universum te screenen."
-    )
-
+    print("Backtest wordt niet ondersteund voor bot_01hoogl.")
 
 # ============================================================
 # ENTRYPOINT
