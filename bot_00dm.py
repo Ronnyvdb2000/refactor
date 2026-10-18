@@ -14,6 +14,7 @@ class BTPosition:
     tp:          Optional[float]
     atr:         float
     days:        int = 0
+    from dataclasses import dataclass
 
 def run_backtest():
     print(f"{'='*60}")
