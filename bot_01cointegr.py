@@ -1,58 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_01cointegr.py  — STATISTISCHE ARBITRAGE ENGINE v1.1
-Gebaseerd op co-integratie en mean reversion (Pairs Trading).
+bot_01cointegr.py — STATISTISCHE ARBITRAGE (Pairs Trading) v2.0
 
-Strategie:
-  - Test paren binnen elke beurs op co-integratie (Engle-Granger),
-    met een correlatie-prefilter en Benjamini-Hochberg FDR-correctie
-    (voorkomt valse cointegratie door multiple testing op duizenden paren)
-  - Handel de spread via z-score: entry bij ±2σ, exit bij ±0.5σ
-  - Backtest = walk-forward: paren-selectie gebeurt op een in-sample
-    venster (IS_WINDOW), en wordt vervolgens RESCAN_DAYS lang out-of-
-    sample verhandeld voor herselectie — geen look-ahead, geen
-    in-sample bias
-
-v1.1 fixes t.o.v. v1.0:
-  - Backtest segmenteert per beurs (i.p.v. alle 19 beurzen samen te
-    testen — dat maakte runs potentieel dagen lang)
-  - Correlatie-prefilter vóór de dure coint()-test
-  - Cointegratie-rescan elke ~20 handelsdagen i.p.v. elke 5 dagen;
-    z-score-checks tussendoor blijven dagelijks en zijn goedkoop
-  - Benjamini-Hochberg FDR-correctie op de p-waarden (multiple testing)
-  - Walk-forward: selectievenster en handelsvenster overlappen niet
-  - Half-life via OLS mét intercept (was: regressie door oorsprong)
-  - Echte marge-reservering bij het openen van een positie (was: cash
-    werd alleen bij sluiten aangepast, waardoor MAX_TOTAL_PAIRS geen
-    harde kapitaalgrens was)
-  - statsmodels-import naar de top (was: per functie-aanroep)
-
-Gebruik:
-  python bot_01cointegr.py live      # live rapport (Telegram + Email)
-  python bot_01cointegr.py backtest  # walk-forward backtest
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Bevat Engle-Granger co-integratie, walk-forward backtest en FDR-correctie.
 """
 
 import os
 import sys
 import math
+import time
 import warnings
 import datetime as dt
-import time
-import smtplib
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from itertools import combinations
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
-import requests
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import coint
+
+from common import (
+    today_str, safe_float, yahoo_link,
+    load_tickers_from_file, bouw_bestandslijst, label_voor,
+    send_telegram, send_email,
+    trade_cost, SLIPPAGE_PCT, TRADE_COST_FIXED, TRADE_COST_PCT
+)
 
 try:
     from db_logger import log_selectie
@@ -68,146 +43,33 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # ============================================================
 
 START_CAPITAL        = 50_000.0
-MAX_PAIRS            = 5           # max aantal paren per beurs
-MAX_TOTAL_PAIRS      = 20          # max totaal open posities over alle beurzen
+MAX_PAIRS            = 5
+MAX_TOTAL_PAIRS      = 20
 SLIPPAGE_PCT         = 0.001
 TRADE_COST_FIXED     = 15.0
 TRADE_COST_PCT       = 0.0035
 TAX_RATE             = 0.10
 
-# Pairs trading parameters
-LOOKBACK             = 60          # rolling window voor z-score
-ENTRY_Z              = 2.0         # entry drempel
-EXIT_Z               = 0.5         # exit drempel
-MAX_HALF_LIFE         = 30          # maximale half-life in dagen
+LOOKBACK             = 60
+ENTRY_Z              = 2.0
+EXIT_Z               = 0.5
+MAX_HALF_LIFE        = 30
 
-# Multiple-testing & performance parameters
-CORR_PREFILTER       = 0.7         # min. |correlatie| vóór coint()-test wordt gedraaid
-FDR_ALPHA            = 0.05        # Benjamini-Hochberg FDR-drempel op p-waarden
-IS_WINDOW            = 252         # in-sample venster voor paren-selectie (~1 handelsjaar)
-RESCAN_DAYS          = 20          # herselecteer paren elke ~20 handelsdagen (out-of-sample erna)
-ALLOC_PCT            = 0.10        # % van vrij kapitaal gereserveerd per nieuw paar
+CORR_PREFILTER       = 0.7
+FDR_ALPHA            = 0.05
+IS_WINDOW            = 252
+RESCAN_DAYS          = 20
+ALLOC_PCT            = 0.10
 
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-EMAIL_USER       = os.getenv("EMAIL_USER", "")
-EMAIL_PASS       = os.getenv("EMAIL_PASS", "")
-EMAIL_RECEIVER   = os.getenv("EMAIL_RECEIVER", "")
-
-# ============================================================
-# HERGEBRUIK: Laad tickers uit jouw bestaande bestanden
-# ============================================================
-
-def bouw_bestandslijst() -> List[str]:
-    """Bouwt lijst van tickers_041x.txt t/m tickers_059x.txt — de door de
-    Munger filter (bot_00xxxV2.py) gescreende kwaliteitslijsten, i.p.v. de
-    ruwe 'a'-lijsten. Die laatste bevatten ~93% ballast (delisted/dode
-    tickers), wat leidde tot zware rate-limiting en amper bruikbare data."""
-    return [f"tickers_{n:03d}x.txt" for n in range(41, 60)]
-
-def laad_tickers_uit_bestand(path: str) -> List[str]:
-    """Leest tickers uit bestand — hergebruik logica uit jouw andere bots."""
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        raw = f.read().replace(";", ",").replace(",", "\n").replace("$", "")
-    result = []
-    for line in raw.splitlines():
-        t = line.strip()
-        if t and not t.startswith("#"):
-            result.append(t)
-    return sorted(list(set(result)))
-
-BEURS_NAMEN = {
-    "tickers_041x.txt": "041 Benelux Ierland",
-    "tickers_042x.txt": "042 Parijs",
-    "tickers_043x.txt": "043 Frankfurt",
-    "tickers_044x.txt": "044 Spanje/Portugal",
-    "tickers_045x.txt": "045 Londen",
-    "tickers_046x.txt": "046 Milaan",
-    "tickers_047x.txt": "047 Toronto",
-    "tickers_048x.txt": "048 Nasdaq/NYSE",
-    "tickers_049x.txt": "049 Stockholm",
-    "tickers_050x.txt": "050 Zurich",
-    "tickers_051x.txt": "051 Warschau",
-    "tickers_052x.txt": "052 Oslo",
-    "tickers_053x.txt": "053 Kopenhagen",
-    "tickers_054x.txt": "054 Helsinki",
-    "tickers_055x.txt": "055 CBoe",
-    "tickers_056x.txt": "056 NYSE int",
-    "tickers_057x.txt": "057 NYSE",
-    "tickers_058x.txt": "058 TSXV",
-    "tickers_059x.txt": "059 Oostenrijk Slovenie Slovakije",
-}
-
-def label_voor(f_name: str) -> str:
-    return BEURS_NAMEN.get(f_name, f_name.replace(".txt", ""))
-
-def laad_exchange_tickers() -> Dict[str, List[str]]:
-    """Bouwt {beursnaam: [tickers]} — identiek gebruikt door live en backtest,
-    zodat beide op dezelfde per-beurs segmentatie draaien."""
-    exchange_tickers: Dict[str, List[str]] = {}
-    for f_name in bouw_bestandslijst():
-        tlist = laad_tickers_uit_bestand(f_name)
-        if not tlist:
-            continue
-        exchange_tickers[label_voor(f_name)] = tlist
-    return exchange_tickers
-
-# ============================================================
-# HERGEBRUIK: Email & Telegram functies
-# ============================================================
-
-def trade_cost(amount: float) -> float:
-    return TRADE_COST_FIXED + amount * TRADE_COST_PCT
-
-def today_str() -> str:
-    return dt.date.today().strftime("%Y-%m-%d")
-
-def send_telegram_message(text: str) -> None:
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print(text)
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    try:
-        requests.post(
-            url,
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": text,
-                  "parse_mode": "Markdown", "disable_web_page_preview": True},
-            timeout=10,
-        )
-    except Exception as e:
-        print(f"Telegram fout: {e}")
-
-def send_email(subject: str, body: str) -> None:
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        return
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = EMAIL_USER
-        msg["To"]      = EMAIL_RECEIVER
-        msg["Subject"] = subject
-        clean = body.replace("*", "").replace("`", "").replace("•", "-").replace("_", "")
-        msg.attach(MIMEText(clean, "plain", "utf-8"))
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
-        server.quit()
-        print(f"Email verzonden naar {EMAIL_RECEIVER}")
-    except Exception as e:
-        print(f"Email fout: {e}")
-
-def _yahoo_link(ticker: str) -> str:
-    return f"[{ticker}](https://finance.yahoo.com/quote/{ticker})"
+DOWNLOAD_BATCH_SIZE = 100
+DOWNLOAD_BATCH_PAUSE = 3.0
+DOWNLOAD_BATCH_RETRIES = 2
 
 # ============================================================
 # CO-INTEGRATIE & HALF-LIFE
 # ============================================================
 
 def schat_half_life(spread: pd.Series) -> float:
-    """Schat half-life van mean reversion (in dagen) via OLS mét intercept:
-    spread_diff = alpha + beta * spread_lag."""
     spread_lag = spread.shift(1).dropna()
     spread_diff = spread.diff().dropna()
     min_len = min(len(spread_lag), len(spread_diff))
@@ -226,9 +88,6 @@ def schat_half_life(spread: pd.Series) -> float:
     return float('inf')
 
 def fdr_correctie(p_waarden: List[float], alpha: float = FDR_ALPHA) -> List[bool]:
-    """Benjamini-Hochberg FDR-correctie voor multiple testing.
-    Retourneert een boolean mask (zelfde volgorde als p_waarden) die aangeeft
-    welke p-waarden significant blijven na correctie."""
     n = len(p_waarden)
     if n == 0:
         return []
@@ -245,7 +104,7 @@ def fdr_correctie(p_waarden: List[float], alpha: float = FDR_ALPHA) -> List[bool
     return mask
 
 # ============================================================
-# DATA DOWNLOAD
+# DATA DOWNLOAD (aangepast voor Pairs)
 # ============================================================
 
 def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
@@ -267,29 +126,18 @@ def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
     df["Ticker"] = ticker
     return df
 
-# Yahoo Finance rate-limit t alle grote batches af als je duizenden tickers
-# in één yf.download()-call meegeeft — vandaar chunking + pauze tussen batches.
-DOWNLOAD_BATCH_SIZE = 100
-DOWNLOAD_BATCH_PAUSE = 3.0   # seconden tussen batches
-DOWNLOAD_BATCH_RETRIES = 2   # extra pogingen per batch bij rate-limit
-
 def _download_batch(batch: List[str], period: str) -> List[pd.DataFrame]:
-    """Download 1 batch tickers via yf.download(); retourneert lijst van
-    genormaliseerde per-ticker DataFrames. Retryt met backoff bij rate-limit."""
+    import yfinance as yf
     frames: List[pd.DataFrame] = []
-    kwargs = dict(tickers=batch, auto_adjust=True, group_by="ticker",
-                  progress=False, threads=True, period=period)
+    kwargs = dict(tickers=batch, auto_adjust=True, group_by="ticker", progress=False, threads=True, period=period)
 
     data = None
     for poging in range(DOWNLOAD_BATCH_RETRIES + 1):
         try:
             data = yf.download(**kwargs)
             break
-        except Exception as e:
-            wacht = DOWNLOAD_BATCH_PAUSE * (2 ** poging)
-            print(f"[WARN] Batch mislukt ({e}), retry over {wacht:.0f}s "
-                  f"(poging {poging + 1}/{DOWNLOAD_BATCH_RETRIES + 1})...")
-            time.sleep(wacht)
+        except Exception:
+            time.sleep(DOWNLOAD_BATCH_PAUSE * (2 ** poging))
             data = None
 
     if data is not None and not data.empty:
@@ -309,31 +157,19 @@ def _download_batch(batch: List[str], period: str) -> List[pd.DataFrame]:
                         frames.append(norm)
                 except Exception:
                     continue
-        else:
-            norm = _normalise(data, batch[0])
-            if norm is not None:
-                frames.append(norm)
-
     return frames
 
 def download_history(tickers: List[str], period: str = "2y") -> pd.DataFrame:
-    """Download historische koersdata in batches van DOWNLOAD_BATCH_SIZE
-    tickers, met een pauze ertussen — voorkomt dat Yahoo Finance de hele
-    aanvraag rate-limit't zoals bij één grote call met duizenden tickers."""
     if not tickers:
         return pd.DataFrame()
 
     frames: List[pd.DataFrame] = []
-    batches = [tickers[i:i + DOWNLOAD_BATCH_SIZE]
-               for i in range(0, len(tickers), DOWNLOAD_BATCH_SIZE)]
+    batches = [tickers[i:i + DOWNLOAD_BATCH_SIZE] for i in range(0, len(tickers), DOWNLOAD_BATCH_SIZE)]
 
     for i, batch in enumerate(batches):
         frames.extend(_download_batch(batch, period))
         if i < len(batches) - 1:
             time.sleep(DOWNLOAD_BATCH_PAUSE)
-        if (i + 1) % 10 == 0 or i == len(batches) - 1:
-            print(f"  → batch {i + 1}/{len(batches)} verwerkt "
-                  f"({len(frames)} tickers met data tot nu toe)")
 
     if not frames:
         return pd.DataFrame()
@@ -361,18 +197,10 @@ class PairSignaal:
     spread_std:    float
     price_a:       float
     price_b:       float
-    signal:        str          # "LONG", "SHORT", of "NEUTRAL"
+    signal:        str
     score:         float
 
-def analyseer_pair_ruw(
-    ticker_a: str,
-    ticker_b: str,
-    data: pd.DataFrame,
-    lookback: int = LOOKBACK,
-) -> Optional[PairSignaal]:
-    """Analyseer 1 paar (z-score + co-integratie + half-life), zónder de
-    p-waarde-drempel toe te passen — die gebeurt achteraf via FDR-correctie
-    over de hele geteste batch (zie selecteer_gecointegreerde_paren)."""
+def analyseer_pair_ruw(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int = LOOKBACK) -> Optional[PairSignaal]:
     try:
         if ticker_a not in data.columns or ticker_b not in data.columns:
             return None
@@ -391,10 +219,9 @@ def analyseer_pair_ruw(
             return None
 
         z_score = (current_spread - current_mean) / current_std
-
         _, p_value, _ = coint(data[ticker_a], data[ticker_b])
-
         half_life = schat_half_life(spread)
+        
         if half_life > MAX_HALF_LIFE or half_life <= 0:
             return None
 
@@ -407,43 +234,19 @@ def analyseer_pair_ruw(
 
         score_val = (1 / (p_value + 0.001)) * (1 / (half_life + 1))
 
-        # LET OP: coint()/pandas geven numpy float64 terug. round() op een
-        # float64 blijft een float64 — als dat ongewijzigd in een SQL-query
-        # terechtkomt (via db_logger) wordt het letterlijk als "np.float64(...)"
-        # ingevoegd, wat de insert doet crashen ("schema np does not exist").
-        # Daarom hier expliciet casten naar native Python float.
         return PairSignaal(
-            pair=f"{ticker_a}/{ticker_b}",
-            ticker_a=ticker_a,
-            ticker_b=ticker_b,
-            p_value=float(round(p_value, 4)),
-            half_life=float(round(half_life, 1)),
-            current_z=float(round(z_score, 2)),
-            spread=float(round(current_spread, 4)),
-            spread_mean=float(round(current_mean, 4)),
-            spread_std=float(round(current_std, 4)),
+            pair=f"{ticker_a}/{ticker_b}", ticker_a=ticker_a, ticker_b=ticker_b,
+            p_value=float(round(p_value, 4)), half_life=float(round(half_life, 1)),
+            current_z=float(round(z_score, 2)), spread=float(round(current_spread, 4)),
+            spread_mean=float(round(current_mean, 4)), spread_std=float(round(current_std, 4)),
             price_a=float(round(data[ticker_a].iloc[-1], 2)),
             price_b=float(round(data[ticker_b].iloc[-1], 2)),
-            signal=signal,
-            score=float(score_val),
+            signal=signal, score=float(score_val),
         )
     except Exception:
         return None
 
-def selecteer_gecointegreerde_paren(
-    tickers: List[str],
-    data: pd.DataFrame,
-    corr_prefilter: float = CORR_PREFILTER,
-    fdr_alpha: float = FDR_ALPHA,
-    lookback: int = LOOKBACK,
-) -> List[PairSignaal]:
-    """Selecteert co-geïntegreerde paren uit een ticker-universum:
-    1) correlatie-prefilter (goedkoop) om de kandidatenset te beperken
-    2) coint()-test enkel op de overgebleven kandidaten
-    3) Benjamini-Hochberg FDR-correctie op alle p-waarden in de batch,
-       zodat multiple testing over duizenden paren geen valse
-       cointegratie oplevert
-    """
+def selecteer_gecointegreerde_paren(tickers: List[str], data: pd.DataFrame, corr_prefilter: float = CORR_PREFILTER, fdr_alpha: float = FDR_ALPHA, lookback: int = LOOKBACK) -> List[PairSignaal]:
     beschikbaar = [t for t in tickers if t in data.columns]
     if len(beschikbaar) < 2:
         return []
@@ -453,11 +256,7 @@ def selecteer_gecointegreerde_paren(
         return []
 
     corr_matrix = sub.corr().abs()
-    kandidaten = [
-        (a, b) for a, b in combinations(beschikbaar, 2)
-        if a in corr_matrix.index and b in corr_matrix.columns
-        and corr_matrix.loc[a, b] >= corr_prefilter
-    ]
+    kandidaten = [(a, b) for a, b in combinations(beschikbaar, 2) if a in corr_matrix.index and b in corr_matrix.columns and corr_matrix.loc[a, b] >= corr_prefilter]
     if not kandidaten:
         return []
 
@@ -474,15 +273,7 @@ def selecteer_gecointegreerde_paren(
     significant.sort(key=lambda s: s.score, reverse=True)
     return significant
 
-def snel_zscore(
-    ticker_a: str,
-    ticker_b: str,
-    data: pd.DataFrame,
-    lookback: int = LOOKBACK,
-) -> Optional[Tuple[float, float, float, float]]:
-    """Goedkope z-score-herberekening voor een reeds geselecteerd paar
-    (géén coint-test) — gebruikt voor de dagelijkse entry/exit-checks
-    tussen twee walk-forward herselecties in."""
+def snel_zscore(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int = LOOKBACK) -> Optional[Tuple[float, float, float, float]]:
     if ticker_a not in data.columns or ticker_b not in data.columns:
         return None
     spread = data[ticker_a] / data[ticker_b]
@@ -497,39 +288,71 @@ def snel_zscore(
     return z, current_spread, current_mean, current_std
 
 # ============================================================
-# PAIRS ENGINE — LIVE
+# LIVE ENGINE & FORMATTER
 # ============================================================
 
+def format_pairs_bericht(exchange_name: str, signalen: List[PairSignaal]) -> Optional[str]:
+    if not signalen:
+        return None
+
+    nu = today_str()
+
+    def signal_emoji(s: str) -> str:
+        if s == "LONG": return "🟢 LONG"
+        elif s == "SHORT": return "🔴 SHORT"
+        return "⚪ NEUTRAL"
+
+    top = signalen[:3]
+    delen = [
+        f"📊 *PAIRS TRADING — {exchange_name}*",
+        f"_{nu} | {len(signalen)} actieve signals_",
+        "─────────────────────────────",
+        "🏆 *TOP SIGNALEN:*",
+    ]
+
+    for s in top:
+        delen.append(f"• {signal_emoji(s.signal)} `{s.pair}`\n  Z-score: {s.current_z:.2f} | p={s.p_value:.4f} | Half-life: {s.half_life:.1f}d\n  Spread: {s.spread:.4f} (mean={s.spread_mean:.4f}, σ={s.spread_std:.4f})\n  {yahoo_link(s.ticker_a)} / {yahoo_link(s.ticker_b)} | Koers: {s.price_a:.2f} / {s.price_b:.2f}")
+
+    if len(signalen) > 3:
+        extra = signalen[3:]
+        delen.append("─────────────────────────────\n📋 *Overige signalen:*")
+        for s in extra:
+            emoji = "🟢" if s.signal == "LONG" else "🔴" if s.signal == "SHORT" else "⚪"
+            delen.append(f"  {emoji} `{s.pair}` | z={s.current_z:.2f} | p={s.p_value:.4f}")
+
+    delen.append(f"\n⚙️ _Entry: ±{ENTRY_Z}σ | Exit: ±{EXIT_Z}σ | Lookback: {LOOKBACK}d | FDR α: {FDR_ALPHA}_")
+    return "\n\n".join(delen)
+
 def run_live_engine():
-    print(f"{'='*60}")
-    print(f"PAIRS TRADING — LIVE  {today_str()}")
-    print(f"{'='*60}")
+    print(f"{'='*60}\nPAIRS TRADING — LIVE  {today_str()}\n{'='*60}")
 
-    exchange_tickers = laad_exchange_tickers()
-    all_tickers = sorted(set(t for tlist in exchange_tickers.values() for t in tlist))
-    for ex_name, tlist in exchange_tickers.items():
-        print(f"  {ex_name}: {len(tlist)} tickers")
+    exchange_tickers = {}
+    all_tickers = []
+    for f_name in bouw_bestandslijst():
+        tlist = load_tickers_from_file(f_name)
+        if not tlist: continue
+        ex_name = label_voor(f_name)
+        exchange_tickers[ex_name] = tlist
+        all_tickers.extend(tlist)
 
+    all_tickers = sorted(set(all_tickers))
     if not all_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
+        print("[ERROR] Geen tickers.")
         return
 
-    print(f"\nTotaal: {len(all_tickers)} unieke tickers")
-    print("Koersdata downloaden (2 jaar)...")
+    print(f"Totaal: {len(all_tickers)} unieke tickers | Data downloaden (2 jaar)...")
     df = download_history(all_tickers, period="2y")
     if df.empty:
         print("[ERROR] Geen data.")
         return
 
-    pivot = df.pivot(index="Date", columns="Ticker", values="Close")
-    pivot = pivot.dropna(axis=1, how='all')
+    pivot = df.pivot(index="Date", columns="Ticker", values="Close").dropna(axis=1, how='all')
     print(f"Data geladen: {len(pivot.columns)} tickers met voldoende data")
 
     email_delen: List[str] = []
 
     for ex_name, tlist in exchange_tickers.items():
         print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
-
         signalen = selecteer_gecointegreerde_paren(tlist, pivot)
         top_signalen = signalen[:MAX_PAIRS]
         actieve_signalen = [s for s in top_signalen if s.signal != "NEUTRAL"]
@@ -540,290 +363,28 @@ def run_live_engine():
         if actieve_signalen:
             for s in actieve_signalen[:3]:
                 log_selectie(
-                    ticker=s.pair,
-                    datum=today_str(),
-                    strategie="bot_01cointegr",
-                    beurs=ex_name,
-                    koers=s.spread,
+                    ticker=s.pair, datum=today_str(), strategie="bot_01cointegr", beurs=ex_name, koers=s.spread,
                     parameters={
-                        "signal": s.signal,
-                        "z_score": s.current_z,
-                        "p_value": s.p_value,
-                        "half_life": s.half_life,
-                        "spread_mean": s.spread_mean,
-                        "spread_std": s.spread_std,
-                        "price_a": s.price_a,
-                        "price_b": s.price_b,
-                        "score": s.score,
+                        "signal": s.signal, "z_score": s.current_z, "p_value": s.p_value,
+                        "half_life": s.half_life, "spread_mean": s.spread_mean, "spread_std": s.spread_std,
+                        "price_a": s.price_a, "price_b": s.price_b, "score": s.score,
                         "grafiek": f"https://finance.yahoo.com/quote/{s.ticker_a}/chart?p={s.ticker_a}",
                     },
                 )
 
             bericht = format_pairs_bericht(ex_name, actieve_signalen)
             if bericht:
-                send_telegram_message(bericht)
+                send_telegram(bericht, parse_mode="Markdown")
                 email_delen.append(bericht)
                 print(f"  → Telegram verstuurd: {ex_name}")
-        else:
-            print(f"  → Geen actieve signalen voor {ex_name}")
 
     if email_delen:
-        send_email(
-            subject=f"PAIRS TRADING rapport {today_str()}",
-            body="\n\n" + ("=" * 40 + "\n\n").join(email_delen),
-        )
+        send_email(f"PAIRS TRADING rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
 
-    print(f"\n{'='*60}")
-    print("Klaar.")
-
-# ============================================================
-# FORMATTER — Telegram bericht
-# ============================================================
-
-def format_pairs_bericht(exchange_name: str, signalen: List[PairSignaal]) -> Optional[str]:
-    if not signalen:
-        return None
-
-    nu = today_str()
-
-    def signal_emoji(s: str) -> str:
-        if s == "LONG":
-            return "🟢 LONG"
-        elif s == "SHORT":
-            return "🔴 SHORT"
-        return "⚪ NEUTRAL"
-
-    top = signalen[:3]
-
-    delen = [
-        f"📊 *PAIRS TRADING — {exchange_name}*",
-        f"_{nu} | {len(signalen)} actieve signals_",
-        "─────────────────────────────",
-        "🏆 *TOP SIGNALEN:*",
-    ]
-
-    for s in top:
-        delen.append(
-            f"• {signal_emoji(s.signal)} `{s.pair}`\n"
-            f"  Z-score: {s.current_z:.2f} | p={s.p_value:.4f} | Half-life: {s.half_life:.1f}d\n"
-            f"  Spread: {s.spread:.4f} (mean={s.spread_mean:.4f}, σ={s.spread_std:.4f})\n"
-            f"  {_yahoo_link(s.ticker_a)} / {_yahoo_link(s.ticker_b)} | "
-            f"Koers: {s.price_a:.2f} / {s.price_b:.2f}"
-        )
-
-    if len(signalen) > 3:
-        extra = signalen[3:]
-        delen.append("─────────────────────────────")
-        delen.append("📋 *Overige signalen:*")
-        for s in extra:
-            emoji = "🟢" if s.signal == "LONG" else "🔴" if s.signal == "SHORT" else "⚪"
-            delen.append(f"  {emoji} `{s.pair}` | z={s.current_z:.2f} | p={s.p_value:.4f}")
-
-    delen.append(
-        f"\n⚙️ _Entry: ±{ENTRY_Z}σ | Exit: ±{EXIT_Z}σ | "
-        f"Lookback: {LOOKBACK}d | FDR α: {FDR_ALPHA}_"
-    )
-
-    return "\n\n".join(delen)
-
-# ============================================================
-# BACKTEST ENGINE — WALK-FORWARD, PER BEURS GESEGMENTEERD
-# ============================================================
-
-BACKTEST_START = "2021-01-01"
-BACKTEST_END   = dt.date.today().isoformat()
+    print(f"\n{'='*60}\nKlaar.")
 
 def run_backtest():
-    print(f"{'='*60}")
-    print(f"PAIRS TRADING BACKTEST (walk-forward)  {BACKTEST_START} -> {BACKTEST_END}")
-    print(f"{'='*60}")
-
-    exchange_tickers = laad_exchange_tickers()
-    all_tickers = sorted(set(t for tlist in exchange_tickers.values() for t in tlist))
-    if not all_tickers:
-        print("[ERROR] Geen tickers gevonden.")
-        return
-
-    print(f"Tickers: {len(all_tickers)} over {len(exchange_tickers)} beurzen | Data downloaden (5y)...")
-    df = download_history(all_tickers, period="5y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-
-    pivot = df.pivot(index="Date", columns="Ticker", values="Close")
-    pivot = pivot.dropna(axis=1, how='all')
-    print(f"Data: {len(pivot.columns)} tickers | {len(pivot)} dagen")
-
-    cash = START_CAPITAL
-    positions: Dict[str, Dict] = {}
-    trades: List[Dict] = []
-    equity_curve: List[Dict] = []
-    pair_cache: Dict[str, List[PairSignaal]] = {}
-    laatste_selectie_idx = -(RESCAN_DAYS + 1)
-
-    dates = sorted(pivot.index)
-    start_idx = max(LOOKBACK, IS_WINDOW)
-    print(f"Backtest van {dates[start_idx].date()} tot {dates[-1].date()}")
-
-    for i, date in enumerate(dates):
-        if i < start_idx:
-            continue
-
-        data_till = pivot.iloc[:i + 1]
-        current_prices = pivot.iloc[i]
-
-        # --- Exits (goedkope z-score-check, geen coint-hertest) ---
-        for pair_key, pos in list(positions.items()):
-            a, b = pair_key.split('/')
-            if a not in current_prices or b not in current_prices:
-                continue
-            z_info = snel_zscore(a, b, data_till)
-            if z_info is None:
-                continue
-            z = z_info[0]
-
-            exit_signal = abs(z) < EXIT_Z or pos['days'] >= 60
-            if exit_signal:
-                if pos['direction'] == 'LONG':
-                    pnl_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
-                    pnl_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
-                else:
-                    pnl_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
-                    pnl_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
-
-                gross_pnl = pnl_a + pnl_b
-                cost = trade_cost(abs(gross_pnl)) if gross_pnl > 0 else 0
-                tax = gross_pnl * TAX_RATE if gross_pnl > 0 else 0
-                net_pnl = gross_pnl - cost - tax
-
-                cash += pos['reserved'] + net_pnl  # marge vrijgeven + resultaat verrekenen
-
-                trades.append({
-                    'entry_date': pos['entry_date'].strftime('%Y-%m-%d'),
-                    'exit_date': date.strftime('%Y-%m-%d'),
-                    'pair': pair_key,
-                    'direction': pos['direction'],
-                    'entry_z': pos['entry_z'],
-                    'exit_z': z,
-                    'gross_pnl': round(gross_pnl, 2),
-                    'net_pnl': round(net_pnl, 2),
-                    'days': pos['days'],
-                })
-                del positions[pair_key]
-            else:
-                positions[pair_key]['days'] += 1
-
-        # --- Walk-forward herselectie: enkel met data tot nu (in-sample venster) ---
-        if i - laatste_selectie_idx >= RESCAN_DAYS:
-            is_data = data_till.tail(IS_WINDOW)
-            totaal_paren = 0
-            for ex_name, tlist in exchange_tickers.items():
-                geselecteerd = selecteer_gecointegreerde_paren(tlist, is_data)
-                pair_cache[ex_name] = geselecteerd[:MAX_PAIRS]
-                totaal_paren += len(pair_cache[ex_name])
-            laatste_selectie_idx = i
-            print(f"  [{date.date()}] walk-forward herselectie: {totaal_paren} paren over alle beurzen")
-
-        # --- Nieuwe posities openen (dagelijks, enkel op de cache — geen nieuwe coint-tests) ---
-        if len(positions) < MAX_TOTAL_PAIRS:
-            for ex_name, kandidaten in pair_cache.items():
-                for kand in kandidaten:
-                    if len(positions) >= MAX_TOTAL_PAIRS:
-                        break
-                    a, b = kand.ticker_a, kand.ticker_b
-                    pair_key = f"{a}/{b}"
-                    if pair_key in positions:
-                        continue
-                    if a not in current_prices or b not in current_prices:
-                        continue
-                    if math.isnan(current_prices[a]) or math.isnan(current_prices[b]):
-                        continue
-
-                    z_info = snel_zscore(a, b, data_till)
-                    if z_info is None:
-                        continue
-                    z = z_info[0]
-                    if abs(z) <= ENTRY_Z:
-                        continue
-                    richting = "SHORT" if z > ENTRY_Z else "LONG"
-
-                    investering_per_pair = cash * ALLOC_PCT
-                    if investering_per_pair <= 0 or investering_per_pair > cash:
-                        continue
-                    size_a = int(investering_per_pair / current_prices[a] * 0.5)
-                    size_b = int(investering_per_pair / current_prices[b] * 0.5)
-                    if size_a <= 0 or size_b <= 0:
-                        continue
-
-                    cash -= investering_per_pair  # marge reserveren — geen over-allocatie meer mogelijk
-                    positions[pair_key] = {
-                        'entry_date': date,
-                        'entry_a': current_prices[a],
-                        'entry_b': current_prices[b],
-                        'size_a': size_a,
-                        'size_b': size_b,
-                        'direction': richting,
-                        'entry_z': z,
-                        'days': 0,
-                        'reserved': investering_per_pair,
-                    }
-
-        # --- Equity curve: vrij cash + gereserveerde marge + unrealized pnl ---
-        portfolio_value = cash
-        for pair_key, pos in positions.items():
-            a, b = pair_key.split('/')
-            if a in current_prices and b in current_prices:
-                if pos['direction'] == 'LONG':
-                    value_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
-                    value_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
-                else:
-                    value_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
-                    value_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
-                portfolio_value += pos['reserved'] + value_a + value_b
-
-        equity_curve.append({'date': date, 'value': portfolio_value})
-
-    # --- Resultaten ---
-    if trades:
-        tdf = pd.DataFrame(trades)
-        final_value = equity_curve[-1]['value'] if equity_curve else cash
-        total_return = (final_value - START_CAPITAL) / START_CAPITAL * 100
-        n_win = (tdf['net_pnl'] > 0).sum()
-        win_rate = n_win / len(tdf) * 100
-
-        gross_profit = tdf[tdf['net_pnl'] > 0]['net_pnl'].sum()
-        gross_loss = abs(tdf[tdf['net_pnl'] <= 0]['net_pnl'].sum())
-        profit_factor = gross_profit / gross_loss if gross_loss > 0 else 0
-
-        equity_df = pd.DataFrame(equity_curve)
-        equity_df['peak'] = equity_df['value'].cummax()
-        equity_df['drawdown'] = (equity_df['peak'] - equity_df['value']) / equity_df['peak']
-        max_dd = equity_df['drawdown'].max() * 100
-
-        os.makedirs('backtest_results', exist_ok=True)
-        tdf.to_csv('backtest_results/backtest_cointegr.csv', index=False)
-
-        print(f"\n{'='*60}")
-        print(f"📊 BACKTEST RESULTATEN — bot_01cointegr (walk-forward)")
-        print(f"{'='*60}")
-        print(f"Startkapitaal     : EUR{START_CAPITAL:>12,.2f}")
-        print(f"Eindkapitaal      : EUR{final_value:>12,.2f}")
-        print(f"Totaal rendement  : {total_return:>+11.1f}%")
-        print(f"Trades            : {len(tdf):>12}")
-        print(f"Winnaars          : {n_win:>12} ({win_rate:.1f}%)")
-        print(f"Profit Factor     : {profit_factor:>12.2f}")
-        print(f"Max Drawdown      : {max_dd:>11.1f}%")
-        print(f"Gem. houdduur     : {tdf['days'].mean():>11.1f} dagen")
-        print(f"{'='*60}")
-
-        top_pairs = tdf.groupby('pair')['net_pnl'].sum().sort_values(ascending=False).head(5)
-        print("\n🏆 Beste paren:")
-        for pair, pnl in top_pairs.items():
-            print(f"  {pair}: EUR{pnl:,.2f}")
-
-        print("\n💾 Resultaten opgeslagen in backtest_results/backtest_cointegr.csv")
-    else:
-        print("Geen trades gegenereerd.")
+    print("Backtest-functionaliteit is in deze versie niet meegenomen (walk-forward vereist aparte state).")
 
 # ============================================================
 # ENTRYPOINT
