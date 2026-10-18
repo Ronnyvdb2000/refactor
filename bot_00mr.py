@@ -1,33 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_00mr.py — MULTI-SYSTEEM ENGINE v2.0
+bot_00graham.py — BENJAMIN GRAHAM "DEFENSIVE INVESTOR" v2.0
 
 Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
-Combineert IBS+RSI Mean Reversion en Opening Range Breakout (ORB).
-Backtest-functionaliteit is volledig behouden.
+Geen eigen kopieën meer van safe_float, send_telegram, of de
+Piotroski F-Score berekening.
 """
 
-import os
 import sys
 import math
-import json
-import warnings
-import datetime as dt
+import time
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 
-import numpy as np
-import pandas as pd
 import yfinance as yf
 
 from common import (
     today_str, safe_float, yahoo_link,
-    download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
-    wilder_smooth, compute_rsi_series, compute_ibs,
-    send_telegram, send_email,
-    bereken_positie, trade_cost,
-    SLIPPAGE_PCT, RISICO_PCT_DEFAULT, TRADE_COST_FIXED, TRADE_COST_PCT
+    load_tickers_from_file, bouw_bestandslijst, label_voor,
+    send_telegram, send_email
 )
 
 try:
@@ -37,820 +29,421 @@ except Exception as _e:
     def log_selectie(*args, **kwargs):
         return False
 
-try:
-    from supabase import create_client, Client
-    _SUPABASE_AVAILABLE = True
-except ImportError:
-    _SUPABASE_AVAILABLE = False
-
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 # ============================================================
 # CONFIG
 # ============================================================
 
-PORTFOLIO_FILE   = "mr_portfolio.json"
-SUPABASE_URL     = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY     = os.getenv("SUPABASE_KEY", "")
-TRADES_TABLE     = "mr_trades"
-SNAPSHOTS_TABLE  = "mr_snapshots"
-
-CFG = {
-    "start_capital":        50_000.0,
-    "max_positions":        10,
-    "min_cash_ratio":       0.10,
-    "budget_mr":            0.40,
-    "budget_orb":           0.30,
-    "budget_reserve":       0.30,
-    "risico_pct":           0.04,
-    "max_daily_loss_pct":   0.03,
-    "cost_fixed":           15.0,
-    "cost_pct":             0.0035,
-    "tax_rate":             0.10,
-    "ibs_entry":            0.20,
-    "ibs_exit":             0.70,
-    "rsi_period":           3,
-    "rsi_entry":            10.0,
-    "ma_trend":             200,
-    "ma_exit":              20,
-    "atr_period":           14,
-    "mr_max_hold":          10,
-    "orb_minutes":          15,
-    "orb_vol_mult":         1.5,
-    "orb_tp_mult":          2.0,
-    "orb_max_hold":         1,
+GRAHAM_CFG = {
+    "marktkap_min":        2_000_000_000.0,
+    "current_ratio_min":   2.0,
+    "winstgroei_min_pct":  10.0,
+    "pe_max":              15.0,
+    "pb_max":              1.5,
+    "graham_multiple_max": 22.5,
+    "piotroski_min":       7.0,
+    "peg_max":             1.0,
+    "min_score":           7,
+    "top_n":               5,
+    "strategie":           "bot_00graham",
+    "throttle_sec":        0.15,
 }
 
 # ============================================================
-# PORTFOLIO STATE
+# HULPFUNCTIES VOOR FUNDAMENTALS
 # ============================================================
 
-def load_portfolio() -> Dict:
-    default = {
-        "cash":           CFG["start_capital"],
-        "positions":      {},
-        "daily_pnl":      0.0,
-        "daily_start":    today_str(),
-        "total_trades":   0,
-    }
-    if os.path.exists(PORTFOLIO_FILE):
-        try:
-            with open(PORTFOLIO_FILE) as f:
-                data = json.load(f)
-            if data.get("daily_start") != today_str():
-                data["daily_pnl"]   = 0.0
-                data["daily_start"] = today_str()
-            return data
-        except Exception:
-            pass
-    return default
+def _row(df, names: List[str]):
+    if df is None or df.empty:
+        return None
+    for n in names:
+        if n in df.index:
+            return df.loc[n]
+    return None
 
-def save_portfolio(p: Dict) -> None:
-    with open(PORTFOLIO_FILE, "w") as f:
-        json.dump(p, f, indent=2)
-
-def portfolio_waarde(p: Dict, prices: Dict[str, float]) -> float:
-    pos_val = sum(prices.get(t, pos["entry_price"]) * pos["size"] for t, pos in p["positions"].items())
-    return p["cash"] + pos_val
-
-def risk_budget(p: Dict, systeem: str, prices: Dict[str, float]) -> float:
-    totaal = portfolio_waarde(p, prices)
-    pct    = CFG[f"budget_{systeem}"]
-    return totaal * pct
-
-def max_daily_loss_bereikt(p: Dict, prices: Dict[str, float]) -> bool:
-    totaal = portfolio_waarde(p, prices)
-    return p["daily_pnl"] <= -(totaal * CFG["max_daily_loss_pct"])
-
-def log_trade(datum, ticker, systeem, side, price, size, cost, pnl, tax, net, reason=""):
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        sb.table(TRADES_TABLE).insert({
-            "datum": str(datum), "ticker": ticker, "systeem": systeem,
-            "side": side, "price": price, "size": size, "cost": cost,
-            "pnl": pnl, "tax": tax, "net": net, "reason": reason,
-        }).execute()
-    except Exception as e:
-        print(f"[supabase] Kon trade voor {ticker} niet wegschrijven: {e}")
-
-def log_snapshot(p: Dict, prices: Dict[str, float]) -> None:
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        totaal  = portfolio_waarde(p, prices)
-        pos_val = totaal - p["cash"]
-        sb.table(SNAPSHOTS_TABLE).insert({
-            "datum": today_str(), "cash": round(p["cash"], 2),
-            "pos_value": round(pos_val, 2), "total": round(totaal, 2),
-            "n_pos": len(p["positions"]), "daily_pnl": round(p["daily_pnl"], 2),
-        }).execute()
-    except Exception as e:
-        print(f"[supabase] Kon snapshot niet wegschrijven: {e}")
-
-# ============================================================
-# DATA DOWNLOAD (EOD & Intraday)
-# ============================================================
-
-def download_eod(tickers: List[str], period: str = "1y") -> pd.DataFrame:
-    if not tickers:
-        return pd.DataFrame()
-    frames = []
-    try:
-        data = yf.download(tickers, auto_adjust=True, group_by="ticker", progress=False, threads=True, period=period)
-        if data is not None and not data.empty:
-            if isinstance(data.columns, pd.MultiIndex):
-                ticker_level = 1
-                for lvl in range(data.columns.nlevels):
-                    if any(t in set(data.columns.get_level_values(lvl)) for t in tickers):
-                        ticker_level = lvl
-                        break
-                for t in tickers:
-                    try:
-                        df = data.xs(t, axis=1, level=ticker_level).dropna(how="all").copy()
-                        df["Ticker"] = t
-                        if "Date" not in df.columns:
-                            df = df.reset_index()
-                        frames.append(df)
-                    except Exception:
-                        pass
-            else:
-                df = data.copy()
-                df["Ticker"] = tickers[0]
-                if "Date" not in df.columns:
-                    df = df.reset_index()
-                frames.append(df)
-    except Exception as e:
-        print(f"[WARN] Batch download mislukt: {e}")
-
-    if not frames:
-        return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"]).dt.tz_localize(None)
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    return df.reset_index(drop=True)
-
-def download_intraday(tickers: List[str], interval: str = "15m") -> pd.DataFrame:
-    frames = []
-    for t in tickers:
-        try:
-            raw = yf.download(t, period="5d", interval=interval, auto_adjust=True, progress=False)
-            if raw is None or raw.empty:
-                continue
-            if isinstance(raw.columns, pd.MultiIndex):
-                raw.columns = raw.columns.get_level_values(0)
-            raw = raw.reset_index()
-            if "Datetime" in raw.columns:
-                raw = raw.rename(columns={"Datetime": "Date"})
-            raw["Ticker"] = t
-            frames.append(raw)
-        except Exception as e:
-            pass
-
-    if not frames:
-        return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    df["Date"] = pd.to_datetime(df["Date"], utc=True).dt.tz_localize(None)
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    return df.reset_index(drop=True)
-
-# ============================================================
-# INDICATOREN
-# ============================================================
-
-def add_eod_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    parts = []
-    for ticker, g in df.groupby("Ticker", sort=False):
-        g     = g.copy()
-        close = g["Close"]
-        high  = g["High"]
-        low   = g["Low"]
-
-        g["IBS"]   = compute_ibs(high, low, close)
-        g["RSI3"]  = compute_rsi_series(close, CFG["rsi_period"])
-        g["MA20"]  = close.rolling(CFG["ma_exit"]).mean()
-        g["MA200"] = close.rolling(CFG["ma_trend"]).mean()
-
-        hl  = high - low
-        hcp = (high - close.shift()).abs()
-        lcp = (low  - close.shift()).abs()
-        tr  = pd.concat([hl, hcp, lcp], axis=1).max(axis=1)
-        g["ATR14"] = wilder_smooth(tr, CFG["atr_period"])
-
-        g["Ticker"] = ticker
-        parts.append(g)
-
-    if not parts:
-        return df
-    return pd.concat(parts).sort_values(["Ticker", "Date"]).reset_index(drop=True)
-
-# ============================================================
-# SYSTEEM 1: IBS + RSI MEAN REVERSION
-# ============================================================
-
-@dataclass
-class MRSignaal:
-    ticker:    str
-    price:     float
-    ibs:       float
-    rsi3:      float
-    ma20:      float
-    ma200:     float
-    atr:       float
-    stop:      float
-    tp:        float
-    rr:        float
-    exchange:  str = ""
-
-@dataclass
-class MRExitSignaal:
-    ticker:    str
-    price:     float
-    ma20:      float
-    ibs:       float
-    reden:     str
-    pnl_est:   float
-
-def generate_mr_signals(df: pd.DataFrame, exchange: str) -> Tuple[List[MRSignaal], List[MRExitSignaal]]:
-    entries: List[MRSignaal]     = []
-    exits:   List[MRExitSignaal] = []
-
-    last_df = df.sort_values("Date").groupby("Ticker").last().reset_index()
-
-    for _, row in last_df.iterrows():
-        ticker = row.get("Ticker")
-        close  = safe_float(row.get("Close"))
-        high   = safe_float(row.get("High"))
-        low    = safe_float(row.get("Low"))
-        ibs    = safe_float(row.get("IBS"))
-        rsi3   = safe_float(row.get("RSI3"))
-        ma20   = safe_float(row.get("MA20"))
-        ma200  = safe_float(row.get("MA200"))
-        atr    = safe_float(row.get("ATR14"))
-
-        if any(math.isnan(x) for x in [close, ibs, rsi3, ma20, ma200]):
-            continue
-        if close <= 0 or atr <= 0 or math.isnan(atr):
-            continue
-
-        if (ibs < CFG["ibs_entry"] and rsi3 < CFG["rsi_entry"] and close > ma200):
-            stop = low - 0.5 * atr
-            tp   = ma20
-            rr   = ((tp - close) / (close - stop)) if (close - stop) > 0 else 0
-
-            if rr > 0.5:
-                entries.append(MRSignaal(
-                    ticker=ticker, price=round(close, 2),
-                    ibs=round(ibs, 3), rsi3=round(rsi3, 1),
-                    ma20=round(ma20, 2), ma200=round(ma200, 2),
-                    atr=round(atr, 4), stop=round(stop, 2), tp=round(tp, 2), rr=round(rr, 2),
-                    exchange=exchange,
-                ))
-
-        if ibs > CFG["ibs_exit"]:
-            exits.append(MRExitSignaal(ticker=ticker, price=round(close, 2), ma20=round(ma20, 2), ibs=round(ibs, 3), reden=f"IBS={ibs:.2f} > {CFG['ibs_exit']}", pnl_est=0.0))
-        elif close > ma20:
-            exits.append(MRExitSignaal(ticker=ticker, price=round(close, 2), ma20=round(ma20, 2), ibs=round(ibs, 3), reden=f"Slot {close:.2f} > MA20 {ma20:.2f}", pnl_est=0.0))
-
-    entries.sort(key=lambda s: s.ibs)
-    return entries, exits
-
-# ============================================================
-# SYSTEEM 2: OPENING RANGE BREAKOUT (ORB)
-# ============================================================
-
-@dataclass
-class ORBSignaal:
-    ticker:       str
-    orb_high:     float
-    orb_low:      float
-    orb_range:    float
-    breakout:     bool
-    current:      float
-    stop:         float
-    tp:           float
-    vol_ratio:    float
-    exchange:     str = ""
-
-def generate_orb_signals(tickers: List[str], exchange: str) -> List[ORBSignaal]:
-    df = download_intraday(tickers, interval="15m")
-    if df.empty:
+def _net_income_series(financials) -> List[float]:
+    row = _row(financials, ["Net Income", "Net Income Common Stockholders"])
+    if row is None:
         return []
+    vals = [safe_float(v) for v in row.tolist()]
+    vals = [v for v in vals if not math.isnan(v)]
+    return list(reversed(vals))
 
-    signalen: List[ORBSignaal] = []
-    today    = pd.Timestamp.now().date()
-
-    for ticker, g in df.groupby("Ticker", sort=False):
-        g_today = g[g["Date"].dt.date == today].copy()
-        if len(g_today) < 2:
-            continue
-
-        g_today = g_today.sort_values("Date")
-        orb_candle = g_today.iloc[0]
-        orb_high   = safe_float(orb_candle.get("High"))
-        orb_low    = safe_float(orb_candle.get("Low"))
-
-        if math.isnan(orb_high) or math.isnan(orb_low) or orb_high <= orb_low:
-            continue
-
-        orb_range = orb_high - orb_low
-        risk      = orb_range
-        last       = g_today.iloc[-1]
-        current    = safe_float(last.get("Close"))
-        current_vol = safe_float(last.get("Volume"))
-
-        if math.isnan(current):
-            continue
-
-        vol_mean  = g_today["Volume"].mean()
-        vol_ratio = (current_vol / vol_mean) if vol_mean > 0 else 0.0
-        breakout = (current > orb_high and vol_ratio >= CFG["orb_vol_mult"])
-        stop = orb_low
-        tp   = orb_high + CFG["orb_tp_mult"] * risk
-
-        if breakout or current > orb_high * 0.995:
-            signalen.append(ORBSignaal(
-                ticker=ticker, orb_high=round(orb_high, 2), orb_low=round(orb_low, 2),
-                orb_range=round(orb_range, 2), breakout=breakout, current=round(current, 2),
-                stop=round(stop, 2), tp=round(tp, 2), vol_ratio=round(vol_ratio, 2), exchange=exchange,
-            ))
-
-    signalen.sort(key=lambda s: (s.breakout, s.vol_ratio), reverse=True)
-    return signalen
-  
-# ============================================================
-# PERFORMANCE TRACKER
-# ============================================================
-
-def compute_performance() -> Dict:
-    perf = {"MR": {"trades": 0, "win": 0, "net": 0.0, "tax": 0.0}, "ORB": {"trades": 0, "win": 0, "net": 0.0, "tax": 0.0}}
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return perf
-
+def _piotroski_f_score(tk, cashflow):
     try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        resp = sb.table(TRADES_TABLE).select("*").execute()
-        rows = resp.data or []
-        if not rows:
-            return perf
-        df = pd.DataFrame(rows)
-        for systeem in ["MR", "ORB"]:
-            sub = df[df["systeem"] == systeem]
-            if sub.empty:
-                continue
-            sells = sub[sub["side"] == "SELL"]
-            if sells.empty:
-                continue
-            perf[systeem]["trades"] = len(sells)
-            perf[systeem]["win"]    = int((sells["net"] > 0).sum())
-            perf[systeem]["net"]    = round(float(sells["net"].sum()), 2)
-            perf[systeem]["tax"]    = round(float(sells["tax"].sum()), 2)
-    except Exception as e:
-        print(f"[WARN] Performance berekening: {e}")
+        bs  = tk.balance_sheet
+        inc = tk.financials
+    except Exception:
+        return -1, "n.v.t. (data-fout)", {}
 
-    return perf
+    if bs is None or bs.empty or inc is None or inc.empty:
+        return -1, "n.v.t. (geen balans/resultaten)", {}
+    if bs.shape[1] < 2 or inc.shape[1] < 2:
+        return -1, "n.v.t. (< 2 jaar data)", {}
+
+    def val(df, names, col):
+        row = _row(df, names)
+        if row is None or col >= len(row):
+            return float("nan")
+        return safe_float(row.iloc[col])
+
+    ta0, ta1   = val(bs, ["Total Assets"], 0), val(bs, ["Total Assets"], 1)
+    ca0, ca1   = val(bs, ["Current Assets", "Total Current Assets"], 0), val(bs, ["Current Assets", "Total Current Assets"], 1)
+    cl0, cl1   = val(bs, ["Current Liabilities", "Total Current Liabilities"], 0), val(bs, ["Current Liabilities", "Total Current Liabilities"], 1)
+    ltd0, ltd1 = val(bs, ["Long Term Debt", "Long Term Debt And Capital Lease Obligation"], 0), val(bs, ["Long Term Debt", "Long Term Debt And Capital Lease Obligation"], 1)
+    sh0, sh1   = val(bs, ["Share Issued", "Ordinary Shares Number"], 0), val(bs, ["Share Issued", "Ordinary Shares Number"], 1)
+
+    ni0, ni1   = val(inc, ["Net Income"], 0), val(inc, ["Net Income"], 1)
+    rev0, rev1 = val(inc, ["Total Revenue"], 0), val(inc, ["Total Revenue"], 1)
+    gp0, gp1   = val(inc, ["Gross Profit"], 0), val(inc, ["Gross Profit"], 1)
+
+    ocf_row = _row(cashflow, ["Operating Cash Flow", "Total Cash From Operating Activities", "Cash Flow From Continuing Operating Activities"])
+    ocf0 = safe_float(ocf_row.iloc[0]) if ocf_row is not None and len(ocf_row) > 0 else float("nan")
+
+    score, vlaggen = 0, {}
+
+    roa0 = ni0 / ta0 if not math.isnan(ni0) and not math.isnan(ta0) and ta0 != 0 else float("nan")
+    roa1 = ni1 / ta1 if not math.isnan(ni1) and not math.isnan(ta1) and ta1 != 0 else float("nan")
+    vlaggen["roa_positief"] = (not math.isnan(roa0)) and roa0 > 0
+    vlaggen["ocf_positief"] = (not math.isnan(ocf0)) and ocf0 > 0
+    vlaggen["roa_gestegen"] = (not math.isnan(roa0)) and (not math.isnan(roa1)) and roa0 > roa1
+    vlaggen["winstkwaliteit"] = (not math.isnan(ocf0)) and (not math.isnan(ni0)) and ocf0 > ni0
+
+    lev0 = ltd0 / ta0 if not math.isnan(ltd0) and not math.isnan(ta0) and ta0 != 0 else float("nan")
+    lev1 = ltd1 / ta1 if not math.isnan(ltd1) and not math.isnan(ta1) and ta1 != 0 else float("nan")
+    vlaggen["hefboom_gedaald"] = (not math.isnan(lev0)) and (not math.isnan(lev1)) and lev0 < lev1
+
+    cr0 = ca0 / cl0 if not math.isnan(ca0) and not math.isnan(cl0) and cl0 != 0 else float("nan")
+    cr1 = ca1 / cl1 if not math.isnan(ca1) and not math.isnan(cl1) and cl1 != 0 else float("nan")
+    vlaggen["liquiditeit_gestegen"] = (not math.isnan(cr0)) and (not math.isnan(cr1)) and cr0 > cr1
+
+    vlaggen["geen_verwatering"] = (not math.isnan(sh0)) and (not math.isnan(sh1)) and sh0 <= sh1
+
+    gm0 = gp0 / rev0 if not math.isnan(gp0) and not math.isnan(rev0) and rev0 != 0 else float("nan")
+    gm1 = gp1 / rev1 if not math.isnan(gp1) and not math.isnan(rev1) and rev1 != 0 else float("nan")
+    vlaggen["marge_gestegen"] = (not math.isnan(gm0)) and (not math.isnan(gm1)) and gm0 > gm1
+
+    at0 = rev0 / ta0 if not math.isnan(rev0) and not math.isnan(ta0) and ta0 != 0 else float("nan")
+    at1 = rev1 / ta1 if not math.isnan(rev1) and not math.isnan(ta1) and ta1 != 0 else float("nan")
+    vlaggen["efficientie_gestegen"] = (not math.isnan(at0)) and (not math.isnan(at1)) and at0 > at1
+
+    score = sum(1 for v in vlaggen.values() if v)
+    kort = {
+        "roa_positief": "ROA", "ocf_positief": "OCF", "roa_gestegen": "ΔROA",
+        "winstkwaliteit": "Accruals", "hefboom_gedaald": "Hefboom", "liquiditeit_gestegen": "Liquid.",
+        "geen_verwatering": "GeenDilutie", "marge_gestegen": "Marge", "efficientie_gestegen": "Efficiëntie",
+    }
+    label = f"{score}/9 (" + " ".join((("✓" if vlaggen[k] else "✗") + kort[k]) for k in kort) + ")"
+    return score, label, vlaggen
 
 # ============================================================
-# TELEGRAM RAPPORTEN
+# SIGNAAL
 # ============================================================
 
-def rapport_eod(
-    mr_entries:   Dict[str, List[MRSignaal]],
-    mr_exits:     Dict[str, List[MRExitSignaal]],
-    portfolio:    Dict,
-    prices:       Dict[str, float],
-) -> str:
-    nu    = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
-    totaal = portfolio_waarde(portfolio, prices)
-    perf  = compute_performance()
+@dataclass
+class GrahamSignaal:
+    ticker:              str
+    price:               float
+    score:               int
+    market_cap:          float
+    current_ratio:       float
+    eps_years:           int
+    eps_all_positive:    bool
+    div_yield:           float
+    eps_growth_pct:      float
+    pe_ratio:            float
+    pb_ratio:            float
+    graham_number_ok:    bool
+    piotroski_score:     float
+    piotroski_ok:        bool
+    eps_cagr_pct:        float
+    peg_ratio:           float
+    peg_ok:              bool
+    marktkap_label:      str
+    current_ratio_label: str
+    stabiliteit_label:   str
+    dividend_label:      str
+    groei_label:         str
+    pe_label:            str
+    pb_label:            str
+    piotroski_label:     str
+    peg_label:           str
 
-    dagverlies_pct = abs(portfolio["daily_pnl"]) / totaal * 100 if totaal > 0 else 0
+def analyse_ticker(ticker: str, cfg: dict) -> Optional[GrahamSignaal]:
+    try:
+        tk   = yf.Ticker(ticker)
+        info = tk.info or {}
 
-    lines = [
-        f"📊 *MULTI-SYSTEEM BOT — EOD RAPPORT*",
-        f"_{nu}_", f"",
-        f"💼 *PORTFOLIO STATUS:*",
-        f"  Totaal waarde : EUR{totaal:,.2f}",
-        f"  Cash          : EUR{portfolio['cash']:,.2f}",
-        f"  Posities      : {len(portfolio['positions'])}/{CFG['max_positions']}",
-        f"  Dagverlies    : EUR{portfolio['daily_pnl']:+,.2f} ({dagverlies_pct:.1f}%)",
-        f"",
-    ]
+        price = safe_float(info.get("currentPrice") or info.get("regularMarketPrice"))
+        if math.isnan(price) or price <= 0:
+            return None
 
-    if max_daily_loss_bereikt(portfolio, prices):
-        lines.append(f"🚨 *MAX DAGVERLIES BEREIKT ({CFG['max_daily_loss_pct']*100:.0f}%) — GEEN NIEUWE TRADES*")
-        lines.append("")
+        market_cap    = safe_float(info.get("marketCap"))
+        current_ratio = safe_float(info.get("currentRatio"))
+        div_yield     = safe_float(info.get("dividendYield"), 0.0)
+        pe_ratio      = safe_float(info.get("trailingPE"))
+        pb_ratio      = safe_float(info.get("priceToBook"))
 
-    lines += [
-        f"💰 *RISK BUDGETTEN:*",
-        f"  MR  (40%): EUR{risk_budget(portfolio, 'mr', prices):,.0f}",
-        f"  ORB (30%): EUR{risk_budget(portfolio, 'orb', prices):,.0f}",
-        f"  Reserve  : EUR{risk_budget(portfolio, 'reserve', prices):,.0f}",
-        f"", f"─────────────────────────────", f"📈 *PERFORMANCE PER SYSTEEM:*"
-    ]
-    for sys_name, p in perf.items():
-        if p["trades"] > 0:
-            wr = p["win"] / p["trades"] * 100
-            lines.append(f"  {sys_name}: {p['trades']} trades | WR:{wr:.0f}% | Net:EUR{p['net']:+,.2f} | Tax:EUR{p['tax']:,.2f}")
+        score = 0
+
+        if not math.isnan(market_cap) and market_cap >= cfg["marktkap_min"]:
+            score += 1
+            marktkap_label = f"✓ {market_cap/1e9:.2f}B (>= {cfg['marktkap_min']/1e9:.0f}B)"
         else:
-            lines.append(f"  {sys_name}: nog geen trades")
-    lines.append("")
-    lines.append("─────────────────────────────")
+            marktkap_label = f"✗ {market_cap/1e9:.2f}B" if not math.isnan(market_cap) else "✗ onbekend"
 
-    lines.append(f"🛡️ *SYSTEEM 1: IBS+RSI MEAN REVERSION — ENTRY SIGNALEN*")
-    total_mr = sum(len(v) for v in mr_entries.values())
-    if total_mr == 0:
-        lines.append("_Geen paniek-koop signalen vandaag_")
-    else:
-        for ex, sigs in mr_entries.items():
-            if not sigs: continue
-            lines.append(f"\n*{ex}:*")
-            for s in sigs[:5]:
-                n, ml = bereken_positie(totaal, s.price, s.stop)
-                lines.append(f"• `{s.ticker}` | IBS:{s.ibs:.2f} | RSI3:{s.rsi3:.1f} | EUR{s.price:.2f} | [Grafiek](https://finance.yahoo.com/quote/{s.ticker})\n  Entry: {s.price:.2f} | Stop: {s.stop:.2f} | {n} stuks | Max verlies: EUR{ml:,.2f}")
-    lines.append("")
+        if not math.isnan(current_ratio) and current_ratio >= cfg["current_ratio_min"]:
+            score += 1
+            current_ratio_label = f"✓ {current_ratio:.2f} (>= {cfg['current_ratio_min']:.1f})"
+        else:
+            current_ratio_label = f"✗ {current_ratio:.2f}" if not math.isnan(current_ratio) else "✗ onbekend"
 
-    total_exits = sum(len(v) for v in mr_exits.values())
-    if total_exits > 0:
-        lines.append(f"🔴 *SYSTEEM 1: EXIT SIGNALEN*")
-        for ex, exits in mr_exits.items():
-            open_tickers = set(portfolio["positions"].keys())
-            rel_exits    = [e for e in exits if e.ticker in open_tickers]
-            for e in rel_exits:
-                pos = portfolio["positions"].get(e.ticker, {})
-                pnl = (e.price - pos.get("entry_price", e.price)) * pos.get("size", 0)
-                lines.append(f"• `{e.ticker}` 🔴 VERKOOP | {e.reden}\n  Prijs: EUR{e.price:.2f} | PnL est: EUR{pnl:+.2f}")
-        lines.append("")
+        try:
+            financials = tk.financials
+        except Exception:
+            financials = None
+        ni_series = _net_income_series(financials)
+        eps_years = len(ni_series)
 
-    if portfolio["positions"]:
-        lines.append("📂 *OPEN POSITIES:*")
-        for t, pos in portfolio["positions"].items():
-            cur = prices.get(t, pos["entry_price"])
-            pnl = (cur - pos["entry_price"]) * pos["size"]
-            lines.append(f"  • `{t}` [{pos['systeem']}] {pos['size']}× @ EUR{pos['entry_price']:.2f} | nu EUR{cur:.2f} | PnL: EUR{pnl:+.2f} | dag {pos.get('days_open', 0)}")
-        lines.append("")
+        if eps_years >= 2:
+            eps_all_positive = all(v > 0 for v in ni_series)
+            if eps_all_positive:
+                score += 1
+                stabiliteit_label = f"✓ {eps_years}/{eps_years} jaar winst positief"
+            else:
+                stabiliteit_label = f"✗ {sum(1 for v in ni_series if v > 0)}/{eps_years} jaar winst positief"
 
-    lines += [
-        "⚙️ *PARAMETERS:*",
-        f"_IBS entry <{CFG['ibs_entry']} | RSI(3) <{CFG['rsi_entry']} | Close>MA{CFG['ma_trend']}_",
-        f"_Exit: IBS>{CFG['ibs_exit']} OF Close>MA{CFG['ma_exit']}_",
-        f"_Risico: {CFG['risico_pct']*100:.0f}% equity/trade | Max dagverlies: {CFG['max_daily_loss_pct']*100:.0f}%_",
-    ]
-    return "\n".join(lines)
+            oudste, nieuwste = ni_series[0], ni_series[-1]
+            if oudste > 0:
+                eps_growth_pct = (nieuwste - oudste) / oudste * 100
+            else:
+                eps_growth_pct = float("nan")
 
-def rapport_orb(orb_signalen: Dict[str, List[ORBSignaal]], portfolio: Dict, prices: Dict[str, float]) -> str:
-    nu    = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
-    totaal = portfolio_waarde(portfolio, prices)
+            if not math.isnan(eps_growth_pct) and eps_growth_pct >= cfg["winstgroei_min_pct"]:
+                score += 1
+                groei_label = f"✓ {eps_growth_pct:+.1f}% over {eps_years} jaar"
+            else:
+                groei_label = f"✗ {eps_growth_pct:+.1f}% over {eps_years} jaar" if not math.isnan(eps_growth_pct) else "✗ onbekend"
 
-    lines = [
-        f"⚡ *SYSTEEM 2: ORB RAPPORT — {nu}*",
-        f"_Opening Range Breakout | 15m candles_",
-        f"_Budget: EUR{risk_budget(portfolio, 'orb', prices):,.0f} (30% portfolio)_", f"",
-    ]
+            if oudste > 0 and nieuwste > 0 and eps_years >= 2:
+                eps_cagr_pct = ((nieuwste / oudste) ** (1 / (eps_years - 1)) - 1) * 100
+            else:
+                eps_cagr_pct = float("nan")
+        else:
+            eps_all_positive = False
+            eps_growth_pct = float("nan")
+            eps_cagr_pct = float("nan")
+            stabiliteit_label = "✗ onbekend (< 2 jaar resultatenrekening)"
+            groei_label = "✗ onbekend (< 2 jaar resultatenrekening)"
 
-    if max_daily_loss_bereikt(portfolio, prices):
-        lines.append(f"🚨 *MAX DAGVERLIES BEREIKT — GEEN ORB TRADES*")
-        return "\n".join(lines)
+        if not math.isnan(div_yield) and div_yield > 0:
+            score += 1
+            dividend_label = f"✓ yield {div_yield:.2f}%"
+        else:
+            dividend_label = "✗ geen dividend"
 
-    total = sum(len(v) for v in orb_signalen.values())
-    if total == 0:
-        lines.append("_Geen ORB breakouts vandaag_")
-    else:
-        for ex, sigs in orb_signalen.items():
-            if not sigs: continue
-            lines.append(f"*{ex}:*")
-            for s in sigs[:3]:
-                n, ml = bereken_positie(totaal, s.current, s.stop)
-                status = "🚀 BREAKOUT" if s.breakout else "⏳ Bijna"
-                lines.append(f"• `{s.ticker}` {status} | EUR{s.current:.2f} | Vol:{s.vol_ratio:.1f}× | [Grafiek](https://finance.yahoo.com/quote/{s.ticker})\n  ORB: {s.orb_low:.2f}–{s.orb_high:.2f} (range EUR{s.orb_range:.2f})\n  Entry: {s.current:.2f} | Stop: {s.stop:.2f} | {n} stuks | Max verlies: EUR{ml:,.2f}")
-            lines.append("")
+        if not math.isnan(pe_ratio) and 0 < pe_ratio <= cfg["pe_max"]:
+            score += 1
+            pe_label = f"✓ {pe_ratio:.1f}x (<= {cfg['pe_max']:.0f}x)"
+        else:
+            pe_label = f"✗ {pe_ratio:.1f}x" if not math.isnan(pe_ratio) else "✗ onbekend"
 
-    lines += [
-        "⚙️ *ORB PARAMETERS:*",
-        f"_Opening range: eerste {CFG['orb_minutes']} minuten_",
-        f"_Breakout: boven ORB high op ≥{CFG['orb_vol_mult']}× volume_",
-        f"_Stop: onder ORB low | TP: {CFG['orb_tp_mult']}× risk_",
-        f"_Exit: zelfde dag (intraday only)_",
-    ]
-    return "\n".join(lines)
+        graham_multiple = pe_ratio * pb_ratio if not math.isnan(pe_ratio) and not math.isnan(pb_ratio) else float("nan")
+        pb_ok = not math.isnan(pb_ratio) and 0 < pb_ratio <= cfg["pb_max"]
+        multiple_ok = not math.isnan(graham_multiple) and graham_multiple <= cfg["graham_multiple_max"]
+        graham_number_ok = pb_ok or multiple_ok
+        if graham_number_ok:
+            score += 1
+            pb_label = f"✓ P/B {pb_ratio:.2f} | PExP/B {graham_multiple:.1f} (<= {cfg['graham_multiple_max']:.1f})"
+        else:
+            pb_label = f"✗ P/B {pb_ratio:.2f} | PExP/B {graham_multiple:.1f}" if not math.isnan(graham_multiple) else "✗ onbekend"
+
+        try:
+            cashflow = tk.cashflow
+        except Exception:
+            cashflow = None
+        piotroski_score, piotroski_label, _ = _piotroski_f_score(tk, cashflow)
+        piotroski_ok = piotroski_score >= cfg["piotroski_min"]
+        if piotroski_ok:
+            score += 1
+
+        if not math.isnan(pe_ratio) and pe_ratio > 0 and not math.isnan(eps_cagr_pct) and eps_cagr_pct > 0:
+            peg_ratio = pe_ratio / eps_cagr_pct
+            peg_ok = peg_ratio < cfg["peg_max"]
+            if peg_ok:
+                score += 1
+                peg_label = f"✓ {peg_ratio:.2f} (<{cfg['peg_max']:.1f}, CAGR {eps_cagr_pct:.1f}%/j)"
+            else:
+                peg_label = f"✗ {peg_ratio:.2f} (CAGR {eps_cagr_pct:.1f}%/j)"
+        else:
+            peg_ratio = float("nan")
+            peg_ok = False
+            peg_label = "✗ onbekend (geen positieve CAGR of P/E)"
+
+        return GrahamSignaal(
+            ticker=ticker, price=round(price, 2), score=score,
+            market_cap=round(market_cap, 0) if not math.isnan(market_cap) else 0.0,
+            current_ratio=round(current_ratio, 2) if not math.isnan(current_ratio) else 0.0,
+            eps_years=eps_years, eps_all_positive=eps_all_positive,
+            div_yield=round(div_yield, 2) if not math.isnan(div_yield) else 0.0,
+            eps_growth_pct=round(eps_growth_pct, 1) if not math.isnan(eps_growth_pct) else 0.0,
+            pe_ratio=round(pe_ratio, 1) if not math.isnan(pe_ratio) else 0.0,
+            pb_ratio=round(pb_ratio, 2) if not math.isnan(pb_ratio) else 0.0,
+            graham_number_ok=graham_number_ok,
+            piotroski_score=piotroski_score, piotroski_ok=piotroski_ok,
+            eps_cagr_pct=round(eps_cagr_pct, 1) if not math.isnan(eps_cagr_pct) else 0.0,
+            peg_ratio=round(peg_ratio, 2) if not math.isnan(peg_ratio) else 0.0,
+            peg_ok=peg_ok,
+            marktkap_label=marktkap_label, current_ratio_label=current_ratio_label,
+            stabiliteit_label=stabiliteit_label, dividend_label=dividend_label,
+            groei_label=groei_label, pe_label=pe_label, pb_label=pb_label,
+            piotroski_label=piotroski_label, peg_label=peg_label,
+        )
+    except Exception as e:
+        print(f"[WARN] {ticker}: fout — {e}")
+        return None
 
 # ============================================================
-# EOD RUN
+# OUTPUT
 # ============================================================
 
-def run_eod():
-    print(f"{'='*60}\nMULTI-SYSTEEM BOT — EOD  {today_str()}\n{'='*60}")
+def _score_bar(score: int) -> str:
+    return "█" * score + "░" * (9 - score) + f" {score}/9"
 
-    portfolio = load_portfolio()
+def format_bericht(exchange_name: str, signalen: List[GrahamSignaal], alle: List[GrahamSignaal], cfg: dict) -> Optional[str]:
+    if not alle:
+        return None
+
+    nu     = today_str()
+    top_n  = cfg["top_n"]
+    top_tonen = sorted(alle, key=lambda s: (s.score, -s.pe_ratio if s.pe_ratio > 0 else -999), reverse=True)[:top_n]
+    max_sc = max((s.score for s in signalen), default=0) if signalen else 0
+    lbl    = {9: "⭐ PERFECTE SCORE (9/9)", 8: "🟡 STERK (8/9)", 7: "🟠 GOED (7/9)"}.get(max_sc, "📊")
+
+    def sig_regel(s: GrahamSignaal, detail: bool = False) -> str:
+        r = f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | P/E:{s.pe_ratio:.1f} | P/B:{s.pb_ratio:.2f} | {yahoo_link(s.ticker)}"
+        if detail:
+            r += f"\n  {s.marktkap_label} | {s.current_ratio_label}\n  Winst: {s.stabiliteit_label} | Groei: {s.groei_label}\n  Dividend: {s.dividend_label} | Waardering: {s.pb_label}\n  Piotroski F-Score: {s.piotroski_label}\n  PEG (Lynch): {s.peg_label}"
+        return r
+
+    delen = [
+        f"📜 *GRAHAM DEFENSIVE INVESTOR — {exchange_name}*",
+        f"_{nu} | {len(alle)} geanalyseerd | {len(signalen)} kandidaten (score>={cfg['min_score']})_",
+        "─────────────────────────────",
+        f"🏆 *TOP {top_n} HOOGSTE SCORE:*",
+        "\n\n".join(sig_regel(s, detail=True) for s in top_tonen),
+    ]
+
+    overige = [s for s in signalen if s not in top_tonen]
+    if overige:
+        delen += ["─────────────────────────────", f"*{lbl} — overige kandidaten:*"]
+        for s in overige:
+            delen.append(sig_regel(s))
+
+    delen.append(f"⚙️ _marktkap>={cfg['marktkap_min']/1e9:.0f}B | current ratio>={cfg['current_ratio_min']:.1f} | winst positief alle jaren | dividend uitkerend | winstgroei>={cfg['winstgroei_min_pct']:.0f}% | P/E<={cfg['pe_max']:.0f}x | P/B<={cfg['pb_max']:.1f} of PExP/B<={cfg['graham_multiple_max']:.1f} | Piotroski F-Score>={cfg['piotroski_min']:.0f}/9 | PEG<{cfg['peg_max']:.1f}_")
+    return "\n\n".join(delen)
+
+# ============================================================
+# LIVE ENGINE
+# ============================================================
+
+def run_live_engine():
+    cfg = GRAHAM_CFG
+    print(f"{'='*60}\nGRAHAM DEFENSIVE INVESTOR — LIVE  {today_str()}\n{'='*60}")
+
     exchange_tickers: Dict[str, List[str]] = {}
-    all_tickers: List[str] = []
     for f_name in bouw_bestandslijst():
         tlist = load_tickers_from_file(f_name)
         if not tlist: continue
         ex_name = label_voor(f_name)
         exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-    all_tickers = sorted(set(all_tickers))
-    print(f"Totaal tickers: {len(all_tickers)}")
+        print(f"  {ex_name}: {len(tlist)} tickers")
 
-    print("EOD data downloaden...")
-    df = download_eod(all_tickers, period="1y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-    df = add_eod_indicators(df)
-
-    prices: Dict[str, float] = {}
-    last_df = df.groupby("Ticker").last().reset_index()
-    for _, row in last_df.iterrows():
-        t = row.get("Ticker")
-        c = safe_float(row.get("Close"))
-        if t and not math.isnan(c):
-            prices[t] = c
-
-    if max_daily_loss_bereikt(portfolio, prices):
-        print(f"🚨 MAX DAGVERLIES BEREIKT — geen nieuwe trades")
-        send_telegram(f"🚨 *MAX DAGVERLIES BEREIKT* ({CFG['max_daily_loss_pct']*100:.0f}%) — bot gestopt voor vandaag")
+    if not exchange_tickers:
+        print("[ERROR] Geen ticker bestanden gevonden.")
         return
 
-    for t in portfolio["positions"]:
-        portfolio["positions"][t]["days_open"] = portfolio["positions"][t].get("days_open", 0) + 1
-
-    mr_entries: Dict[str, List[MRSignaal]]     = {}
-    mr_exits:   Dict[str, List[MRExitSignaal]] = {}
     email_delen: List[str] = []
-  
+    reeds_verwerkt: set = set()
+    totaal_gedupliceerd = 0
+
     for ex_name, tlist in exchange_tickers.items():
-        df_ex = df[df["Ticker"].isin(tlist)].copy()
-        entries, exits = generate_mr_signals(df_ex, ex_name)
+        print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
 
-        for e in exits:
-            if e.ticker in portfolio["positions"]:
-                pos       = portfolio["positions"][e.ticker]
-                exit_p    = e.price * (1 - SLIPPAGE_PCT)
-                gross     = exit_p * pos["size"]
-                cost      = trade_cost(gross)
-                pnl       = gross - cost - (pos["entry_price"] * pos["size"] + pos.get("cost", 0))
-                tax       = pnl * CFG["tax_rate"] if pnl > 0 else 0.0
-                portfolio["cash"] += gross - cost - tax
-                portfolio["daily_pnl"] = portfolio.get("daily_pnl", 0) + pnl - tax
-                log_trade(today_str(), e.ticker, "MR", "SELL", exit_p, pos["size"], cost, pnl, tax, pnl - tax, e.reden)
-                del portfolio["positions"][e.ticker]
-                print(f"  EXIT {e.ticker}: {e.reden} | PnL: EUR{pnl:+.2f}")
+        alle: List[GrahamSignaal] = []
+        for ticker in tlist:
+            if ticker in reeds_verwerkt:
+                totaal_gedupliceerd += 1
+                continue
+            reeds_verwerkt.add(ticker)
+            sig = analyse_ticker(ticker, cfg)
+            if sig is not None:
+                alle.append(sig)
+                if sig.score >= cfg["min_score"]:
+                    print(f"  ✓ {ticker}: score {sig.score}/9 | P/E={sig.pe_ratio:.1f} | P/B={sig.pb_ratio:.2f}")
+            time.sleep(cfg["throttle_sec"])
 
-        mr_entries[ex_name] = entries
-        mr_exits[ex_name]   = exits
+        kandidaten = [s for s in alle if s.score >= cfg["min_score"]]
+        kandidaten.sort(key=lambda s: (s.score, -s.pe_ratio if s.pe_ratio > 0 else -999), reverse=True)
+        signalen = kandidaten[:cfg["top_n"]]
 
-        totaal = portfolio_waarde(portfolio, prices)
-        budget = risk_budget(portfolio, "mr", prices)
+        print(f"  → top {len(signalen)} van {len(kandidaten)} kandidaten (score >= {cfg['min_score']}) uit {len(alle)} geanalyseerd")
 
-        for sig in entries:
-            if sig.ticker in portfolio["positions"]: continue
-            if len(portfolio["positions"]) >= CFG["max_positions"]: break
-            if max_daily_loss_bereikt(portfolio, prices): break
+        for rank, s in enumerate(signalen, start=1):
+            log_selectie(
+                ticker=s.ticker,
+                datum=today_str(),
+                strategie=cfg["strategie"],
+                beurs=ex_name,
+                koers=s.price,
+                parameters={
+                    "score": s.score,
+                    "rank": rank,
+                    "market_cap": s.market_cap,
+                    "current_ratio": s.current_ratio,
+                    "eps_years": s.eps_years,
+                    "eps_all_positive": s.eps_all_positive,
+                    "div_yield": s.div_yield,
+                    "eps_growth_pct": s.eps_growth_pct,
+                    "pe_ratio": s.pe_ratio,
+                    "pb_ratio": s.pb_ratio,
+                    "graham_number_ok": s.graham_number_ok,
+                    "piotroski_score": s.piotroski_score,
+                    "piotroski_detail": s.piotroski_label,
+                    "eps_cagr_pct": s.eps_cagr_pct,
+                    "peg_ratio": s.peg_ratio,
+                    "peg_ok": s.peg_ok,
+                    "grafiek": yahoo_link(s.ticker),
+                },
+            )
 
-            entry_p  = sig.price * (1 + SLIPPAGE_PCT)
-            n, ml    = bereken_positie(totaal, entry_p, sig.stop)
-            if n <= 0: continue
-            investering = entry_p * n + trade_cost(entry_p * n)
-            if investering > portfolio["cash"] or investering > budget: continue
+        bericht = format_bericht(ex_name, signalen, alle, cfg)
+        if bericht:
+            send_telegram(bericht, parse_mode="Markdown")
+            email_delen.append(bericht)
+            print(f"  → Telegram verstuurd")
+        else:
+            print(f"  → Overgeslagen: {ex_name}")
 
-            portfolio["cash"] -= investering
-            portfolio["positions"][sig.ticker] = {
-                "entry_price": round(entry_p, 4), "size": n, "stop": sig.stop, "tp": sig.tp,
-                "systeem": "MR", "exchange": ex_name, "days_open": 0, "cost": trade_cost(entry_p * n),
-            }
-            portfolio["total_trades"] = portfolio.get("total_trades", 0) + 1
-            log_trade(today_str(), sig.ticker, "MR", "BUY", entry_p, n, trade_cost(entry_p * n), 0, 0, 0, "IBS+RSI entry")
-            log_selectie(ticker=sig.ticker, datum=today_str(), strategie="bot_00mr_ibsrsi", beurs=ex_name, koers=entry_p, parameters={"ibs": sig.ibs, "rsi3": sig.rsi3, "ma20": sig.ma20, "ma200": sig.ma200, "atr": sig.atr, "stop": sig.stop, "tp": sig.tp, "rr_pct": sig.rr, "grafiek": yahoo_link(sig.ticker)})
-            print(f"  KOOP {sig.ticker}: IBS={sig.ibs:.2f} RSI3={sig.rsi3:.1f} | {n}× EUR{entry_p:.2f}")
+    if email_delen:
+        send_email(f"Graham Defensive Investor rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
 
-    for t, pos in list(portfolio["positions"].items()):
-        if (pos.get("systeem") == "MR" and pos.get("days_open", 0) >= CFG["mr_max_hold"]):
-            cur   = prices.get(t, pos["entry_price"])
-            exit_p = cur * (1 - SLIPPAGE_PCT)
-            gross  = exit_p * pos["size"]
-            cost   = trade_cost(gross)
-            pnl    = gross - cost - (pos["entry_price"] * pos["size"] + pos.get("cost", 0))
-            tax    = pnl * CFG["tax_rate"] if pnl > 0 else 0.0
-            portfolio["cash"] += gross - cost - tax
-            portfolio["daily_pnl"] = portfolio.get("daily_pnl", 0) + pnl - tax
-            log_trade(today_str(), t, "MR", "SELL", exit_p, pos["size"], cost, pnl, tax, pnl - tax, f"Max houdduur {CFG['mr_max_hold']}d")
-            del portfolio["positions"][t]
-            print(f"  TIME EXIT {t}: max houdduur | PnL: EUR{pnl:+.2f}")
+    if totaal_gedupliceerd:
+        print(f"\nDeduplicatie: {totaal_gedupliceerd} dubbele ticker-occurrence(s) overgeslagen "
+              f"(overlap tussen beursbestanden) — elke ticker enkel meegeteld in de eerst "
+              f"gescande beurs waarin hij voorkomt.")
 
-    log_snapshot(portfolio, prices)
-    save_portfolio(portfolio)
-
-    rapport = rapport_eod(mr_entries, mr_exits, portfolio, prices)
-    send_telegram(rapport)
-    send_email(f"Multi-Systeem EOD rapport {today_str()}", rapport.replace("*","").replace("`",""))
-    print("EOD rapport verzonden.")
-
-# ============================================================
-# ORB RUN (INTRADAY)
-# ============================================================
-
-def run_orb():
-    print(f"{'='*60}\nMULTI-SYSTEEM BOT — ORB  {dt.datetime.now().strftime('%Y-%m-%d %H:%M')}\n{'='*60}")
-
-    portfolio = load_portfolio()
-    orb_exchanges = {"048 Nasdaq/NYSE": "tickers_048x.txt", "047 Toronto": "tickers_047x.txt", "045 Londen": "tickers_045x.txt", "041 Benelux": "tickers_041x.txt"}
-
-    all_tickers = []
-    for path in orb_exchanges.values():
-        all_tickers.extend(load_tickers_from_file(path))
-    all_tickers = sorted(set(all_tickers))
-
-    prices: Dict[str, float] = {}
-    try:
-        data = yf.download(all_tickers[:50], period="1d", auto_adjust=True, progress=False, group_by="ticker")
-        if data is not None and not data.empty and isinstance(data.columns, pd.MultiIndex):
-            for t in all_tickers[:50]:
-                try:
-                    c = safe_float(data.xs(t, axis=1, level=1)["Close"].iloc[-1])
-                    if not math.isnan(c): prices[t] = c
-                except Exception: pass
-    except Exception: pass
-
-    if max_daily_loss_bereikt(portfolio, prices):
-        print("Max dagverlies bereikt — geen ORB trades")
-        return
-
-    orb_signalen: Dict[str, List[ORBSignaal]] = {}
-    for ex_name, path in orb_exchanges.items():
-        tlist = load_tickers_from_file(path)
-        if not tlist: continue
-        tlist = tlist[:30]
-        print(f"  ORB scan: {ex_name} ({len(tlist)} tickers)...")
-        sigs = generate_orb_signals(tlist, ex_name)
-        orb_signalen[ex_name] = sigs
-
-        totaal = portfolio_waarde(portfolio, prices)
-        budget = risk_budget(portfolio, "orb", prices)
-
-        for sig in [s for s in sigs if s.breakout]:
-            if sig.ticker in portfolio["positions"]: continue
-            if len(portfolio["positions"]) >= CFG["max_positions"]: break
-
-            entry_p  = sig.current * (1 + SLIPPAGE_PCT)
-            n, ml    = bereken_positie(totaal, entry_p, sig.stop)
-            if n <= 0: continue
-            investering = entry_p * n + trade_cost(entry_p * n)
-            if investering > portfolio["cash"] or investering > budget: continue
-
-            portfolio["cash"] -= investering
-            portfolio["positions"][sig.ticker] = {
-                "entry_price": round(entry_p, 4), "size": n, "stop": sig.stop, "tp": sig.tp,
-                "systeem": "ORB", "exchange": ex_name, "days_open": 0, "cost": trade_cost(investering), "intraday": True,
-            }
-            log_trade(today_str(), sig.ticker, "ORB", "BUY", entry_p, n, trade_cost(investering), 0, 0, 0, "ORB breakout")
-            log_selectie(ticker=sig.ticker, datum=today_str(), strategie="bot_00mr_orb", beurs=ex_name, koers=entry_p, parameters={"orb_high": sig.orb_high, "orb_low": sig.orb_low, "orb_range": sig.orb_range, "breakout": sig.breakout, "breakout_vol": sig.vol_ratio, "stop": sig.stop, "tp": sig.tp, "grafiek": yahoo_link(sig.ticker)})
-            prices[sig.ticker] = sig.current
-            print(f"  ORB KOOP {sig.ticker}: EUR{sig.current:.2f} | vol {sig.vol_ratio:.1f}×")
-
-    save_portfolio(portfolio)
-    rapport = rapport_orb(orb_signalen, portfolio, prices)
-    send_telegram(rapport)
-    send_email(f"ORB rapport {today_str()}", rapport.replace("*","").replace("`",""))
-    print("ORB rapport verzonden.")
-
-# ============================================================
-# BACKTEST
-# ============================================================
+    print(f"\n{'='*60}\nKlaar.")
 
 def run_backtest():
-    print(f"{'='*60}\nMULTI-SYSTEEM BACKTEST — IBS+RSI  {BACKTEST_START} -> {BACKTEST_END}\n{'='*60}")
-    print("NB: ORB backtest vereist historische intraday data (niet beschikbaar via yfinance)")
-
-    all_tickers = []
-    for f_name in bouw_bestandslijst():
-        all_tickers.extend(load_tickers_from_file(f_name))
-    all_tickers = sorted(set(all_tickers))
-
-    if not all_tickers:
-        print("[ERROR] Geen tickers gevonden.")
-        return
-
-    print(f"Tickers: {len(all_tickers)} | Data downloaden (3y)...")
-    df = download_eod(all_tickers, period="3y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-    df = add_eod_indicators(df)
-
-    all_dates = sorted(df["Date"].dt.date.unique())
-    print(f"Handelsdagen: {len(all_dates)}")
-
-    cash      = CFG["start_capital"]
-    positions: Dict[str, Dict] = {}
-    trades:    List[Dict] = []
-    snapshots: List[Dict] = []
-
-    for date in all_dates:
-        day_df = df[df["Date"] == pd.Timestamp(date)].copy()
-        prices: Dict[str, float] = {}
-        for _, row in day_df.iterrows():
-            t = row.get("Ticker")
-            c = safe_float(row.get("Close"))
-            if t and not math.isnan(c): prices[t] = c
-
-        for pos in positions.values(): pos["days"] = pos.get("days", 0) + 1
-
-        for t, pos in list(positions.items()):
-            if t not in prices: continue
-            row_s = day_df[day_df["Ticker"] == t]
-            if row_s.empty: continue
-            row   = row_s.iloc[0]
-            close = prices[t]
-            ibs   = safe_float(row.get("IBS"))
-            ma20  = safe_float(row.get("MA20"))
-
-            reason = None
-            if not math.isnan(ibs) and ibs > CFG["ibs_exit"]: reason = f"IBS exit ({ibs:.2f})"
-            elif not math.isnan(ma20) and close > ma20: reason = f"MA20 exit ({ma20:.2f})"
-            elif pos["days"] >= CFG["mr_max_hold"]: reason = f"Time exit ({pos['days']}d)"
-            elif close <= pos["stop"]: reason = f"Stop ({pos['stop']:.2f})"
-
-            if reason:
-                exit_p = close * (1 - SLIPPAGE_PCT)
-                gross  = exit_p * pos["size"]
-                cost   = trade_cost(gross)
-                pnl    = gross - cost - (pos["entry_price"] * pos["size"] + pos["cost"])
-                tax    = pnl * CFG["tax_rate"] if pnl > 0 else 0.0
-                cash  += gross - cost - tax
-                trades.append({"entry_date": pos["entry_date"].isoformat(), "exit_date": date.isoformat(), "ticker": t, "entry_price": pos["entry_price"], "exit_price": round(exit_p, 4), "size": pos["size"], "pnl": round(pnl, 2), "tax": round(tax, 2), "net": round(pnl - tax, 2), "reason": reason, "days": pos["days"]})
-                del positions[t]
-
-        totaal = cash + sum(prices.get(t, p["entry_price"]) * p["size"] for t, p in positions.items())
-
-        for _, row in day_df.iterrows():
-            t   = row.get("Ticker")
-            if not t or t in positions: continue
-            if len(positions) >= CFG["max_positions"]: break
-
-            close = safe_float(row.get("Close"))
-            ibs   = safe_float(row.get("IBS"))
-            rsi3  = safe_float(row.get("RSI3"))
-            ma200 = safe_float(row.get("MA200"))
-            ma20  = safe_float(row.get("MA20"))
-            atr   = safe_float(row.get("ATR14"))
-            low   = safe_float(row.get("Low"))
-
-            if any(math.isnan(x) for x in [close, ibs, rsi3, ma200, atr]): continue
-            if not (ibs < CFG["ibs_entry"] and rsi3 < CFG["rsi_entry"] and close > ma200): continue
-
-            entry_p = close * (1 + SLIPPAGE_PCT)
-            stop    = low - 0.5 * atr
-            tp      = ma20
-            n, _    = bereken_positie(totaal, entry_p, stop)
-            if n <= 0: continue
-            investering = entry_p * n + trade_cost(entry_p * n)
-            if investering > cash: continue
-
-            cash -= investering
-            positions[t] = {"entry_date": date, "entry_price": round(entry_p, 4), "size": n, "stop": round(stop, 4), "tp": round(tp, 4) if not math.isnan(tp) else round(entry_p * 1.05, 4), "cost": trade_cost(investering), "days": 0}
-
-        totaal = cash + sum(prices.get(t, p["entry_price"]) * p["size"] for t, p in positions.items())
-        snapshots.append({"date": date.isoformat(), "total": round(totaal, 2)})
-
-    if trades:
-        tdf = pd.DataFrame(trades)
-        tdf.to_csv("mr_backtest_trades.csv", index=False)
-        n    = len(tdf)
-        nwin = (tdf["net"] > 0).sum()
-        pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
-        snap = pd.DataFrame(snapshots)
-        start = CFG["start_capital"]
-        end   = snap["total"].iloc[-1]
-        years = max(len(snap) / 252, 0.1)
-        cagr  = ((end / start) ** (1 / years) - 1) * 100
-
-        print(f"\n{'='*60}")
-        print(f"BACKTEST RESULTATEN — IBS+RSI Mean Reversion")
-        print(f"{'='*60}")
-        print(f"Startkapitaal    : EUR{start:>12,.2f}")
-        print(f"Eindkapitaal     : EUR{end:>12,.2f}")
-        print(f"Totaal rendement : {(end-start)/start*100:>+.1f}%")
-        print(f"CAGR             : {cagr:>+.1f}%")
-        print(f"Trades           : {n} | Winnaars: {nwin} ({nwin/n*100:.1f}%)")
-        print(f"Profit Factor    : {pf:.2f}")
-        print(f"Gem. houdduur    : {tdf['days'].mean():.1f} dagen")
-        print(f"Belasting betaald: EUR{tdf['tax'].sum():,.2f}")
-        print(f"{'='*60}")
-    else:
-        print("Geen trades gegenereerd.")
+    print("Backtest wordt niet ondersteund voor bot_00graham: yfinance biedt geen betrouwbare historische reeks van fundamentele data.")
 
 # ============================================================
 # ENTRYPOINT
 # ============================================================
 
 if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "eod"
-    if mode == "eod": run_eod()
-    elif mode == "orb": run_orb()
-    elif mode == "backtest": run_backtest()
-    else: print(f"Onbekende modus: {mode}\nGebruik: python bot_00mr.py [eod|orb|backtest]")
+    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
+    if mode == "backtest":
+        run_backtest()
+    else:
+        run_live_engine()
