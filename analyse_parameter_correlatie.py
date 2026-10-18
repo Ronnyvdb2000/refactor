@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-analyse_parameter_correlatie.py  —  WELKE PARAMETER ZEGT IETS?  v2.3
+analyse_parameter_correlatie.py — WELKE PARAMETER ZEGT IETS? v3.0
 
-Cross-sectionele IC per datum, t-toets op de reeks IC's. Horizonten
-5/10/20/30/60d, primair = 10d.
-
-v2.3: --use-whitelist toegevoegd. Beperkt de analyse tot de features uit
-features.ANALYSE_WHITELIST.
-
-Env vars: SUPABASE_DB_URL (verplicht), TELEGRAM_TOKEN/TELEGRAM_CHAT_ID
-(optioneel), FDR_ALPHA (default 0.05)
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Belangrijkste wijziging t.o.v. v2.3: Newey-West HAC-correctie op de
+t-toets van de IC-reeks. Dit corrigeert voor de overlappende forward
+returns (autocorrelatie), die de p-waarden anders te optimistisch maakt.
 """
 
 import os
@@ -22,8 +18,14 @@ import psycopg2
 import psycopg2.extras
 import pandas as pd
 import numpy as np
+import statsmodels.api as sm
 from scipy import stats
 import requests
+
+from common import (
+    today_str, safe_float, esc,
+    send_telegram, send_email
+)
 
 from features import ANALYSE_WHITELIST
 
@@ -50,20 +52,6 @@ GENERIEKE_TECHNICALS_KOLOMMEN = [
     "pct_from_ma50", "pct_from_ma200", "vol_ratio_20d", "high52w", "pct_from_high52w",
 ]
 
-
-def send_telegram(tekst: str) -> None:
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        return
-    try:
-        requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": tekst},
-            timeout=10,
-        )
-    except Exception as e:
-        print(f"Telegram fout: {e}")
-
-
 def bh_correctie(p_waarden: List[float], alpha: float) -> List[bool]:
     m = len(p_waarden)
     if m == 0:
@@ -79,7 +67,6 @@ def bh_correctie(p_waarden: List[float], alpha: float) -> List[bool]:
             if rang <= laatste_significante_rank:
                 mask[idx] = True
     return mask
-
 
 def haal_feature_kolommen(conn) -> Tuple[List[str], List[str]]:
     query = """
@@ -100,7 +87,6 @@ def haal_feature_kolommen(conn) -> Tuple[List[str], List[str]]:
         elif dtype in BOOLEAN_TYPES:
             boolean.append(naam)
     return sorted(numeriek), sorted(boolean)
-
 
 def haal_gelabelde_data(conn, kolommen: List[str]) -> pd.DataFrame:
     s_kolommen = [k for k in kolommen if k not in GENERIEKE_TECHNICALS_KOLOMMEN]
@@ -123,20 +109,44 @@ def haal_gelabelde_data(conn, kolommen: List[str]) -> pd.DataFrame:
         rows = cur.fetchall()
     return pd.DataFrame(rows)
 
-
-def _t_toets_op_reeks(waarden: np.ndarray, min_dagen: int) -> Optional[Tuple[float, float, float]]:
+def _t_toets_newey_west(waarden: np.ndarray, min_dagen: int, horizon: int) -> Optional[Tuple[float, float, float]]:
+    """
+    Voert een t-toets uit op de reeks IC's, maar gebruikt de Newey-West
+    HAC-covariantiematrix om te corrigeren voor autocorrelatie (overlappende
+    forward returns). De lag-lengte is gebaseerd op de horizon: bij een
+    10-daagse horizon overlappen 10 opeenvolgende dagen elkaar, dus maxlags=10.
+    """
     n = len(waarden)
     if n < min_dagen:
         return None
-    sd = waarden.std(ddof=1)
-    if sd == 0 or np.isnan(sd):
+    
+    # Newey-West maxlags: minimaal de horizon, of een vuistregel (n^(1/4))
+    maxlags = max(horizon, int(np.floor(n ** (1/4))))
+    
+    # We regresseren de IC-reeks op een constante (intercept-only model).
+    # De coëfficiënt van de constante is dan het gemiddelde van de IC's.
+    X = np.ones(n)
+    y = waarden
+    
+    model = sm.OLS(y, X).fit()
+    try:
+        # HAC-covariantie met Bartlett-kernel (Newey-West)
+        hac_cov = sm.stats.sandwich_covariance.cov_hac(model, nlags=maxlags)
+        se = np.sqrt(np.diag(hac_cov))[0]
+    except Exception:
+        # Fallback naar de gewone standaardfout als HAC faalt (bv. te weinig data)
+        se = model.bse[0]
+        
+    mean_ic = model.params[0]
+    if se == 0 or np.isnan(se):
         return None
-    t = waarden.mean() / (sd / np.sqrt(n))
-    p = 2 * stats.t.sf(abs(t), df=n - 1)
-    return float(waarden.mean()), float(t), float(p)
+        
+    t_stat = mean_ic / se
+    p_val = 2 * stats.t.sf(abs(t_stat), df=n - 1)
+    
+    return float(mean_ic), float(t_stat), float(p_val)
 
-
-def cross_sectionele_ic(df: pd.DataFrame, kolom: str, ret_kolom: str,
+def cross_sectionele_ic(df: pd.DataFrame, kolom: str, ret_kolom: str, horizon: int,
                         min_per_datum: int, min_dagen: int) -> Optional[dict]:
     ics = []
     n_obs = 0
@@ -148,17 +158,19 @@ def cross_sectionele_ic(df: pd.DataFrame, kolom: str, ret_kolom: str,
         if not np.isnan(rho):
             ics.append(rho)
             n_obs += len(sub)
+            
     if len(ics) < min_dagen:
         return None
-    toets = _t_toets_op_reeks(np.array(ics), min_dagen)
+        
+    toets = _t_toets_newey_west(np.array(ics), min_dagen, horizon)
     if toets is None:
         return None
+        
     gem, t, p = toets
     return {"coefficient": gem, "t_stat": t, "p_waarde": p,
             "n_dagen": len(ics), "n_obs": n_obs}
 
-
-def cross_sectioneel_boolean_verschil(df: pd.DataFrame, kolom: str, ret_kolom: str,
+def cross_sectioneel_boolean_verschil(df: pd.DataFrame, kolom: str, ret_kolom: str, horizon: int,
                                       min_per_datum: int, min_dagen: int) -> Optional[dict]:
     diffs = []
     n_obs = 0
@@ -171,15 +183,17 @@ def cross_sectioneel_boolean_verschil(df: pd.DataFrame, kolom: str, ret_kolom: s
             continue
         diffs.append(waar.median() - onwaar.median())
         n_obs += len(sub)
+        
     if len(diffs) < min_dagen:
         return None
-    toets = _t_toets_op_reeks(np.array(diffs), min_dagen)
+        
+    toets = _t_toets_newey_west(np.array(diffs), min_dagen, horizon)
     if toets is None:
         return None
+        
     gem, t, p = toets
     return {"coefficient": gem, "t_stat": t, "p_waarde": p,
             "n_dagen": len(diffs), "n_obs": n_obs}
-
 
 def bereken_correlaties(df: pd.DataFrame, numeriek: List[str], boolean: List[str],
                         min_n: int, min_per_datum: int, min_dagen: int,
@@ -191,12 +205,10 @@ def bereken_correlaties(df: pd.DataFrame, numeriek: List[str], boolean: List[str
     for horizon in HORIZONS:
         ret_kolom = f"fwd_ret_{horizon}d"
         if ret_kolom not in df.columns:
-            print(f"  horizon {horizon}d: kolom {ret_kolom} ontbreekt -- overgeslagen")
             overgeslagen.append(horizon)
             continue
         df_h = df[df[ret_kolom].notna()].copy()
         if df_h.empty:
-            print(f"  horizon {horizon}d: 0 rijen met niet-lege {ret_kolom} -- overgeslagen")
             overgeslagen.append(horizon)
             continue
 
@@ -218,10 +230,10 @@ def bereken_correlaties(df: pd.DataFrame, numeriek: List[str], boolean: List[str
                 continue
 
             if kolom in numeriek:
-                res = cross_sectionele_ic(df_h, kolom, ret_kolom, min_per_datum, min_dagen)
+                res = cross_sectionele_ic(df_h, kolom, ret_kolom, horizon, min_per_datum, min_dagen)
                 soort = "numeriek"
             else:
-                res = cross_sectioneel_boolean_verschil(df_h, kolom, ret_kolom, min_per_datum, min_dagen)
+                res = cross_sectioneel_boolean_verschil(df_h, kolom, ret_kolom, horizon, min_per_datum, min_dagen)
                 soort = "boolean"
             if res is None:
                 continue
@@ -233,7 +245,6 @@ def bereken_correlaties(df: pd.DataFrame, numeriek: List[str], boolean: List[str
             per_horizon.append(res)
 
         if not per_horizon:
-            print(f"  horizon {horizon}d: geen parameter haalt de drempels -- overgeslagen")
             overgeslagen.append(horizon)
             continue
 
@@ -245,14 +256,12 @@ def bereken_correlaties(df: pd.DataFrame, numeriek: List[str], boolean: List[str
 
     if genegeerd_weinig_strat:
         unieke = sorted({(p, n) for _, p, n in genegeerd_weinig_strat})
-        print(f"\nParameters overgeslagen wegens < {min_strategieen} strategieën "
-              f"({len(unieke)} unieke parameter(s)):")
+        print(f"\nParameters overgeslagen wegens < {min_strategieen} strategieën ({len(unieke)} unieke parameter(s)):")
         for naam, n in unieke:
             print(f"  {naam:<30} max {n} strategie(ën)")
     if overgeslagen:
         print(f"\nHorizonten zonder resultaten: {overgeslagen}")
     return pd.DataFrame(resultaten)
-
 
 def print_rapport(stats_df: pd.DataFrame, horizon: int,
                   min_dagen: int, min_strategieen: int) -> str:
@@ -270,7 +279,7 @@ def print_rapport(stats_df: pd.DataFrame, horizon: int,
     regels = [
         f"\n{'=' * 118}",
         f"HORIZON: {horizon} handelsdagen{markering}  --  cross-sectionele IC per datum"
-        f" (FDR alpha={FDR_ALPHA}, min_dagen={min_dagen}, min_strat={min_strategieen},"
+        f" (Newey-West HAC, FDR alpha={FDR_ALPHA}, min_dagen={min_dagen}, min_strat={min_strategieen},"
         f" {len(sub)} parameters getest){waarschuw}",
         "=" * 118,
         f"{'parameter':<26}{'type':<10}{'#dagen':>8}{'#obs':>8}{'#strat':>8}"
@@ -287,7 +296,6 @@ def print_rapport(stats_df: pd.DataFrame, horizon: int,
     tekst = "\n".join(regels)
     print(tekst)
     return tekst
-
 
 def print_decay_curve(stats_df: pd.DataFrame) -> str:
     if stats_df.empty:
@@ -315,25 +323,18 @@ def print_decay_curve(stats_df: pd.DataFrame) -> str:
                 ster = "*" if match["significant_fdr"].iloc[0] else " "
                 row.append(f"{c:>+10.4f}{ster}")
         regels.append("".join(row))
-    regels.append("(* = significant na BH-correctie op die horizon)")
+    regels.append("(* = significant na BH-correctie op die horizon; t-toets met Newey-West HAC)")
     tekst = "\n".join(regels)
     print(tekst)
     return tekst
 
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--min-n", type=int, default=50,
-                        help="minimum aantal niet-lege observaties per parameter/horizon")
-    parser.add_argument("--min-per-datum", type=int, default=DEFAULT_MIN_PER_DATUM,
-                        help="minimum aantal aandelen per datum voor een cross-sectionele IC")
-    parser.add_argument("--min-dagen", type=int, default=DEFAULT_MIN_DAGEN,
-                        help=f"minimum aantal datums voor een geldige t-toets (default {DEFAULT_MIN_DAGEN})")
-    parser.add_argument("--min-strategieen", type=int, default=DEFAULT_MIN_STRATEGIEEN,
-                        help=f"minimum aantal strategieën dat een parameter vult (default "
-                             f"{DEFAULT_MIN_STRATEGIEEN}; gebruik 3+ voor een generiek filter-model)")
-    parser.add_argument("--use-whitelist", action="store_true",
-                        help="Beperk de analyse tot de features in features.ANALYSE_WHITELIST")
+    parser.add_argument("--min-n", type=int, default=50)
+    parser.add_argument("--min-per-datum", type=int, default=DEFAULT_MIN_PER_DATUM)
+    parser.add_argument("--min-dagen", type=int, default=DEFAULT_MIN_DAGEN)
+    parser.add_argument("--min-strategieen", type=int, default=DEFAULT_MIN_STRATEGIEEN)
+    parser.add_argument("--use-whitelist", action="store_true")
     args = parser.parse_args()
 
     if not SUPABASE_DB_URL:
@@ -341,11 +342,9 @@ def main():
         sys.exit(1)
 
     if args.min_dagen < DEFAULT_MIN_DAGEN:
-        print(f"LET OP: --min-dagen={args.min_dagen} < {DEFAULT_MIN_DAGEN}. "
-              f"Resultaten zijn indicatief, niet betrouwbaar voor filtering.\n")
+        print(f"LET OP: --min-dagen={args.min_dagen} < {DEFAULT_MIN_DAGEN}. Resultaten zijn indicatief.\n")
     if args.min_strategieen > 1:
-        print(f"Filter actief: parameters met < {args.min_strategieen} strategieën "
-              f"worden volledig overgeslagen.\n")
+        print(f"Filter actief: parameters met < {args.min_strategieen} strategieën worden overgeslagen.\n")
 
     conn = psycopg2.connect(SUPABASE_DB_URL)
     try:
@@ -373,9 +372,7 @@ def main():
                                        args.min_n, args.min_per_datum, args.min_dagen,
                                        args.min_strategieen)
         if stats_df.empty:
-            print(f"\nGeen enkele parameter haalt de drempels "
-                  f"(min_n={args.min_n}, min_per_datum={args.min_per_datum}, "
-                  f"min_dagen={args.min_dagen}, min_strategieen={args.min_strategieen}).")
+            print(f"\nGeen enkele parameter haalt de drempels.")
             return
 
         for horizon in HORIZONS:
@@ -386,9 +383,7 @@ def main():
         prim = stats_df[stats_df["horizon"] == PRIMAIRE_HORIZON]
         aantal_sig = int(prim["significant_fdr"].sum()) if not prim.empty else 0
         totaal = len(prim)
-        top_sig = prim[prim["significant_fdr"]] \
-            .assign(abs_coef=lambda d: d["coefficient"].abs()) \
-            .sort_values("abs_coef", ascending=False)
+        top_sig = prim[prim["significant_fdr"]].assign(abs_coef=lambda d: d["coefficient"].abs()).sort_values("abs_coef", ascending=False)
         top_namen = ", ".join(top_sig["parameter"].head(5)) if not top_sig.empty else "geen"
 
         extra = []
@@ -406,12 +401,11 @@ def main():
             waarschuwing += f"\n!! min_dagen={args.min_dagen} < {DEFAULT_MIN_DAGEN} -- indicatief\n"
 
         samenvatting = (
-            f"Parameter-correlatie analyse (cross-sectionele IC)\n"
+            f"Parameter-correlatie analyse (Newey-West HAC)\n"
             f"min_strategieen={args.min_strategieen}, min_dagen={args.min_dagen}\n"
             f"whitelist={'ja' if args.use_whitelist else 'nee'}\n"
             f"{waarschuwing}\n"
-            f"Primair ({PRIMAIRE_HORIZON}d): {aantal_sig}/{totaal} significant na BH "
-            f"(alpha={FDR_ALPHA})\n"
+            f"Primair ({PRIMAIRE_HORIZON}d): {aantal_sig}/{totaal} significant na BH (alpha={FDR_ALPHA})\n"
             f"Sterkste: {top_namen}\n\n"
             f"Andere horizonten: {extra_txt}\n\n"
             "Volledige tabellen + decay-curve: zie workflow-log."
@@ -419,7 +413,6 @@ def main():
         send_telegram(samenvatting)
     finally:
         conn.close()
-
 
 if __name__ == "__main__":
     main()
