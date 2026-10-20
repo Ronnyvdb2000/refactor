@@ -1,68 +1,32 @@
-import yfinance as yf
-import pandas as pd
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+bot_00mail.py — DIGEST MAILER v2.0
+
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Draait de Traag/Snel/Hyper backtests en verstuurt een samenvatting per mail.
+"""
+
 import os
-import requests
-import smtplib
-import numpy as np
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from dotenv import load_dotenv
-from datetime import datetime
+import sys
 import time
 import logging
+import numpy as np
+import pandas as pd
+import yfinance as yf
+from datetime import datetime
 
-# ---------------------------------------------------------------------------
-# CONFIG & LOGGING
-# ---------------------------------------------------------------------------
+from common import (
+    today_str, safe_float, esc,
+    download_history, load_tickers_from_file,
+    send_telegram, send_email,
+    trade_cost
+)
+
+# ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-TOKEN = os.getenv('TELEGRAM_TOKEN')
-CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
-EMAIL_USER = os.getenv('EMAIL_USER')
-EMAIL_PASS = os.getenv('EMAIL_PASS')
-EMAIL_RECEIVER = os.getenv('EMAIL_RECEIVER')
-
-def stuur_telegram(bericht: str) -> bool:
-    if not TOKEN or not CHAT_ID: return False
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    try:
-        r = requests.post(url, data={"chat_id": CHAT_ID, "text": bericht, "parse_mode": "Markdown", "disable_web_page_preview": True}, timeout=30)
-        r.raise_for_status()
-        return True
-    except Exception as e:
-        logger.error(f"Telegram fout: {e}")
-        return False
-
-def stuur_mail(onderwerp, inhoud_tekst):
-    """Verstuurt het volledige verzamelrapport aan het einde van de run."""
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        logger.warning("E-mail niet volledig geconfigureerd in omgevingsvariabelen.")
-        return
-    
-    msg = MIMEMultipart()
-    msg['From'] = EMAIL_USER
-    msg['To'] = EMAIL_RECEIVER
-    msg['Subject'] = onderwerp
-
-    # Markdown opschonen voor e-mail leesbaarheid
-    schone_inhoud = inhoud_tekst.replace('*', '').replace('`', '').replace('•', '-')
-    msg.attach(MIMEText(schone_inhoud, 'plain'))
-
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
-        server.quit()
-        logger.info(f"E-mail succesvol verzonden naar {EMAIL_RECEIVER}")
-    except Exception as e:
-        logger.error(f"E-mail fout: {e}")
-
-# ---------------------------------------------------------------------------
-# INDICATOREN (Vectorized Bot 00 Logica)
-# ---------------------------------------------------------------------------
 def bereken_indicatoren_vectorized(df, s, t, use_trend_filter, is_hyper):
     p = df['Close'].ffill()
     h = df['High'].ffill()
@@ -104,9 +68,6 @@ def bereken_indicatoren_vectorized(df, s, t, use_trend_filter, is_hyper):
 
     return p, f_line, s_line, ema200, vol_ma, rsi_val, atr, adx, v
 
-# ---------------------------------------------------------------------------
-# CORE ENGINE
-# ---------------------------------------------------------------------------
 def voer_lijst_uit(bestandsnaam, label, naam_sector):
     if not os.path.exists(bestandsnaam): return ""
     nu = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -117,8 +78,10 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
 
     if not tickers: return ""
 
-    raw_df = yf.download(tickers, period="5y", progress=False, auto_adjust=True)
-    
+    raw_df = download_history(tickers, period="5y")
+    if raw_df.empty:
+        return ""
+
     inzet = 2500.0
     res = {"T": 0, "S": 0, "HT": 0, "HS": 0}
     num_trades = {"T": 0, "S": 0, "HT": 0, "HS": 0}
@@ -130,10 +93,9 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
     ]:
         for t in tickers:
             try:
-                if len(tickers) > 1:
-                    t_data = raw_df.xs(t, axis=1, level=1)
-                else:
-                    t_data = raw_df
+                t_data = raw_df[raw_df["Ticker"] == t].drop(columns=["Ticker"]).set_index("Date")
+                if len(t_data) < 252:
+                    continue
 
                 p, f, s_line, e200, v_ma, rsi, atr, adx, vol = bereken_indicatoren_vectorized(t_data, s_per, t_per, use_tr, is_hyp)
                 
@@ -173,7 +135,8 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
                 elif f.iloc[-1] < s_line.iloc[-1] and f.iloc[-2] >= s_line.iloc[-2]:
                     sig[strat_key].append(f"• `{t}`: 🔴 *VERKOOP* | €{cp:.2f} | ⚡ ATR: {catr:.2f} | {l_rsi}: {crsi:.1f} | 🛡️ SL: €{cp-(2*catr):.2f} | {y_l}")
 
-            except: continue
+            except Exception:
+                continue
 
     def get_s(lst): return "\n".join(lst) if lst else "Geen actie"
     rapport_lijst = [
@@ -189,12 +152,9 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
         "", "💡 _ATR %: <2% laag, >5% hoog. RSI: >70 overbought, <30 oversold. CRSI: >90 overbought, <10 oversold_"
     ]
     volledige_tekst = "\n".join(rapport_lijst)
-    stuur_telegram(volledige_tekst)
+    send_telegram(volledige_tekst, parse_mode="Markdown")
     return volledige_tekst + "\n\n" + "="*40 + "\n\n"
 
-# ---------------------------------------------------------------------------
-# MAIN
-# ---------------------------------------------------------------------------
 def main():
     sectoren = {
         "01":"Hoogland", "02":"Macrotrends", "03":"Beursbrink",
@@ -203,7 +163,6 @@ def main():
     }
 
     verzamel_rapport = "🚀 *FULL GLOBAL SCAN COLLECTIVE REPORT (BOT 00)*\n" + "="*30 + "\n\n"
-    
     logger.info("Start globale scan...")
     
     for nr, naam in sectoren.items():
@@ -215,10 +174,8 @@ def main():
             logger.error(f"Fout in sector {naam}: {e}")
         time.sleep(2)
 
-    # Verzend de verzamelde data per e-mail
     datum_vandaag = datetime.now().strftime("%d-%m-%Y")
-    stuur_mail(f"Trading Rapport Bot 00: {datum_vandaag}", verzamel_rapport)
-    
+    send_email(f"Trading Rapport Bot 00: {datum_vandaag}", verzamel_rapport, html_body=False)
     logger.info("Scan voltooid. Telegrams en E-mail verwerkt.")
 
 if __name__ == "__main__":
