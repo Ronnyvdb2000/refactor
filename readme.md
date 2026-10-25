@@ -1,8 +1,10 @@
 Technische Handleiding: refactor repository (branch: refactor/phase-1-common)
 1. Doel van de repository
+
 Deze repository is een gerefactorde versie van de Fantasie-repo. Het doel is om de dubbele code (in 20+ bots) te centraliseren in één common/-package, de statistiek te verbeteren (Newey-West), en de onderhoudbaarheid te vergroten. De data-generatie, feature-stores en modellen draaien nu op deze centrale architectuur.
 
 2. Mappenstructuur (gebaseerd op de door jou aangeleverde bestanden)
+
 common/: De centrale package. Bevat alle gedeelde logica.
 __init__.py: Exporteert de functies.
 indicators.py: Canonieke technische indicatoren (Wilder/TA-Lib-conform).
