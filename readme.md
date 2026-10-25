@@ -19,6 +19,7 @@ Root: De bots (bot_*.py), combineerders (a_*.py), feature-stores (bouw_*.py), an
 .github/workflows/: GitHub Actions workflows (momenteel uitgeschakeld via "Disable actions").
 
 3. De common/-package (de kern)
+
 3.1 common/indicators.py
 Bevat de canonieke implementatie van alle technische indicatoren. Alle bots en feature-stores gebruiken deze functies.
 wilder_smooth(series, period): De basis voor RSI, ATR, ADX.
