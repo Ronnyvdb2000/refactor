@@ -58,6 +58,7 @@ yahoo_link(ticker): Geeft een Yahoo Finance-link.
 fmt_koers(koers): Formatteert een koers.
 
 4. De Bots (bot_*.py)
+
 Alle bots zijn gerefactord om from common import ... te gebruiken. Ze hebben hun eigen unieke logica (criteria, scoring) maar delen de basis.
 Data-ophaling: download_history uit common/io.py.
 Indicatoren: compute_* uit common/indicators.py.
@@ -88,6 +89,7 @@ bot_01xgboost.py: XGBoost voorspelling (aandelen).
 bot_01xgboostMeta.py: XGBoost voorspelling (forex).
 
 5. Combineerders (a_*.py)
+
 a_trade.py: Telt overlap over de laatste dagen, verrijkt met XGBoost-scores.
 a_trade_q.py: Telt overlap enkel op de meest recente datum ("vers signaal").
 a_trade_combi.py: Gewogen kwaliteitsscore op basis van Sharpe-ratio's van strategieën, met volatiliteitsfilter.
@@ -98,11 +100,13 @@ a_meta_model_score.py: Scoort de laatste selecties met het getrainde model.
 a_top_dist_sma50.py: Ad hoc script voor tickers met laagste pct_from_ma50.
 
 6. Feature-stores (bouw_*.py)
+
 bouw_generieke_technicals.py: Vult de generieke_technicals-tabel met indicatoren (via common/indicators.py).
 bouw_generieke_fundamentals.py: Vult de generieke_fundamentals-tabel met fundamentele data.
 bouw_forward_returns.py: Vult de forward_returns-tabel met de gelabelde forward returns (met split- en eenheidscorrectie).
 
 7. Analyses (analyse_*.py en analyseer_*.py)
+
 analyse_parameter_correlatie.py: Berekent cross-sectionele IC's en toetst deze met Newey-West HAC (voor overlappende returns) en BH-FDR-correctie.
 analyse_parameter_ic.py: Berekent de IC-matrix per parameter en horizon.
 analyse_forward_returns.py: Analyseert de prestaties per strategie over meerdere horizonnen.
@@ -111,26 +115,31 @@ analyseer_forward_correlaties.py: Test parameters tegen een langere horizon (wek
 analyseer_weekly_correlaties.py: Test parameters tegen wekelijkse prestaties.
 
 8. Workflows (GitHub Actions)
+
 Momenteel uitgeschakeld via "Disable actions" in de repo-instellingen (om te voorkomen dat ze draaien zonder de juiste secrets).
 De workflows zijn te vinden in .github/workflows/ (o.a. run_00cs.yml, etc.).
 Secrets: Er zijn nog geen secrets aangemaakt in de refactor-repo (bevestigd via screenshot). De workflows zullen falen totdat SUPABASE_DB_URL, TELEGRAM_TOKEN, etc. zijn toegevoegd.
 
 9. Tests
+
 Uitvoeren met: python -m pytest tests/ -v
 De tests controleren de common/-package (indicatoren, sizing, io).
 Verwachte output: 20 tests, allemaal geslaagd (bevestigd door jouw terminal-output).
 
 10. Bekende problemen / Aandachtspunten
+
 Geen nieuwe database: De refactor-repo gebruikt de bestaande Supabase-database van Fantasie. Zorg dat de Fantasie-repo (of de bijbehorende Actions) uit staat om dubbele rijen te voorkomen.
 Secrets: Nog niet ingesteld in refactor. De workflows kunnen pas draaien als deze zijn toegevoegd.
 Onzinbestanden: Er zijn per ongeluk 9 onzinbestanden gecommit (zoals (vmai.iloc[-1]). Deze moeten worden verwijderd met git rm (zoals eerder aangegeven).
 
 11. Hoe te draaien
+
 Lokaal testen: python -c "import bot_00kr; print('Import OK')" (vereist de juiste packages, zoals pandas, yfinance, psycopg2, etc.).
 Live draaien: python bot_00kr.py live (vereist SUPABASE_DB_URL en andere secrets in de omgeving).
 Tests: python -m pytest tests/ -v.
 
 12. Toekomstige stappen (indien gewenst)
+
 Verwijder de onzinbestanden.
 Stel de secrets in.
 Zet de Actions weer aan (gefaseerd).
