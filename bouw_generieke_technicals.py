@@ -25,11 +25,13 @@ Env:
   BACKFILL_DATUM     optioneel; default = LAATSTE bar per ticker
                      (bar_datum, NIET vandaag). Zo kan de cron op elk
                      moment draaien zonder weekend-rijen te produceren.
+  TELEGRAM_TOKEN / TELEGRAM_CHAT_ID (optioneel)
+  EMAIL_USER / EMAIL_PASS / EMAIL_RECEIVER (optioneel)
 
 Wijziging 2026-10-12:
-  - datum_doel is nu optioneel. Zonder env-var schrijft de builder
-    de BAR-DATUM (echte handelsdag) i.p.v. vandaag. Voorkomt
-    zaterdag/zondag-rijen bij vertraagde of weekend-crons.
+  - datum_doel is nu optioneel.
+Wijziging 2026-10-27:
+  - Telegram en e-mail notificaties toegevoegd via common/ package.
 """
 
 import os
@@ -45,17 +47,14 @@ import psycopg2
 import psycopg2.extras
 import yfinance as yf
 
+# Importeer de notificatie-functies uit onze common package
+from common import send_telegram, send_email, today_str
+
 warnings.filterwarnings("ignore")
 
 DB_URL = os.environ.get("SUPABASE_DB_URL")
-
-# Buffer voor indicatoren met lange lookback (MA200, 52w-high, HV60)
 LOOKBACK_BUFFER_DAGEN = 400
-
-# Maximale afstand tussen gevraagde datum en laatste bar
 MAX_BAR_AFSTAND_DAGEN = 7
-
-# Index voor relatieve sterkte (referentie voor REL_STERKTE_20D)
 INDEX_TICKER = "^GSPC"
 
 
@@ -117,16 +116,12 @@ def download_index_returns(start_datum):
 def bereken_indicatoren(hist, index_ret=None):
     """
     Berekent alle indicatoren voor één ticker.
-    `hist` = OHLCV DataFrame met kolommen Open, High, Low, Close, Volume.
-    `index_ret` = Series met index-rendementen (voor rel_sterkte_20d).
-    Retourneert DataFrame met alle indicatoren + OHLCV per datum.
     """
     if hist is None or hist.empty:
         return pd.DataFrame()
 
     df = hist.copy()
 
-    # --- Fix: yfinance kan MultiIndex teruggeven (robuustheid) -----------
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
         df = df.loc[:, ~df.columns.duplicated()]
@@ -141,7 +136,6 @@ def bereken_indicatoren(hist, index_ret=None):
         df.index = df.index.tz_localize(None)
     df = df.sort_index()
 
-    # Zorg dat alle OHLCV-kolommen Series zijn (float)
     for col in ("Open", "High", "Low", "Close", "Volume"):
         if col in df.columns:
             if isinstance(df[col], pd.DataFrame):
@@ -162,7 +156,6 @@ def bereken_indicatoren(hist, index_ret=None):
 
     out = pd.DataFrame(index=df.index)
 
-    # ATR14 (Wilder)
     tr = pd.concat([
         high - low,
         (high - close.shift()).abs(),
@@ -172,7 +165,6 @@ def bereken_indicatoren(hist, index_ret=None):
     out["ATR14"] = atr14
     out["ATR14_PCT"] = (atr14 / close) * 100
 
-    # RSI14 (Wilder)
     delta = close.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
@@ -182,26 +174,21 @@ def bereken_indicatoren(hist, index_ret=None):
     rsi14 = 100 - (100 / (1 + rs))
     out["RSI14"] = rsi14
 
-    # IBS = Internal Bar Strength
     ibs = (close - low) / (high - low).replace(0, np.nan)
     out["IBS"] = ibs
 
-    # MA50, MA200
     out["MA50"] = close.rolling(50).mean()
     out["MA200"] = close.rolling(200).mean()
     out["PCT_FROM_MA50"] = ((close - out["MA50"]) / out["MA50"]) * 100
     out["PCT_FROM_MA200"] = ((close - out["MA200"]) / out["MA200"]) * 100
 
-    # Volume ratio 20d
     vol_avg_20 = volume.rolling(20).mean()
     out["VOL_RATIO_20D"] = volume / vol_avg_20
 
-    # 52w high
     high52w = high.rolling(252).max()
     out["HIGH52W"] = high52w
     out["PCT_FROM_HIGH52W"] = ((close - high52w) / high52w) * 100
 
-    # MACD
     ema12 = close.ewm(span=12, adjust=False).mean()
     ema26 = close.ewm(span=26, adjust=False).mean()
     macd = ema12 - ema26
@@ -210,7 +197,6 @@ def bereken_indicatoren(hist, index_ret=None):
     out["MACD_SIGNAAL"] = macd_sig
     out["MACD_HIST"] = macd - macd_sig
 
-    # Bollinger Bands (20, 2)
     ma20 = close.rolling(20).mean()
     std20 = close.rolling(20).std()
     bb_upper = ma20 + 2 * std20
@@ -218,7 +204,6 @@ def bereken_indicatoren(hist, index_ret=None):
     out["BB_BREEDTE"] = ((bb_upper - bb_lower) / ma20) * 100
     out["BB_PERCENT_B"] = (close - bb_lower) / (bb_upper - bb_lower).replace(0, np.nan)
 
-    # Stochastics (14, 3, 3)
     low14 = low.rolling(14).min()
     high14 = high.rolling(14).max()
     k_ruw = 100 * (close - low14) / (high14 - low14).replace(0, np.nan)
@@ -227,7 +212,6 @@ def bereken_indicatoren(hist, index_ret=None):
     out["STOCH_K"] = k
     out["STOCH_D"] = d
 
-    # ADX14 (Wilder)
     high_diff = high.diff()
     low_diff = -low.diff()
     plus_dm = pd.Series(
@@ -245,7 +229,6 @@ def bereken_indicatoren(hist, index_ret=None):
     adx = dx.ewm(alpha=1/14, adjust=False, min_periods=14).mean()
     out["ADX14"] = adx
 
-    # Relatieve sterkte 20d (t.o.v. index)
     if index_ret is not None:
         aandeel_ret_20 = close.pct_change(20)
         index_ret_20 = index_ret.reindex(df.index).pct_change(20).fillna(0)
@@ -253,12 +236,10 @@ def bereken_indicatoren(hist, index_ret=None):
     else:
         out["REL_STERKTE_20D"] = None
 
-    # HV20, HV60 (geannualiseerd)
     log_ret = np.log(close / close.shift(1))
     out["HV20"] = log_ret.rolling(20).std() * np.sqrt(252) * 100
     out["HV60"] = log_ret.rolling(60).std() * np.sqrt(252) * 100
 
-    # Dagen sinds 52w low
     low52w = low.rolling(252).min()
     dagen_low = []
     for i in range(len(df)):
@@ -271,11 +252,9 @@ def bereken_indicatoren(hist, index_ret=None):
         dagen_low.append(dagen)
     out["DAGEN_SINDS_LOW52W"] = dagen_low
 
-    # Volume ratio 50d
     vol_avg_50 = volume.rolling(50).mean()
     out["VOL_RATIO_50D"] = volume / vol_avg_50
 
-    # --- EMA8, EMA20 en afgeleiden -------------------------------------
     try:
         ema8_reeks = close.ewm(span=8, adjust=False).mean()
         ema20_reeks = close.ewm(span=20, adjust=False).mean()
@@ -292,8 +271,6 @@ def bereken_indicatoren(hist, index_ret=None):
         out["PCT_FROM_EMA20"] = None
         out["EMA8_MINUS_EMA20"] = None
 
-    # --- OHLCV ook teruggeven (nodig voor onvolledige-balk-check in
-    #     backfill_technische_features.py) --------------------------------
     out["Open"] = df["Open"] if "Open" in df.columns else df["Close"]
     out["High"] = df["High"]
     out["Low"] = df["Low"]
@@ -399,8 +376,6 @@ def main():
     if not DB_URL:
         sys.exit("SUPABASE_DB_URL ontbreekt")
 
-    # BACKFILL_DATUM = optionele override (voor handmatige runs op een specifieke datum).
-    # Zonder override gebruiken we de LAATSTE beschikbare bar (bar_datum), niet vandaag.
     datum_doel = os.environ.get("BACKFILL_DATUM")
     datum_doel_ts = pd.Timestamp(datum_doel).normalize() if datum_doel else None
 
@@ -414,7 +389,6 @@ def main():
     else:
         print("Doeldatum: (laatste bar per ticker)")
 
-    # Voor de referentie-index: gebruik of de override, of vandaag.
     ref_start_ts = (
         datum_doel_ts if datum_doel_ts is not None
         else pd.Timestamp.now().normalize()
@@ -443,9 +417,6 @@ def main():
                     n_skip += 1
                     continue
 
-                # Bepaal de bar-positie:
-                #  - als BACKFILL_DATUM gezet is: laatste bar OP OF VÓÓR die datum
-                #  - anders: de laatste bar in de reeks (meest recente handelsdag)
                 if datum_doel_ts is not None:
                     pos = g.index.searchsorted(datum_doel_ts, side="right") - 1
                 else:
@@ -457,7 +428,6 @@ def main():
 
                 bar_datum_ts = g.index[pos]
 
-                # Afstandscheck: bar mag niet te ver in het verleden liggen
                 referentie_ts = (
                     datum_doel_ts if datum_doel_ts is not None
                     else pd.Timestamp.now().normalize()
@@ -468,7 +438,6 @@ def main():
 
                 rij = g.iloc[pos]
 
-                # Onvolledige balk-check
                 if (
                     pd.isna(rij.get("Close"))
                     or pd.isna(rij.get("High"))
@@ -477,9 +446,6 @@ def main():
                     n_skip += 1
                     continue
 
-                # BELANGRIJK: schrijf de BAR-DATUM, niet vandaag.
-                # Zo kan de cron op elk moment draaien (ook weekend, ook met
-                # vertraging) zonder weekend-rijen te produceren.
                 schrijf_rij(conn, ticker, bar_datum_ts.date(), rij)
                 n_ok += 1
 
@@ -506,6 +472,40 @@ def main():
         print(f"Fouten           : {len(fouten)}")
         for t, e in fouten[:10]:
             print(f"  {t}: {e}")
+
+    # ============================================================
+    # NIEUW: Telegram en e-mail notificatie
+    # ============================================================
+    datum_str = today_str()
+    
+    # Bouw het Telegram-bericht (Markdown)
+    tg_bericht = (
+        f"📊 *Generieke Technicals Update*\n"
+        f"_{datum_str}_\n\n"
+        f"✅ *Rijen geschreven:* {n_ok}\n"
+        f"⏭️ *Overgeslagen:* {n_skip}\n"
+    )
+    if fouten:
+        tg_bericht += f"⚠️ *Fouten:* {len(fouten)}\n"
+    
+    # Stuur Telegram (als de secrets bestaan)
+    send_telegram(tg_bericht, parse_mode="Markdown")
+
+    # Bouw en stuur e-mail
+    email_onderwerp = f"Generieke Technicals Update - {datum_str}"
+    email_body = (
+        f"Generieke Technicals Update\n"
+        f"Datum: {datum_str}\n\n"
+        f"Tickers verwerkt: {len(tickers)}\n"
+        f"Rijen geschreven: {n_ok}\n"
+        f"Overgeslagen: {n_skip}\n"
+    )
+    if fouten:
+        email_body += f"Aantal fouten: {len(fouten)}\n"
+        for t, e in fouten[:10]:
+            email_body += f"  {t}: {e}\n"
+            
+    send_email(email_onderwerp, email_body)
 
 
 if __name__ == "__main__":
