@@ -1,27 +1,36 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 tradingagents_bridge.py
 
-Koppelt TradingAgents (multi-agent LLM-analyse) aan bot_00vcp.
+Koppelt TradingAgents (multi-agent LLM-analyse) aan een signaalbron.
+
+Twee bronnen worden ondersteund:
+  --source vcp  (default): leest vcp_signals.json (output van bot_00vcp)
+  --source par          : leest results/a_par_model_{horizon}_picks.csv
 
 Werking:
-  1. bot_00vcp.py schrijft zijn kandidaat-tickers weg naar vcp_signals.json
-     (zie de kleine aanpassing onderaan dit bestand / in bot_00vcp_patch.md)
-  2. Dit script leest dat bestand, laat TradingAgents per ticker een besluit
+  1. Bron genereert kandidaat-tickers
+  2. Dit script leest de tickers, laat TradingAgents per ticker een besluit
      genereren, en stuurt het resultaat naar Telegram en/of Gmail.
 
 Blijft gratis door:
   - Groq als LLM-provider (gratis rate-limited tier, geen lokale GPU nodig,
     en werkt dus prima binnen de gratis GitHub Actions-runner)
   - max_debate_rounds=1 om binnen de gratis Groq rate limits te blijven
+  - online_tools=False om prompts klein te houden (anders 413-fouten)
   - GitHub Actions blijft gratis voor public/private repos binnen de
     standaard minuten-quota; dit stapje kost enkele API-calls, geen compute
 
-Benodigde secrets (naast de vijf die je al gebruikt):
+Benodigde secrets:
   GROQ_API_KEY   -> gratis aan te maken op https://console.groq.com
+  TELEGRAM_TOKEN, TELEGRAM_CHAT_ID  (voor --channel telegram/both)
+  EMAIL_USER, EMAIL_PASS, EMAIL_RECEIVER  (voor --channel email/both)
 """
 
 import os
 import sys
+import csv
 import json
 import time
 import argparse
@@ -35,6 +44,10 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 
+# ============================================================
+# CONFIG
+# ============================================================
+
 def build_config():
     """Gratis configuratie: Groq-inference i.p.v. betaalde OpenAI/Anthropic calls."""
     config = DEFAULT_CONFIG.copy()
@@ -42,8 +55,7 @@ def build_config():
     config["backend_url"] = "https://api.groq.com/openai/v1"
     # Beide modellen zijn gratis-tier Groq-modellen
     # llama-3.3-70b-versatile heeft een hogere gratis TPM-limiet (12.000)
-    # dan llama-3.1-8b-instant (6.000) — lost niet alles op bij de zwaarste
-    # tickers, maar wel bij de meeste.
+    # dan llama-3.1-8b-instant (6.000).
     config["deep_think_llm"] = "llama-3.3-70b-versatile"
     config["quick_think_llm"] = "llama-3.3-70b-versatile"
     # Kleinere debat-diepte = minder calls = ruim binnen gratis rate limits
@@ -51,9 +63,7 @@ def build_config():
     config["max_risk_discuss_rounds"] = 1
     # Uitgezet: online_tools haalt live nieuws/social data op en maakt de
     # prompt vaak 10-60k tokens groot — dat past niet binnen de gratis
-    # Groq TPM-limiet (6000 tokens/min voor llama-3.1-8b-instant).
-    # Met online_tools=False gebruikt TradingAgents alleen prijs/volume-data,
-    # wat de prompt klein genoeg houdt om gratis te blijven werken.
+    # Groq TPM-limiet.
     config["online_tools"] = False
     return config
 
@@ -76,6 +86,42 @@ def analyze_ticker(ticker: str, trade_date: str) -> str:
             raise
 
 
+# ============================================================
+# BRONNEN
+# ============================================================
+
+def lees_vcp_signals(pad: str) -> list:
+    """Leest vcp_signals.json (output van bot_00vcp)."""
+    if not os.path.exists(pad):
+        print(f"Geen signalenbestand gevonden: {pad}")
+        return []
+    with open(pad) as f:
+        signals = json.load(f)
+    # Verwacht formaat: {"tickers": ["ABI.BR", "KBC.BR"]}
+    return signals.get("tickers", [])
+
+
+def lees_par_picks(horizon: str, top_n: int) -> list:
+    """Leest picks uit results/a_par_model_{horizon}_picks.csv."""
+    pad = f"results/a_par_model_{horizon}_picks.csv"
+    if not os.path.exists(pad):
+        print(f"Geen par-picks gevonden: {pad}")
+        return []
+    try:
+        with open(pad, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            rijen = list(reader)
+        tickers = [r["ticker"] for r in rijen if r.get("ticker")][:top_n]
+        print(f"{len(tickers)} tickers gelezen uit {pad}")
+        return tickers
+    except Exception as e:
+        print(f"Fout bij lezen {pad}: {e}")
+        return []
+
+
+# ============================================================
+# NOTIFICATIES
+# ============================================================
 
 def send_telegram(message: str) -> None:
     token = os.environ["TELEGRAM_TOKEN"]
@@ -124,14 +170,41 @@ def send_email(subject: str, message: str) -> None:
         server.send_message(msg)
 
 
+# ============================================================
+# MAIN
+# ============================================================
+
 def main():
-    parser = argparse.ArgumentParser(description="TradingAgents-bridge voor bot_00vcp")
+    parser = argparse.ArgumentParser(description="TradingAgents-bridge")
+    parser.add_argument(
+        "--source",
+        choices=["vcp", "par"],
+        default="vcp",
+        help="vcp = bot_00vcp signalen uit vcp_signals.json; "
+             "par = a_par_model picks uit results/a_par_model_{horizon}_picks.csv "
+             "(default: vcp)",
+    )
     parser.add_argument(
         "--signals-file",
         default="vcp_signals.json",
-        help="JSON-bestand met kandidaat-tickers van bot_00vcp (default: vcp_signals.json)",
+        help="JSON-bestand met VCP-tickers (alleen bij --source vcp)",
     )
-    parser.add_argument("--date", default=None, help="Handelsdatum YYYY-MM-DD (default: vandaag)")
+    parser.add_argument(
+        "--horizon",
+        default="10d",
+        help="Horizon voor par-picks: 5d/10d/20d/30d/60d (default: 10d)",
+    )
+    parser.add_argument(
+        "--top-n",
+        type=int,
+        default=10,
+        help="Max aantal par-picks om te analyseren (default: 10)",
+    )
+    parser.add_argument(
+        "--date",
+        default=None,
+        help="Handelsdatum YYYY-MM-DD (default: vandaag)",
+    )
     parser.add_argument(
         "--channel",
         choices=["telegram", "email", "both"],
@@ -142,18 +215,26 @@ def main():
 
     trade_date = args.date or datetime.date.today().isoformat()
 
-    if not os.path.exists(args.signals_file):
-        print(f"Geen signalenbestand gevonden: {args.signals_file} — niets te doen.")
-        return
+    # Bepaal bron
+    if args.source == "vcp":
+        tickers = lees_vcp_signals(args.signals_file)
+        bron_label = "VCP-kandidaten"
+        if not tickers:
+            print("Geen VCP-kandidaten vandaag — TradingAgents wordt overgeslagen.")
+            return
+    else:  # par
+        tickers = lees_par_picks(args.horizon, args.top_n)
+        bron_label = f"a_par_model top {args.top_n} ({args.horizon})"
+        if not tickers:
+            print(f"Geen par-picks beschikbaar ({bron_label}) — TradingAgents wordt overgeslagen.")
+            return
 
-    with open(args.signals_file) as f:
-        signals = json.load(f)  # verwacht formaat: {"tickers": ["ABI.BR", "KBC.BR"]}
+    print(f"Bron: {bron_label}")
+    print(f"Tickers: {', '.join(tickers)}")
+    print(f"Datum: {trade_date}")
+    print("")
 
-    tickers = signals.get("tickers", [])
-    if not tickers:
-        print("Geen VCP-kandidaten vandaag — TradingAgents wordt overgeslagen.")
-        return
-
+    # Analyse per ticker
     blocks = []
     for ticker in tickers:
         print(f"Analyseren: {ticker} ...")
@@ -165,13 +246,14 @@ def main():
         # Kleine pauze tussen tickers om de gratis TPM-limiet niet te bursten
         time.sleep(5)
 
-    message = f"TradingAgents-analyse VCP-kandidaten ({trade_date}):\n\n" + "\n".join(blocks)
+    message = f"TradingAgents-analyse — {bron_label} ({trade_date}):\n\n" + "\n".join(blocks)
 
+    # Versturen
     if args.channel in ("telegram", "both"):
         send_telegram(message)
         print("Verstuurd naar Telegram.")
     if args.channel in ("email", "both"):
-        send_email(f"TradingAgents VCP-analyse {trade_date}", message)
+        send_email(f"TradingAgents {bron_label} {trade_date}", message)
         print("Verstuurd naar Gmail.")
 
 
