@@ -1,6 +1,6 @@
 # MASTERLIJST 044 — Spanje/Portugal
-# Laatste update: 18/10/2026
-# Nitro Criteria: ROE>3% | Debt<150 | Marge>2% | Vol 30%-80% | Omzet>€500,000
+# Laatste update: 31/10/2026
+# Criteria: ROE>7% | Debt<130 | Marge>4% | Vol 18%-65% | Omzet>€150,000
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
 AMS.MC           | opname:2026-05-04 | ROE:26.5% | Debt:78.6 | Marge:19.9% | Vol:28.4% | Omzet:49,506,312 | actief

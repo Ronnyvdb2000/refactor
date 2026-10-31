@@ -1,6 +1,6 @@
 # MASTERLIJST 047 — Toronto
-# Laatste update: 18/10/2026
-# Nitro Criteria: ROE>4% | Debt<140 | Marge>3% | Vol 35%-95% | Omzet>€2,500,000
+# Laatste update: 31/10/2026
+# Criteria: ROE>8% | Debt<120 | Marge>7% | Vol 22%-70% | Omzet>€500,000
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
 AEM.TO           | opname:2026-05-08 | ROE:23.0% | Debt:112.0 | Marge:40.4% | Vol:47.8% | Omzet:262,313,173 | actief
