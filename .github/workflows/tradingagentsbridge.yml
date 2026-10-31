@@ -1,0 +1,198 @@
+name: "TradingAgents Bridge — LLM-analyse op VCP of a_par_model picks"
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Bron van de picks"
+        required: false
+        default: "par"
+        type: choice
+        options:
+          - par
+          - vcp
+      horizon:
+        description: "Horizon voor par-picks (alleen bij source=par)"
+        required: false
+        default: "10d"
+        type: choice
+        options:
+          - 5d
+          - 10d
+          - 20d
+          - 30d
+          - 60d
+      top_n:
+        description: "Max aantal picks om te analyseren"
+        required: false
+        default: "10"
+        type: string
+      channel:
+        description: "Waar het resultaat naartoe"
+        required: false
+        default: "telegram"
+        type: choice
+        options:
+          - telegram
+          - email
+          - both
+      trade_date:
+        description: "Handelsdatum YYYY-MM-DD (leeg = vandaag)"
+        required: false
+        default: ""
+        type: string
+
+  schedule:
+    # Dagelijks om 23:00 UTC (na de daily run van a_par_model om 05:00)
+    - cron: "0 23 * * 1-5"
+
+  push:
+    paths:
+      - "tradingagents_bridge.py"
+      - ".github/workflows/tradingagents_bridge.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  run-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            numpy==1.26.4 \
+            pandas==2.2.3 \
+            scipy==1.14.1 \
+            psycopg2-binary==2.9.10 \
+            requests==2.32.3
+          # TradingAgents staat niet op PyPI, maar op GitHub:
+          pip install git+https://github.com/TauricResearch/TradingAgents.git
+
+      - name: Verify installaties
+        run: |
+          python -c "import tradingagents; print('tradingagents OK')"
+          python -c "from tradingagents.graph.trading_graph import TradingAgentsGraph; print('TradingAgentsGraph OK')"
+          python -c "import requests; print('requests OK')"
+
+      - name: Check secrets
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "FOUT: GROQ_API_KEY secret ontbreekt (verplicht voor TradingAgents)"
+            exit 1
+          fi
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "FOUT: SUPABASE_DB_URL secret ontbreekt"
+            exit 1
+          fi
+          echo "GROQ_API_KEY gezet (lengte: ${#GROQ_API_KEY})"
+          echo "SUPABASE_DB_URL gezet (lengte: ${#SUPABASE_DB_URL})"
+
+      - name: Run a_par_model (indien source=par)
+        if: ${{ github.event.inputs.source == 'par' || github.event_name == 'schedule' }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "a_par_model draaien (zonder Telegram, alleen CSV-output)..."
+          mkdir -p results
+          
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          TOP_N="${{ github.event.inputs.top_n || '10' }}"
+          
+          python a_par_model.py \
+            --horizons "$HORIZON" \
+            --top-n "$TOP_N" \
+            --geen-db-write \
+            --geen-notify \
+            2>&1 | tee a_par_model_run.log
+
+      - name: Controleer of picks bestaan
+        run: |
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          PAD="results/a_par_model_${HORIZON}_picks.csv"
+          if [ -f "$PAD" ]; then
+            echo "=== $PAD ==="
+            cat "$PAD"
+          else
+            echo "::warning::$PAD niet gevonden. a_par_model heeft mogelijk geen picks gegenereerd."
+            ls -la results/ || true
+          fi
+
+      - name: Run TradingAgents bridge
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: |
+          set -o pipefail
+
+          SOURCE="${{ github.event.inputs.source || 'par' }}"
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          TOP_N="${{ github.event.inputs.top_n || '10' }}"
+          CHANNEL="${{ github.event.inputs.channel || 'telegram' }}"
+          DATE_ARG="${{ github.event.inputs.trade_date }}"
+
+          ARGS="--source $SOURCE --horizon $HORIZON --top-n $TOP_N --channel $CHANNEL"
+          if [ -n "$DATE_ARG" ]; then
+            ARGS="$ARGS --date $DATE_ARG"
+          fi
+
+          echo "============================================================"
+          echo "TradingAgents bridge start"
+          echo "  source  = $SOURCE"
+          echo "  horizon = $HORIZON"
+          echo "  top_n   = $TOP_N"
+          echo "  channel = $CHANNEL"
+          echo "  args    = $ARGS"
+          echo "============================================================"
+
+          python tradingagents_bridge.py $ARGS 2>&1 | tee tradingagents_output.log
+
+      - name: Bewaar log + picks als artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: tradingagents-output-${{ github.run_number }}
+          path: |
+            tradingagents_output.log
+            a_par_model_run.log
+            results/a_par_model_*_picks.csv
+            vcp_signals.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Samenvatting in GitHub Actions
+        if: always()
+        run: |
+          if [ -f tradingagents_output.log ]; then
+            echo "## TradingAgents resultaat" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 50 tradingagents_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
