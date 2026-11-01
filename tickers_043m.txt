@@ -104,7 +104,7 @@ F3C.DE           | opname:2026-08-23 | ROE:4.3% | Debt:12.8 | Marge:4.1% | Vol:4
 FB2A.DE          | opname:2026-08-22 | ROE:32.3% | Debt:42.2 | Marge:31.1% | Vol:42.6% | Omzet:6,556,050 | verwijderd | verwijderd:2026-11-01
 FIE.DE           | opname:2026-05-03 | ROE:20.1% | Debt:80.5 | Marge:8.5% | Vol:24.5% | Omzet:2,746,063 | verwijderd | verwijderd:2026-09-06
 FME.DE           | opname:2026-05-08 | ROE:8.5% | Debt:81.1 | Marge:4.8% | Vol:29.7% | Omzet:33,074,743 | verwijderd | verwijderd:2026-09-06
-FMV.DE           | opname:2026-08-16 | ROE:13.4% | Debt:9.8 | Marge:21.2% | Vol:73.1% | Omzet:1,896,239 | verwijderd | verwijderd:2026-09-13
+FMV.DE           | opname:2026-08-16 | ROE:13.4% | Debt:9.8 | Marge:21.2% | Vol:73.1% | Omzet:1,896,238 | verwijderd | verwijderd:2026-09-13
 FNTN.DE          | opname:2026-05-03 | ROE:17.7% | Debt:60.7 | Marge:8.8% | Vol:26.1% | Omzet:10,133,331 | verwijderd | verwijderd:2026-09-06
 FPE.DE           | opname:2026-08-22 | ROE:17.7% | Debt:6.6 | Marge:9.0% | Vol:20.7% | Omzet:1,299,157 | verwijderd | verwijderd:2026-09-06
 FPE3.DE          | opname:2026-08-22 | ROE:17.7% | Debt:6.6 | Marge:9.0% | Vol:23.8% | Omzet:4,263,206 | verwijderd | verwijderd:2026-09-06
