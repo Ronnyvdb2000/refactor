@@ -44,7 +44,7 @@ on:
 
   schedule:
     # Dagelijks om 23:00 UTC (na de daily run van a_par_model om 05:00)
-    - cron: "0 23 * * 1-5"
+    - cron: "0 23 * * *"
 
   push:
     paths:
