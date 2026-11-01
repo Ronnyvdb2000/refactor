@@ -1,0 +1,56 @@
+name: Test Telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: 'Welke test draaien?'
+        required: true
+        default: 'test_telegram'
+        type: choice
+        options:
+          - test_telegram
+          - test_verbinding
+          - beide
+
+permissions:
+  contents: read
+
+jobs:
+  telegram-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Python setup
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Dependencies installeren
+        run: pip install requests python-dotenv
+
+      - name: Check secrets
+        run: |
+          if [ -z "$TELEGRAM_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::error::TELEGRAM_TOKEN en/of TELEGRAM_CHAT_ID ontbreekt in de repo-secrets"
+            exit 1
+          fi
+
+      - name: test_telegram.py
+        if: ${{ inputs.test == 'test_telegram' || inputs.test == 'beide' }}
+        run: |
+          python test_telegram.py | tee out_telegram.txt
+          grep -q "SUCCES" out_telegram.txt
+
+      - name: test_verbinding.py
+        if: ${{ !cancelled() && (inputs.test == 'test_verbinding' || inputs.test == 'beide') }}
+        run: |
+          python test_verbinding.py | tee out_verbinding.txt
+          grep -q '"ok":true' out_verbinding.txt
