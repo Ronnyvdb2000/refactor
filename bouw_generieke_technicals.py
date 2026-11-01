@@ -32,6 +32,13 @@ Wijziging 2026-10-12:
   - datum_doel is nu optioneel.
 Wijziging 2026-10-27:
   - Telegram en e-mail notificaties toegevoegd via common/ package.
+Wijziging 2026-11-01:
+  - De import uit common is nu veilig: bestaat het common/-pakket niet
+    (zoals op main, waar common.py enkel een lege shim is), dan worden
+    lokale notificatie-functies gebruikt. Voorheen crashte het script dan
+    bij de import, nog VOOR er data werd verwerkt
+    (ImportError: cannot import name 'send_telegram' from 'common').
+  - De lokale send_telegram toont de echte foutmelding van Telegram.
 """
 
 import os
@@ -47,8 +54,84 @@ import psycopg2
 import psycopg2.extras
 import yfinance as yf
 
-# Importeer de notificatie-functies uit onze common package
-from common import send_telegram, send_email, today_str
+# Importeer de notificatie-functies uit onze common package.
+# oud: from common import send_telegram, send_email, today_str
+#      -> crashte op main, waar common/ ontbreekt en common.py geen functies bevat.
+try:
+    from common import send_telegram, send_email, today_str
+except ImportError as _import_fout:
+    print(f"[WARN] common-pakket niet bruikbaar ({_import_fout}); "
+          f"lokale notificatie-functies worden gebruikt.")
+
+    import smtplib
+    import requests
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    def today_str() -> str:
+        """Datum van vandaag als YYYY-MM-DD (lokale fallback)."""
+        return dt.date.today().isoformat()
+
+    def send_telegram(text: str, *, parse_mode: "str | None" = "Markdown",
+                      silent_on_missing: bool = True) -> bool:
+        """Verstuurt een Telegram-bericht en logt de echte fout bij mislukking."""
+        token = os.getenv("TELEGRAM_TOKEN", "")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+        if not token or not chat_id:
+            if not silent_on_missing:
+                print(text)
+            print("[Telegram] Secrets ontbreken, overslaan.")
+            return False
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {"chat_id": chat_id, "text": text,
+                   "disable_web_page_preview": True}
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
+        try:
+            r = requests.post(url, json=payload, timeout=15)
+            if r.status_code == 200:
+                print("[Telegram] Bericht verzonden.")
+                return True
+            print(f"[Telegram] MISLUKT: HTTP {r.status_code} - {r.text[:300]}")
+            if parse_mode:
+                payload.pop("parse_mode", None)
+                r2 = requests.post(url, json=payload, timeout=15)
+                if r2.status_code == 200:
+                    print("[Telegram] Bericht verzonden (zonder opmaak).")
+                    return True
+                print(f"[Telegram] Ook zonder opmaak mislukt: "
+                      f"HTTP {r2.status_code} - {r2.text[:300]}")
+            return False
+        except Exception as e:
+            print(f"[Telegram] Fout: {e}")
+            return False
+
+    def send_email(subject: str, body: str, *, html_body: bool = False,
+                   silent_on_missing: bool = True) -> bool:
+        """Verstuurt een e-mail via Gmail SMTP (lokale fallback)."""
+        user = os.getenv("EMAIL_USER", "")
+        pwd = os.getenv("EMAIL_PASS", "")
+        ontvanger = os.getenv("EMAIL_RECEIVER", "")
+        if not user or not pwd or not ontvanger:
+            if not silent_on_missing:
+                print(f"[email] {subject}\n{body}")
+            print("[Email] Secrets ontbreken, overslaan.")
+            return False
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = user
+        msg["To"] = ontvanger
+        msg.attach(MIMEText(body, "html" if html_body else "plain", "utf-8"))
+        try:
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as s:
+                s.starttls()
+                s.login(user, pwd)
+                s.sendmail(user, ontvanger, msg.as_string())
+            print("[Email] Bericht verzonden.")
+            return True
+        except Exception as e:
+            print(f"[Email] Fout: {e}")
+            return False
 
 warnings.filterwarnings("ignore")
 
@@ -474,10 +557,10 @@ def main():
             print(f"  {t}: {e}")
 
     # ============================================================
-    # NIEUW: Telegram en e-mail notificatie
+    # Telegram en e-mail notificatie
     # ============================================================
     datum_str = today_str()
-    
+
     # Bouw het Telegram-bericht (Markdown)
     tg_bericht = (
         f"📊 *Generieke Technicals Update*\n"
@@ -487,7 +570,7 @@ def main():
     )
     if fouten:
         tg_bericht += f"⚠️ *Fouten:* {len(fouten)}\n"
-    
+
     # Stuur Telegram (als de secrets bestaan)
     send_telegram(tg_bericht, parse_mode="Markdown")
 
@@ -504,7 +587,7 @@ def main():
         email_body += f"Aantal fouten: {len(fouten)}\n"
         for t, e in fouten[:10]:
             email_body += f"  {t}: {e}\n"
-            
+
     send_email(email_onderwerp, email_body)
 
 
