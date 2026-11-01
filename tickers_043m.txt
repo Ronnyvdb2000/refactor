@@ -47,19 +47,7 @@ VWSB.DE          | opname:2026-08-16 | ROE:30.9% | Debt:89.2 | Marge:5.4% | Vol:
 WAC.DE           | opname:2026-08-16 | ROE:7.8% | Debt:21.1 | Marge:4.9% | Vol:47.7% | Omzet:1,218,804 | actief
 YSN.DE           | opname:2026-10-04 | ROE:23.2% | Debt:19.0 | Marge:7.0% | Vol:47.1% | Omzet:987,870 | actief
 ING.AS           | opname:2025-02-10 | ROE:16% | Debt:58.0 | Marge:11% | Vol:38% | Omzet:? | zwakker | weken_buiten:1
-MTX.DE           | opname:2026-05-03 | ROE:22.6% | Debt:55.6 | Marge:10.2% | Vol:34.5% | Omzet:52,712,023 | zwakker | weken_buiten:2
-NDX1.DE          | opname:2026-05-08 | ROE:32.4% | Debt:34.4 | Marge:5.0% | Vol:46.4% | Omzet:22,540,925 | zwakker | weken_buiten:2
-NOA3.DE          | opname:2026-08-16 | ROE:3.9% | Debt:15.8 | Marge:3.8% | Vol:55.5% | Omzet:5,986,633 | zwakker | weken_buiten:2
-QCI.DE           | opname:2026-08-22 | ROE:33.8% | Debt:55.2 | Marge:21.0% | Vol:56.1% | Omzet:929,422 | zwakker | weken_buiten:2
-SDF.DE           | opname:2026-08-16 | ROE:22.0% | Debt:18.5 | Marge:27.6% | Vol:36.4% | Omzet:16,668,891 | zwakker | weken_buiten:2
-SGM.DE           | opname:2026-08-16 | ROE:3.0% | Debt:17.5 | Marge:3.8% | Vol:55.0% | Omzet:920,999 | zwakker | weken_buiten:2
-SMHN.DE          | opname:2026-05-08 | ROE:8.2% | Debt:14.9 | Marge:5.8% | Vol:66.8% | Omzet:7,429,862 | zwakker | weken_buiten:2
-SND.DE           | opname:2026-08-16 | ROE:18.6% | Debt:84.1 | Marge:11.3% | Vol:36.0% | Omzet:1,240,012 | zwakker | weken_buiten:2
-UTDI.DE          | opname:2026-05-17 | ROE:8.1% | Debt:91.3 | Marge:5.0% | Vol:31.5% | Omzet:4,551,108 | zwakker | weken_buiten:2
 UU2.DE           | opname:2026-08-22 | ROE:12.3% | Debt:23.2 | Marge:24.1% | Vol:26.8% | Omzet:244,271 | zwakker | weken_buiten:1
-VH2.DE           | opname:2026-08-22 | ROE:44.4% | Debt:8.2 | Marge:14.6% | Vol:49.2% | Omzet:3,676,416 | zwakker | weken_buiten:2
-WDP.DE           | opname:2026-08-22 | ROE:8.0% | Debt:39.4 | Marge:8.7% | Vol:26.1% | Omzet:217,541 | zwakker | weken_buiten:2
-WEW.DE           | opname:2026-08-22 | ROE:32.5% | Debt:38.6 | Marge:4.9% | Vol:49.0% | Omzet:315,435 | zwakker | weken_buiten:2
 1INN.DE          | opname:2026-08-16 | ROE:156.5% | Debt:30.4 | Marge:41.9% | Vol:88.6% | Omzet:724,982 | verwijderd | verwijderd:2026-09-06
 1N8.DE           | opname:2026-08-22 | ROE:21.3% | Debt:6.9 | Marge:43.6% | Vol:48.7% | Omzet:599,489 | verwijderd | verwijderd:2026-09-06
 1TY.DE           | opname:2026-08-22 | ROE:22.2% | Debt:32.9 | Marge:119.9% | Vol:35.4% | Omzet:282,024 | verwijderd | verwijderd:2026-09-06
@@ -116,7 +104,7 @@ F3C.DE           | opname:2026-08-23 | ROE:4.3% | Debt:12.8 | Marge:4.1% | Vol:4
 FB2A.DE          | opname:2026-08-22 | ROE:32.3% | Debt:42.2 | Marge:31.1% | Vol:42.6% | Omzet:6,556,050 | verwijderd | verwijderd:2026-11-01
 FIE.DE           | opname:2026-05-03 | ROE:20.1% | Debt:80.5 | Marge:8.5% | Vol:24.5% | Omzet:2,746,063 | verwijderd | verwijderd:2026-09-06
 FME.DE           | opname:2026-05-08 | ROE:8.5% | Debt:81.1 | Marge:4.8% | Vol:29.7% | Omzet:33,074,743 | verwijderd | verwijderd:2026-09-06
-FMV.DE           | opname:2026-08-16 | ROE:13.4% | Debt:9.8 | Marge:21.2% | Vol:73.1% | Omzet:1,896,238 | verwijderd | verwijderd:2026-09-13
+FMV.DE           | opname:2026-08-16 | ROE:13.4% | Debt:9.8 | Marge:21.2% | Vol:73.1% | Omzet:1,896,239 | verwijderd | verwijderd:2026-09-13
 FNTN.DE          | opname:2026-05-03 | ROE:17.7% | Debt:60.7 | Marge:8.8% | Vol:26.1% | Omzet:10,133,331 | verwijderd | verwijderd:2026-09-06
 FPE.DE           | opname:2026-08-22 | ROE:17.7% | Debt:6.6 | Marge:9.0% | Vol:20.7% | Omzet:1,299,157 | verwijderd | verwijderd:2026-09-06
 FPE3.DE          | opname:2026-08-22 | ROE:17.7% | Debt:6.6 | Marge:9.0% | Vol:23.8% | Omzet:4,263,206 | verwijderd | verwijderd:2026-09-06
@@ -155,20 +143,24 @@ MLP.DE           | opname:2026-05-08 | ROE:12.0% | Debt:9999.0 | Marge:6.2% | Vo
 MOH.DE           | opname:2026-08-22 | ROE:16.6% | Debt:53.3 | Marge:13.7% | Vol:26.9% | Omzet:1,952,342 | verwijderd | verwijderd:2026-09-06
 MOV.DE           | opname:2026-05-03 | ROE:18.1% | Debt:33.9 | Marge:20.0% | Vol:44.3% | Omzet:31,962 | verwijderd | verwijderd:2026-05-10
 MRK.DE           | opname:2026-05-08 | ROE:8.1% | Debt:40.6 | Marge:11.2% | Vol:27.6% | Omzet:39,359,082 | verwijderd | verwijderd:2026-09-06
+MTX.DE           | opname:2026-05-03 | ROE:22.6% | Debt:55.6 | Marge:10.2% | Vol:34.5% | Omzet:52,712,023 | verwijderd | verwijderd:2026-11-01
 MUM.DE           | opname:2026-05-03 | ROE:44.2% | Debt:75.4 | Marge:13.0% | Vol:26.1% | Omzet:615,879 | verwijderd | verwijderd:2026-09-06
 MUV2.DE          | opname:2026-05-03 | ROE:21.3% | Debt:24.4 | Marge:11.2% | Vol:19.6% | Omzet:144,454,334 | verwijderd | verwijderd:2026-09-06
 MZX.DE           | opname:2026-05-03 | ROE:13.3% | Debt:20.1 | Marge:8.8% | Vol:26.9% | Omzet:22,346 | verwijderd | verwijderd:2026-05-10
 NDA.DE           | opname:2026-05-08 | ROE:18.3% | Debt:12.5 | Marge:4.5% | Vol:40.2% | Omzet:28,669,741 | verwijderd | verwijderd:2026-09-13
+NDX1.DE          | opname:2026-05-08 | ROE:32.4% | Debt:34.4 | Marge:5.0% | Vol:46.4% | Omzet:22,540,925 | verwijderd | verwijderd:2026-11-01
 NFC.DE           | opname:2026-08-22 | ROE:53.5% | Debt:59.9 | Marge:29.7% | Vol:34.9% | Omzet:2,019,432 | verwijderd | verwijderd:2026-09-13
 NKE.DE           | opname:2026-08-22 | ROE:21.6% | Debt:73.1 | Marge:6.7% | Vol:33.5% | Omzet:1,628,376 | verwijderd | verwijderd:2026-09-13
 NKT.DE           | opname:2026-05-03 | ROE:13.4% | Debt:13.2 | Marge:7.8% | Vol:38.9% | Omzet:34,083 | verwijderd | verwijderd:2026-05-10
 NNGF.DE          | opname:2026-08-22 | ROE:8.4% | Debt:121.3 | Marge:18.3% | Vol:22.4% | Omzet:1,664,104 | verwijderd | verwijderd:2026-09-13
+NOA3.DE          | opname:2026-08-16 | ROE:3.9% | Debt:15.8 | Marge:3.8% | Vol:55.5% | Omzet:5,986,633 | verwijderd | verwijderd:2026-11-01
 NOT.DE           | opname:2026-08-22 | ROE:24.3% | Debt:128.6 | Marge:17.5% | Vol:24.4% | Omzet:380,356 | verwijderd | verwijderd:2026-09-13
 OMV.DE           | opname:2026-08-22 | ROE:11.4% | Debt:35.9 | Marge:10.8% | Vol:23.3% | Omzet:510,013 | verwijderd | verwijderd:2026-09-13
 OPC.DE           | opname:2026-08-22 | ROE:10.6% | Debt:34.5 | Marge:30.3% | Vol:39.4% | Omzet:398,449 | verwijderd | verwijderd:2026-09-13
 PFSE.DE          | opname:2026-08-16 | ROE:34.8% | Debt:20.7 | Marge:13.7% | Vol:47.0% | Omzet:2,672,515 | verwijderd | verwijderd:2026-09-13
 PHI1.DE          | opname:2026-08-22 | ROE:10.2% | Debt:65.0 | Marge:6.3% | Vol:27.8% | Omzet:180,741 | verwijderd | verwijderd:2026-09-13
 PRG.DE           | opname:2026-05-03 | ROE:29.6% | Debt:70.3 | Marge:18.2% | Vol:22.0% | Omzet:512,936 | verwijderd | verwijderd:2026-09-13
+QCI.DE           | opname:2026-08-22 | ROE:33.8% | Debt:55.2 | Marge:21.0% | Vol:56.1% | Omzet:929,422 | verwijderd | verwijderd:2026-11-01
 R3NK.DE          | opname:2026-08-22 | ROE:22.6% | Debt:112.6 | Marge:7.2% | Vol:49.5% | Omzet:30,967,425 | verwijderd | verwijderd:2026-09-13
 R6C0.DE          | opname:2026-08-22 | ROE:17.4% | Debt:38.1 | Marge:10.2% | Vol:23.0% | Omzet:2,723,834 | verwijderd | verwijderd:2026-09-13
 RAA.DE           | opname:2026-05-03 | ROE:32.2% | Debt:3.3 | Marge:20.5% | Vol:29.8% | Omzet:8,084,492 | verwijderd | verwijderd:2026-09-13
@@ -176,10 +168,14 @@ REP.DE           | opname:2026-05-08 | ROE:21.1% | Debt:42.5 | Marge:9.4% | Vol:
 RHM.DE           | opname:2026-05-03 | ROE:25.7% | Debt:51.6 | Marge:6.3% | Vol:47.5% | Omzet:304,147,482 | verwijderd | verwijderd:2026-09-13
 RIO1.DE          | opname:2026-08-22 | ROE:19.3% | Debt:31.9 | Marge:19.6% | Vol:27.6% | Omzet:4,863,153 | verwijderd | verwijderd:2026-09-20
 RWE.DE           | opname:2026-05-08 | ROE:8.5% | Debt:50.4 | Marge:21.0% | Vol:26.7% | Omzet:89,530,422 | verwijderd | verwijderd:2026-10-04
+SDF.DE           | opname:2026-08-16 | ROE:22.0% | Debt:18.5 | Marge:27.6% | Vol:36.4% | Omzet:16,668,891 | verwijderd | verwijderd:2026-11-01
 SEJ1.DE          | opname:2026-08-22 | ROE:27.5% | Debt:33.7 | Marge:11.6% | Vol:36.6% | Omzet:170,090 | verwijderd | verwijderd:2026-10-04
+SGM.DE           | opname:2026-08-16 | ROE:3.0% | Debt:17.5 | Marge:3.8% | Vol:55.0% | Omzet:920,999 | verwijderd | verwijderd:2026-11-01
 SHL.DE           | opname:2026-05-03 | ROE:12.1% | Debt:78.3 | Marge:9.6% | Vol:24.8% | Omzet:42,937,257 | verwijderd | verwijderd:2026-10-04
 SII.DE           | opname:2026-08-22 | ROE:23.5% | Debt:20.4 | Marge:64.7% | Vol:46.9% | Omzet:331,359 | verwijderd | verwijderd:2026-10-04
 SLYG.DE          | opname:2026-08-22 | ROE:30.6% | Debt:6.9 | Marge:18.5% | Vol:35.8% | Omzet:476,526 | verwijderd | verwijderd:2026-10-04
+SMHN.DE          | opname:2026-05-08 | ROE:8.2% | Debt:14.9 | Marge:5.8% | Vol:66.8% | Omzet:7,429,862 | verwijderd | verwijderd:2026-11-01
+SND.DE           | opname:2026-08-16 | ROE:18.6% | Debt:84.1 | Marge:11.3% | Vol:36.0% | Omzet:1,240,012 | verwijderd | verwijderd:2026-11-01
 SQU.DE           | opname:2026-08-22 | ROE:16.3% | Debt:120.7 | Marge:6.7% | Vol:23.4% | Omzet:315,299 | verwijderd | verwijderd:2026-10-18
 STM.DE           | opname:2026-08-22 | ROE:8.4% | Debt:102.2 | Marge:4.7% | Vol:41.5% | Omzet:1,367,375 | verwijderd | verwijderd:2026-10-18
 SYK.DE           | opname:2026-08-22 | ROE:16.0% | Debt:60.4 | Marge:13.8% | Vol:54.9% | Omzet:204,237 | verwijderd | verwijderd:2026-10-18
@@ -191,5 +187,9 @@ TOTB.DE          | opname:2026-08-22 | ROE:17.8% | Debt:46.0 | Marge:10.5% | Vol
 TT8.DE           | opname:2026-08-22 | ROE:15.4% | Debt:16.9 | Marge:13.6% | Vol:62.2% | Omzet:435,986 | verwijderd | verwijderd:2026-11-01
 TTR1.DE          | opname:2026-08-22 | ROE:10.9% | Debt:24.0 | Marge:4.7% | Vol:42.9% | Omzet:278,803 | verwijderd | verwijderd:2026-11-01
 UT8.DE           | opname:2026-08-22 | ROE:37.2% | Debt:51.9 | Marge:17.3% | Vol:33.3% | Omzet:544,600 | verwijderd | verwijderd:2026-11-01
+UTDI.DE          | opname:2026-05-17 | ROE:8.1% | Debt:91.3 | Marge:5.0% | Vol:31.5% | Omzet:4,551,108 | verwijderd | verwijderd:2026-11-01
+VH2.DE           | opname:2026-08-22 | ROE:44.4% | Debt:8.2 | Marge:14.6% | Vol:49.2% | Omzet:3,676,416 | verwijderd | verwijderd:2026-11-01
 VNA.DE           | opname:2026-05-10 | ROE:14.6% | Debt:135.1 | Marge:64.8% | Vol:29.1% | Omzet:69,093,512 | verwijderd | verwijderd:2026-07-19
+WDP.DE           | opname:2026-08-22 | ROE:8.0% | Debt:39.4 | Marge:8.7% | Vol:26.1% | Omzet:217,541 | verwijderd | verwijderd:2026-11-01
+WEW.DE           | opname:2026-08-22 | ROE:32.5% | Debt:38.6 | Marge:4.9% | Vol:49.0% | Omzet:315,435 | verwijderd | verwijderd:2026-11-01
 ABN.AS           | opname:2025-01-20 | ROE:? | Debt:? | Marge:? | Vol:? | Omzet:? | ?
