@@ -1,4 +1,4 @@
-  #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 tradingagents_bridge.py
@@ -26,6 +26,9 @@ Benodigde secrets:
   GROQ_API_KEY   -> gratis aan te maken op https://console.groq.com
   TELEGRAM_TOKEN, TELEGRAM_CHAT_ID  (voor --channel telegram/both)
   EMAIL_USER, EMAIL_PASS, EMAIL_RECEIVER  (voor --channel email/both)
+
+Optioneel:
+  GROQ_MODEL     -> overschrijft het standaardmodel (zie build_config)
 """
 
 import os
@@ -48,16 +51,30 @@ from tradingagents.default_config import DEFAULT_CONFIG
 # CONFIG
 # ============================================================
 
+# Standaard Groq-model. Llama 3.3 70B is door Groq stopgezet (16/08/2026)
+# en gaf daarna een 404. Groq raadt als vervanging aan:
+#   openai/gpt-oss-120b  of  qwen/qwen3.6-27b
+# Te overschrijven via de omgevingsvariabele GROQ_MODEL.
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+
+
 def build_config():
     """Gratis configuratie: Groq-inference i.p.v. betaalde OpenAI/Anthropic calls."""
     config = DEFAULT_CONFIG.copy()
     config["llm_provider"] = "groq"
     config["backend_url"] = "https://api.groq.com/openai/v1"
-    # Beide modellen zijn gratis-tier Groq-modellen
-    # llama-3.3-70b-versatile heeft een hogere gratis TPM-limiet (12.000)
-    # dan llama-3.1-8b-instant (6.000).
-    config["deep_think_llm"] = "llama-3.3-70b-versatile"
-    config["quick_think_llm"] = "llama-3.3-70b-versatile"
+
+    model = os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL)
+
+    # Oude modelkeuze (gaf 404 na stopzetting door Groq):
+    # config["deep_think_llm"] = "llama-3.3-70b-versatile"
+    # config["quick_think_llm"] = "llama-3.3-70b-versatile"
+    # (llama-3.3-70b-versatile had een gratis TPM-limiet van 12.000,
+    #  llama-3.1-8b-instant 6.000; de limieten van het nieuwe model
+    #  kun je nakijken in de Groq-console onder Limits.)
+    config["deep_think_llm"] = model
+    config["quick_think_llm"] = model
+
     # Kleinere debat-diepte = minder calls = ruim binnen gratis rate limits
     config["max_debate_rounds"] = 1
     config["max_risk_discuss_rounds"] = 1
@@ -232,12 +249,13 @@ def main():
     print(f"Bron: {bron_label}")
     print(f"Tickers: {', '.join(tickers)}")
     print(f"Datum: {trade_date}")
+    print(f"Model: {build_config()['deep_think_llm']}")
     print("")
 
     # Analyse per ticker
     blocks = []
     for ticker in tickers:
-        print(f"Analyseren: {ticker} ...")
+        print(f"Analyseren: {ticker} ...", flush=True)
         try:
             decision = analyze_ticker(ticker, trade_date)
             blocks.append(f"📊 <b>{ticker}</b>\n{decision}\n")
