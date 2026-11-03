@@ -1,179 +1,209 @@
-"""
-tradingagents_bridge.py
+name: "TradingAgents Bridge — LLM-analyse op VCP of a_par_model picks"
 
-Koppelt TradingAgents (multi-agent LLM-analyse) aan bot_00vcp.
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Bron van de picks"
+        required: false
+        default: "par"
+        type: choice
+        options:
+          - par
+          - vcp
+      horizon:
+        description: "Horizon voor par-picks (alleen bij source=par)"
+        required: false
+        default: "10d"
+        type: choice
+        options:
+          - 5d
+          - 10d
+          - 20d
+          - 30d
+          - 60d
+      top_n:
+        description: "Max aantal picks om te analyseren"
+        required: false
+        default: "10"
+        type: string
+      channel:
+        description: "Waar het resultaat naartoe"
+        required: false
+        default: "telegram"
+        type: choice
+        options:
+          - telegram
+          - email
+          - both
+      trade_date:
+        description: "Handelsdatum YYYY-MM-DD (leeg = vandaag)"
+        required: false
+        default: ""
+        type: string
+      groq_model:
+        description: "Groq-model (llama-3.3-70b-versatile is stopgezet)"
+        required: false
+        default: "openai/gpt-oss-120b"
+        type: choice
+        options:
+          - openai/gpt-oss-120b
+          - qwen/qwen3.6-27b
 
-Werking:
-  1. bot_00vcp.py schrijft zijn kandidaat-tickers weg naar vcp_signals.json
-     (zie de kleine aanpassing onderaan dit bestand / in bot_00vcp_patch.md)
-  2. Dit script leest dat bestand, laat TradingAgents per ticker een besluit
-     genereren, en stuurt het resultaat naar Telegram en/of Gmail.
+  schedule:
+    # Dagelijks om 23:00 UTC (na de daily run van a_par_model om 05:00)
+    - cron: "0 23 * * *"
 
-Blijft gratis door:
-  - Groq als LLM-provider (gratis rate-limited tier, geen lokale GPU nodig,
-    en werkt dus prima binnen de gratis GitHub Actions-runner)
-  - max_debate_rounds=1 om binnen de gratis Groq rate limits te blijven
-  - GitHub Actions blijft gratis voor public/private repos binnen de
-    standaard minuten-quota; dit stapje kost enkele API-calls, geen compute
+  push:
+    paths:
+      - "tradingagents_bridge.py"
+      - ".github/workflows/tradingagents_bridge.yml"
 
-Benodigde secrets (naast de vijf die je al gebruikt):
-  GROQ_API_KEY   -> gratis aan te maken op https://console.groq.com
-"""
+permissions:
+  contents: read
 
-import os
-import sys
-import json
-import time
-import argparse
-import smtplib
-import datetime
-from email.mime.text import MIMEText
+jobs:
+  run-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
 
-import requests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            numpy==1.26.4 \
+            pandas==2.2.3 \
+            scipy==1.14.1 \
+            psycopg2-binary==2.9.10 \
+            requests==2.32.3
+          # TradingAgents staat niet op PyPI, maar op GitHub:
+          pip install git+https://github.com/TauricResearch/TradingAgents.git
 
-def build_config():
-    """Gratis configuratie: Groq-inference i.p.v. betaalde OpenAI/Anthropic calls."""
-    config = DEFAULT_CONFIG.copy()
-    config["llm_provider"] = "groq"
-    config["backend_url"] = "https://api.groq.com/openai/v1"
-    # Beide modellen zijn gratis-tier Groq-modellen
-    # llama-3.3-70b-versatile heeft een hogere gratis TPM-limiet (12.000)
-    # dan llama-3.1-8b-instant (6.000) — lost niet alles op bij de zwaarste
-    # tickers, maar wel bij de meeste.
-    config["deep_think_llm"] = "llama-3.3-70b-versatile"
-    config["quick_think_llm"] = "llama-3.3-70b-versatile"
-    # Kleinere debat-diepte = minder calls = ruim binnen gratis rate limits
-    config["max_debate_rounds"] = 1
-    config["max_risk_discuss_rounds"] = 1
-    # Uitgezet: online_tools haalt live nieuws/social data op en maakt de
-    # prompt vaak 10-60k tokens groot — dat past niet binnen de gratis
-    # Groq TPM-limiet (6000 tokens/min voor llama-3.1-8b-instant).
-    # Met online_tools=False gebruikt TradingAgents alleen prijs/volume-data,
-    # wat de prompt klein genoeg houdt om gratis te blijven werken.
-    config["online_tools"] = False
-    return config
+      - name: Verify installaties
+        run: |
+          python -c "import tradingagents; print('tradingagents OK')"
+          python -c "from tradingagents.graph.trading_graph import TradingAgentsGraph; print('TradingAgentsGraph OK')"
+          python -c "import requests; print('requests OK')"
 
+      - name: Check secrets
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "FOUT: GROQ_API_KEY secret ontbreekt (verplicht voor TradingAgents)"
+            exit 1
+          fi
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "FOUT: SUPABASE_DB_URL secret ontbreekt"
+            exit 1
+          fi
+          echo "GROQ_API_KEY gezet (lengte: ${#GROQ_API_KEY})"
+          echo "SUPABASE_DB_URL gezet (lengte: ${#SUPABASE_DB_URL})"
 
-def analyze_ticker(ticker: str, trade_date: str) -> str:
-    config = build_config()
-    ta = TradingAgentsGraph(debug=False, config=config)
-    # Eén retry bij een tijdelijke 429 rate-limit (i.t.t. 413, dat is
-    # structureel te groot en lost niet op door te wachten).
-    for attempt in range(2):
-        try:
-            _, decision = ta.propagate(ticker, trade_date)
-            return decision
-        except Exception as e:
-            msg = str(e)
-            if "429" in msg and attempt == 0:
-                print(f"  {ticker}: tijdelijke rate limit, 10s wachten en opnieuw...")
-                time.sleep(10)
-                continue
-            raise
+      - name: Run a_par_model (indien source=par)
+        if: ${{ github.event.inputs.source == 'par' || github.event_name == 'schedule' }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          echo "a_par_model draaien (zonder Telegram, alleen CSV-output)..."
+          mkdir -p results
+          
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          TOP_N="${{ github.event.inputs.top_n || '10' }}"
+          
+          python a_par_model.py \
+            --horizons "$HORIZON" \
+            --top-n "$TOP_N" \
+            --geen-db-write \
+            --geen-notify \
+            2>&1 | tee a_par_model_run.log
 
+      - name: Controleer of picks bestaan
+        run: |
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          PAD="results/a_par_model_${HORIZON}_picks.csv"
+          if [ -f "$PAD" ]; then
+            echo "=== $PAD ==="
+            cat "$PAD"
+          else
+            echo "::warning::$PAD niet gevonden. a_par_model heeft mogelijk geen picks gegenereerd."
+            ls -la results/ || true
+          fi
 
+      - name: Run TradingAgents bridge
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Bij schedule/push zijn de inputs leeg -> fallback op het standaardmodel
+          GROQ_MODEL: ${{ github.event.inputs.groq_model || 'openai/gpt-oss-120b' }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: |
+          set -o pipefail
 
-def send_telegram(message: str) -> None:
-    token = os.environ["TELEGRAM_TOKEN"]
-    chat_id = os.environ["TELEGRAM_CHAT_ID"]
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    # Telegram limiteert tot 4096 tekens per bericht — knip op in stukken.
-    for i in range(0, len(message), 4096):
-        chunk = message[i:i + 4096]
-        try:
-            resp = requests.post(
-                url,
-                data={"chat_id": chat_id, "text": chunk, "parse_mode": "HTML",
-                      "disable_web_page_preview": True},
-                timeout=30,
-            )
-            resp.raise_for_status()
-        except Exception as e:
-            # Fallback zonder parse_mode: voorkomt 400-fouten door tekens
-            # als < of > die Telegram als (kapotte) HTML-tags interpreteert.
-            try:
-                requests.post(
-                    url,
-                    data={"chat_id": chat_id, "text": chunk,
-                          "disable_web_page_preview": True},
-                    timeout=30,
-                )
-                print(f"Telegram HTML-fout, verstuurd zonder opmaak: {e}")
-            except Exception as e2:
-                print(f"Telegram fout: {e2}")
-        if i + 4096 < len(message):
-            time.sleep(1)
+          SOURCE="${{ github.event.inputs.source || 'par' }}"
+          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          TOP_N="${{ github.event.inputs.top_n || '10' }}"
+          CHANNEL="${{ github.event.inputs.channel || 'telegram' }}"
+          DATE_ARG="${{ github.event.inputs.trade_date }}"
 
+          ARGS="--source $SOURCE --horizon $HORIZON --top-n $TOP_N --channel $CHANNEL"
+          if [ -n "$DATE_ARG" ]; then
+            ARGS="$ARGS --date $DATE_ARG"
+          fi
 
-def send_email(subject: str, message: str) -> None:
-    user = os.environ["EMAIL_USER"]
-    password = os.environ["EMAIL_PASS"]
-    receiver = os.environ["EMAIL_RECEIVER"]
+          echo "============================================================"
+          echo "TradingAgents bridge start"
+          echo "  source  = $SOURCE"
+          echo "  horizon = $HORIZON"
+          echo "  top_n   = $TOP_N"
+          echo "  channel = $CHANNEL"
+          echo "  model   = $GROQ_MODEL"
+          echo "  args    = $ARGS"
+          echo "============================================================"
 
-    msg = MIMEText(message)
-    msg["Subject"] = subject
-    msg["From"] = user
-    msg["To"] = receiver
+          python -u tradingagents_bridge.py $ARGS 2>&1 | tee tradingagents_output.log
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(user, password)
-        server.send_message(msg)
+      - name: Bewaar log + picks als artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: tradingagents-output-${{ github.run_number }}
+          path: |
+            tradingagents_output.log
+            a_par_model_run.log
+            results/a_par_model_*_picks.csv
+            vcp_signals.json
+          if-no-files-found: ignore
+          retention-days: 30
 
-
-def main():
-    parser = argparse.ArgumentParser(description="TradingAgents-bridge voor bot_00vcp")
-    parser.add_argument(
-        "--signals-file",
-        default="vcp_signals.json",
-        help="JSON-bestand met kandidaat-tickers van bot_00vcp (default: vcp_signals.json)",
-    )
-    parser.add_argument("--date", default=None, help="Handelsdatum YYYY-MM-DD (default: vandaag)")
-    parser.add_argument(
-        "--channel",
-        choices=["telegram", "email", "both"],
-        default="telegram",
-        help="Waarheen het resultaat sturen (default: telegram)",
-    )
-    args = parser.parse_args()
-
-    trade_date = args.date or datetime.date.today().isoformat()
-
-    if not os.path.exists(args.signals_file):
-        print(f"Geen signalenbestand gevonden: {args.signals_file} — niets te doen.")
-        return
-
-    with open(args.signals_file) as f:
-        signals = json.load(f)  # verwacht formaat: {"tickers": ["ABI.BR", "KBC.BR"]}
-
-    tickers = signals.get("tickers", [])
-    if not tickers:
-        print("Geen VCP-kandidaten vandaag — TradingAgents wordt overgeslagen.")
-        return
-
-    blocks = []
-    for ticker in tickers:
-        print(f"Analyseren: {ticker} ...")
-        try:
-            decision = analyze_ticker(ticker, trade_date)
-            blocks.append(f"📊 <b>{ticker}</b>\n{decision}\n")
-        except Exception as e:
-            blocks.append(f"⚠️ {ticker}: analyse mislukt ({e})")
-        # Kleine pauze tussen tickers om de gratis TPM-limiet niet te bursten
-        time.sleep(5)
-
-    message = f"TradingAgents-analyse VCP-kandidaten ({trade_date}):\n\n" + "\n".join(blocks)
-
-    if args.channel in ("telegram", "both"):
-        send_telegram(message)
-        print("Verstuurd naar Telegram.")
-    if args.channel in ("email", "both"):
-        send_email(f"TradingAgents VCP-analyse {trade_date}", message)
-        print("Verstuurd naar Gmail.")
-
-
-if __name__ == "__main__":
-    main()
+      - name: Samenvatting in GitHub Actions
+        if: always()
+        run: |
+          if [ -f tradingagents_output.log ]; then
+            echo "## TradingAgents resultaat" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 50 tradingagents_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
