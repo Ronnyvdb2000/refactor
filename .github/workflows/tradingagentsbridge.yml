@@ -41,6 +41,14 @@ on:
         required: false
         default: ""
         type: string
+      groq_model:
+        description: "Groq-model (llama-3.3-70b-versatile is stopgezet)"
+        required: false
+        default: "openai/gpt-oss-120b"
+        type: choice
+        options:
+          - openai/gpt-oss-120b
+          - qwen/qwen3.6-27b
 
   schedule:
     # Dagelijks om 23:00 UTC (na de daily run van a_par_model om 05:00)
@@ -144,6 +152,8 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Bij schedule/push zijn de inputs leeg -> fallback op het standaardmodel
+          GROQ_MODEL: ${{ github.event.inputs.groq_model || 'openai/gpt-oss-120b' }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
@@ -169,10 +179,11 @@ jobs:
           echo "  horizon = $HORIZON"
           echo "  top_n   = $TOP_N"
           echo "  channel = $CHANNEL"
+          echo "  model   = $GROQ_MODEL"
           echo "  args    = $ARGS"
           echo "============================================================"
 
-          python tradingagents_bridge.py $ARGS 2>&1 | tee tradingagents_output.log
+          python -u tradingagents_bridge.py $ARGS 2>&1 | tee tradingagents_output.log
 
       - name: Bewaar log + picks als artifact
         if: always()
