@@ -14,7 +14,7 @@ Werkwijze:
   3. Filter op |IC| >= MIN_IC_ABS. Parameters met minder dan MIN_DATUMS_IC
      datums dekking worden overgeslagen.
   4. Voor elke (ticker, score_datum): rangschik elke parameter cross-
-     sectioneel (0..1) en bereken score = Σ (IC_i × rang_i) / Σ |IC_i|.
+     sectioneel (0..1) en bereken score = Σ (IC_i × (rang_i - 0.5)) / Σ |IC_i|.
   5. Top-N per horizon = picks.
   6. Output: CSV per horizon + Telegram-bericht + optioneel schrijven naar
      selecties (strategie a_par_model_v1) + metrics naar model_metrics.
@@ -39,6 +39,19 @@ WIJZIGINGEN:
        n_params_totaal/gefilterd, top_param_*, gem_ic/abs/ir, max_ic_abs,
        n_picks). UNIQUE op (run_datum, model_versie, horizon_dagen) —
       herhaalde runs op dezelfde dag updaten dezelfde rij.
+  v1.4 (2026-11-01):
+    - FIX scoreberekening: rangen worden gecentreerd (rang - 0.5). Voorheen
+      kreeg een ticker met een ontbrekende parameter met negatieve IC een
+      bonus en met een ontbrekende parameter met positieve IC een straf,
+      omdat ontbrekende waarden als 0 telden terwijl de gemiddelde rang 0.5
+      is. Nu is een ontbrekende waarde neutraal. Tickers met volledige data
+      behouden hun onderlinge volgorde (alle scores schuiven met dezelfde
+      constante); de absolute scorewaarden zijn dus niet vergelijkbaar met
+      die van oudere runs.
+    - NIEUW versheidscontrole: is de nieuwste datum in de data ouder dan
+      --max-data-leeftijd dagen (default 5), dan stopt het script met een
+      Telegram-waarschuwing i.p.v. picks op oude data te sturen. Niet van
+      toepassing bij een expliciete --datum (backtest). 0 = uitgeschakeld.
 """
 
 import os
@@ -68,6 +81,7 @@ IC_MAX_ABS_DEFAULT = 0.15
 MIN_DATUMS_IC_DEFAULT = 10
 MIN_TICKERS_PER_DATUM = 20
 MIN_PARAMS_VOOR_MODEL = 5
+MAX_DATA_LEEFTIJD_DEFAULT = 5   # v1.4: max leeftijd (dagen) van de nieuwste data
 
 MODEL_VERSIE = "a_par_model_v1"
 
@@ -122,6 +136,19 @@ def _horizon_naar_dagen(horizon: str) -> int:
         return int(str(horizon).strip().lower().rstrip("d"))
     except Exception:
         return 0
+
+
+def data_is_vers(score_datum, max_leeftijd_dagen, vandaag=None):
+    """
+    v1.4: controleert of de nieuwste datum in de data recent genoeg is.
+    Geeft (is_vers, leeftijd_in_dagen) terug.
+    max_leeftijd_dagen <= 0 (of None) schakelt de controle uit.
+    """
+    vandaag_ts = (vandaag if vandaag is not None else pd.Timestamp.now()).normalize()
+    leeftijd = (vandaag_ts - pd.Timestamp(score_datum).normalize()).days
+    if max_leeftijd_dagen is None or max_leeftijd_dagen <= 0:
+        return True, leeftijd
+    return leeftijd <= max_leeftijd_dagen, leeftijd
 
 
 def send_telegram(tekst: str) -> bool:
@@ -345,7 +372,10 @@ def score_voor_datum(df, score_datum, gewichten, top_n):
             rang = rij.get(rang_kolommen[p])
             if pd.isna(rang):
                 continue
-            score += gewicht_per_param[p] * rang
+            # v1.4: gecentreerde rang, zodat een ontbrekende waarde (die
+            # hier overgeslagen wordt) neutraal is i.p.v. een bonus of straf.
+            # oud: score += gewicht_per_param[p] * rang
+            score += gewicht_per_param[p] * (rang - 0.5)
         return score / totaal_gewicht
 
     dag["score"] = dag.apply(_score, axis=1)
@@ -575,6 +605,11 @@ def parse_args():
     ap.add_argument("--embargo-dagen", type=int, default=EMBARGO_DAGEN_DEFAULT)
     ap.add_argument("--ic-max-abs", type=float, default=IC_MAX_ABS_DEFAULT)
     ap.add_argument("--min-datums-ic", type=int, default=MIN_DATUMS_IC_DEFAULT)
+    ap.add_argument("--max-data-leeftijd", type=int,
+                    default=MAX_DATA_LEEFTIJD_DEFAULT,
+                    help="Stop als de nieuwste datum in de data ouder is dan "
+                         "dit aantal dagen (0 = controle uit). Niet van "
+                         "toepassing bij een expliciete --datum.")
     ap.add_argument("--datum", default=None)
     ap.add_argument("--geen-db-write", action="store_true")
     ap.add_argument("--geen-notify", action="store_true")
@@ -602,6 +637,9 @@ def main():
           f"(horizon-afhankelijk: max(embargo, horizon+5))")
     print(f"Winsorize       : ±{args.ic_max_abs}")
     print(f"Min datums IC   : {args.min_datums_ic}")
+    print(f"Max data-leeftijd: "
+          f"{args.max_data_leeftijd if args.max_data_leeftijd > 0 else 'uit'}"
+          f"{' dagen' if args.max_data_leeftijd > 0 else ''}")
 
     conn = psycopg2.connect(SUPABASE_DB_URL)
     try:
@@ -620,6 +658,24 @@ def main():
         else:
             score_datum = df["datum"].max()
         print(f"\nScore-datum (picks): {score_datum.date()}")
+
+        # v1.4: versheidscontrole. Niet bij een expliciete --datum (backtest).
+        if not args.datum:
+            vers, leeftijd = data_is_vers(score_datum, args.max_data_leeftijd)
+            if not vers:
+                print(f"\n⛔ Data is te oud: nieuwste datum {score_datum.date()} "
+                      f"is {leeftijd} dagen geleden (max {args.max_data_leeftijd}). "
+                      f"Gestopt zonder picks. Controleer de job "
+                      f"bouw_generieke_technicals.")
+                if not args.geen_notify:
+                    send_telegram(
+                        "⚠️ <b>A Parameter-model gestopt</b>\n\n"
+                        f"Nieuwste data: <b>{_esc(score_datum.date())}</b> "
+                        f"({leeftijd} dagen geleden, max {args.max_data_leeftijd}).\n"
+                        "Er zijn geen picks verstuurd. Controleer de job "
+                        "<code>bouw_generieke_technicals</code>."
+                    )
+                return 1
 
         picks_per_horizon = {}
         gewichten_per_horizon = {}

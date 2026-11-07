@@ -1,47 +1,25 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-top_dist_sma50.py
-===================
-Ad hoc, read-only scriptje: toont de tickers met de laagste (meest
-negatieve) `pct_from_ma50` uit `generieke_technicals`, gemeten binnen de
-laatste --dagen dagen (default 15). Dit is exact het signaal dat in
-analyseer_forward_correlaties.py naar voren kwam als sterkste (nog steeds
-zwakke) 3-wekense voorspeller: begin_dist_sma50_pct, rho=-0,159,
-p_aangepast=0,0001, n=797 (2026-09-22-run). Negatief rho betekent: hoe
-verder ONDER het 50-daags gemiddelde bij meting, hoe iets beter het
-rendement over de volgende 3 weken -- vandaar dat dit script AFLOPEND
-sorteert op de meest negatieve pct_from_ma50 (verst onder het gemiddelde).
+a_top_dist_sma50.py — AD HOC OPZOEKTOOL v2.0
 
-BELANGRIJK, lees dit voor gebruik: dit is GEEN koopadvies en geen
-gevalideerde stock-picker. Het onderliggende signaal verklaart ~2,5% van
-de variantie (R² = rho^2) in 3-wekenrendement, 1 keer gemeten op 797
-ticker-weken. Op individueel-aandeelniveau is dit nog steeds overwegend
-ruis -- dit script toont enkel WELKE tickers vandaag toevallig aan het
-criterium voldoen, niet dat ze "goed gaan presteren". Zie
-fantasie-trading-bots.md voor de volledige context en kanttekeningen.
-
-Toont ook, ter context, welke strategieen (uit `selecties`) deze ticker
-in dezelfde periode zelf ook al selecteerden -- zo zie je meteen overlap
-met a_trade/a_trade_combi's eigen logica.
-
-Vereist env var: SUPABASE_DB_URL
-
-Gebruik:
-    python top_dist_sma50.py                  # default: laatste 15 dagen, top 10
-    python top_dist_sma50.py --dagen 10 --top 20
-    python top_dist_sma50.py --csv resultaat.csv
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Toont de tickers met de laagste pct_from_ma50 uit generieke_technicals.
 """
 
 import argparse
 import os
-import smtplib
 import sys
 from datetime import date, timedelta
-from email.mime.text import MIMEText
 
 import pandas as pd
 import psycopg2
-import requests
+import psycopg2.extras
 
+from common import (
+    today_str, safe_float, esc,
+    send_telegram, send_email
+)
 
 def _get_connection():
     db_url = os.environ.get("SUPABASE_DB_URL", "").strip().strip('"').strip("'")
@@ -49,16 +27,7 @@ def _get_connection():
         sys.exit("Fout: env var SUPABASE_DB_URL is niet gezet.")
     return psycopg2.connect(db_url)
 
-
 def haal_recente_technicals(conn, dagen: int) -> pd.DataFrame:
-    """Per ticker de meest recente rij uit generieke_technicals binnen de
-    laatste `dagen` dagen (DISTINCT ON, nieuwste datum per ticker wint).
-
-    `datum` staat, net als in `selecties`, als ISO-tekst in de databank
-    (geen native date-type) -- vandaar .isoformat() i.p.v. het date-object
-    zelf door te geven. Werkt correct omdat ISO-datumstrings (YYYY-MM-DD)
-    ook lexicografisch correct sorteren/vergelijken.
-    """
     sinds = (date.today() - timedelta(days=dagen)).isoformat()
     query = """
         SELECT DISTINCT ON (ticker)
@@ -70,10 +39,7 @@ def haal_recente_technicals(conn, dagen: int) -> pd.DataFrame:
     """
     return pd.read_sql(query, conn, params=(sinds,))
 
-
 def haal_recente_strategieen(conn, tickers, dagen: int) -> dict:
-    """Per ticker: welke strategieen deze ticker binnen dezelfde periode
-    zelf ook al selecteerden, ter context (overlap met a_trade e.a.)."""
     if not tickers:
         return {}
     sinds = date.today() - timedelta(days=dagen)
@@ -87,7 +53,6 @@ def haal_recente_strategieen(conn, tickers, dagen: int) -> dict:
     for ticker, groep in df.groupby("ticker"):
         resultaat[ticker] = sorted(groep["strategie"].tolist())
     return resultaat
-
 
 def bouw_telegram_bericht(df: pd.DataFrame, strategieen: dict, dagen: int) -> str:
     regels = [
@@ -105,7 +70,6 @@ def bouw_telegram_bericht(df: pd.DataFrame, strategieen: dict, dagen: int) -> st
             f"  strategieën: {strat_lijst}"
         )
     return "\n".join(regels)
-
 
 def bouw_html_rapport(df: pd.DataFrame, strategieen: dict, dagen: int) -> str:
     rijen_html = []
@@ -135,43 +99,10 @@ def bouw_html_rapport(df: pd.DataFrame, strategieen: dict, dagen: int) -> str:
     </body></html>
     """
 
-
-def verstuur_telegram(tekst: str):
-    token = os.environ.get("TELEGRAM_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        print("Telegram-secrets ontbreken, overslaan.")
-        return
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    max_len = 4000
-    for i in range(0, len(tekst), max_len):
-        chunk = tekst[i:i + max_len]
-        resp = requests.post(url, data={"chat_id": chat_id, "text": chunk, "parse_mode": "Markdown"})
-        if resp.status_code != 200:
-            print(f"waarschuwing: Telegram-verzending mislukt ({resp.status_code}): {resp.text}")
-
-
-def verstuur_email(onderwerp: str, html_body: str):
-    user = os.environ.get("EMAIL_USER")
-    wachtwoord = os.environ.get("EMAIL_PASS")
-    ontvanger = os.environ.get("EMAIL_RECEIVER")
-    if not user or not wachtwoord or not ontvanger:
-        print("Email-secrets ontbreken, overslaan.")
-        return
-    msg = MIMEText(html_body, "html", "utf-8")
-    msg["Subject"] = onderwerp
-    msg["From"] = user
-    msg["To"] = ontvanger
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(user, wachtwoord)
-        server.sendmail(user, [ontvanger], msg.as_string())
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Toont de tickers met de laagste pct_from_ma50 uit generieke_technicals "
-                    "binnen de laatste N dagen (het sterkste, nog steeds zwakke, signaal uit "
-                    "analyseer_forward_correlaties.py). Geen koopadvies."
+                    "binnen de laatste N dagen. Geen koopadvies."
     )
     parser.add_argument("--dagen", type=int, default=15,
                         help="Hoe recent de technicals-meting moet zijn (default 15)")
@@ -193,10 +124,9 @@ def main():
         conn.close()
 
     print(f"\nTop {len(df)} tickers, laagste pct_from_ma50, binnen de laatste {args.dagen} dagen:")
-    print(
-        "(negatief = onder het 50-daags gemiddelde -- signaal uit analyseer_forward_correlaties.py, "
-        "rho=-0,159 op 3-wekenhorizon, R2~2,5%. GEEN koopadvies, enkel een filter.)\n"
-    )
+    print("(negatief = onder het 50-daags gemiddelde -- signaal uit analyseer_forward_correlaties.py, "
+          "rho=-0,159 op 3-wekenhorizon, R2~2,5%. GEEN koopadvies, enkel een filter.)\n")
+    
     for _, r in df.iterrows():
         strat_lijst = ", ".join(strategieen.get(r["ticker"], [])) or "-"
         print(
@@ -212,16 +142,16 @@ def main():
         print(f"\nWeggeschreven naar {args.csv}")
 
     if args.telegram:
-        verstuur_telegram(bouw_telegram_bericht(df, strategieen, args.dagen))
+        send_telegram(bouw_telegram_bericht(df, strategieen, args.dagen), parse_mode="Markdown")
         print("Bericht verstuurd via Telegram.")
 
     if args.email:
-        verstuur_email(
+        send_email(
             f"Top {len(df)} tickers — laagste pct_from_ma50 ({args.dagen} dagen)",
             bouw_html_rapport(df, strategieen, args.dagen),
+            html_body=True,
         )
         print("Rapport verstuurd via e-mail.")
-
 
 if __name__ == "__main__":
     main()

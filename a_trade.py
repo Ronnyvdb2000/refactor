@@ -1,30 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-a_trade.py
-=============
-Leest de Supabase `selecties`-tabel uit (gevuld door de andere Fantasie-bots),
-pikt daar het "beste" signaal uit en verrijkt dat met:
+a_trade.py — BESTE SIGNAAL COMBINEERDER v2.0
 
-  1. XGBoost-scores uit `xgboost_scores` (beste rang per ticker)
-  2. Kasstroom-onderwaardering signaal (bot_01kasstr in selecties)
-
-Ranking-logica (in volgorde):
-  1. Cross-strategie overlap (hoeveel strategieën kozen dezelfde ticker)
-  2. XGBoost-rang (lagere rang = hoger in de ranking)
-  3. Kasstr-vlag (bonus voor tickers die bot_01kasstr selecteerde)
-  4. Gemiddelde score binnen de overlap
-  5. Meest recente datum
-
-Env vars (zelfde als de rest van de Fantasie-repo):
-  SUPABASE_DB_URL, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID,
-  EMAIL_USER, EMAIL_PASS, EMAIL_RECEIVER
-  LOOKBACK_DAYS       (default 3)
-  BESCHIKBAAR_KAPITAAL (default 2500)
-  TRANSACTIE_BEDRAG    (default 2500)
-  AANTAL_PICKS         (default 5)
-  XGB_HORIZON          (default 10d)
-  XGB_MODEL_VERSIE     (default leeg = nieuwste)
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Leest selecties + xgboost_scores, telt overlap, en stuurt top picks.
 """
 
 import os
@@ -40,73 +20,57 @@ import psycopg2
 import psycopg2.extras
 import requests
 
+from common import (
+    today_str, safe_float, esc, yahoo_link,
+    send_telegram, send_email
+)
 
-# --------------------------------------------------------------------------
-# Configuratie
-# --------------------------------------------------------------------------
+# ============================================================
+# CONFIG
+# ============================================================
+
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "3"))
-
 BESCHIKBAAR_KAPITAAL = float(os.environ.get("BESCHIKBAAR_KAPITAAL", "2500"))
 TRANSACTIE_BEDRAG = float(os.environ.get("TRANSACTIE_BEDRAG", "2500"))
 AANTAL_PICKS = max(1, int(os.environ.get("AANTAL_PICKS", "5")))
 TOP_N = AANTAL_PICKS
 
-# XGBoost-integratie
 XGB_HORIZON = os.environ.get("XGB_HORIZON", "10d")
-XGB_MODEL_VERSIE = os.environ.get("XGB_MODEL_VERSIE", "")  # leeg = nieuwste
+XGB_MODEL_VERSIE = os.environ.get("XGB_MODEL_VERSIE", "")
 
-# Fiscale/kostenparameters
 VASTE_KOST = 15.0
 VARIABELE_KOST_PCT = 0.35
 TOB_PCT = 0.35
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-EMAIL_USER = os.environ.get("EMAIL_USER")
-EMAIL_PASS = os.environ.get("EMAIL_PASS")
-EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
 
+# ============================================================
+# DATA OPHALEN
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Data ophalen
-# --------------------------------------------------------------------------
 def haal_selecties_op(lookback_days: int):
-    """Haalt alle selecties op van de laatste `lookback_days` dagen."""
     if not SUPABASE_DB_URL:
         print("FOUT: SUPABASE_DB_URL ontbreekt.", file=sys.stderr)
         sys.exit(1)
 
     since = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
-
     query = """
         SELECT ticker, beurs, strategie, datum, koers, score, grafiek
         FROM selecties
         WHERE datum >= %s
         ORDER BY datum DESC;
     """
-
     with psycopg2.connect(SUPABASE_DB_URL) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, (since,))
             rows = cur.fetchall()
-
     return rows
 
-
 def haal_xgboost_scores_op(lookback_days: int):
-    """
-    Haalt de beste XGBoost-score per ticker op binnen de lookback-periode.
-
-    Retourneert een dict {ticker: {"score": float, "beste_rang": int, "n_datums": int}}
-    Leeg als de query faalt of geen rijen oplevert.
-    """
     if not SUPABASE_DB_URL:
         return {}
 
     since = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
-
-    # Als geen versie opgegeven: pak de meest recente versie in de tabel
     versie_filter = ""
     params = [since, XGB_HORIZON]
     if XGB_MODEL_VERSIE:
@@ -125,7 +89,6 @@ def haal_xgboost_scores_op(lookback_days: int):
           {versie_filter}
         GROUP BY ticker;
     """
-
     try:
         with psycopg2.connect(SUPABASE_DB_URL) as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -143,15 +106,11 @@ def haal_xgboost_scores_op(lookback_days: int):
         print(f"[WARN] XGBoost-scores niet op te halen: {e}", file=sys.stderr)
         return {}
 
+# ============================================================
+# RANKING
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Ranking
-# --------------------------------------------------------------------------
 def bouw_ranking(rows, xgb_scores=None):
-    """
-    Groepeert per (ticker, beurs), berekent overlap + gemiddelde score,
-    en verrijkt met XGBoost-info + kasstr-vlag.
-    """
     xgb_scores = xgb_scores or {}
 
     groepen = defaultdict(lambda: {
@@ -190,36 +149,20 @@ def bouw_ranking(rows, xgb_scores=None):
     for (ticker, beurs), g in groepen.items():
         overlap = len(g["strategieen"])
         avg_score = sum(g["scores"]) / len(g["scores"]) if g["scores"] else 0.0
-
         xgb_info = xgb_scores.get(ticker, {})
         xgb_rang = xgb_info.get("beste_rang", 9999)
         xgb_score = xgb_info.get("score", 0.0)
         xgb_datums = xgb_info.get("n_datums", 0)
-
         is_kasstr = "bot_01kasstr" in g["strategieen"]
 
         ranking.append({
-            "ticker": ticker,
-            "beurs": beurs,
-            "overlap": overlap,
-            "strategieen": sorted(g["strategieen"]),
-            "avg_score": avg_score,
-            "koers": g["koers"],
-            "grafiek": g["grafiek"],
-            "laatste_datum": g["laatste_datum"],
-            "xgb_rang": xgb_rang,
-            "xgb_score": xgb_score,
-            "xgb_datums": xgb_datums,
-            "heeft_xgb": xgb_rang < 9999,
-            "is_kasstr": is_kasstr,
+            "ticker": ticker, "beurs": beurs, "overlap": overlap,
+            "strategieen": sorted(g["strategieen"]), "avg_score": avg_score,
+            "koers": g["koers"], "grafiek": g["grafiek"], "laatste_datum": g["laatste_datum"],
+            "xgb_rang": xgb_rang, "xgb_score": xgb_score, "xgb_datums": xgb_datums,
+            "heeft_xgb": xgb_rang < 9999, "is_kasstr": is_kasstr,
         })
 
-    # Alle criteria op "hoog = beter" brengen, dan reverse=True sorteren
-    #  - overlap: hoog = beter
-    #  - xgb_prioriteit: -xgb_rang (rang 1 -> -1; niet aanwezig -> -9999)
-    #  - kasstr: 1 = beter
-    #  - avg_score: hoog = beter
-    #  - laatste_datum: recenter = beter
     ranking.sort(
         key=lambda r: (
             r["overlap"],
@@ -232,41 +175,29 @@ def bouw_ranking(rows, xgb_scores=None):
     )
     return ranking
 
+# ============================================================
+# KOSTEN & OUTPUT
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Kosteninschatting
-# --------------------------------------------------------------------------
 def bereken_kosten(bedrag: float):
     variabele_kost = bedrag * VARIABELE_KOST_PCT / 100
     tob = bedrag * TOB_PCT / 100
     totaal = VASTE_KOST + variabele_kost + tob
     return totaal, (totaal / bedrag * 100)
 
-
-# --------------------------------------------------------------------------
-# Berichten opbouwen
-# --------------------------------------------------------------------------
-def _esc(s):
-    return html.escape(str(s))
-
-
 def _xgb_markering(r, top_drempel=10):
-    """Geeft een korte string met XGBoost-status voor een rij."""
     if not r["heeft_xgb"]:
         return ""
     if r["xgb_rang"] <= top_drempel:
         return f" 🎯 XGBoost #{r['xgb_rang']}"
     return f" 🎯 XGBoost rang {r['xgb_rang']}"
 
-
 def maak_telegram_bericht(ranking, lookback_days, totaal_strategieen):
-    vandaag = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    vandaag = today_str()
 
     if not ranking:
-        return (
-            f"⚠️ <b>Beste Signaal Bot — {vandaag}</b>\n"
-            f"Geen selecties gevonden in de laatste {lookback_days} dagen."
-        )
+        return (f"⚠️ <b>Beste Signaal Bot — {vandaag}</b>\n"
+                f"Geen selecties gevonden in de laatste {lookback_days} dagen.")
 
     top = ranking[:TOP_N]
     kost, kost_pct = bereken_kosten(TRANSACTIE_BEDRAG)
@@ -282,74 +213,59 @@ def maak_telegram_bericht(ranking, lookback_days, totaal_strategieen):
 
     for i, r in enumerate(top):
         medaille = medailles[i] if i < len(medailles) else "▫️"
-        strategieen_str = _esc(", ".join(r["strategieen"]))
+        strategieen_str = esc(", ".join(r["strategieen"]))
         xgb_str = _xgb_markering(r)
         kasstr_str = " 💰 Kasstr" if r["is_kasstr"] else ""
 
         lijnen.append("")
-        lijnen.append(f"{medaille} <b>{_esc(r['ticker'])}</b> ({_esc(r['beurs'])})"
-                      f"{_esc(xgb_str)}{_esc(kasstr_str)}")
+        lijnen.append(f"{medaille} <b>{esc(r['ticker'])}</b> ({esc(r['beurs'])})"
+                      f"{esc(xgb_str)}{esc(kasstr_str)}")
         lijnen.append(f"✅ Overlap: <b>{r['overlap']}/{totaal_strategieen}</b> — "
                       f"{strategieen_str}")
         if r["heeft_xgb"]:
-            lijnen.append(
-                f"🎯 XGBoost: rang <b>#{r['xgb_rang']}</b> "
-                f"(score {r['xgb_score']:.3f}, {r['xgb_datums']} datums)"
-            )
+            lijnen.append(f"🎯 XGBoost: rang <b>#{r['xgb_rang']}</b> "
+                          f"(score {r['xgb_score']:.3f}, {r['xgb_datums']} datums)")
         if r["avg_score"]:
             lijnen.append(f"📊 Gem. score: <b>{r['avg_score']:.2f}</b>")
         if r["koers"] is not None:
-            lijnen.append(f"💶 Laatste koers: {_esc(r['koers'])}")
+            lijnen.append(f"💶 Laatste koers: {esc(r['koers'])}")
         lijnen.append(f"💸 Kost bij €{TRANSACTIE_BEDRAG:,.0f}: ~€{kost:.2f} ({kost_pct:.2f}%)")
         if r["grafiek"]:
-            lijnen.append(f'📈 <a href="{_esc(r["grafiek"])}">Grafiek</a>')
+            lijnen.append(f'📈 <a href="{esc(r["grafiek"])}">Grafiek</a>')
 
     return "\n".join(lijnen)
 
-
 def maak_email_html(ranking, lookback_days, totaal_strategieen):
     if not ranking:
-        return (
-            f"<h2>⚠️ Beste Signaal Bot</h2>"
-            f"<p>Geen selecties gevonden in de laatste {lookback_days} dagen.</p>"
-        )
+        return (f"<h2>⚠️ Beste Signaal Bot</h2>"
+                f"<p>Geen selecties gevonden in de laatste {lookback_days} dagen.</p>")
 
     top = ranking[:TOP_N]
     beste = top[0]
     kost, kost_pct = bereken_kosten(TRANSACTIE_BEDRAG)
 
     strategieen_html = ", ".join(beste["strategieen"])
-    grafiek_html = (
-        f'<p><a href="{beste["grafiek"]}">📈 Bekijk grafiek</a></p>'
-        if beste["grafiek"] else ""
-    )
+    grafiek_html = (f'<p><a href="{beste["grafiek"]}">📈 Bekijk grafiek</a></p>'
+                    if beste["grafiek"] else "")
 
     xgb_html = ""
     if beste["heeft_xgb"]:
-        xgb_html = (
-            f'<p style="font-size:16px;">🎯 XGBoost: rang '
-            f'<b>#{beste["xgb_rang"]}</b> '
-            f'(score {beste["xgb_score"]:.3f}, {beste["xgb_datums"]} datums)</p>'
-        )
+        xgb_html = (f'<p style="font-size:16px;">🎯 XGBoost: rang '
+                    f'<b>#{beste["xgb_rang"]}</b> '
+                    f'(score {beste["xgb_score"]:.3f}, {beste["xgb_datums"]} datums)</p>')
 
-    kasstr_html = (
-        '<p style="font-size:16px;">💰 <b>Kasstr-signaal aanwezig</b> '
-        '(FCF-onderwaardering + kwaliteit)</p>'
-        if beste["is_kasstr"] else ""
-    )
+    kasstr_html = ('<p style="font-size:16px;">💰 <b>Kasstr-signaal aanwezig</b> '
+                   '(FCF-onderwaardering + kwaliteit)</p>'
+                   if beste["is_kasstr"] else "")
 
-    # Overige rijen
     overige_html = ""
     if len(top) > 1:
         rijen = "".join(
-            f"<tr>"
-            f"<td>{r['ticker']}</td>"
-            f"<td>{r['beurs']}</td>"
+            f"<tr><td>{r['ticker']}</td><td>{r['beurs']}</td>"
             f"<td>{r['overlap']}/{totaal_strategieen}</td>"
             f"<td>#{r['xgb_rang'] if r['heeft_xgb'] else '-'}</td>"
             f"<td>{'✓' if r['is_kasstr'] else ''}</td>"
-            f"<td>{r['avg_score']:.2f}</td>"
-            f"</tr>"
+            f"<td>{r['avg_score']:.2f}</td></tr>"
             for r in top[1:]
         )
         overige_html = f"""
@@ -388,53 +304,10 @@ def maak_email_html(ranking, lookback_days, totaal_strategieen):
     </html>
     """
 
+# ============================================================
+# MAIN
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Versturen
-# --------------------------------------------------------------------------
-def stuur_telegram(tekst: str):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Telegram-secrets ontbreken, overslaan.", file=sys.stderr)
-        return
-
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": tekst,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False,
-    }
-    resp = requests.post(url, json=payload, timeout=30)
-    if not resp.ok:
-        print(f"Telegram-fout: {resp.status_code} {resp.text}", file=sys.stderr)
-
-
-def stuur_email(html_body: str, heeft_top_signaal: bool):
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        print("Email-secrets ontbreken, overslaan.", file=sys.stderr)
-        return
-
-    onderwerp = (
-        "🚨 BESTE SIGNAAL vandaag — actie vereist?"
-        if heeft_top_signaal
-        else "Beste Signaal Bot — geen resultaten"
-    )
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = onderwerp
-    msg["From"] = EMAIL_USER
-    msg["To"] = EMAIL_RECEIVER
-    msg.attach(MIMEText(html_body, "html"))
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.sendmail(EMAIL_USER, EMAIL_RECEIVER, msg.as_string())
-
-
-# --------------------------------------------------------------------------
-# Main
-# --------------------------------------------------------------------------
 def main():
     rows = haal_selecties_op(LOOKBACK_DAYS)
     xgb_scores = haal_xgboost_scores_op(LOOKBACK_DAYS)
@@ -445,7 +318,6 @@ def main():
     ranking = bouw_ranking(rows, xgb_scores)
     totaal_strategieen = len({row["strategie"] for row in rows}) or 1
 
-    # Diagnostiek
     n_met_xgb = sum(1 for r in ranking if r["heeft_xgb"])
     n_met_kasstr = sum(1 for r in ranking if r["is_kasstr"])
     n_beide = sum(1 for r in ranking if r["heeft_xgb"] and r["is_kasstr"])
@@ -456,11 +328,14 @@ def main():
     telegram_tekst = maak_telegram_bericht(ranking, LOOKBACK_DAYS, totaal_strategieen)
     email_html = maak_email_html(ranking, LOOKBACK_DAYS, totaal_strategieen)
 
-    stuur_telegram(telegram_tekst)
-    stuur_email(email_html, heeft_top_signaal=bool(ranking))
+    send_telegram(telegram_tekst, parse_mode="HTML")
+    send_email(
+        f"Beste Signaal {today_str()}", 
+        email_html, 
+        html_body=True
+    )
 
     print(f"Klaar. {len(ranking)} unieke ticker/beurs-combinaties geanalyseerd.")
-
 
 if __name__ == "__main__":
     main()

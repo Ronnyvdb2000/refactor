@@ -1,35 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-vers_signaal.py
-================
-Zusterbot van a_trade.py, met een andere denkwijze: waar a_trade.py overlap
-telt over het HELE LOOKBACK_DAYS-venster (en dus wacht tot een ticker over
-meerdere dagen door meerdere strategieën bevestigd is -- vaak te laat),
-telt deze bot overlap ENKEL op de meest recente datum in het venster
-("vandaag"). Doel: instappen op het moment dat de consensus vers ontstaat,
-niet nadat de move al een paar dagen bezig is.
+a_trade_q.py — VERS SIGNAAL COMBINEERDER v2.0
 
-Ranking-logica:
-  1. Overlap VANDAAG (aantal verschillende strategieën die exact op de
-     meest recente datum dezelfde ticker+beurs kozen) -- zwaarst gewogen.
-  2. Cumulatieve overlap over het volledige venster, als tiebreaker.
-  3. Gemiddelde score, als laatste tiebreaker.
-
-NIEUW in deze versie:
-  - Logging naar de gedeelde `selecties`-tabel onder strategie
-    "vers_signaal_1d", zodat forward_returns-latere analyses mogelijk zijn.
-  - Robuuste db_logger-import met fallback (zoals in bot_01kasstr).
-
-Env vars (zelfde secrets als de rest van de Fantasie-repo):
-  SUPABASE_DB_URL, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID,
-  EMAIL_USER, EMAIL_PASS, EMAIL_RECEIVER,
-  BESCHIKBAAR_KAPITAAL (default 2500),
-  TRANSACTIE_BEDRAG (default 2500),
-  AANTAL_PICKS (default 5),
-  LOOKBACK_DAYS (default 3)
-
-Logging kan uitgeschakeld worden met DB_LOG_ENABLED=0.
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Telt overlap ENKEL op de meest recente datum in het venster.
 """
 
 import os
@@ -43,7 +18,11 @@ from collections import defaultdict
 
 import psycopg2
 import psycopg2.extras
-import requests
+
+from common import (
+    today_str, safe_float, esc, yahoo_link,
+    send_telegram, send_email
+)
 
 try:
     from db_logger import log_selectie
@@ -52,12 +31,11 @@ except Exception as _e:
     def log_selectie(*args, **kwargs):
         return False
 
+# ============================================================
+# CONFIG
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Configuratie
-# --------------------------------------------------------------------------
 LOOKBACK_DAYS = int(os.environ.get("LOOKBACK_DAYS", "3"))
-
 BESCHIKBAAR_KAPITAAL = float(os.environ.get("BESCHIKBAAR_KAPITAAL", "2500"))
 TRANSACTIE_BEDRAG = float(os.environ.get("TRANSACTIE_BEDRAG", "2500"))
 AANTAL_PICKS = max(1, int(os.environ.get("AANTAL_PICKS", "5")))
@@ -68,49 +46,35 @@ VARIABELE_KOST_PCT = 0.35
 TOB_PCT = 0.35
 
 DB_LOG_ENABLED = os.environ.get("DB_LOG_ENABLED", "1") == "1"
-
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-EMAIL_USER = os.environ.get("EMAIL_USER")
-EMAIL_PASS = os.environ.get("EMAIL_PASS")
-EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
 
+# ============================================================
+# DATA OPHALEN
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Data ophalen
-# --------------------------------------------------------------------------
 def haal_selecties_op(lookback_days: int):
-    """Haalt alle selecties op van de laatste `lookback_days` dagen."""
     if not SUPABASE_DB_URL:
         print("FOUT: SUPABASE_DB_URL ontbreekt.", file=sys.stderr)
         sys.exit(1)
 
     since = (datetime.now(timezone.utc) - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
-
     query = """
         SELECT ticker, beurs, strategie, datum, koers, score, grafiek
         FROM selecties
         WHERE datum >= %s
         ORDER BY datum DESC;
     """
-
     with psycopg2.connect(SUPABASE_DB_URL) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(query, (since,))
             rows = cur.fetchall()
-
     return rows
 
+# ============================================================
+# RANKING
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Ranking
-# --------------------------------------------------------------------------
 def bouw_ranking(rows):
-    """
-    Groepeert per (ticker, beurs). Overlap wordt ENKEL geteld op de meest
-    recente datum die voor die ticker/beurs voorkomt in het venster.
-    """
     laatste_datum_per_key = {}
     for row in rows:
         key = (row["ticker"], row["beurs"])
@@ -132,19 +96,16 @@ def bouw_ranking(rows):
         g = groepen[key]
         laatste_datum = laatste_datum_per_key[key]
         g["laatste_datum"] = laatste_datum
-
         g["strategieen_totaal"].add(row["strategie"])
 
         if row["datum"] == laatste_datum:
             g["strategieen_vandaag"].add(row["strategie"])
-
             score = row.get("score")
             if score is not None:
                 try:
                     g["scores_vandaag"].append(float(score))
                 except (TypeError, ValueError):
                     pass
-
             if row.get("grafiek"):
                 g["grafiek"] = row["grafiek"]
             if row["koers"] is not None:
@@ -157,55 +118,35 @@ def bouw_ranking(rows):
             continue
 
         overlap_totaal = len(g["strategieen_totaal"])
-        avg_score = (
-            sum(g["scores_vandaag"]) / len(g["scores_vandaag"])
-            if g["scores_vandaag"] else 0.0
-        )
+        avg_score = (sum(g["scores_vandaag"]) / len(g["scores_vandaag"]) if g["scores_vandaag"] else 0.0)
+        
         ranking.append({
-            "ticker": ticker,
-            "beurs": beurs,
-            "overlap": overlap_vandaag,
-            "overlap_totaal": overlap_totaal,
-            "strategieen": sorted(g["strategieen_vandaag"]),
-            "avg_score": avg_score,
-            "koers": g["koers"],
-            "grafiek": g["grafiek"],
+            "ticker": ticker, "beurs": beurs, "overlap": overlap_vandaag,
+            "overlap_totaal": overlap_totaal, "strategieen": sorted(g["strategieen_vandaag"]),
+            "avg_score": avg_score, "koers": g["koers"], "grafiek": g["grafiek"],
             "laatste_datum": g["laatste_datum"],
         })
 
-    ranking.sort(
-        key=lambda r: (r["overlap"], r["overlap_totaal"], r["avg_score"]),
-        reverse=True,
-    )
+    ranking.sort(key=lambda r: (r["overlap"], r["overlap_totaal"], r["avg_score"]), reverse=True)
     return ranking
 
+# ============================================================
+# KOSTEN & OUTPUT
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Kosteninschatting
-# --------------------------------------------------------------------------
 def bereken_kosten(bedrag: float):
     variabele_kost = bedrag * VARIABELE_KOST_PCT / 100
     tob = bedrag * TOB_PCT / 100
     totaal = VASTE_KOST + variabele_kost + tob
     return totaal, (totaal / bedrag * 100)
 
-
-# --------------------------------------------------------------------------
-# Berichten opbouwen
-# --------------------------------------------------------------------------
-def _esc(s):
-    return html.escape(str(s))
-
-
 def maak_telegram_bericht(ranking, lookback_days):
-    vandaag = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    vandaag = today_str()
 
     if not ranking:
-        return (
-            f"⚠️ <b>Vers Signaal Bot — {vandaag}</b>\n"
-            f"Geen verse overlap (2+ strategieën, zelfde dag) gevonden "
-            f"binnen de laatste {lookback_days} dagen."
-        )
+        return (f"⚠️ <b>Vers Signaal Bot — {vandaag}</b>\n"
+                f"Geen verse overlap (2+ strategieën, zelfde dag) gevonden "
+                f"binnen de laatste {lookback_days} dagen.")
 
     top = ranking[:TOP_N]
     kost, kost_pct = bereken_kosten(TRANSACTIE_BEDRAG)
@@ -219,39 +160,34 @@ def maak_telegram_bericht(ranking, lookback_days):
 
     for i, r in enumerate(top):
         medaille = medailles[i] if i < len(medailles) else "▫️"
-        strategieen_str = _esc(", ".join(r["strategieen"]))
+        strategieen_str = esc(", ".join(r["strategieen"]))
         lijnen.append("")
-        lijnen.append(f"{medaille} <b>{_esc(r['ticker'])}</b> ({_esc(r['beurs'])}) — {_esc(r['laatste_datum'])}")
+        lijnen.append(f"{medaille} <b>{esc(r['ticker'])}</b> ({esc(r['beurs'])}) — {esc(r['laatste_datum'])}")
         lijnen.append(f"✅ Overlap vandaag: <b>{r['overlap']}</b> strategieën — {strategieen_str}")
         lijnen.append(f"ℹ️ Cumulatieve overlap venster: {r['overlap_totaal']}")
         if r["avg_score"]:
             lijnen.append(f"📊 Gem. score: <b>{r['avg_score']:.2f}</b>")
         if r["koers"] is not None:
-            lijnen.append(f"💶 Laatste koers: {_esc(r['koers'])}")
+            lijnen.append(f"💶 Laatste koers: {esc(r['koers'])}")
         lijnen.append(f"💸 Kost bij €{TRANSACTIE_BEDRAG:,.0f}: ~€{kost:.2f} ({kost_pct:.2f}%)")
         if r["grafiek"]:
-            lijnen.append(f'📈 <a href="{_esc(r["grafiek"])}">Grafiek</a>')
+            lijnen.append(f'📈 <a href="{esc(r["grafiek"])}">Grafiek</a>')
 
     return "\n".join(lijnen)
 
-
 def maak_email_html(ranking, lookback_days):
     if not ranking:
-        return (
-            f"<h2>⚠️ Vers Signaal Bot</h2>"
-            f"<p>Geen verse overlap (2+ strategieën, zelfde dag) gevonden "
-            f"binnen de laatste {lookback_days} dagen.</p>"
-        )
+        return (f"<h2>⚠️ Vers Signaal Bot</h2>"
+                f"<p>Geen verse overlap (2+ strategieën, zelfde dag) gevonden "
+                f"binnen de laatste {lookback_days} dagen.</p>")
 
     top = ranking[:TOP_N]
     beste = top[0]
     kost, kost_pct = bereken_kosten(TRANSACTIE_BEDRAG)
 
     strategieen_html = ", ".join(beste["strategieen"])
-    grafiek_html = (
-        f'<p><a href="{beste["grafiek"]}">📈 Bekijk grafiek</a></p>'
-        if beste["grafiek"] else ""
-    )
+    grafiek_html = (f'<p><a href="{beste["grafiek"]}">📈 Bekijk grafiek</a></p>'
+                    if beste["grafiek"] else "")
 
     overige_html = ""
     if len(top) > 1:
@@ -291,80 +227,26 @@ def maak_email_html(ranking, lookback_days):
     </html>
     """
 
+# ============================================================
+# LOGGING
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Versturen
-# --------------------------------------------------------------------------
-def stuur_telegram(tekst: str):
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Telegram-secrets ontbreken, overslaan.", file=sys.stderr)
-        return
-
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": tekst,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False,
-    }
-    resp = requests.post(url, json=payload, timeout=30)
-    if not resp.ok:
-        print(f"Telegram-fout: {resp.status_code} {resp.text}", file=sys.stderr)
-
-
-def stuur_email(html_body: str, heeft_top_signaal: bool):
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        print("Email-secrets ontbreken, overslaan.", file=sys.stderr)
-        return
-
-    onderwerp = (
-        "🌱 VERS SIGNAAL vandaag — actie vereist?"
-        if heeft_top_signaal
-        else "Vers Signaal Bot — geen resultaten"
-    )
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = onderwerp
-    msg["From"] = EMAIL_USER
-    msg["To"] = EMAIL_RECEIVER
-    msg.attach(MIMEText(html_body, "html"))
-
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.sendmail(EMAIL_USER, EMAIL_RECEIVER, msg.as_string())
-
-
-# --------------------------------------------------------------------------
-# Logging
-# --------------------------------------------------------------------------
 def log_picks(ranking):
-    """Logt de top-picks naar de gedeelde selecties-tabel onder de
-    strategie 'vers_signaal_1d', zodat latere forward_returns-analyses
-    mogelijk zijn."""
     if not DB_LOG_ENABLED:
         print("DB-logging uitgeschakeld (DB_LOG_ENABLED=0).")
         return
 
-    vandaag = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    vandaag = today_str()
     n_gelogd = 0
 
     for rank, r in enumerate(ranking[:TOP_N], start=1):
         try:
             ok = log_selectie(
-                ticker=r["ticker"],
-                datum=vandaag,
-                strategie="vers_signaal_1d",
-                beurs=r["beurs"],
-                koers=r["koers"],
+                ticker=r["ticker"], datum=vandaag, strategie="vers_signaal_1d", beurs=r["beurs"], koers=r["koers"],
                 parameters={
-                    "rank": rank,
-                    "overlap_vandaag": r["overlap"],
-                    "overlap_totaal": r["overlap_totaal"],
-                    "avg_score": round(r["avg_score"], 4),
-                    "laatste_datum": r["laatste_datum"],
-                    "strategieen": ", ".join(r["strategieen"]),
-                    "grafiek": r["grafiek"],
+                    "rank": rank, "overlap_vandaag": r["overlap"], "overlap_totaal": r["overlap_totaal"],
+                    "avg_score": round(r["avg_score"], 4), "laatste_datum": r["laatste_datum"],
+                    "strategieen": ", ".join(r["strategieen"]), "grafiek": r["grafiek"],
                 },
             )
             if ok:
@@ -374,10 +256,10 @@ def log_picks(ranking):
 
     print(f"DB-logging: {n_gelogd}/{min(len(ranking), TOP_N)} picks gelogd.")
 
+# ============================================================
+# MAIN
+# ============================================================
 
-# --------------------------------------------------------------------------
-# Main
-# --------------------------------------------------------------------------
 def main():
     rows = haal_selecties_op(LOOKBACK_DAYS)
     ranking = bouw_ranking(rows)
@@ -385,13 +267,12 @@ def main():
     telegram_tekst = maak_telegram_bericht(ranking, LOOKBACK_DAYS)
     email_html = maak_email_html(ranking, LOOKBACK_DAYS)
 
-    stuur_telegram(telegram_tekst)
-    stuur_email(email_html, heeft_top_signaal=bool(ranking))
+    send_telegram(telegram_tekst, parse_mode="HTML")
+    send_email(f"Vers Signaal {today_str()}", email_html, html_body=True)
 
     log_picks(ranking)
 
     print(f"Klaar. {len(ranking)} verse overlap-kandidaten (2+ strategieën, zelfde dag) gevonden.")
-
 
 if __name__ == "__main__":
     main()

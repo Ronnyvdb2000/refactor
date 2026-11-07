@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-a_meta_model_train.py — traint het meta-model op ALLE beschikbare data en
-schrijft scaler + coëfficiënten naar Supabase (tabel meta_model_models).
+a_meta_model_train.py — TRAINT HET META-MODEL v2.0
 
-Dit is het productie-model. Anders dan meta_model.py (walk-forward
-evaluatie) wordt hier geen fold-split gedaan: alle rijen met een
-beschikbare target gaan in de training. De uitkomst is een versie-string
-die scoring gebruikt om consistent te blijven.
-
-Env vars: SUPABASE_DB_URL (verplicht)
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Haalt de data op, traint de Ridge-regressie en schrijft de scaler
+en coëfficiënten naar Supabase (tabel meta_model_models).
 """
 
 import os
@@ -17,6 +13,7 @@ import sys
 import argparse
 import uuid
 from datetime import datetime, timezone
+from typing import List
 
 import psycopg2
 import psycopg2.extras
@@ -24,6 +21,11 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
+
+from common import (
+    today_str, safe_float, esc,
+    send_telegram, send_email
+)
 
 from features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
 
@@ -34,6 +36,9 @@ GENERIEKE_TECHNICALS = [
     "pct_from_ma50", "pct_from_ma200", "vol_ratio_20d", "high52w", "pct_from_high52w",
 ]
 
+# ============================================================
+# DATA OPHALEN
+# ============================================================
 
 def haal_training_data(conn, features):
     s = [f for f in features if f not in GENERIEKE_TECHNICALS]
@@ -55,13 +60,15 @@ def haal_training_data(conn, features):
         cur.execute(query)
         return pd.DataFrame(cur.fetchall())
 
-
 def cross_sectionele_rank(df, kolommen):
     out = df.copy()
     for k in kolommen:
         out[k] = out.groupby("datum")[k].rank(pct=True)
     return out
 
+# ============================================================
+# MAIN
+# ============================================================
 
 def main():
     parser = argparse.ArgumentParser()
@@ -124,7 +131,6 @@ def main():
         print(f"Intercept: {model.intercept_:+.4f}")
     finally:
         conn.close()
-
 
 if __name__ == "__main__":
     main()

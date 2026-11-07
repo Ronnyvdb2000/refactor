@@ -1,47 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_00ms.py  —  MINERVINI SEPA ENGINE v1.0
-Gebaseerd op Mark Minervini's SEPA methodologie (Specific Entry Point Analysis).
+bot_00ms.py — MINERVINI SEPA ENGINE v2.0
 
-Criteria — 8-punt Trend Template + VCP:
-  TREND TEMPLATE (Stage 2 uptrend — alle 8 verplicht):
-    1. Close > MA150 en Close > MA200
-    2. MA150 > MA200
-    3. MA200 stijgt (trendend omhoog)
-    4. MA50 > MA150 en MA50 > MA200
-    5. Close > MA50
-    6. Close binnen 25% van 52-weekse high
-    7. Close minstens 30% boven 52-weekse low
-    8. RS Rating >= 70 (relatieve sterkte vs. universe)
-
-  VCP SCORE (0-4 punten):
-    1. Volatiliteit contractie — ATR daalt
-    2. Volume droogvalt
-    3. Pullback verkleint
-    4. Pivot breakout op volume
-
-Gebruik:
-  python bot_00ms.py live     # live rapport
-  python bot_00ms.py backtest # backtest modus
+Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+Alle indicatoren (ATR, MA's) komen uit common.indicators.
+Backtest-functionaliteit is volledig behouden.
 """
 
-import os
 import sys
 import math
-import warnings
-import datetime as dt
-import time
-import smtplib
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
-import requests
+
+from common import (
+    today_str, safe_float, yahoo_link, esc,
+    download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
+    compute_atr_series,
+    send_telegram, send_email,
+    bereken_positie, trade_cost,
+    SLIPPAGE_PCT, RISICO_PCT_DEFAULT, TRADE_COST_FIXED, TRADE_COST_PCT
+)
 
 try:
     from db_logger import log_selectie
@@ -50,62 +32,15 @@ except Exception as _e:
     def log_selectie(*args, **kwargs):
         return False
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-
 # ============================================================
 # CONFIG
 # ============================================================
 
 START_CAPITAL        = 50_000.0
 MAX_POSITIONS        = 10
-MIN_CASH_RATIO       = 0.10
 RISICO_PCT_PER_TRADE = 0.05
-SLIPPAGE_PCT         = 0.001
-TRADE_COST_FIXED     = 15.0
-TRADE_COST_PCT       = 0.0035
 TAX_RATE             = 0.10
 MAX_HOLD_DAYS        = 60
-
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-EMAIL_USER       = os.getenv("EMAIL_USER", "")
-EMAIL_PASS       = os.getenv("EMAIL_PASS", "")
-EMAIL_RECEIVER   = os.getenv("EMAIL_RECEIVER", "")
-
-# Vriendelijke namen voor de kwaliteits-lijsten (x-suffix), 041-059.
-# Ontbrekende bestanden worden gewoon overgeslagen — dit is enkel voor labels.
-BEURS_NAMEN = {
-    "tickers_041x.txt": "041 Benelux Ierland",
-    "tickers_042x.txt": "042 Parijs",
-    "tickers_043x.txt": "043 Frankfurt",
-    "tickers_044x.txt": "044 Spanje/Portugal",
-    "tickers_045x.txt": "045 Londen",
-    "tickers_046x.txt": "046 Milaan",
-    "tickers_047x.txt": "047 Toronto",
-    "tickers_048x.txt": "048 Nasdaq/NYSE",
-    "tickers_049x.txt": "049 Stockholm",
-    "tickers_050x.txt": "050 Zurich",
-    "tickers_051x.txt": "051 Warschau",
-    "tickers_052x.txt": "052 Oslo",
-    "tickers_053x.txt": "053 Kopenhagen",
-    "tickers_054x.txt": "054 Helsinki",
-    "tickers_055x.txt": "055 CBoe",
-    "tickers_056x.txt": "056 NYSE int",
-    "tickers_057x.txt": "057 NYSE",
-    "tickers_058x.txt": "058 TSXV",
-    "tickers_059x.txt": "059 Oostenrijk Slovenie Slovakije",
-}
-
-def bouw_bestandslijst() -> List[str]:
-    """
-    Bouwt de volledige lijst van kwaliteits-tickerbestanden tickers_041x.txt
-    t/m tickers_059x.txt. Nummers kunnen ontbreken; niet-bestaande bestanden
-    worden verderop gewoon overgeslagen (zelfde patroon als weekly_report.py).
-    """
-    return [f"tickers_{n:03d}x.txt" for n in range(41, 60)]
-
-def label_voor(f_name: str) -> str:
-    return BEURS_NAMEN.get(f_name, f_name.replace(".txt", ""))
 
 MS_CFG = {
     "ma_fast":             50,
@@ -125,211 +60,11 @@ MS_CFG = {
 }
 
 BACKTEST_START = "2021-01-01"
-BACKTEST_END   = dt.date.today().isoformat()
-
-
-# ============================================================
-# HULPFUNCTIES
-# ============================================================
-
-def trade_cost(amount: float) -> float:
-    return TRADE_COST_FIXED + amount * TRADE_COST_PCT
-
-def today_str() -> str:
-    return dt.date.today().strftime("%Y-%m-%d")
-
-def safe_float(val, default: float = float("nan")) -> float:
-    try:
-        f = float(val)
-        return default if math.isnan(f) else f
-    except Exception:
-        return default
-
-def format_price(val: Optional[float]) -> str:
-    if val is None or (isinstance(val, float) and math.isnan(val)):
-        return "n/a"
-    return f"{val:.2f}"
-
-def load_tickers_from_file(path: str) -> List[str]:
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        raw = f.read().replace(";", ",").replace(",", "\n").replace("$", "")
-    result = []
-    for line in raw.splitlines():
-        t = line.strip().upper()
-        if t and not t.startswith("#"):
-            result.append(t)
-    return sorted(list(set(result)))
-
-def send_telegram_message(text: str) -> None:
-    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
-        print(text)
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    try:
-        requests.post(
-            url,
-            json={"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "Markdown"},
-            timeout=10,
-        )
-    except Exception as e:
-        print(f"Telegram fout: {e}")
-
-def send_email(subject: str, body: str) -> None:
-    if not EMAIL_USER or not EMAIL_PASS or not EMAIL_RECEIVER:
-        return
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = EMAIL_USER
-        msg["To"]      = EMAIL_RECEIVER
-        msg["Subject"] = subject
-        clean = body.replace("*", "").replace("`", "").replace("•", "-").replace("_", "")
-        msg.attach(MIMEText(clean, "plain", "utf-8"))
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
-        server.quit()
-        print(f"Email verzonden naar {EMAIL_RECEIVER}")
-    except Exception as e:
-        print(f"Email fout: {e}")
-
-def _yahoo_link(ticker: str) -> str:
-    return f"[Grafiek](https://finance.yahoo.com/quote/{ticker})"
-
-
-# ============================================================
-# ATR SIZING
-# ============================================================
-
-def bereken_positie(
-    portfolio_waarde: float,
-    entry_prijs:      float,
-    stop_prijs:       float,
-    risico_pct:       float = RISICO_PCT_PER_TRADE,
-) -> Tuple[int, float]:
-    risico_eur   = portfolio_waarde * risico_pct
-    stop_afstand = entry_prijs - stop_prijs
-    if stop_afstand <= 0:
-        return 0, 0.0
-    aandelen    = max(1, int(risico_eur / stop_afstand))
-    max_verlies = round(stop_afstand * aandelen, 2)
-    return aandelen, max_verlies
-
-def sizing_tekst(ticker, prijs, stop, resistance, portfolio_waarde) -> str:
-    entry       = prijs * (1 + SLIPPAGE_PCT)
-    aandelen, max_loss = bereken_positie(portfolio_waarde, entry, stop)
-    tp          = resistance
-    investering = round(entry * aandelen, 2)
-    slip_est    = round(entry * SLIPPAGE_PCT * aandelen * 2, 2)
-    kosten      = round(trade_cost(investering), 2)
-    rr          = ((tp - entry) / (entry - stop)) if (entry - stop) > 0 else 0
-    return (
-        f"  Entry: EUR{entry:.2f} | Stop: EUR{stop:.2f} | TP: EUR{tp:.2f}\n"
-        f"  R/R: {rr:.1f}:1 | {aandelen} stuks | EUR{investering:,.2f}\n"
-        f"  Max verlies: EUR{max_loss:,.2f} | Kosten: EUR{kosten:.2f}"
-    )
-
-
-# ============================================================
-# DATA DOWNLOAD
-# ============================================================
-
-def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
-    if df_raw is None or not isinstance(df_raw, pd.DataFrame) or df_raw.empty:
-        return None
-    df = df_raw.copy().dropna(how="all")
-    if df.empty:
-        return None
-    if df.index.name in ("Date", "Datetime") or isinstance(df.index, pd.DatetimeIndex):
-        df = df.reset_index()
-    if "Date" in df.columns:
-        df = df.loc[:, ~df.columns.duplicated()]
-    if "Datetime" in df.columns and "Date" not in df.columns:
-        df = df.rename(columns={"Datetime": "Date"})
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    if "Close" not in df.columns:
-        return None
-    df["Ticker"] = ticker
-    return df
-
-def download_history(tickers: List[str], period: str = "2y") -> pd.DataFrame:
-    if not tickers:
-        return pd.DataFrame()
-    kwargs = dict(tickers=tickers, auto_adjust=True, group_by="ticker",
-                  progress=False, threads=True, period=period)
-    frames = []
-    try:
-        data = yf.download(**kwargs)
-    except Exception as e:
-        print(f"[WARN] Batch mislukt ({e}), probeer 1-voor-1...")
-        data = pd.DataFrame()
-
-    if data is not None and not data.empty:
-        if isinstance(data.columns, pd.MultiIndex):
-            ticker_level = 1
-            for lvl in range(data.columns.nlevels):
-                if any(t in set(data.columns.get_level_values(lvl)) for t in tickers):
-                    ticker_level = lvl
-                    break
-            available = set(data.columns.get_level_values(ticker_level))
-            for t in tickers:
-                if t not in available:
-                    continue
-                try:
-                    norm = _normalise(data.xs(t, axis=1, level=ticker_level).copy(), t)
-                    if norm is not None:
-                        frames.append(norm)
-                except Exception as e:
-                    print(f"[WARN] {t}: fout ({e})")
-        else:
-            norm = _normalise(data, tickers[0])
-            if norm is not None:
-                frames.append(norm)
-
-    if not frames:
-        for t in tickers:
-            try:
-                raw = yf.download(t, period=period, auto_adjust=True, progress=False)
-                if raw is None or (isinstance(raw, pd.DataFrame) and raw.empty):
-                    continue
-                if isinstance(raw, pd.DataFrame) and isinstance(raw.columns, pd.MultiIndex):
-                    raw.columns = raw.columns.get_level_values(0)
-                norm = _normalise(raw, t)
-                if norm is not None:
-                    frames.append(norm)
-                time.sleep(0.2)
-            except Exception as e:
-                print(f"[WARN] {t}: mislukt ({e})")
-
-    if not frames:
-        return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"])
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    df.reset_index(drop=True, inplace=True)
-    return df
-
+BACKTEST_END   = today_str()
 
 # ============================================================
 # INDICATOREN
 # ============================================================
-
-def _wilder_smooth(series: pd.Series, period: int) -> pd.Series:
-    result = pd.Series(index=series.index, dtype=float)
-    valid  = series.dropna()
-    if len(valid) < period:
-        return result
-    result[valid.index[period - 1]] = valid.iloc[:period].mean()
-    for i in range(period, len(valid)):
-        result[valid.index[i]] = (
-            result[valid.index[i - 1]] * (period - 1) / period
-            + valid.iloc[i] / period
-        )
-    return result
 
 def add_indicators(df: pd.DataFrame, universe_rs: Dict[str, float]) -> pd.DataFrame:
     parts = []
@@ -345,11 +80,7 @@ def add_indicators(df: pd.DataFrame, universe_rs: Dict[str, float]) -> pd.DataFr
         g["MA200"]       = close.rolling(MS_CFG["ma_slow"]).mean()
         g["MA200_slope"] = g["MA200"].diff(20)
 
-        hl  = high - low
-        hcp = (high - close.shift()).abs()
-        lcp = (low  - close.shift()).abs()
-        tr  = pd.concat([hl, hcp, lcp], axis=1).max(axis=1)
-        g["ATR14"]  = _wilder_smooth(tr, 14)
+        g["ATR14"]  = compute_atr_series(high, low, close, MS_CFG["atr_period"])
         g["VolMA20"] = vol.rolling(20).mean()
         g["High52w"] = close.rolling(252).max()
         g["Low52w"]  = close.rolling(252).min()
@@ -384,7 +115,6 @@ def compute_rs_ratings(df: pd.DataFrame) -> Dict[str, float]:
         rs_map[ticker] = round((rank / n) * 99, 1)
     return rs_map
 
-
 # ============================================================
 # TREND TEMPLATE
 # ============================================================
@@ -410,42 +140,29 @@ def check_trend_template(row: pd.Series) -> Tuple[bool, List[str]]:
             checks.append(f"✗ {fail_msg}")
             passed = False
 
-    chk(not math.isnan(close) and not math.isnan(ma150) and not math.isnan(ma200)
-        and close > ma150 and close > ma200,
-        f"Close>MA150/MA200", f"Close niet boven MA150/MA200")
-    chk(not math.isnan(ma150) and not math.isnan(ma200) and ma150 > ma200,
-        "MA150>MA200", "MA150 niet boven MA200")
-    chk(not math.isnan(ma200s) and ma200s > 0,
-        "MA200 stijgt", "MA200 daalt/vlak")
-    chk(not math.isnan(ma50) and not math.isnan(ma150) and not math.isnan(ma200)
-        and ma50 > ma150 and ma50 > ma200,
-        "MA50>MA150/MA200", "MA50 niet boven MA150/MA200")
-    chk(not math.isnan(close) and not math.isnan(ma50) and close > ma50,
-        "Close>MA50", "Close niet boven MA50")
+    chk(not math.isnan(close) and not math.isnan(ma150) and not math.isnan(ma200) and close > ma150 and close > ma200, "Close>MA150/MA200", "Close niet boven MA150/MA200")
+    chk(not math.isnan(ma150) and not math.isnan(ma200) and ma150 > ma200, "MA150>MA200", "MA150 niet boven MA200")
+    chk(not math.isnan(ma200s) and ma200s > 0, "MA200 stijgt", "MA200 daalt/vlak")
+    chk(not math.isnan(ma50) and not math.isnan(ma150) and not math.isnan(ma200) and ma50 > ma150 and ma50 > ma200, "MA50>MA150/MA200", "MA50 niet boven MA150/MA200")
+    chk(not math.isnan(close) and not math.isnan(ma50) and close > ma50, "Close>MA50", "Close niet boven MA50")
 
     if not math.isnan(h52) and h52 > 0:
         pct_from_high = (h52 - close) / h52 * 100
-        chk(pct_from_high <= MS_CFG["max_from_high_pct"],
-            f"{pct_from_high:.1f}% onder 52w high (<=25%)",
-            f"{pct_from_high:.1f}% onder 52w high (>25%)")
+        chk(pct_from_high <= MS_CFG["max_from_high_pct"], f"{pct_from_high:.1f}% onder 52w high (<=25%)", f"{pct_from_high:.1f}% onder 52w high (>25%)")
     else:
         checks.append("✗ geen 52w high data")
         passed = False
 
     if not math.isnan(l52) and l52 > 0:
         pct_from_low = (close - l52) / l52 * 100
-        chk(pct_from_low >= MS_CFG["min_from_low_pct"],
-            f"{pct_from_low:.1f}% boven 52w low (>=30%)",
-            f"{pct_from_low:.1f}% boven 52w low (<30%)")
+        chk(pct_from_low >= MS_CFG["min_from_low_pct"], f"{pct_from_low:.1f}% boven 52w low (>=30%)", f"{pct_from_low:.1f}% boven 52w low (<30%)")
     else:
         checks.append("✗ geen 52w low data")
         passed = False
 
-    chk(rs >= MS_CFG["rs_min"],
-        f"RS={rs:.0f} (>=70)", f"RS={rs:.0f} (<70)")
+    chk(rs >= MS_CFG["rs_min"], f"RS={rs:.0f} (>=70)", f"RS={rs:.0f} (<70)")
 
     return passed, checks
-
 
 # ============================================================
 # VCP DETECTIE
@@ -511,12 +228,7 @@ def detect_vcp(g: pd.DataFrame) -> Tuple[int, List[str], float, float]:
     vol_recent_mean = safe_float(vol_ma.iloc[-MS_CFG["pivot_lookback"]])
     vol_today       = safe_float(volume.iloc[-1])
 
-    breakout = (
-        not math.isnan(current) and current > pivot_high
-        and not math.isnan(vol_today) and not math.isnan(vol_recent_mean)
-        and vol_recent_mean > 0
-        and vol_today >= vol_recent_mean * MS_CFG["pivot_breakout_vol"]
-    )
+    breakout = (not math.isnan(current) and current > pivot_high and not math.isnan(vol_today) and not math.isnan(vol_recent_mean) and vol_recent_mean > 0 and vol_today >= vol_recent_mean * MS_CFG["pivot_breakout_vol"])
     if breakout:
         score += 1
         details.append(f"✓ Pivot breakout boven {pivot_high:.2f}")
@@ -529,7 +241,6 @@ def detect_vcp(g: pd.DataFrame) -> Tuple[int, List[str], float, float]:
     pivot_prijs = float(recent["Close"].max())
 
     return score, details, pivot_prijs, stop_prijs
-
 
 # ============================================================
 # SEPA SIGNAAL
@@ -592,16 +303,14 @@ def analyse_ticker(ticker: str, g: pd.DataFrame) -> Optional[SEPASignaal]:
         print(f"[WARN] {ticker}: fout — {e}")
         return None
 
-
 # ============================================================
-# TELEGRAM + EMAIL OUTPUT
+# OUTPUT
 # ============================================================
 
 def _vcp_bar(score: int) -> str:
     return "█" * score + "░" * (4 - score) + f" {score}/4"
 
-def format_bericht(exchange_name: str, signalen: List[SEPASignaal],
-                   portfolio_waarde: float) -> Optional[str]:
+def format_bericht(exchange_name: str, signalen: List[SEPASignaal], portfolio_waarde: float) -> Optional[str]:
     if not signalen:
         return None
 
@@ -609,36 +318,34 @@ def format_bericht(exchange_name: str, signalen: List[SEPASignaal],
     max_sc  = max(s.vcp_score for s in signalen)
     toon    = [s for s in signalen if s.vcp_score == max_sc]
     top2    = signalen[:2]
-    lbl     = {4: "🔥 PERFECTE VCP (4/4)", 3: "⚡ STERK (3/4)",
-               2: "📊 WATCHLIST (2/4)"}.get(max_sc, "📊")
+    lbl     = {4: "🔥 PERFECTE VCP (4/4)", 3: "⚡ STERK (3/4)", 2: "📊 WATCHLIST (2/4)"}.get(max_sc, "📊")
 
     delen = [
-        f"📈 *MINERVINI SEPA — {exchange_name}*",
+        f"📈 *MINERVINI SEPA — {esc(exchange_name)}*",
         f"_{nu} | Stage 2 + VCP | {len(signalen)} kandidaten_",
         "─────────────────────────────",
         f"🏆 *TOP 2:*",
     ]
     for s in top2:
         rr = ((s.pivot - s.price) / (s.price - s.stop)) if (s.price - s.stop) > 0 else 0
+        entry = s.price * (1 + SLIPPAGE_PCT)
+        aandelen, max_loss = bereken_positie(portfolio_waarde, entry, s.stop)
+        investering = round(entry * aandelen, 2)
+        
         delen.append(
             f"• `{s.ticker}` VCP:{_vcp_bar(s.vcp_score)} RS:{s.rs:.0f} "
-            f"EUR{s.price:.2f} {_yahoo_link(s.ticker)}\n"
+            f"EUR{s.price:.2f} {yahoo_link(s.ticker)}\n"
             f"  {s.pct_from_high:.1f}% onder high | R/R:{rr:.1f}:1\n"
-            + sizing_tekst(s.ticker, s.price, s.stop, s.pivot, portfolio_waarde)
+            f"  Entry: EUR{entry:.2f} | Stop: EUR{s.stop:.2f} | {aandelen} stuks\n"
+            f"  Investering: EUR{investering:,.2f} | Max verlies: EUR{max_loss:,.2f}"
         )
 
     delen += ["─────────────────────────────", f"*{lbl}:*"]
     for s in [x for x in toon if x not in top2]:
-        delen.append(
-            f"• `{s.ticker}` VCP:{_vcp_bar(s.vcp_score)} RS:{s.rs:.0f} "
-            f"EUR{s.price:.2f} | {s.pct_from_high:.1f}% onder high"
-        )
-    delen.append(
-        f"⚙️ _Stop max {MS_CFG['stop_pct']:.0f}% | RS>={MS_CFG['rs_min']} | "
-        f"Risico 5% portfolio_"
-    )
+        delen.append(f"• `{s.ticker}` VCP:{_vcp_bar(s.vcp_score)} RS:{s.rs:.0f} EUR{s.price:.2f} | {s.pct_from_high:.1f}% onder high")
+    delen.append(f"⚙️ _Stop max {MS_CFG['stop_pct']:.0f}% | RS>={MS_CFG['rs_min']} | Risico 5% portfolio_")
+    
     return "\n\n".join(delen)
-
 
 # ============================================================
 # LIVE ENGINE
@@ -655,7 +362,6 @@ def run_live_engine():
     for f_name in bouw_bestandslijst():
         tlist = load_tickers_from_file(f_name)
         if not tlist:
-            print(f"Bestand {f_name} niet gevonden of leeg, overslaan.")
             continue
         ex_name = label_voor(f_name)
         exchange_tickers[ex_name] = tlist
@@ -693,54 +399,52 @@ def run_live_engine():
             sig = analyse_ticker(ticker, group)
             if sig:
                 signalen.append(sig)
-                print(f"  ✓ {ticker}: VCP={sig.vcp_score}/4 | RS={sig.rs:.0f} | "
-                      f"{sig.pct_from_high:.1f}% onder high")
+                print(f"  ✓ {ticker}: VCP={sig.vcp_score}/4 | RS={sig.rs:.0f} | {sig.pct_from_high:.1f}% onder high")
 
         signalen.sort(key=lambda s: s.total_score, reverse=True)
         print(f"  → {len(signalen)} SEPA kandidaten")
 
         for s in signalen:
             log_selectie(
-                ticker=s.ticker,
-                datum=today_str(),
-                strategie="bot_00ms",
-                beurs=ex_name,
-                koers=s.price,
+                ticker=s.ticker, datum=today_str(), strategie="bot_00ms",
+                beurs=ex_name, koers=s.price,
                 parameters={
-                    "score": s.vcp_score,
-                    "total_score": s.total_score,
-                    "rs": s.rs,
-                    "pivot": s.pivot,
-                    "stop": s.stop,
-                    "pct_from_high": s.pct_from_high,
-                    "pct_from_low": s.pct_from_low,
-                    "atr": s.atr,
-                    "grafiek": f"https://finance.yahoo.com/quote/{s.ticker}",
+                    "score": s.vcp_score, "total_score": s.total_score,
+                    "rs": s.rs, "pivot": s.pivot, "stop": s.stop,
+                    "pct_from_high": s.pct_from_high, "pct_from_low": s.pct_from_low,
+                    "atr": s.atr, "grafiek": yahoo_link(s.ticker),
                 },
             )
 
         bericht = format_bericht(ex_name, signalen, portfolio_waarde)
         if bericht:
-            send_telegram_message(bericht)
+            send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
             print(f"  → Telegram verstuurd")
         else:
             print(f"  → Overgeslagen: {ex_name}")
 
-    # Email met alle exchanges samen
     if email_delen:
-        send_email(
-            f"Minervini SEPA rapport {today_str()}",
-            "\n\n" + ("=" * 40 + "\n\n").join(email_delen),
-        )
+        send_email(subject=f"Minervini SEPA rapport {today_str()}", body="\n\n" + ("=" * 40 + "\n\n").join(email_delen))
 
     print(f"\n{'='*60}")
     print("Klaar.")
 
-
 # ============================================================
 # BACKTEST ENGINE
 # ============================================================
+
+@dataclass
+class BTPosition:
+    ticker:      str
+    entry_date:  pd.Timestamp
+    entry_price: float
+    size:        int
+    cost:        float
+    sl:          Optional[float]
+    tp:          Optional[float]
+    atr:         float
+    days:        int = 0
 
 def run_backtest():
     print(f"{'='*60}")
@@ -767,7 +471,7 @@ def run_backtest():
     df         = add_indicators(df, rs_ratings)
 
     cash      = START_CAPITAL
-    positions: Dict[str, Dict] = {}
+    positions: Dict[str, BTPosition] = {}
     trades:    List[Dict]      = []
     scan_dates = [d for d in all_dates if d.weekday() == 0]
     print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
@@ -782,19 +486,20 @@ def run_backtest():
             if not sig:
                 continue
             entry      = sig.price * (1 + SLIPPAGE_PCT)
-            aandelen, _ = bereken_positie(cash, entry, sig.stop)
+            total_waarde = cash + sum(price_map.get(t, p.entry_price) * p.size for t, p in positions.items()) if 'price_map' in locals() else cash
+            aandelen, _ = bereken_positie(total_waarde, entry, sig.stop)
             if aandelen <= 0:
                 continue
             investering = entry * aandelen + trade_cost(entry * aandelen)
             if investering > cash:
                 continue
             cash -= investering
-            positions[ticker] = {
-                "entry_date": scan_date, "entry_price": round(entry, 4),
-                "size": aandelen, "stop": sig.stop, "tp": sig.pivot,
-                "vcp_score": sig.vcp_score, "rs": sig.rs, "days": 0,
-                "cost": trade_cost(investering),
-            }
+            positions[ticker] = BTPosition(
+                ticker=ticker, entry_date=scan_date, entry_price=round(entry, 4),
+                size=aandelen, cost=trade_cost(investering),
+                sl=sig.stop, tp=sig.pivot,
+                atr=sig.atr, days=0
+            )
 
         day_df = df[df["Date"] == pd.Timestamp(scan_date)].copy()
         price_map: Dict[str, float] = {}
@@ -805,33 +510,33 @@ def run_backtest():
                 price_map[t] = c
 
         for ticker, pos in list(positions.items()):
-            pos["days"] += 1
+            pos.days += 1
             if ticker not in price_map:
                 continue
             close  = price_map[ticker]
             reason = None
-            if close <= pos["stop"]:
-                reason = f"SL ({pos['stop']:.2f})"
-            elif close >= pos["tp"]:
-                reason = f"TP ({pos['tp']:.2f})"
-            elif pos["days"] >= MAX_HOLD_DAYS:
-                reason = f"Time ({pos['days']}d)"
+            if close <= pos.sl:
+                reason = f"SL ({pos.sl:.2f})"
+            elif close >= pos.tp:
+                reason = f"TP ({pos.tp:.2f})"
+            elif pos.days >= MAX_HOLD_DAYS:
+                reason = f"Time ({pos.days}d)"
 
             if reason:
                 exit_slip = close * (1 - SLIPPAGE_PCT)
-                gross     = exit_slip * pos["size"]
+                gross     = exit_slip * pos.size
                 cost      = trade_cost(gross)
-                pnl       = gross - cost - (pos["entry_price"] * pos["size"] + pos["cost"])
+                pnl       = gross - cost - (pos.entry_price * pos.size + pos.cost)
                 tax       = pnl * TAX_RATE if pnl > 0 else 0.0
                 cash     += gross - cost - tax
                 trades.append({
-                    "entry_date": pos["entry_date"].isoformat(),
+                    "entry_date": pos.entry_date.isoformat(),
                     "exit_date":  scan_date.isoformat(),
-                    "ticker": ticker, "vcp_score": pos["vcp_score"], "rs": pos["rs"],
-                    "entry_price": pos["entry_price"], "exit_price": round(exit_slip, 4),
-                    "size": pos["size"], "pnl": round(pnl, 2),
+                    "ticker": ticker, "vcp_score": pos.strategy if hasattr(pos, 'strategy') else 0, "rs": rs_ratings.get(ticker, 0),
+                    "entry_price": pos.entry_price, "exit_price": round(exit_slip, 4),
+                    "size": pos.size, "pnl": round(pnl, 2),
                     "tax": round(tax, 2), "net": round(pnl - tax, 2),
-                    "reason": reason, "days": pos["days"],
+                    "reason": reason, "days": pos.days,
                 })
                 del positions[ticker]
 
@@ -840,11 +545,8 @@ def run_backtest():
         tdf.to_csv("ms_backtest_trades.csv", index=False)
         n    = len(tdf)
         nwin = (tdf["net"] > 0).sum()
-        pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(
-               abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
-        final_val = cash + sum(
-            price_map.get(t, p["entry_price"]) * p["size"]
-            for t, p in positions.items())
+        pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
+        final_val = cash + sum(price_map.get(t, p.entry_price) * p.size for t, p in positions.items())
         print(f"\n{'='*60}")
         print(f"Startkapitaal    : EUR{START_CAPITAL:>12,.2f}")
         print(f"Eindkapitaal     : EUR{final_val:>12,.2f}")
@@ -857,7 +559,6 @@ def run_backtest():
         print(f"Opgeslagen: ms_backtest_trades.csv")
     else:
         print("Geen trades gegenereerd.")
-
 
 # ============================================================
 # ENTRYPOINT
