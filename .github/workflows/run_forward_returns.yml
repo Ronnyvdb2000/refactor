@@ -2,7 +2,7 @@ name: "Feature Store: Forward Returns — koppelt selecties aan latere rendement
 
 on:
   schedule:
-    - cron: "0 21 * * 1-5"
+    - cron: "0 21 * * *"
   workflow_dispatch:
 
 jobs:
