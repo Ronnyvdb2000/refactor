@@ -226,6 +226,7 @@ def run_live_engine():
     for f_name in bouw_bestandslijst():
         tlist = load_tickers_from_file(f_name)
         if not tlist:
+            print(f"Bestand {f_name} niet gevonden of leeg, overslaan.")
             continue
         ex_name = label_voor(f_name)
         exchange_tickers[ex_name] = tlist
@@ -303,7 +304,8 @@ def run_live_engine():
     print("Klaar.")
 
 def run_backtest():
-    print("Backtest wordt niet ondersteund voor bot_00greenblatt.")
+    print("Backtest wordt niet ondersteund voor bot_00greenblatt: yfinance biedt "
+          "geen betrouwbare historische reeks van EBIT/balansposten per scandatum.")
 
 # ============================================================
 # ENTRYPOINT

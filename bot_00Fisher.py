@@ -171,9 +171,16 @@ def format_bericht(exchange_name: str, signalen: List[FisherSignaal], alle: List
     top_tonen = sorted(alle, key=lambda s: (s.score, -s.ps_ratio if s.ps_ratio > 0 else -999), reverse=True)[:top_n]
 
     def sig_regel(s: FisherSignaal, detail: bool = False) -> str:
-        r = f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | P/S:{s.ps_ratio:.2f} | {s.sector} | {yahoo_link(s.ticker)}"
+        r = (
+            f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | "
+            f"P/S:{s.ps_ratio:.2f} | {s.sector} | {yahoo_link(s.ticker)}"
+        )
         if detail:
-            r += f"\n  {s.ps_label} | {s.marktkap_label}\n  Omzetgroei: {s.groei_label} | Schuld: {s.schuld_label}\n  Liquiditeit: {s.current_ratio_label}"
+            r += (
+                f"\n  {s.ps_label} | {s.marktkap_label}"
+                f"\n  Omzetgroei: {s.groei_label} | Schuld: {s.schuld_label}"
+                f"\n  Liquiditeit: {s.current_ratio_label}"
+            )
         return r
 
     delen = [
@@ -190,7 +197,11 @@ def format_bericht(exchange_name: str, signalen: List[FisherSignaal], alle: List
         for s in overige:
             delen.append(sig_regel(s))
 
-    delen.append(f"⚙️ _P/S<={cfg['psr_max_tech']:.1f} (tech) of <={cfg['psr_max_default']:.1f} (overig) | marktkap>={cfg['marktkap_min']/1e6:.0f}M | omzetgroei>0% | D/E<={cfg['debt_equity_max']:.0f} | current ratio>={cfg['current_ratio_min']:.1f}. GEEN winstvereiste._")
+    delen.append(
+        f"⚙️ _P/S<={cfg['psr_max_tech']:.1f} (tech) of <={cfg['psr_max_default']:.1f} (overig) | "
+        f"marktkap>={cfg['marktkap_min']/1e6:.0f}M | omzetgroei>0% | D/E<={cfg['debt_equity_max']:.0f} | "
+        f"current ratio>={cfg['current_ratio_min']:.1f}. GEEN winstvereiste._"
+    )
     return "\n\n".join(delen)
 
 # ============================================================

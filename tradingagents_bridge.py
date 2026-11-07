@@ -5,7 +5,7 @@ tradingagents_bridge.py
 
 Koppelt TradingAgents (multi-agent LLM-analyse) aan een signaalbron.
 
-Twee bronnen worden ondersteund:
+Bronnen:
   --source vcp  (default): leest vcp_signals.json (output van bot_00vcp)
   --source par          : leest results/a_par_model_{horizon}_picks.csv
 
@@ -14,13 +14,13 @@ Werking:
   2. Dit script leest de tickers, laat TradingAgents per ticker een besluit
      genereren, en stuurt het resultaat naar Telegram en/of Gmail.
 
-Blijft gratis door:
-  - Groq als LLM-provider (gratis rate-limited tier, geen lokale GPU nodig,
-    en werkt dus prima binnen de gratis GitHub Actions-runner)
+Gratis gehouden door:
+  - Groq als LLM-provider (gratis rate-limited tier, geen lokale GPU nodig)
   - max_debate_rounds=1 om binnen de gratis Groq rate limits te blijven
-  - online_tools=False om prompts klein te houden (anders 413-fouten)
-  - GitHub Actions blijft gratis voor public/private repos binnen de
-    standaard minuten-quota; dit stapje kost enkele API-calls, geen compute
+  - online_tools=False om prompts klein te houden
+  - Slimme retry-logica die Groq's TPM/TPD-foutmeldingen parseert en
+    respecteert, zodat we de gratis limieten niet onnodig verbruiken
+  - 413 (Request too large) wordt direct overgeslagen: geen retry zinloos
 
 Benodigde secrets:
   GROQ_API_KEY   -> gratis aan te maken op https://console.groq.com
@@ -33,6 +33,7 @@ Optioneel:
 
 import os
 import sys
+import re
 import csv
 import json
 import time
@@ -51,11 +52,17 @@ from tradingagents.default_config import DEFAULT_CONFIG
 # CONFIG
 # ============================================================
 
-# Standaard Groq-model. Llama 3.3 70B is door Groq stopgezet (16/08/2026)
-# en gaf daarna een 404. Groq raadt als vervanging aan:
-#   openai/gpt-oss-120b  of  qwen/qwen3.6-27b
-# Te overschrijven via de omgevingsvariabele GROQ_MODEL.
-DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+# Standaard Groq-model.
+#   llama-3.1-8b-instant     : 6k TPM, 500k TPD   <- gekozen om TPD-plafond
+#   openai/gpt-oss-120b      : 8k TPM, 200k TPD   (snel TPD uitgeput)
+# Let op: TPM is bij 8b-instant iets lager, daarom een langere slaap
+# tussen tickers (zie --sleep). Overschrijven via GROQ_MODEL env var.
+DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
+
+# Maximum tokens dat een enkel model-antwoord mag teruggeven. Dit verkleint
+# de totale request-grootte (input + gereserveerde output) en helpt de TPM-
+# limiet te respecteren.
+DEFAULT_MAX_TOKENS = 2000
 
 
 def build_config():
@@ -65,13 +72,6 @@ def build_config():
     config["backend_url"] = "https://api.groq.com/openai/v1"
 
     model = os.environ.get("GROQ_MODEL", DEFAULT_GROQ_MODEL)
-
-    # Oude modelkeuze (gaf 404 na stopzetting door Groq):
-    # config["deep_think_llm"] = "llama-3.3-70b-versatile"
-    # config["quick_think_llm"] = "llama-3.3-70b-versatile"
-    # (llama-3.3-70b-versatile had een gratis TPM-limiet van 12.000,
-    #  llama-3.1-8b-instant 6.000; de limieten van het nieuwe model
-    #  kun je nakijken in de Groq-console onder Limits.)
     config["deep_think_llm"] = model
     config["quick_think_llm"] = model
 
@@ -79,28 +79,105 @@ def build_config():
     config["max_debate_rounds"] = 1
     config["max_risk_discuss_rounds"] = 1
     # Uitgezet: online_tools haalt live nieuws/social data op en maakt de
-    # prompt vaak 10-60k tokens groot — dat past niet binnen de gratis
-    # Groq TPM-limiet.
+    # prompt vaak 10-60k tokens groot -> 413-fouten op de gratis tier.
     config["online_tools"] = False
+
+    # Begrens de output-grootte per model-call (helpt tegen 429 TPM,
+    # niet tegen 413: dat is een input-grootte probleem).
+    max_tokens = int(os.environ.get("GROQ_MAX_TOKENS", DEFAULT_MAX_TOKENS))
+    config["max_tokens"] = max_tokens
+
     return config
 
 
-def analyze_ticker(ticker: str, trade_date: str) -> str:
+# ============================================================
+# GROQ FOUT-PARSING
+# ============================================================
+
+def parse_groq_error(msg: str) -> tuple:
+    """
+    Classificeert een Groq/OpenAI-achtige foutmelding.
+
+    Retourneert (kind, wait_seconds) waarbij kind één van:
+      - "SIZE"    -> 413 Request too large (structureel; niet retryen)
+      - "TPM"     -> 429 tokens-per-minuut limiet (kort wachten, retry)
+      - "TPD"     -> 429 tokens-per-dag limiet (dag op; rest overslaan)
+      - "OTHER"   -> overige 429 of onbekend (korte fallback-wait)
+      - "UNKNOWN" -> geen Groq rate-limit fout
+    wait_seconds kan None zijn als de wachttijd niet in de melding staat.
+    """
+    if "413" in msg or "Request too large" in msg:
+        return ("SIZE", None)
+
+    if "429" not in msg and "Rate limit" not in msg:
+        return ("UNKNOWN", None)
+
+    wait = None
+    m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", msg)
+    if m:
+        minutes = int(m.group(1) or 0)
+        seconds = float(m.group(2) or 0)
+        wait = minutes * 60 + seconds
+
+    if "tokens per day" in msg or "(TPD)" in msg:
+        return ("TPD", wait)
+    if "tokens per minute" in msg or "(TPM)" in msg:
+        return ("TPM", wait)
+    return ("OTHER", wait)
+
+
+class DailyLimitReached(Exception):
+    """Signaal dat de Groq daglimiet (TPD) is bereikt; verdere retries zinloos."""
+
+
+class PromptTooLarge(Exception):
+    """413: prompt past niet in de TPM-limiet; retry lost niets op."""
+
+
+# ============================================================
+# ANALYSE
+# ============================================================
+
+def analyze_ticker(ticker: str, trade_date: str, max_retries: int = 3) -> str:
+    """
+    Analyseer één ticker via TradingAgents.
+
+    Retry-strategie:
+      - 413 (SIZE)  : raise PromptTooLarge (geen retry)
+      - 429 TPD     : raise DailyLimitReached (geen retry)
+      - 429 TPM     : wacht `wait_seconds` (of 30s fallback) en retry
+      - 429 OTHER   : korte fallback-wait en retry
+      - anders      : raise
+    """
     config = build_config()
     ta = TradingAgentsGraph(debug=False, config=config)
-    # Eén retry bij een tijdelijke 429 rate-limit (i.t.t. 413, dat is
-    # structureel te groot en lost niet op door te wachten).
-    for attempt in range(2):
+
+    for attempt in range(max_retries):
         try:
             _, decision = ta.propagate(ticker, trade_date)
             return decision
         except Exception as e:
             msg = str(e)
-            if "429" in msg and attempt == 0:
-                print(f"  {ticker}: tijdelijke rate limit, 10s wachten en opnieuw...")
-                time.sleep(10)
+            kind, wait = parse_groq_error(msg)
+
+            if kind == "SIZE":
+                raise PromptTooLarge(msg)
+            if kind == "TPD":
+                raise DailyLimitReached(msg)
+
+            if kind in ("TPM", "OTHER") and attempt < max_retries - 1:
+                sleep_s = (wait if wait is not None else 30) + 3
+                print(
+                    f"  {ticker}: {kind}-limiet, {sleep_s:.0f}s wachten "
+                    f"(poging {attempt + 1}/{max_retries})"
+                )
+                time.sleep(sleep_s)
                 continue
+
+            # Geen retries meer of onbekende fout: doorgeven
             raise
+
+    raise RuntimeError(f"max_retries ({max_retries}) overschreden")
 
 
 # ============================================================
@@ -114,7 +191,6 @@ def lees_vcp_signals(pad: str) -> list:
         return []
     with open(pad) as f:
         signals = json.load(f)
-    # Verwacht formaat: {"tickers": ["ABI.BR", "KBC.BR"]}
     return signals.get("tickers", [])
 
 
@@ -215,7 +291,28 @@ def main():
         "--top-n",
         type=int,
         default=10,
-        help="Max aantal par-picks om te analyseren (default: 10)",
+        help="Max aantal picks uit CSV om te analyseren (default: 10)",
+    )
+    parser.add_argument(
+        "--max-tickers",
+        type=int,
+        default=0,
+        help="Harde bovengrens op het aantal te analyseren tickers "
+             "(0 = geen extra limiet bovenop --top-n / brondata). "
+             "Aanbevolen: 5 om binnen de gratis Groq TPD te blijven.",
+    )
+    parser.add_argument(
+        "--sleep",
+        type=float,
+        default=60.0,
+        help="Seconden wachten tussen tickers om TPM-limiet te respecteren "
+             "(default: 60)",
+    )
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        default=3,
+        help="Max pogingen per ticker bij 429 TPM (default: 3)",
     )
     parser.add_argument(
         "--date",
@@ -246,25 +343,73 @@ def main():
             print(f"Geen par-picks beschikbaar ({bron_label}) — TradingAgents wordt overgeslagen.")
             return
 
+    # Harde bovengrens om TPD-uitputting te beperken
+    if args.max_tickers and len(tickers) > args.max_tickers:
+        print(f"Beperkt tot {args.max_tickers} tickers (van {len(tickers)}).")
+        tickers = tickers[: args.max_tickers]
+
     print(f"Bron: {bron_label}")
-    print(f"Tickers: {', '.join(tickers)}")
+    print(f"Tickers ({len(tickers)}): {', '.join(tickers)}")
     print(f"Datum: {trade_date}")
     print(f"Model: {build_config()['deep_think_llm']}")
+    print(f"Slaap tussen tickers: {args.sleep:.0f}s")
     print("")
 
     # Analyse per ticker
     blocks = []
-    for ticker in tickers:
+    daily_limit_hit = False
+    skipped_due_to_daily = []
+
+    for idx, ticker in enumerate(tickers):
+        if daily_limit_hit:
+            blocks.append(f"⏭️ <b>{ticker}</b>: overgeslagen (Groq daglimiet TPD bereikt)")
+            skipped_due_to_daily.append(ticker)
+            continue
+
         print(f"Analyseren: {ticker} ...", flush=True)
         try:
-            decision = analyze_ticker(ticker, trade_date)
+            decision = analyze_ticker(ticker, trade_date, max_retries=args.max_retries)
             blocks.append(f"📊 <b>{ticker}</b>\n{decision}\n")
+            print(f"  {ticker}: OK")
+        except DailyLimitReached as e:
+            daily_limit_hit = True
+            skipped_due_to_daily.append(ticker)
+            print(f"  {ticker}: DAGLIMIET TPD bereikt — verdere tickers worden overgeslagen.")
+            blocks.append(
+                f"⚠️ <b>{ticker}</b>: daglimiet Groq TPD bereikt — "
+                f"resterende tickers overgeslagen"
+            )
+        except PromptTooLarge:
+            print(f"  {ticker}: 413 (prompt te groot), overgeslagen.")
+            blocks.append(
+                f"⚠️ <b>{ticker}</b>: prompt te groot voor gratis Groq-tier (413) — "
+                f"overgeslagen"
+            )
         except Exception as e:
-            blocks.append(f"⚠️ {ticker}: analyse mislukt ({e})")
-        # Kleine pauze tussen tickers om de gratis TPM-limiet niet te bursten
-        time.sleep(5)
+            msg = str(e)
+            print(f"  {ticker}: fout — {msg[:200]}")
+            blocks.append(f"⚠️ <b>{ticker}</b>: analyse mislukt ({msg[:200]})")
 
-    message = f"TradingAgents-analyse — {bron_label} ({trade_date}):\n\n" + "\n".join(blocks)
+        # Pauze tussen tickers om TPM-limiet te respecteren
+        if idx < len(tickers) - 1 and not daily_limit_hit:
+            print(f"  ... {args.sleep:.0f}s wachten ...")
+            time.sleep(args.sleep)
+
+    # Samenvatting
+    n_ok = sum(1 for b in blocks if b.startswith("📊"))
+    n_fail = sum(1 for b in blocks if b.startswith("⚠️"))
+    n_skip = sum(1 for b in blocks if b.startswith("⏭️"))
+    header = (
+        f"TradingAgents-analyse — {bron_label} ({trade_date}):\n"
+        f"✅ {n_ok} geanalyseerd · ⚠️ {n_fail} mislukt · ⏭️ {n_skip} overgeslagen\n\n"
+    )
+    message = header + "\n".join(blocks)
+
+    if daily_limit_hit:
+        message += (
+            "\n\n💡 <i>Daglimiet bereikt. Spreid de analyse over meerdere runs "
+            "of verlaag --top-n / --max-tickers.</i>"
+        )
 
     # Versturen
     if args.channel in ("telegram", "both"):
@@ -273,6 +418,11 @@ def main():
     if args.channel in ("email", "both"):
         send_email(f"TradingAgents {bron_label} {trade_date}", message)
         print("Verstuurd naar Gmail.")
+
+    # Exit-code zodat je in GitHub Actions kunt detecteren dat de run
+    # gedeeltelijk is mislukt (bijv. om een retry-job te triggeren).
+    if n_ok == 0 and n_fail > 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

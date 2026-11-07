@@ -9,7 +9,6 @@ Let op: backtest test enkel de technische component (NewsAPI biedt geen
 historisch archief op de gratis tier).
 """
 
-import os
 import sys
 import math
 import time
