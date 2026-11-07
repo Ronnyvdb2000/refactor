@@ -1,4 +1,4 @@
-8name: "Feature Store: Forward Returns — koppelt selecties aan latere rendementen — dagelijks"
+name: "Feature Store: Forward Returns — koppelt selecties aan latere rendementen — dagelijks"
 
 on:
   schedule:
