@@ -1,16 +1,17 @@
 # MASTERLIJST 059 — Oostenrijk Slovenie Slovakije
-# Laatste update: 01/11/2026
-# Nitro Criteria: ROE>3% | Debt<150 | Marge>2% | Vol 30%-80% | Omzet>€500,000
-# Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | status [| weken_buiten] [| verwijderd]
+# Laatste update: 08/11/2026
+# Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
+# Trend (EMA200) is enkel informatief en geen filter.
+# Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
-STR.VI           | opname:2026-08-22 | ROE:18.3% | Debt:17.0 | Marge:4.7% | Vol:36.6% | Omzet:3,856,425 | actief
-VIG.VI           | opname:2026-08-22 | ROE:12.9% | Debt:33.2 | Marge:6.2% | Vol:31.3% | Omzet:3,223,486 | actief
-ANDR.VI          | opname:2026-08-22 | ROE:19.7% | Debt:22.2 | Marge:5.8% | Vol:28.6% | Omzet:6,811,888 | zwakker | weken_buiten:2
-EVN.VI           | opname:2026-08-22 | ROE:8.1% | Debt:17.7 | Marge:17.2% | Vol:21.1% | Omzet:1,346,017 | zwakker | weken_buiten:2
-OMV.VI           | opname:2026-08-22 | ROE:11.4% | Debt:35.9 | Marge:10.8% | Vol:23.8% | Omzet:19,293,548 | zwakker | weken_buiten:2
-ROS.VI           | opname:2026-10-31 | ROE:22.6% | Debt:98.6 | Marge:4.9% | Vol:32.0% | Omzet:168,677 | zwakker | weken_buiten:2
-TKA.VI           | opname:2026-08-22 | ROE:12.3% | Debt:45.3 | Marge:11.7% | Vol:21.7% | Omzet:484,706 | zwakker | weken_buiten:2
-UQA.VI           | opname:2026-08-22 | ROE:13.7% | Debt:52.7 | Marge:5.7% | Vol:25.5% | Omzet:2,293,411 | zwakker | weken_buiten:2
-VER.VI           | opname:2026-08-22 | ROE:12.8% | Debt:31.1 | Marge:15.9% | Vol:26.8% | Omzet:9,250,973 | zwakker | weken_buiten:2
-FACC.VI          | opname:2026-08-23 | ROE:10.7% | Debt:107.5 | Marge:2.6% | Vol:46.9% | Omzet:832,136 | verwijderd | verwijderd:2026-11-01
-VOE.VI           | opname:2026-08-23 | ROE:6.6% | Debt:25.4 | Marge:3.4% | Vol:38.4% | Omzet:11,917,741 | verwijderd | verwijderd:2026-11-01
+STR.VI           | opname:2026-08-22 | ROE:18.3% | Debt:17.0 | Marge:4.7% | Vol:36.6% | Omzet:3,856,425 | Trend:? | actief
+VIG.VI           | opname:2026-08-22 | ROE:12.9% | Debt:33.2 | Marge:6.2% | Vol:31.3% | Omzet:3,223,486 | Trend:? | actief
+OMV.VI           | opname:2026-08-22 | ROE:11.4% | Debt:35.9 | Marge:10.8% | Vol:23.8% | Omzet:19,293,548 | Trend:? | zwakker | weken_buiten:2
+ROS.VI           | opname:2026-10-31 | ROE:22.6% | Debt:98.6 | Marge:4.9% | Vol:32.0% | Omzet:168,677 | Trend:? | zwakker | weken_buiten:2
+TKA.VI           | opname:2026-08-22 | ROE:12.3% | Debt:45.3 | Marge:11.7% | Vol:21.7% | Omzet:484,706 | Trend:? | zwakker | weken_buiten:2
+UQA.VI           | opname:2026-08-22 | ROE:13.7% | Debt:52.7 | Marge:5.7% | Vol:25.5% | Omzet:2,293,411 | Trend:? | zwakker | weken_buiten:2
+VER.VI           | opname:2026-08-22 | ROE:12.8% | Debt:31.1 | Marge:15.9% | Vol:26.8% | Omzet:9,250,973 | Trend:? | zwakker | weken_buiten:2
+ANDR.VI          | opname:2026-08-22 | ROE:19.7% | Debt:22.2 | Marge:5.8% | Vol:28.5% | Omzet:6,823,425 | Trend:boven | verwijderd | verwijderd:2026-11-08
+EVN.VI           | opname:2026-08-22 | ROE:8.1% | Debt:17.7 | Marge:17.2% | Vol:20.7% | Omzet:1,326,761 | Trend:boven | verwijderd | verwijderd:2026-11-08
+FACC.VI          | opname:2026-08-23 | ROE:10.7% | Debt:107.5 | Marge:2.6% | Vol:46.9% | Omzet:832,136 | Trend:? | verwijderd | verwijderd:2026-11-01
+VOE.VI           | opname:2026-08-23 | ROE:6.6% | Debt:25.4 | Marge:3.4% | Vol:38.4% | Omzet:11,917,741 | Trend:? | verwijderd | verwijderd:2026-11-01
