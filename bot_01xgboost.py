@@ -27,7 +27,8 @@ from common import (
     today_str, safe_float, yahoo_link,
     download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
     compute_rsi_series, compute_macd_series, compute_atr_series,
-    send_telegram, send_email
+    send_telegram, send_email,
+    trade_cost
 )
 
 try:
