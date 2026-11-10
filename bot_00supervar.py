@@ -7,6 +7,7 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Combineert Trend Template, VCP en RS Rating met een volatiliteitsfilter.
 """
 
+import os
 import sys
 import math
 from dataclasses import dataclass
