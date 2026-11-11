@@ -1,4 +1,163 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+bouw_forward_returns.py — FEATURE STORE v2.1
 
+Gebruikt common/ voor gedeelde bouwstenen.
+Bevat split-correctie, eenheidsbreuk-detectie en dubbele-selectie logging.
+
+v2.1: Een onvolledige nieuwe berekening wist nooit eerder opgeslagen
+forward closes/returns. Alleen niet-NULL waarden mogen bestaande labels
+vervangen. Dit voorkomt verlies van historische trainingslabels.
+"""
+
+import os
+import sys
+import math
+import time
+import traceback
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Tuple
+
+import psycopg2
+import psycopg2.extras
+import yfinance as yf
+import pandas as pd
+
+from common import today_str, esc, send_telegram, send_email
+
+SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
+MAX_TICKERS_PER_RUN = int(os.environ.get("MAX_TICKERS_PER_RUN", "400"))
+HORIZONS = sorted(int(h) for h in os.environ.get("HORIZONS", "5,10,20,30,60").split(","))
+
+EENHEID_RATIO_MIN = 70.0
+EENHEID_RATIO_MAX = 150.0
+
+DUBBELE_SELECTIE = os.environ.get("DUBBELE_SELECTIE", "eerste").strip().lower()
+if DUBBELE_SELECTIE not in ("eerste", "laatste"):
+    raise SystemExit(f"DUBBELE_SELECTIE moet 'eerste' of 'laatste' zijn, niet {DUBBELE_SELECTIE!r}")
+if not HORIZONS or any(h <= 0 for h in HORIZONS) or len(set(HORIZONS)) != len(HORIZONS):
+    raise SystemExit("HORIZONS moet unieke positieve gehele getallen bevatten")
+if MAX_TICKERS_PER_RUN < 1:
+    raise SystemExit("MAX_TICKERS_PER_RUN moet minimaal 1 zijn")
+
+WAARSCHUWINGEN: List[str] = []
+MAX_WAARSCHUWINGEN_IN_BERICHT = 10
+
+
+def waarschuw(tekst: str) -> None:
+    print(f"  [WARN] {tekst}")
+    WAARSCHUWINGEN.append(tekst)
+
+
+def split_factor_na(splits: pd.Series, prijsdatum: pd.Timestamp) -> float:
+    if splits is None or splits.empty:
+        return 1.0
+    na = splits[splits.index > prijsdatum]
+    if na.empty:
+        return 1.0
+    return float(na.prod())
+
+
+def corrigeer_eenheid(fwd_close: float, entry_adj: float) -> Tuple[float, bool]:
+    ratio = fwd_close / entry_adj
+    if EENHEID_RATIO_MIN <= ratio <= EENHEID_RATIO_MAX:
+        return fwd_close / 100.0, True
+    if (1.0 / EENHEID_RATIO_MAX) <= ratio <= (1.0 / EENHEID_RATIO_MIN):
+        return fwd_close * 100.0, True
+    return fwd_close, False
+
+
+def haal_openstaande_rijen(conn) -> List[dict]:
+    nu = datetime.now(timezone.utc)
+    voorwaarden = []
+    params: Dict[str, str] = {}
+    for h in HORIZONS:
+        kolom = f"fwd_ret_{h}d"
+        param_naam = f"cutoff_{h}"
+        params[param_naam] = (nu - timedelta(days=int(h * 1.6) + 3)).strftime("%Y-%m-%d")
+        voorwaarden.append(f"(s.datum <= %({param_naam})s AND (f.ticker IS NULL OR f.{kolom} IS NULL))")
+    horizon_filter = " OR ".join(voorwaarden)
+
+    volgorde_dubbel = (
+        "created_at ASC NULLS LAST, id ASC"
+        if DUBBELE_SELECTIE == "eerste"
+        else "created_at DESC NULLS LAST, id DESC"
+    )
+
+    query = f"""
+        WITH s AS (
+            SELECT DISTINCT ON (ticker, datum, strategie)
+                   ticker, datum, strategie, beurs, koers
+            FROM selecties
+            WHERE koers IS NOT NULL
+              AND ticker NOT LIKE '%%/%%'
+            ORDER BY ticker, datum, strategie, {volgorde_dubbel}
+        )
+        SELECT s.ticker, s.datum, s.strategie, s.beurs, s.koers
+        FROM s
+        LEFT JOIN forward_returns f
+          ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
+        WHERE ({horizon_filter})
+        ORDER BY s.ticker, s.datum;
+    """
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(query, params)
+        return cur.fetchall()
+
+
+def bouw_upsert_query() -> str:
+    """Behoud bestaande waarden wanneer EXCLUDED een NULL bevat."""
+    kolommen = ["ticker", "datum", "strategie", "beurs", "entry_koers"]
+    for h in HORIZONS:
+        kolommen.extend([f"fwd_close_{h}d", f"fwd_ret_{h}d"])
+
+    kolom_lijst = ", ".join(kolommen)
+    placeholders = ", ".join(f"%({k})s" for k in kolommen)
+    updates = []
+    for kolom in kolommen:
+        if kolom not in ("ticker", "datum", "strategie"):
+            updates.append(
+                f"{kolom} = COALESCE(EXCLUDED.{kolom}, forward_returns.{kolom})"
+            )
+    updates.append("bijgewerkt_op = now()")
+    update_lijst = ", ".join(updates)
+
+    return f"""
+        INSERT INTO forward_returns ({kolom_lijst})
+        VALUES ({placeholders})
+        ON CONFLICT (ticker, datum, strategie)
+        DO UPDATE SET {update_lijst};
+    """
+
+
+def upsert_labels(conn, rijen: List[dict]) -> int:
+    if not rijen:
+        return 0
+    kolommen = ["ticker", "datum", "strategie", "beurs", "entry_koers"]
+    for h in HORIZONS:
+        kolommen.extend([f"fwd_close_{h}d", f"fwd_ret_{h}d"])
+
+    query = bouw_upsert_query()
+    with conn.cursor() as cur:
+        for rij in rijen:
+            volledige_rij = {k: rij.get(k) for k in kolommen}
+            cur.execute(query, volledige_rij)
+    conn.commit()
+    return len(rijen)
+
+
+def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
+    vroegste = min(r["datum"] for r in rijen)
+    try:
+        hist = yf.Ticker(ticker).history(start=vroegste, auto_adjust=False)
+    except Exception as e:
+        waarschuw(f"{ticker}: download mislukt ({e})")
+        return []
+
+    if hist is None or hist.empty or "Close" not in hist.columns:
+        waarschuw(f"{ticker}: geen koersdata")
+        return []
 
     closes = hist["Close"]
     closes.index = pd.to_datetime(closes.index).tz_localize(None)
@@ -142,4 +301,3 @@ if __name__ == "__main__":
             f"<pre>{esc(fout)}</pre>", html_body=True,
         )
         raise
-
