@@ -1,0 +1,30 @@
+
+name: XGBoost V3 patch voorbereiden
+
+on:
+  workflow_dispatch:
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Repository ophalen
+        uses: actions/checkout@v4
+
+      - name: Python installeren
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Patch uitvoeren
+        run: |
+          python patch_xgboost_quality.py xgboostV3.py
+
+      - name: Bestand beschikbaar maken
+        uses: actions/upload-artifact@v4
+        with:
+          name: xgboostV3-gecontroleerd
+          path: xgboostV3_gecontroleerd.py
