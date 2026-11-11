@@ -69,6 +69,8 @@ Wijzigingen v1.3 (2026-10-06):
 """
 
 import os
+import html
+from urllib.parse import quote
 import sys
 import smtplib
 import traceback
@@ -243,8 +245,9 @@ def voeg_rang_toe(
     Voegt 'rang' en 'n_gescoord' toe aan elke rij in resultaten.
 
     Rang 1 = hoogste score binnen dezelfde
-    (model_versie, horizon, datum).
-    n_gescoord = aantal scores binnen diezelfde groep.
+    (model_versie, horizon, datum) van DEZE RUN.
+    n_gescoord = aantal nieuwe scores in die groep.
+    Dit is geen globale ranking van alle historisch opgeslagen scores.
 
     Werkt in-place: muteert de dicts in de lijst.
     """
@@ -1186,10 +1189,10 @@ def positieve_score(
             "2D-array terug."
         )
 
-    if probabilities.shape[1] == 1:
-
-        return float(
-            probabilities[0, 0]
+    if probabilities.shape[1] != 2:
+        raise RuntimeError(
+            "Verwacht precies twee klassekansen bij binaire classificatie; "
+            f"ontvangen: {probabilities.shape[1]}."
         )
 
     classes = list(
@@ -1515,6 +1518,7 @@ def sla_scores_op(
             {placeholders}
         )
         ON CONFLICT DO NOTHING
+        RETURNING 1
     """
 
     insert_resultaten = []
@@ -1533,23 +1537,23 @@ def sla_scores_op(
 
     try:
 
+        # RETURNING maakt het aantal daadwerkelijk ingevoegde rijen betrouwbaar.
+        # Bij ON CONFLICT DO NOTHING kan een rij immers worden overgeslagen.
+        werkelijk_opgeslagen = 0
         with conn.cursor() as cur:
-
-            psycopg2.extras.execute_batch(
-                cur,
-                query,
-                insert_resultaten,
-                page_size=100,
-            )
+            for record in insert_resultaten:
+                cur.execute(query, record)
+                if cur.fetchone() is not None:
+                    werkelijk_opgeslagen += 1
 
         conn.commit()
 
         print(
-            f"✅ {len(resultaten)} score(s) "
-            "naar xgboost_scores geschreven."
+            f"✅ {werkelijk_opgeslagen} score(s) werkelijk opgeslagen "
+            f"({len(resultaten) - werkelijk_opgeslagen} conflict(en) overgeslagen)."
         )
 
-        return len(resultaten)
+        return werkelijk_opgeslagen
 
     except Exception as exc:
 
@@ -1831,12 +1835,12 @@ def bouw_telegram_bericht(
             koers_txt = "-"
 
         # Yahoo Finance link (URL-safe maken)
-        ticker_url = ticker.replace(" ", "")
+        ticker_url = quote(ticker.replace(" ", ""), safe=".-^=")
         yahoo_url = f"https://finance.yahoo.com/quote/{ticker_url}"
 
         regel = (
             f"{index + 1}. "
-            f"<b>{ticker}</b> | "
+            f"<b>{html.escape(ticker)}</b> | "
             f"{horizon} | "
             f"score <b>{score:.4f}</b> | "
             f"koers {koers_txt} | "
@@ -1846,10 +1850,10 @@ def bouw_telegram_bericht(
         regels.append(regel)
 
         if beurs:
-            regels.append(f"   Beurs: {beurs}")
+            regels.append(f"   Beurs: {html.escape(beurs)}")
 
         if strategieen:
-            regels.append(f"   Strategie: {strategieen}")
+            regels.append(f"   Strategie: {html.escape(strategieen)}")
 
         regels.append("")
 
@@ -1991,7 +1995,7 @@ def stuur_email(
             koers_txt = "-"
 
         ticker = str(rij["ticker"])
-        ticker_url = ticker.replace(" ", "")
+        ticker_url = quote(ticker.replace(" ", ""), safe=".-^=")
         yahoo_url = f"https://finance.yahoo.com/quote/{ticker_url}"
 
         regels.extend([
