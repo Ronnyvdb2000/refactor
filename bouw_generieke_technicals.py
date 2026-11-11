@@ -47,6 +47,7 @@ import math
 import time
 import datetime as dt
 import warnings
+import traceback
 
 import numpy as np
 import pandas as pd
@@ -138,6 +139,11 @@ warnings.filterwarnings("ignore")
 DB_URL = os.environ.get("SUPABASE_DB_URL")
 LOOKBACK_BUFFER_DAGEN = 400
 MAX_BAR_AFSTAND_DAGEN = 7
+# Minimaal aandeel tickers dat succesvol geschreven moet worden.
+# Een gedeeltelijk mislukte run mag geen groene GitHub Actions-status krijgen.
+MIN_SUCCES_RATIO = float(os.environ.get("MIN_SUCCES_RATIO", "0.80"))
+if not 0.0 <= MIN_SUCCES_RATIO <= 1.0:
+    raise ValueError("MIN_SUCCES_RATIO moet tussen 0 en 1 liggen")
 INDEX_TICKER = "^GSPC"
 
 
@@ -189,8 +195,9 @@ def download_index_returns(start_datum):
         if hist is None or hist.empty:
             return None
         hist.index = pd.to_datetime(hist.index).tz_localize(None)
-        ret = hist["Close"].pct_change()
-        return ret
+        # Geef de indexkoers terug: de 20-daagse referentie wordt
+        # later berekend op dezelfde handelsdatums als het aandeel.
+        return pd.to_numeric(hist["Close"], errors="coerce")
     except Exception as e:
         print(f"[index] download mislukt: {e}")
         return None
@@ -314,7 +321,10 @@ def bereken_indicatoren(hist, index_ret=None):
 
     if index_ret is not None:
         aandeel_ret_20 = close.pct_change(20)
-        index_ret_20 = index_ret.reindex(df.index).pct_change(20).fillna(0)
+        # Reindex met forward fill voor afwijkende beurskalenders.
+        # Niet ontbrekende indexrendementen stilzwijgend als nul behandelen.
+        index_close = index_ret.reindex(df.index, method="ffill")
+        index_ret_20 = index_close.pct_change(20, fill_method=None)
         out["REL_STERKTE_20D"] = (aandeel_ret_20 - index_ret_20) * 100
     else:
         out["REL_STERKTE_20D"] = None
@@ -326,7 +336,7 @@ def bereken_indicatoren(hist, index_ret=None):
     low52w = low.rolling(252).min()
     dagen_low = []
     for i in range(len(df)):
-        if i < 252:
+        if i < 251:
             dagen_low.append(None)
             continue
         venster = low.iloc[i-251:i+1]
@@ -483,10 +493,17 @@ def main():
     n_ok = 0
     n_skip = 0
     fouten = []
+    # Vereiste model-features: schrijf geen onvolledige trainingsrij.
+    verplichte_features = (
+        "ATR14", "ATR14_PCT", "RSI14", "IBS", "MA50", "MA200",
+        "PCT_FROM_MA50", "PCT_FROM_MA200", "VOL_RATIO_20D",
+        "HIGH52W", "PCT_FROM_HIGH52W",
+    )
 
     try:
         for i, ticker in enumerate(tickers, 1):
             if "/" in ticker:
+                n_skip += 1
                 continue
             try:
                 hist = yf.Ticker(ticker).history(start=start, auto_adjust=True)
@@ -529,7 +546,16 @@ def main():
                     n_skip += 1
                     continue
 
+                if any(_veilig(rij.get(feature)) is None for feature in verplichte_features):
+                    n_skip += 1
+                    continue
+
+                # Alleen de DB-write valt onder de savepoint.
+                with conn.cursor() as cur:
+                    cur.execute("SAVEPOINT ticker_verwerking")
                 schrijf_rij(conn, ticker, bar_datum_ts.date(), rij)
+                with conn.cursor() as cur:
+                    cur.execute("RELEASE SAVEPOINT ticker_verwerking")
                 n_ok += 1
 
                 if i % 100 == 0:
@@ -538,6 +564,16 @@ def main():
                 time.sleep(0.15)
 
             except Exception as e:
+                # Een mislukte query maakt PostgreSQL's transactie ongeldig.
+                # ROLLBACK TO SAVEPOINT behoudt eerdere succesvolle writes.
+                try:
+                    with conn.cursor() as cur:
+                        cur.execute("ROLLBACK TO SAVEPOINT ticker_verwerking")
+                        cur.execute("RELEASE SAVEPOINT ticker_verwerking")
+                except Exception:
+                    # Bij fouten vóór de savepoint: geen rollback nodig;
+                    # rollback van de volledige transactie vermijden.
+                    pass
                 fouten.append((ticker, str(e)))
 
         conn.commit()
@@ -551,6 +587,9 @@ def main():
     print(f"Tickers verwerkt : {len(tickers)}")
     print(f"Rijen geschreven : {n_ok}")
     print(f"Overgeslagen     : {n_skip}")
+    succes_ratio = n_ok / len(tickers)
+    onvoldoende = succes_ratio < MIN_SUCCES_RATIO
+    print(f"Succespercentage : {succes_ratio:.1%} (minimum {MIN_SUCCES_RATIO:.1%})")
     if fouten:
         print(f"Fouten           : {len(fouten)}")
         for t, e in fouten[:10]:
@@ -571,6 +610,9 @@ def main():
     if fouten:
         tg_bericht += f"⚠️ *Fouten:* {len(fouten)}\n"
 
+    if onvoldoende:
+        tg_bericht += f"❌ *Onvoldoende dekking:* {succes_ratio:.1%} (minimum {MIN_SUCCES_RATIO:.1%})\n"
+
     # Stuur Telegram (als de secrets bestaan)
     send_telegram(tg_bericht, parse_mode="Markdown")
 
@@ -588,7 +630,15 @@ def main():
         for t, e in fouten[:10]:
             email_body += f"  {t}: {e}\n"
 
+    if onvoldoende:
+        email_body += f"\nFOUT: onvoldoende dekking ({succes_ratio:.1%} < {MIN_SUCCES_RATIO:.1%}).\n"
     send_email(email_onderwerp, email_body)
+
+    if onvoldoende:
+        raise RuntimeError(
+            f"Slechts {n_ok}/{len(tickers)} tickers geschreven "
+            f"({succes_ratio:.1%}); vereist minimaal {MIN_SUCCES_RATIO:.1%}."
+        )
 
 
 if __name__ == "__main__":
