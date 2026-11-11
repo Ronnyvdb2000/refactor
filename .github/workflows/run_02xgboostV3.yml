@@ -2,7 +2,7 @@ name: XGBoostV3 Model Retraining
 
 on:
   schedule:
-    - cron: '0 3 * * 0'
+    - cron: '0 23 * * *'
   workflow_dispatch:
 
 jobs:
