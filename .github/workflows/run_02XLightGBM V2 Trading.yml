@@ -24,16 +24,8 @@ jobs:
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
-      # ==========================================
-      # CHECKOUT
-      # ==========================================
-
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # ==========================================
-      # PYTHON
-      # ==========================================
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -41,14 +33,9 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      # ==========================================
-      # DEPENDENCIES
-      # ==========================================
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-
           pip install \
             numpy==1.26.4 \
             pandas==2.2.3 \
@@ -59,14 +46,9 @@ jobs:
             psycopg2-binary==2.9.10 \
             requests==2.34.2
 
-      # ==========================================
-      # ENVIRONMENT CHECK
-      # ==========================================
-
       - name: Check Python environment
         run: |
           python --version
-
           python -c "import numpy; print('numpy', numpy.__version__)"
           python -c "import pandas; print('pandas', pandas.__version__)"
           python -c "import sklearn; print('scikit-learn', sklearn.__version__)"
@@ -75,12 +57,7 @@ jobs:
           python -c "import joblib; print('joblib', joblib.__version__)"
           python -c "import psycopg2; print('psycopg2 OK')"
           python -c "import requests; print('requests', requests.__version__)"
-
           python -c "from scipy.stats import trim_mean; print('trim_mean OK')"
-
-      # ==========================================
-      # SECRET CHECK
-      # ==========================================
 
       - name: Check Supabase connection setting
         run: |
@@ -88,28 +65,15 @@ jobs:
             echo "ERROR: SUPABASE_DB_URL ontbreekt."
             exit 1
           fi
-
           echo "SUPABASE_DB_URL is ingesteld."
-
-      # ==========================================
-      # RESULTS DIRECTORY
-      # ==========================================
 
       - name: Create results directory
         run: |
           mkdir -p results
 
-      # ==========================================
-      # LIGHTGBM V2 TRAINING
-      # ==========================================
-
       - name: Train LightGBM V2
         run: |
-          python xLightgbmV2.py
-
-      # ==========================================
-      # MODEL CHECK
-      # ==========================================
+          python xLightgbmV2.py --strict
 
       - name: Verify LightGBM V2 results
         if: always()
@@ -119,7 +83,6 @@ jobs:
           echo "=========================================="
 
           shopt -s nullglob
-
           modellen=(results/lightgbmV2_*_model.pkl)
 
           if [ ${#modellen[@]} -eq 0 ]; then
@@ -133,7 +96,6 @@ jobs:
 
           echo ""
           echo "Overige resultaten:"
-
           ls -lh results/ || true
 
           if [ -f results/lightgbmV2_summary.txt ]; then
@@ -141,10 +103,6 @@ jobs:
             echo "V2 samenvatting:"
             cat results/lightgbmV2_summary.txt
           fi
-
-      # ==========================================
-      # UPLOAD ARTIFACTS
-      # ==========================================
 
       - name: Upload LightGBM V2 results
         if: always()
