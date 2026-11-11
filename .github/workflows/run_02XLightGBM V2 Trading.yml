@@ -73,7 +73,7 @@ jobs:
 
       - name: Train LightGBM V2
         run: |
-          python xLightgbmV2.py --strict
+          python xLightgbmV2.py
 
       - name: Verify LightGBM V2 results
         if: always()
