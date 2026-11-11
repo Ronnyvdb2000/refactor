@@ -1,0 +1,156 @@
+
+name: "XLightGBM V2 Trading Model"
+
+on:
+  workflow_dispatch:
+
+  # Wekelijkse training voorlopig handmatig houden.
+  # schedule:
+  #   - cron: "0 2 * * 0"
+
+jobs:
+  run-lightgbm:
+    name: LightGBM V2 Training
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      EMAIL_USER: ${{ secrets.EMAIL_USER }}
+      EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+      EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    steps:
+      # ==========================================
+      # CHECKOUT
+      # ==========================================
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ==========================================
+      # PYTHON
+      # ==========================================
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # ==========================================
+      # DEPENDENCIES
+      # ==========================================
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          pip install \
+            numpy==1.26.4 \
+            pandas==2.2.3 \
+            scikit-learn==1.5.2 \
+            scipy==1.14.1 \
+            lightgbm==4.6.0 \
+            joblib==1.4.2 \
+            psycopg2-binary==2.9.10 \
+            requests==2.34.2
+
+      # ==========================================
+      # ENVIRONMENT CHECK
+      # ==========================================
+
+      - name: Check Python environment
+        run: |
+          python --version
+
+          python -c "import numpy; print('numpy', numpy.__version__)"
+          python -c "import pandas; print('pandas', pandas.__version__)"
+          python -c "import sklearn; print('scikit-learn', sklearn.__version__)"
+          python -c "import scipy; print('scipy', scipy.__version__)"
+          python -c "import lightgbm; print('lightgbm', lightgbm.__version__)"
+          python -c "import joblib; print('joblib', joblib.__version__)"
+          python -c "import psycopg2; print('psycopg2 OK')"
+          python -c "import requests; print('requests', requests.__version__)"
+
+          python -c "from scipy.stats import trim_mean; print('trim_mean OK')"
+
+      # ==========================================
+      # SECRET CHECK
+      # ==========================================
+
+      - name: Check Supabase connection setting
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "ERROR: SUPABASE_DB_URL ontbreekt."
+            exit 1
+          fi
+
+          echo "SUPABASE_DB_URL is ingesteld."
+
+      # ==========================================
+      # RESULTS DIRECTORY
+      # ==========================================
+
+      - name: Create results directory
+        run: |
+          mkdir -p results
+
+      # ==========================================
+      # LIGHTGBM V2 TRAINING
+      # ==========================================
+
+      - name: Train LightGBM V2
+        run: |
+          python xLightgbmV2.py
+
+      # ==========================================
+      # MODEL CHECK
+      # ==========================================
+
+      - name: Verify LightGBM V2 results
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "LIGHTGBM V2 RESULT CONTROL"
+          echo "=========================================="
+
+          shopt -s nullglob
+
+          modellen=(results/lightgbmV2_*_model.pkl)
+
+          if [ ${#modellen[@]} -eq 0 ]; then
+            echo "WAARSCHUWING: geen V2-modellen gevonden."
+          else
+            for model in "${modellen[@]}"; do
+              echo "OK: $(basename "$model")"
+              ls -lh "$model"
+            done
+          fi
+
+          echo ""
+          echo "Overige resultaten:"
+
+          ls -lh results/ || true
+
+          if [ -f results/lightgbmV2_summary.txt ]; then
+            echo ""
+            echo "V2 samenvatting:"
+            cat results/lightgbmV2_summary.txt
+          fi
+
+      # ==========================================
+      # UPLOAD ARTIFACTS
+      # ==========================================
+
+      - name: Upload LightGBM V2 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightgbmV2-results-${{ github.run_id }}
+          path: results/
+          retention-days: 30
+          if-no-files-found: warn
