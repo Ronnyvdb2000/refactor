@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-bot_01cointegr.py — STATISTISCHE ARBITRAGE (Pairs Trading) v2.0
+bot_01cointegr.py — STATISTISCHE ARBITRAGE (Pairs Trading) v2.1
 
-Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
+v2.1 t.o.v. v2.0 (herstel van functionaliteit die bij de refactor verloren ging):
+  - Walk-forward backtest hersteld (v1.1): selectie op een in-sample venster
+    (IS_WINDOW), dan RESCAN_DAYS out-of-sample verhandelen; per beurs
+    gesegmenteerd, met echte marge-reservering. Uitvoer:
+    backtest_results/backtest_cointegr.csv.
+  - Download met logging en retry-meldingen hersteld (v2.0 slikte elke fout
+    stil in) en de tak voor een batch met een enkele ticker.
+  - laad_exchange_tickers() en BACKTEST_START/END terug.
+  - De common/-refactor van v2.0 blijft behouden.
+
+v2.0: gebruikt common/ voor alle gedeelde bouwstenen.
 Bevat Engle-Granger co-integratie, walk-forward backtest en FDR-correctie.
+
+Gebruik:  python bot_01cointegr.py live | backtest
 """
 
 import os
@@ -19,6 +31,7 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
+import yfinance as yf
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import coint
 
@@ -64,6 +77,9 @@ ALLOC_PCT            = 0.10
 DOWNLOAD_BATCH_SIZE = 100
 DOWNLOAD_BATCH_PAUSE = 3.0
 DOWNLOAD_BATCH_RETRIES = 2
+
+BACKTEST_START = "2021-01-01"
+BACKTEST_END   = dt.date.today().isoformat()
 
 # ============================================================
 # CO-INTEGRATIE & HALF-LIFE
@@ -127,17 +143,22 @@ def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
     return df
 
 def _download_batch(batch: List[str], period: str) -> List[pd.DataFrame]:
-    import yfinance as yf
+    """Download 1 batch tickers via yf.download(); retourneert lijst van
+    genormaliseerde per-ticker DataFrames. Retryt met backoff bij rate-limit."""
     frames: List[pd.DataFrame] = []
-    kwargs = dict(tickers=batch, auto_adjust=True, group_by="ticker", progress=False, threads=True, period=period)
+    kwargs = dict(tickers=batch, auto_adjust=True, group_by="ticker",
+                  progress=False, threads=True, period=period)
 
     data = None
     for poging in range(DOWNLOAD_BATCH_RETRIES + 1):
         try:
             data = yf.download(**kwargs)
             break
-        except Exception:
-            time.sleep(DOWNLOAD_BATCH_PAUSE * (2 ** poging))
+        except Exception as e:
+            wacht = DOWNLOAD_BATCH_PAUSE * (2 ** poging)
+            print(f"[WARN] Batch mislukt ({e}), retry over {wacht:.0f}s "
+                  f"(poging {poging + 1}/{DOWNLOAD_BATCH_RETRIES + 1})...")
+            time.sleep(wacht)
             data = None
 
     if data is not None and not data.empty:
@@ -157,19 +178,31 @@ def _download_batch(batch: List[str], period: str) -> List[pd.DataFrame]:
                         frames.append(norm)
                 except Exception:
                     continue
+        else:
+            norm = _normalise(data, batch[0])
+            if norm is not None:
+                frames.append(norm)
+
     return frames
 
 def download_history(tickers: List[str], period: str = "2y") -> pd.DataFrame:
+    """Download historische koersdata in batches van DOWNLOAD_BATCH_SIZE
+    tickers, met een pauze ertussen — voorkomt dat Yahoo Finance de hele
+    aanvraag rate-limit't zoals bij één grote call met duizenden tickers."""
     if not tickers:
         return pd.DataFrame()
 
     frames: List[pd.DataFrame] = []
-    batches = [tickers[i:i + DOWNLOAD_BATCH_SIZE] for i in range(0, len(tickers), DOWNLOAD_BATCH_SIZE)]
+    batches = [tickers[i:i + DOWNLOAD_BATCH_SIZE]
+               for i in range(0, len(tickers), DOWNLOAD_BATCH_SIZE)]
 
     for i, batch in enumerate(batches):
         frames.extend(_download_batch(batch, period))
         if i < len(batches) - 1:
             time.sleep(DOWNLOAD_BATCH_PAUSE)
+        if (i + 1) % 10 == 0 or i == len(batches) - 1:
+            print(f"  → batch {i + 1}/{len(batches)} verwerkt "
+                  f"({len(frames)} tickers met data tot nu toe)")
 
     if not frames:
         return pd.DataFrame()
@@ -383,8 +416,209 @@ def run_live_engine():
 
     print(f"\n{'='*60}\nKlaar.")
 
+def laad_exchange_tickers() -> Dict[str, List[str]]:
+    """Bouwt {beursnaam: [tickers]} - identiek gebruikt door live en backtest,
+    zodat beide op dezelfde per-beurs segmentatie draaien (hersteld uit v1.1)."""
+    exchange_tickers: Dict[str, List[str]] = {}
+    for f_name in bouw_bestandslijst():
+        tlist = load_tickers_from_file(f_name)
+        if not tlist:
+            continue
+        exchange_tickers[label_voor(f_name)] = tlist
+    return exchange_tickers
+
+
 def run_backtest():
-    print("Backtest-functionaliteit is in deze versie niet meegenomen (walk-forward vereist aparte state).")
+    print(f"{'='*60}")
+    print(f"PAIRS TRADING BACKTEST (walk-forward)  {BACKTEST_START} -> {BACKTEST_END}")
+    print(f"{'='*60}")
+
+    exchange_tickers = laad_exchange_tickers()
+    all_tickers = sorted(set(t for tlist in exchange_tickers.values() for t in tlist))
+    if not all_tickers:
+        print("[ERROR] Geen tickers gevonden.")
+        return
+
+    print(f"Tickers: {len(all_tickers)} over {len(exchange_tickers)} beurzen | Data downloaden (5y)...")
+    df = download_history(all_tickers, period="5y")
+    if df.empty:
+        print("[ERROR] Geen data.")
+        return
+
+    pivot = df.pivot(index="Date", columns="Ticker", values="Close")
+    pivot = pivot.dropna(axis=1, how='all')
+    print(f"Data: {len(pivot.columns)} tickers | {len(pivot)} dagen")
+
+    cash = START_CAPITAL
+    positions: Dict[str, Dict] = {}
+    trades: List[Dict] = []
+    equity_curve: List[Dict] = []
+    pair_cache: Dict[str, List[PairSignaal]] = {}
+    laatste_selectie_idx = -(RESCAN_DAYS + 1)
+
+    dates = sorted(pivot.index)
+    start_idx = max(LOOKBACK, IS_WINDOW)
+    print(f"Backtest van {dates[start_idx].date()} tot {dates[-1].date()}")
+
+    for i, date in enumerate(dates):
+        if i < start_idx:
+            continue
+
+        data_till = pivot.iloc[:i + 1]
+        current_prices = pivot.iloc[i]
+
+        # --- Exits (goedkope z-score-check, geen coint-hertest) ---
+        for pair_key, pos in list(positions.items()):
+            a, b = pair_key.split('/')
+            if a not in current_prices or b not in current_prices:
+                continue
+            z_info = snel_zscore(a, b, data_till)
+            if z_info is None:
+                continue
+            z = z_info[0]
+
+            exit_signal = abs(z) < EXIT_Z or pos['days'] >= 60
+            if exit_signal:
+                if pos['direction'] == 'LONG':
+                    pnl_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
+                    pnl_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
+                else:
+                    pnl_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
+                    pnl_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
+
+                gross_pnl = pnl_a + pnl_b
+                cost = trade_cost(abs(gross_pnl)) if gross_pnl > 0 else 0
+                tax = gross_pnl * TAX_RATE if gross_pnl > 0 else 0
+                net_pnl = gross_pnl - cost - tax
+
+                cash += pos['reserved'] + net_pnl  # marge vrijgeven + resultaat verrekenen
+
+                trades.append({
+                    'entry_date': pos['entry_date'].strftime('%Y-%m-%d'),
+                    'exit_date': date.strftime('%Y-%m-%d'),
+                    'pair': pair_key,
+                    'direction': pos['direction'],
+                    'entry_z': pos['entry_z'],
+                    'exit_z': z,
+                    'gross_pnl': round(gross_pnl, 2),
+                    'net_pnl': round(net_pnl, 2),
+                    'days': pos['days'],
+                })
+                del positions[pair_key]
+            else:
+                positions[pair_key]['days'] += 1
+
+        # --- Walk-forward herselectie: enkel met data tot nu (in-sample venster) ---
+        if i - laatste_selectie_idx >= RESCAN_DAYS:
+            is_data = data_till.tail(IS_WINDOW)
+            totaal_paren = 0
+            for ex_name, tlist in exchange_tickers.items():
+                geselecteerd = selecteer_gecointegreerde_paren(tlist, is_data)
+                pair_cache[ex_name] = geselecteerd[:MAX_PAIRS]
+                totaal_paren += len(pair_cache[ex_name])
+            laatste_selectie_idx = i
+            print(f"  [{date.date()}] walk-forward herselectie: {totaal_paren} paren over alle beurzen")
+
+        # --- Nieuwe posities openen (dagelijks, enkel op de cache — geen nieuwe coint-tests) ---
+        if len(positions) < MAX_TOTAL_PAIRS:
+            for ex_name, kandidaten in pair_cache.items():
+                for kand in kandidaten:
+                    if len(positions) >= MAX_TOTAL_PAIRS:
+                        break
+                    a, b = kand.ticker_a, kand.ticker_b
+                    pair_key = f"{a}/{b}"
+                    if pair_key in positions:
+                        continue
+                    if a not in current_prices or b not in current_prices:
+                        continue
+                    if math.isnan(current_prices[a]) or math.isnan(current_prices[b]):
+                        continue
+
+                    z_info = snel_zscore(a, b, data_till)
+                    if z_info is None:
+                        continue
+                    z = z_info[0]
+                    if abs(z) <= ENTRY_Z:
+                        continue
+                    richting = "SHORT" if z > ENTRY_Z else "LONG"
+
+                    investering_per_pair = cash * ALLOC_PCT
+                    if investering_per_pair <= 0 or investering_per_pair > cash:
+                        continue
+                    size_a = int(investering_per_pair / current_prices[a] * 0.5)
+                    size_b = int(investering_per_pair / current_prices[b] * 0.5)
+                    if size_a <= 0 or size_b <= 0:
+                        continue
+
+                    cash -= investering_per_pair  # marge reserveren — geen over-allocatie meer mogelijk
+                    positions[pair_key] = {
+                        'entry_date': date,
+                        'entry_a': current_prices[a],
+                        'entry_b': current_prices[b],
+                        'size_a': size_a,
+                        'size_b': size_b,
+                        'direction': richting,
+                        'entry_z': z,
+                        'days': 0,
+                        'reserved': investering_per_pair,
+                    }
+
+        # --- Equity curve: vrij cash + gereserveerde marge + unrealized pnl ---
+        portfolio_value = cash
+        for pair_key, pos in positions.items():
+            a, b = pair_key.split('/')
+            if a in current_prices and b in current_prices:
+                if pos['direction'] == 'LONG':
+                    value_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
+                    value_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
+                else:
+                    value_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
+                    value_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
+                portfolio_value += pos['reserved'] + value_a + value_b
+
+        equity_curve.append({'date': date, 'value': portfolio_value})
+
+    # --- Resultaten ---
+    if trades:
+        tdf = pd.DataFrame(trades)
+        final_value = equity_curve[-1]['value'] if equity_curve else cash
+        total_return = (final_value - START_CAPITAL) / START_CAPITAL * 100
+        n_win = (tdf['net_pnl'] > 0).sum()
+        win_rate = n_win / len(tdf) * 100
+
+        gross_profit = tdf[tdf['net_pnl'] > 0]['net_pnl'].sum()
+        gross_loss = abs(tdf[tdf['net_pnl'] <= 0]['net_pnl'].sum())
+        profit_factor = gross_profit / gross_loss if gross_loss > 0 else 0
+
+        equity_df = pd.DataFrame(equity_curve)
+        equity_df['peak'] = equity_df['value'].cummax()
+        equity_df['drawdown'] = (equity_df['peak'] - equity_df['value']) / equity_df['peak']
+        max_dd = equity_df['drawdown'].max() * 100
+
+        os.makedirs('backtest_results', exist_ok=True)
+        tdf.to_csv('backtest_results/backtest_cointegr.csv', index=False)
+
+        print(f"\n{'='*60}")
+        print(f"📊 BACKTEST RESULTATEN — bot_01cointegr (walk-forward)")
+        print(f"{'='*60}")
+        print(f"Startkapitaal     : EUR{START_CAPITAL:>12,.2f}")
+        print(f"Eindkapitaal      : EUR{final_value:>12,.2f}")
+        print(f"Totaal rendement  : {total_return:>+11.1f}%")
+        print(f"Trades            : {len(tdf):>12}")
+        print(f"Winnaars          : {n_win:>12} ({win_rate:.1f}%)")
+        print(f"Profit Factor     : {profit_factor:>12.2f}")
+        print(f"Max Drawdown      : {max_dd:>11.1f}%")
+        print(f"Gem. houdduur     : {tdf['days'].mean():>11.1f} dagen")
+        print(f"{'='*60}")
+
+        top_pairs = tdf.groupby('pair')['net_pnl'].sum().sort_values(ascending=False).head(5)
+        print("\n🏆 Beste paren:")
+        for pair, pnl in top_pairs.items():
+            print(f"  {pair}: EUR{pnl:,.2f}")
+
+        print("\n💾 Resultaten opgeslagen in backtest_results/backtest_cointegr.csv")
+    else:
+        print("Geen trades gegenereerd.")
 
 # ============================================================
 # ENTRYPOINT
