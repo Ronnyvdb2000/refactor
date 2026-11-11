@@ -2,7 +2,7 @@ name: "Feature Store: Generieke Fundamentals — vult FCF/P.E/Piotroski/PEG voor
 
 on:
   schedule:
-    - cron: "0 22 * * 1-5"
+    - cron: "30 21 * * *"
   workflow_dispatch:
 
 jobs:
