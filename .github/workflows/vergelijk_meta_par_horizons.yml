@@ -1,0 +1,67 @@
+name: Vergelijk Meta Strategie vs Parameter vs MA50 - alle horizons
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vergelijk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Installeer afhankelijkheden
+        run: |
+          python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'psycopg2-binary==2.9.10' 'requests==2.32.3'
+      - name: Vergelijk alle horizons (alleen lezen)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python vergelijk_meta_par_horizons.py
+      - name: Telegram samenvatting
+        if: always()
+        continue-on-error: true
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PYCODE'
+          import json, os
+          from pathlib import Path
+          import requests
+          p = Path('results/meta_par_horizons/samenvatting.json')
+          lines = ['Meta-strategie / A-parameter / MA50 - alle horizons']
+          if p.exists():
+              d = json.loads(p.read_text(encoding='utf-8'))
+              for h in d.get('horizons', []):
+                  lines.append(f"\n{h['horizon']}: {h['status']} ({h.get('folds', 0)} folds)")
+                  if h['status'] != 'ok':
+                      lines.append(h.get('reden', 'Onvoldoende gegevens'))
+                  for r in h.get('results', []):
+                      lines.append(f"{r['methode']}: {r['gem_top20_ret_pct']:+.2f}% | extra {r['gem_excess_pp']:+.2f}pp")
+          else:
+              lines.append('Geen rapport gevonden; bekijk GitHub Actions logs.')
+          token, chat = os.getenv('TELEGRAM_TOKEN'), os.getenv('TELEGRAM_CHAT_ID')
+          if not token or not chat:
+              print('Telegram-secrets ontbreken; bericht overgeslagen.')
+          else:
+              response = requests.post(f'https://api.telegram.org/bot{token}/sendMessage',
+                  json={'chat_id': chat, 'text': '\n'.join(lines)}, timeout=20)
+              response.raise_for_status()
+              if not response.json().get('ok'):
+                  raise RuntimeError('Telegram API antwoordde niet met ok=true')
+              print('Telegram verzonden')
+          PYCODE
+      - name: Bewaar rapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-par-alle-horizons
+          path: results/meta_par_horizons/
+          if-no-files-found: warn
