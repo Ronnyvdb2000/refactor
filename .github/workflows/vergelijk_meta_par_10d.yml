@@ -12,9 +12,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Installeer afhankelijkheden
@@ -25,6 +25,47 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python vergelijk_meta_par_10d.py
+      - name: Telegram samenvatting
+        if: always()
+        continue-on-error: true
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PYCODE'
+          import json
+          import os
+          from pathlib import Path
+          import requests
+
+          token = os.getenv("TELEGRAM_TOKEN", "")
+          chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
+          path = Path("results/meta_par_10d/samenvatting.json")
+          if not token or not chat_id:
+              print("Telegram overgeslagen: TELEGRAM_TOKEN of TELEGRAM_CHAT_ID ontbreekt.")
+          else:
+              if path.exists():
+                  data = json.loads(path.read_text(encoding="utf-8"))
+                  lines = ["10d vergelijking meta / parameter / MA50", f"Status: {data.get('status', '?')}"]
+                  for r in data.get("results", []):
+                      name = r.get("methode", "?")
+                      top = r.get("gem_top20_ret_pct")
+                      excess = r.get("gem_excess_pp")
+                      folds = r.get("folds", 0)
+                      if top is not None and excess is not None:
+                          lines.append(f"{name}: top20 {top:+.2f}% | extra {excess:+.2f}pp | {folds} folds")
+                  msg = "\n".join(lines)
+              else:
+                  msg = "10d vergelijking: geen samenvatting gevonden. Bekijk GitHub Actions logs."
+              response = requests.post(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  json={"chat_id": chat_id, "text": msg}, timeout=20,
+              )
+              response.raise_for_status()
+              if not response.json().get("ok"):
+                  raise RuntimeError("Telegram API gaf geen succes terug")
+              print("Telegram-bericht verstuurd.")
+          PYCODE
       - name: Bewaar resultaten
         if: always()
         uses: actions/upload-artifact@v4
