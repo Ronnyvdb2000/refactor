@@ -479,19 +479,25 @@ def run_backtest():
 
             exit_signal = abs(z) < EXIT_Z or pos['days'] >= 60
             if exit_signal:
-                if pos['direction'] == 'LONG':
-                    pnl_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
-                    pnl_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
-                else:
-                    pnl_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
-                    pnl_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
+                price_a, price_b = float(current_prices[a]), float(current_prices[b])
+                if not (math.isfinite(price_a) and math.isfinite(price_b) and price_a > 0 and price_b > 0):
+                    continue
+                # LONG = long A / short B; SHORT = short A / long B.
+                sign_a = 1 if pos['direction'] == 'LONG' else -1
+                sign_b = -sign_a
+                exit_a = price_a * (1 - sign_a * SLIPPAGE_PCT)
+                exit_b = price_b * (1 - sign_b * SLIPPAGE_PCT)
+                gross_pnl = (sign_a * (exit_a - pos['entry_a']) * pos['size_a']
+                             + sign_b * (exit_b - pos['entry_b']) * pos['size_b'])
+                exit_fees = (trade_cost(pos['size_a'] * exit_a)
+                             + trade_cost(pos['size_b'] * exit_b))
+                cost = pos['entry_fees'] + exit_fees
+                taxable_profit = gross_pnl - cost
+                tax = max(0.0, taxable_profit) * TAX_RATE
+                net_pnl = taxable_profit - tax
 
-                gross_pnl = pnl_a + pnl_b
-                cost = trade_cost(abs(gross_pnl)) if gross_pnl > 0 else 0
-                tax = gross_pnl * TAX_RATE if gross_pnl > 0 else 0
-                net_pnl = gross_pnl - cost - tax
-
-                cash += pos['reserved'] + net_pnl  # marge vrijgeven + resultaat verrekenen
+                # Instapkosten zijn al bij opening van cash afgetrokken.
+                cash += pos['reserved'] + gross_pnl - exit_fees - tax
 
                 trades.append({
                     'entry_date': pos['entry_date'].strftime('%Y-%m-%d'),
@@ -531,7 +537,8 @@ def run_backtest():
                         continue
                     if a not in current_prices or b not in current_prices:
                         continue
-                    if math.isnan(current_prices[a]) or math.isnan(current_prices[b]):
+                    if (not math.isfinite(current_prices[a]) or not math.isfinite(current_prices[b])
+                            or current_prices[a] <= 0 or current_prices[b] <= 0):
                         continue
 
                     z_info = snel_zscore(a, b, data_till)
@@ -550,11 +557,20 @@ def run_backtest():
                     if size_a <= 0 or size_b <= 0:
                         continue
 
-                    cash -= investering_per_pair  # marge reserveren — geen over-allocatie meer mogelijk
+                    sign_a = 1 if richting == "LONG" else -1
+                    sign_b = -sign_a
+                    entry_a = float(current_prices[a]) * (1 + sign_a * SLIPPAGE_PCT)
+                    entry_b = float(current_prices[b]) * (1 + sign_b * SLIPPAGE_PCT)
+                    entry_fees = (trade_cost(size_a * entry_a)
+                                  + trade_cost(size_b * entry_b))
+                    if investering_per_pair + entry_fees > cash:
+                        continue
+                    cash -= investering_per_pair + entry_fees  # marge + twee instaptransacties
                     positions[pair_key] = {
                         'entry_date': date,
-                        'entry_a': current_prices[a],
-                        'entry_b': current_prices[b],
+                        'entry_a': entry_a,
+                        'entry_b': entry_b,
+                        'entry_fees': entry_fees,
                         'size_a': size_a,
                         'size_b': size_b,
                         'direction': richting,
@@ -567,14 +583,20 @@ def run_backtest():
         portfolio_value = cash
         for pair_key, pos in positions.items():
             a, b = pair_key.split('/')
-            if a in current_prices and b in current_prices:
-                if pos['direction'] == 'LONG':
-                    value_a = (current_prices[a] - pos['entry_a']) * pos['size_a']
-                    value_b = (pos['entry_b'] - current_prices[b]) * pos['size_b']
-                else:
-                    value_a = (pos['entry_a'] - current_prices[a]) * pos['size_a']
-                    value_b = (current_prices[b] - pos['entry_b']) * pos['size_b']
-                portfolio_value += pos['reserved'] + value_a + value_b
+            # Ook bij ontbrekende koers blijft de gereserveerde marge meetellen.
+            portfolio_value += pos['reserved']
+            if (a in current_prices and b in current_prices
+                    and math.isfinite(current_prices[a]) and math.isfinite(current_prices[b])
+                    and current_prices[a] > 0 and current_prices[b] > 0):
+                sign_a = 1 if pos['direction'] == 'LONG' else -1
+                sign_b = -sign_a
+                exit_a = float(current_prices[a]) * (1 - sign_a * SLIPPAGE_PCT)
+                exit_b = float(current_prices[b]) * (1 - sign_b * SLIPPAGE_PCT)
+                unrealized = (sign_a * (exit_a - pos['entry_a']) * pos['size_a']
+                              + sign_b * (exit_b - pos['entry_b']) * pos['size_b'])
+                estimated_exit_fees = (trade_cost(pos['size_a'] * exit_a)
+                                       + trade_cost(pos['size_b'] * exit_b))
+                portfolio_value += unrealized - estimated_exit_fees
 
         equity_curve.append({'date': date, 'value': portfolio_value})
 
