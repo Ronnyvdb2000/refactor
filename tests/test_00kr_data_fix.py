@@ -103,7 +103,7 @@ class AnalysisTests(unittest.TestCase):
 
 
 class LiveTests(unittest.TestCase):
-    def run_offline(self, *, candidate, telegram=False):
+    def run_offline(self, *, candidate, telegram=False, telegram_enabled=True):
         frame = history()
         frame["Ticker"] = "EU.PA"
         signal = bot.analyse_ticker("EU.PA", frame, include_current_dividend=False)
@@ -113,7 +113,8 @@ class LiveTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             try:
                 os.chdir(directory)
-                with patch.object(bot, "bouw_bestandslijst", return_value=["tickers_042x.txt"]), \
+                with patch.dict(os.environ, {"TELEGRAM_ENABLED": "1" if telegram_enabled else "0"}), \
+                     patch.object(bot, "bouw_bestandslijst", return_value=["tickers_042x.txt"]), \
                      patch.object(bot, "load_tickers_from_file", return_value=["EU.PA", "MISSING"]), \
                      patch.object(bot, "download_history", return_value=frame), \
                      patch.object(bot, "analyse_ticker", return_value=signal), \
@@ -138,6 +139,13 @@ class LiveTests(unittest.TestCase):
     def test_successful_telegram(self):
         output, _, _ = self.run_offline(candidate=True, telegram=True)
         self.assertIn("→ Telegram verstuurd", output)
+
+    def test_disabled_telegram_never_calls_sender(self):
+        output, csv, calls = self.run_offline(candidate=True, telegram_enabled=False)
+        self.assertEqual(calls, 0)
+        self.assertEqual(len(csv), 1)
+        self.assertIn("Telegram uitgeschakeld", output)
+        self.assertIn("E-mail verstuurd", output)
 
     def test_no_candidates_still_writes_csv_headers(self):
         _, csv, calls = self.run_offline(candidate=False)
@@ -179,3 +187,4 @@ class NotificationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

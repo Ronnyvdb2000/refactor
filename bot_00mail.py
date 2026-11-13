@@ -13,13 +13,12 @@ import time
 import logging
 import numpy as np
 import pandas as pd
-import yfinance as yf
 from datetime import datetime
 
 from common import (
     today_str, safe_float, esc,
     download_history, load_tickers_from_file,
-    send_telegram, send_email,
+    send_email,
     trade_cost
 )
 
@@ -27,11 +26,40 @@ from common import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)
 
+
+def prepare_history(frame):
+    """Gebruik uitsluitend echte, complete dagkoersen voor de berekeningen."""
+    required = ["Date", "Open", "High", "Low", "Close", "Volume"]
+    missing = sorted(set(required) - set(frame.columns))
+    if missing:
+        raise ValueError(f"Ontbrekende koerskolommen: {', '.join(missing)}")
+    data = frame[required].copy()
+    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+    if data["Date"].dt.tz is not None:
+        data["Date"] = data["Date"].dt.tz_localize(None)
+    for col in required[1:]:
+        data[col] = pd.to_numeric(data[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    data = data.dropna(subset=required)
+    data = data.loc[(data[["Open", "High", "Low", "Close"]] > 0).all(axis=1) & (data["Volume"] >= 0)]
+    data = data.loc[data["High"] >= data["Low"]]
+    return data.sort_values("Date").drop_duplicates("Date", keep="last").set_index("Date")
+
+
+def cached_history(tickers, cache):
+    """Deel downloads, inclusief ontbrekende tickers, tussen sectoren."""
+    missing = [ticker for ticker in tickers if ticker not in cache]
+    if missing:
+        raw = download_history(missing, period="5y")
+        for ticker in missing:
+            cache[ticker] = raw.loc[raw["Ticker"] == ticker].copy() if not raw.empty else pd.DataFrame()
+    frames = [cache[ticker] for ticker in tickers if not cache[ticker].empty]
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
 def bereken_indicatoren_vectorized(df, s, t, use_trend_filter, is_hyper):
-    p = df['Close'].ffill()
-    h = df['High'].ffill()
-    l = df['Low'].ffill()
-    v = df['Volume'].ffill()
+    p = df['Close']
+    h = df['High']
+    l = df['Low']
+    v = df['Volume']
 
     f_line = p.rolling(window=s).mean() if s >= 20 else p.ewm(span=s, adjust=False).mean()
     s_line = p.rolling(window=t).mean() if t >= 50 else p.ewm(span=t, adjust=False).mean()
@@ -68,35 +96,56 @@ def bereken_indicatoren_vectorized(df, s, t, use_trend_filter, is_hyper):
 
     return p, f_line, s_line, ema200, vol_ma, rsi_val, atr, adx, v
 
-def voer_lijst_uit(bestandsnaam, label, naam_sector):
-    if not os.path.exists(bestandsnaam): return ""
+def voer_lijst_uit(bestandsnaam, label, naam_sector, download_cache=None, status=None):
+    if status is None:
+        status = {"analyses": 0, "fouten": 0, "overgeslagen": 0}
+    if not os.path.exists(bestandsnaam):
+        raise FileNotFoundError(f"Tickerlijst ontbreekt: {bestandsnaam}")
     nu = datetime.now().strftime("%d/%m/%Y %H:%M")
-    
-    with open(bestandsnaam, 'r') as f:
-        content = f.read().replace('\n', ',').replace('$', '')
-        tickers = sorted(list(set([t.strip().upper() for t in content.split(',') if t.strip()])))
-
-    if not tickers: return ""
-
-    raw_df = download_history(tickers, period="5y")
-    if raw_df.empty:
-        return ""
+    tickers = load_tickers_from_file(bestandsnaam)
+    if not tickers:
+        raise ValueError(f"Tickerlijst leeg: {bestandsnaam}")
+    cache = download_cache if download_cache is not None else {}
+    raw_df = cached_history(tickers, cache)
+    histories = {}
+    diagnostics = []
+    for ticker in tickers:
+        try:
+            frame = raw_df.loc[raw_df["Ticker"] == ticker] if not raw_df.empty else pd.DataFrame()
+            if frame.empty:
+                reason = "geen koersdata na download en eventuele herpoging"
+            else:
+                data = prepare_history(frame)
+                if len(data) < 252:
+                    reason = f"{len(data)} geldige koersrijen; minimaal 252 vereist"
+                elif data.index[-1].normalize() < pd.Timestamp(today_str()) - pd.Timedelta(days=7):
+                    reason = f"verouderde koersdata, laatste datum {data.index[-1].date()}"
+                else:
+                    histories[ticker] = data
+                    continue
+            status["overgeslagen"] += 1
+            diagnostics.append(f"{ticker}: {reason}")
+            logger.warning("%s / %s: %s", naam_sector, ticker, reason)
+        except Exception as exc:
+            status["fouten"] += 1
+            diagnostics.append(f"{ticker}: gegevensfout ({type(exc).__name__}: {exc})")
+            logger.exception("Gegevensfout in %s / %s", naam_sector, ticker)
 
     inzet = 2500.0
     res = {"T": 0, "S": 0, "HT": 0, "HS": 0}
     num_trades = {"T": 0, "S": 0, "HT": 0, "HS": 0}
     sig = {"T": [], "S": [], "HT": [], "HS": []}
+    analysed = {key: 0 for key in res}
+    failures = {key: 0 for key in res}
 
     for strat_key, (s_per, t_per, use_tr, is_hyp) in [
         ("T",(50,200,True,False)), ("S",(20,50,True,False)), 
         ("HT",(9,21,True,True)), ("HS",(9,21,False,True))
     ]:
-        for t in tickers:
+        for t, t_data in histories.items():
+            entries_before = num_trades[strat_key]
+            signals_before = len(sig[strat_key])
             try:
-                t_data = raw_df[raw_df["Ticker"] == t].drop(columns=["Ticker"]).set_index("Date")
-                if len(t_data) < 252:
-                    continue
-
                 p, f, s_line, e200, v_ma, rsi, atr, adx, vol = bereken_indicatoren_vectorized(t_data, s_per, t_per, use_tr, is_hyp)
                 
                 p_bt, f_bt, s_bt = p.iloc[-252:], f.iloc[-252:], s_line.iloc[-252:]
@@ -140,8 +189,6 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
                 if pos and instap > 0:
                     profit += inzet * (p_bt.iloc[-1] / instap - 1)
 
-                res[strat_key] += profit
-
                 cp, catr, crsi = p.iloc[-1], atr.iloc[-1], rsi.iloc[-1]
                 l_rsi = "💎 CRSI" if is_hyp else "📊 RSI"
                 y_l = f"[Grafiek](https://finance.yahoo.com/quote/{t})"
@@ -153,25 +200,53 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
                 elif f.iloc[-1] < s_line.iloc[-1] and f.iloc[-2] >= s_line.iloc[-2]:
                     sig[strat_key].append(f"• `{t}`: 🔴 *VERKOOP* | €{cp:.2f} | ⚡ ATR: {catr:.2f} | {l_rsi}: {crsi:.1f} | 🛡️ SL: €{cp-(2*catr):.2f} | {y_l}")
 
-            except Exception:
-                continue
+                if not np.isfinite(profit):
+                    raise ValueError("Niet-eindige P/L berekend")
+                res[strat_key] += profit
+                analysed[strat_key] += 1
+                status["analyses"] += 1
+            except Exception as exc:
+                num_trades[strat_key] = entries_before
+                del sig[strat_key][signals_before:]
+                failures[strat_key] += 1
+                status["fouten"] += 1
+                diagnostics.append(f"{t} / {strat_key}: analysefout ({type(exc).__name__}: {exc})")
+                logger.exception("Analysefout in %s / %s / %s", naam_sector, t, strat_key)
 
-    def get_s(lst): return "\n".join(lst) if lst else "Geen actie"
+    if not histories:
+        status["fouten"] += 1
+        diagnostics.append("Deze sector heeft geen analyseerbare tickers; er is geen betrouwbare P/L of signaaluitkomst.")
+    coverage = (
+        f"Datadekking: {len(tickers)} gevraagd | {len(histories)} analyseerbaar | "
+        f"{len(tickers) - len(histories)} overgeslagen. "
+        + " | ".join(f"{key}: {analysed[key]} analyses, {failures[key]} fouten" for key in analysed)
+    )
+    logger.info("%s: %s", naam_sector, coverage)
+
+    def get_s(key):
+        text = "\n".join(sig[key]) if sig[key] else ("Geen actie bij de geanalyseerde tickers" if analysed[key] else "Geen betrouwbare uitkomst: nul geslaagde analyses")
+        return text + ("\nLET OP: onvolledige analyse, zie datadekking." if failures[key] else "")
+
+    def result_line(key):
+        return f"€{res[key]:+,.0f} ({num_trades[key]} entries)" if analysed[key] else "niet beschikbaar"
     rapport_lijst = [
         f"📊 *{label} {naam_sector} RAPPORT mail*", f"_{nu}_", "----------------------------------",
-        f"🐢 *Traag (50/200) P/L:* €{res['T']:+,.0f} ({num_trades['T']} entries)",
-        f"⚡ *Snel (20/50) P/L:* €{res['S']:+,.0f} ({num_trades['S']} entries)",
-        f"🚀 *Hyper Trend P/L:* €{res['HT']:+,.0f} ({num_trades['HT']} entries)",
-        f"🔥 *Hyper Scalp P/L:* €{res['HS']:+,.0f} ({num_trades['HS']} entries)",
+        coverage,
+        "STATUS: ONVOLLEDIG — zie overgeslagen tickers en fouten" if diagnostics else "STATUS: VOLLEDIG",
+        f"🐢 *Traag (50/200) P/L:* {result_line('T')}",
+        f"⚡ *Snel (20/50) P/L:* {result_line('S')}",
+        f"🚀 *Hyper Trend P/L:* {result_line('HT')}",
+        f"🔥 *Hyper Scalp P/L:* {result_line('HS')}",
         "_P/L = som van afzonderlijke €2.500-posities; geen portefeuillewaarde. Open posities tegen laatste slotkoers gewaardeerd._",
-        "", "🛡️ *SIGNALEN TRAAG (RSI):*", get_s(sig["T"]),
-        "", "🎯 *SIGNALEN SNEL (RSI):*", get_s(sig["S"]),
-        "", "📈 *SIGNALEN HYPER TREND (CRSI):*", get_s(sig["HT"]),
-        "", "⚡ *SIGNALEN HYPER SCALP (CRSI):*", get_s(sig["HS"]),
+        "", "🛡️ *SIGNALEN TRAAG (RSI):*", get_s("T"),
+        "", "🎯 *SIGNALEN SNEL (RSI):*", get_s("S"),
+        "", "📈 *SIGNALEN HYPER TREND (CRSI):*", get_s("HT"),
+        "", "⚡ *SIGNALEN HYPER SCALP (CRSI):*", get_s("HS"),
         "", "💡 _ATR %: <2% laag, >5% hoog. RSI: >70 overbought, <30 oversold. CRSI: >90 overbought, <10 oversold_"
     ]
+    if diagnostics:
+        rapport_lijst.extend(["", "OVERGESLAGEN TICKERS EN FOUTEN:", *diagnostics])
     volledige_tekst = "\n".join(rapport_lijst)
-    send_telegram(volledige_tekst, parse_mode="Markdown")
     return volledige_tekst + "\n\n" + "="*40 + "\n\n"
 
 def main():
@@ -183,19 +258,35 @@ def main():
 
     verzamel_rapport = "🚀 *FULL GLOBAL SCAN COLLECTIVE REPORT (BOT 00)*\n" + "="*30 + "\n\n"
     logger.info("Start globale scan...")
+    cache = {}
+    status = {"analyses": 0, "fouten": 0, "overgeslagen": 0}
     
     for nr, naam in sectoren.items():
         try: 
             logger.info(f"Verwerken sector: {naam}")
-            sector_bericht = voer_lijst_uit(f"tickers_{nr}.txt", nr, naam)
+            sector_bericht = voer_lijst_uit(f"tickers_{nr}.txt", nr, naam, download_cache=cache, status=status)
             verzamel_rapport += sector_bericht
         except Exception as e:
-            logger.error(f"Fout in sector {naam}: {e}")
+            status["fouten"] += 1
+            logger.exception("Fout in sector %s", naam)
+            verzamel_rapport += f"\nSECTOR {naam}: MISLUKT ({type(e).__name__}: {e})\n"
         time.sleep(2)
 
     datum_vandaag = datetime.now().strftime("%d-%m-%Y")
-    send_email(f"Trading Rapport Bot 00: {datum_vandaag}", verzamel_rapport, html_body=False)
-    logger.info("Scan voltooid. Telegrams en E-mail verwerkt.")
+    incomplete = status["fouten"] > 0 or status["overgeslagen"] > 0 or status["analyses"] == 0
+    subject = f"{'[ONVOLLEDIG] ' if incomplete else ''}Trading Rapport Bot 00: {datum_vandaag}"
+    verzamel_rapport += f"\nTotaal: {status['analyses']} geslaagde ticker/strategie-analyses, {status['fouten']} fouten, {status['overgeslagen']} overgeslagen ticker/sector-combinaties.\n"
+    delivered = send_email(subject, verzamel_rapport, html_body=False)
+    if not delivered:
+        logger.error("E-mail NIET verstuurd; controleer e-mailsecrets en verzendfouten.")
+        return 1
+    logger.info("E-mail succesvol verstuurd. Telegram staat uit.")
+    if status["fouten"] or not status["analyses"]:
+        logger.error("Scan onvolledig door analyse- of sectorfouten; zie het verzonden rapport.")
+        return 1
+    logger.info("Scan voltooid%s.", " met gemelde ontbrekende data" if incomplete else "")
+    return 0
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
+

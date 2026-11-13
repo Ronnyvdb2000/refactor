@@ -9,6 +9,7 @@ Backtest-functionaliteit is volledig behouden.
 """
 
 import sys
+import os
 import math
 from dataclasses import asdict, dataclass
 from typing import List, Dict, Optional, Tuple
@@ -378,12 +379,15 @@ def run_live_engine():
 
         bericht = format_bericht(ex_name, signalen, alle, portfolio_waarde)
         if bericht:
-            delivered = send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
-            if delivered:
-                print("  → Telegram verstuurd")
+            if os.getenv("TELEGRAM_ENABLED", "0").lower() not in ("1", "true", "yes"):
+                print("  → Telegram uitgeschakeld")
             else:
-                print("  → [WARN] Telegram niet verstuurd; controleer secrets en verzendfouten")
+                delivered = send_telegram(bericht, parse_mode="Markdown")
+                if delivered:
+                    print("  → Telegram verstuurd")
+                else:
+                    print("  → [WARN] Telegram niet verstuurd; controleer secrets en verzendfouten")
         else:
             print(f"  → Overgeslagen: {ex_name}")
 
@@ -565,4 +569,5 @@ if __name__ == "__main__":
         run_backtest()
     else:
         run_live_engine()
+
 
