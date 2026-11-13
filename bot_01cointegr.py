@@ -456,11 +456,20 @@ def run_backtest():
     pair_cache: Dict[str, List[PairSignaal]] = {}
     laatste_selectie_idx = -(RESCAN_DAYS + 1)
 
+    # Respecteer de ingestelde backtestperiode, maar behoud historische
+    # koersen vóór BACKTEST_START als in-sample opwarmvenster.
+    pivot = pivot.loc[pivot.index <= pd.Timestamp(BACKTEST_END)]
     dates = sorted(pivot.index)
-    start_idx = max(LOOKBACK, IS_WINDOW)
-    if len(dates) <= start_idx:
-        print(f"[WARN] Onvoldoende handelsdagen voor backtest: {len(dates)} beschikbaar, minimaal {start_idx + 1} nodig.")
+    warmup = max(LOOKBACK, IS_WINDOW)
+    if len(dates) <= warmup:
+        print(f"[WARN] Onvoldoende handelsdagen voor backtest: {len(dates)} beschikbaar, minimaal {warmup + 1} nodig.")
         return
+    requested_start = pd.Timestamp(BACKTEST_START)
+    first_test_idx = next((i for i, day in enumerate(dates) if day >= requested_start), None)
+    if first_test_idx is None:
+        print("[WARN] Geen handelsdagen binnen de ingestelde backtestperiode.")
+        return
+    start_idx = max(warmup, first_test_idx)
     print(f"Backtest van {dates[start_idx].date()} tot {dates[-1].date()}")
 
     for i, date in enumerate(dates):
