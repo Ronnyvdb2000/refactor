@@ -458,6 +458,9 @@ def run_backtest():
 
     dates = sorted(pivot.index)
     start_idx = max(LOOKBACK, IS_WINDOW)
+    if len(dates) <= start_idx:
+        print(f"[WARN] Onvoldoende handelsdagen voor backtest: {len(dates)} beschikbaar, minimaal {start_idx + 1} nodig.")
+        return
     print(f"Backtest van {dates[start_idx].date()} tot {dates[-1].date()}")
 
     for i, date in enumerate(dates):
@@ -474,6 +477,8 @@ def run_backtest():
                 continue
             z_info = snel_zscore(a, b, data_till)
             if z_info is None:
+                # De positie blijft open, maar de houdperiode loopt door.
+                positions[pair_key]['days'] += 1
                 continue
             z = z_info[0]
 
