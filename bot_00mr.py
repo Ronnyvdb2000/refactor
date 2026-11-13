@@ -660,7 +660,41 @@ def run_orb():
     portfolio = load_portfolio()
     orb_exchanges = {"048 Nasdaq/NYSE": "tickers_048x.txt", "047 Toronto": "tickers_047x.txt", "045 Londen": "tickers_045x.txt", "041 Benelux": "tickers_041x.txt"}
 
-    all_tickers = []
-    for path in orb_exchanges.values():
-        all_tickers.extend(load_tickers_from_file(path))
-    all_tickers
+    all_tickers = sorted(set(
+        ticker for path in orb_exchanges.values()
+        for ticker in load_tickers_from_file(path)
+    ))
+    if not all_tickers:
+        print("[WARN] Geen ORB-tickers gevonden.")
+        return
+
+    orb_signalen: Dict[str, List[ORBSignaal]] = {}
+    prices: Dict[str, float] = {}
+    for ex_name, path in orb_exchanges.items():
+        tickers = load_tickers_from_file(path)
+        if not tickers:
+            continue
+        signals = generate_orb_signals(tickers, ex_name)
+        orb_signalen[ex_name] = signals
+        for sig in signals:
+            prices[sig.ticker] = sig.current
+        print(f"  {ex_name}: {len(signals)} ORB-signalen")
+
+    # ORB remains signal-only: there is no verified intraday order execution
+    # or position management in this file. Never invent simulated fills.
+    report = rapport_orb(orb_signalen, portfolio, prices)
+    send_telegram(report)
+    send_email(f"Multi-Systeem ORB rapport {today_str()}",
+               report.replace("*", "").replace("`", ""))
+    print("ORB signaleringsrapport verzonden (geen orders uitgevoerd).")
+
+
+if __name__ == "__main__":
+    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "eod"
+    if mode in ("eod", "live"):
+        run_eod()
+    elif mode == "orb":
+        run_orb()
+    else:
+        print("Gebruik: python bot_00mr.py [eod|live|orb]")
+        sys.exit(2)
