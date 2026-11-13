@@ -6,7 +6,9 @@ from common import (
 )
 
 def test_trade_cost_formule():
-    assert trade_cost(1000) == pytest.approx(TRADE_COST_FIXED + 1000 * TRADE_COST_PCT)
+    assert trade_cost(1000) == pytest.approx(TRADE_COST_FIXED)
+    assert trade_cost(10000) == pytest.approx(10000 * TRADE_COST_PCT)
+    assert trade_cost(0) == pytest.approx(0.0)
 
 def test_positie_risico_5_procent():
     aandelen, max_verlies = bereken_positie(
