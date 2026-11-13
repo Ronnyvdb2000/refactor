@@ -454,7 +454,10 @@ def run_backtest():
     positions: Dict[str, BTPosition] = {}
     trades:    List[Dict]      = []
     
-    scan_dates = [d for d in all_dates if d.weekday() == 0]
+    scan_dates = [
+        d for d in all_dates
+        if d.weekday() == 0 and pd.Timestamp(BACKTEST_START).date() <= d <= pd.Timestamp(BACKTEST_END).date()
+    ]
     print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
 
     for scan_date in scan_dates:
@@ -519,14 +522,16 @@ def run_backtest():
             
             if aandelen <= 0:
                 continue
-            investering = entry * aandelen + trade_cost(entry * aandelen)
+            entry_notional = entry * aandelen
+            entry_fee = trade_cost(entry_notional)
+            investering = entry_notional + entry_fee
             if investering > cash:
                 continue
             cash -= investering
             positions[ticker] = BTPosition(
                 ticker=ticker, strategy=str(sig.score),
                 entry_date=scan_date, entry_price=round(entry, 4),
-                size=aandelen, cost=trade_cost(investering),
+                size=aandelen, cost=entry_fee,
                 sl=sig.stop, tp=sig.db.huidige_box.top * 1.20,
                 atr=sig.atr, days=0
             )
@@ -560,9 +565,3 @@ if __name__ == "__main__":
         run_backtest()
     else:
         run_live_engine()
-if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
-    if mode == "backtest":
-        run_backtest()
-    else:
-        run_live_engine()      
