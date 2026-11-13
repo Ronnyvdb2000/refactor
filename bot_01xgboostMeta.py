@@ -364,6 +364,7 @@ def run_live_engine():
 
         signalen = []
         ds = build_dataset(hist)
+        laatste = pd.DataFrame()
         if not ds.empty:
             laatste = ds.sort_values("Date").groupby("Paar").tail(1).dropna(subset=FEATURE_COLUMNS)
             if not laatste.empty:
