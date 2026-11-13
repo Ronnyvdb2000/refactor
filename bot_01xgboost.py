@@ -321,13 +321,22 @@ def run_backtest():
                         exit_rij = dataset[(dataset["Ticker"] == row["Ticker"]) & (dataset["Date"] > periode_datum)].sort_values("Date")
                         if len(exit_rij) < horizon: continue
                         exit_row = exit_rij.iloc[horizon - 1]
-                        aantal = bedrag_per_positie / row["Close"]
-                        bruto_pnl = aantal * (exit_row["Close"] - row["Close"])
-                        kosten = trade_cost(bedrag_per_positie) + trade_cost(aantal * exit_row["Close"])
+                        # Longpositie: ongunstige uitvoering bij zowel koop als verkoop.
+                        entry_prijs = float(row["Close"]) * (1 + SLIPPAGE_PCT)
+                        exit_prijs = float(exit_row["Close"]) * (1 - SLIPPAGE_PCT)
+                        if not (math.isfinite(entry_prijs) and math.isfinite(exit_prijs)) or entry_prijs <= 0 or exit_prijs <= 0:
+                            continue
+                        # Houd de bestaande kapitaaltoewijzing per positie aan.
+                        aantal = bedrag_per_positie / entry_prijs
+                        entry_waarde = aantal * entry_prijs
+                        exit_waarde = aantal * exit_prijs
+                        bruto_pnl = exit_waarde - entry_waarde
+                        kosten = trade_cost(entry_waarde) + trade_cost(exit_waarde)
                         netto_voor_belasting = bruto_pnl - kosten
-                        if netto_voor_belasting > 0: netto_voor_belasting *= (1 - TAX_RATE)
-                        kapitaal += netto_voor_belasting
-                        alle_trades.append({"datum": periode_datum, "ticker": row["Ticker"], "pnl": netto_voor_belasting})
+                        belasting = max(0.0, netto_voor_belasting) * TAX_RATE
+                        netto_pnl = netto_voor_belasting - belasting
+                        kapitaal += netto_pnl
+                        alle_trades.append({"datum": periode_datum, "ticker": row["Ticker"], "pnl": netto_pnl})
 
         periode_data = dataset[(dataset["Date"] >= alle_datums[idx]) & (dataset["Date"] < alle_datums[test_end_idx])]
         if not periode_data.empty:
