@@ -260,10 +260,23 @@ def run_train():
     dataset = dataset.sort_values("Date")
     print(f"Trainingsdataset: {len(dataset)} rijen | Klassebalans: {dataset['label'].mean()*100:.1f}% positief")
 
-    split_idx = int(len(dataset) * 0.85)
-    split_date = dataset.iloc[split_idx]["Date"]
-    train_df, val_df = dataset[dataset["Date"] < split_date], dataset[dataset["Date"] >= split_date]
-    print(f"Train: {len(train_df)} rijen tot {split_date.date()} | Validatie: {len(val_df)} rijen erna")
+    # Datumgebaseerde splitsing; voorkom overlap van toekomstlabels met validatie.
+    train_dates = sorted(dataset["Date"].unique())
+    split_idx = int(len(train_dates) * 0.85)
+    horizon = XGB_CFG["horizon_days"]
+    if split_idx <= horizon or split_idx >= len(train_dates):
+        print("[ERROR] Onvoldoende handelsdatums voor gescheiden train/validatie.")
+        return
+    split_date = train_dates[split_idx]
+    fit_end_date = train_dates[split_idx - horizon]
+    train_df = dataset[dataset["Date"] < fit_end_date]
+    val_df = dataset[dataset["Date"] >= split_date]
+    if (len(train_df) < XGB_CFG["min_train_rows"]
+            or val_df.empty or train_df["label"].nunique() < 2
+            or val_df["label"].nunique() < 2):
+        print("[ERROR] Onvoldoende data of klassevariatie voor betrouwbare validatie.")
+        return
+    print(f"Train: {len(train_df)} rijen tot {fit_end_date.date()} | Validatie: {len(val_df)} rijen vanaf {split_date.date()}")
 
     model = fit_model(train_df, val_df)
     val_proba = model.predict_proba(val_df[FEATURE_COLUMNS])[:, 1]
