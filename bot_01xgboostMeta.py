@@ -295,19 +295,34 @@ def run_backtest():
 
     while idx < len(alle_datums) - horizon:
         train_start = alle_datums[max(0, idx - is_window)]
-        train_end   = alle_datums[idx]
-        train_fold = dataset[(dataset["Date"] >= train_start) & (dataset["Date"] < train_end)].dropna(subset=FEATURE_COLUMNS + ["label"])
+        # Een label gebruikt de koers 'horizon' handelsdagen later.
+        # Daarom mogen de laatste horizon dagen voor de test niet in training.
+        train_end_idx = idx - horizon
+        train_end = alle_datums[train_end_idx]
+        train_fold = dataset[
+            (dataset["Date"] >= train_start) & (dataset["Date"] < train_end)
+        ].dropna(subset=FEATURE_COLUMNS + ["label"])
 
         fold_auc = None
         if len(train_fold) >= XGB_CFG["min_train_rows"]:
-            split_i = int(len(train_fold) * 0.85)
-            tf = train_fold.sort_values("Date")
-            val_fold = tf.iloc[split_i:]
-            fit_fold = tf.iloc[:split_i]
-            model = fit_model(fit_fold, val_fold if len(val_fold) > 20 else None)
-            if len(val_fold) > 20 and val_fold["label"].nunique() == 2:
-                proba_v = model.predict_proba(val_fold[FEATURE_COLUMNS])[:, 1]
-                fold_auc = float(roc_auc_score(val_fold["label"], proba_v))
+            # Splits op unieke handelsdatums, niet op rijen van verschillende paren.
+            train_dates = sorted(train_fold["Date"].unique())
+            split_i = int(len(train_dates) * 0.85)
+            if 0 < split_i < len(train_dates):
+                val_start_idx = split_i
+                fit_end_idx = split_i - horizon
+                if fit_end_idx > 0:
+                    val_start = train_dates[val_start_idx]
+                    fit_end = train_dates[fit_end_idx]
+                    fit_fold = train_fold[train_fold["Date"] < fit_end]
+                    val_fold = train_fold[train_fold["Date"] >= val_start]
+                    if (len(fit_fold) >= XGB_CFG["min_train_rows"]
+                            and fit_fold["label"].nunique() == 2
+                            and len(val_fold) > 20
+                            and val_fold["label"].nunique() == 2):
+                        model = fit_model(fit_fold, val_fold)
+                        proba_v = model.predict_proba(val_fold[FEATURE_COLUMNS])[:, 1]
+                        fold_auc = float(roc_auc_score(val_fold["label"], proba_v))
 
         test_end_idx = min(idx + rescan_days, len(alle_datums) - horizon - 1)
 
