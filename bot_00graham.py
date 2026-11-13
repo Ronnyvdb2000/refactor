@@ -64,9 +64,11 @@ def _net_income_series(financials) -> List[float]:
     row = _row(financials, ["Net Income", "Net Income Common Stockholders"])
     if row is None:
         return []
+    # Yahoo Finance levert de kolommen doorgaans nieuwste-eerst, maar
+    # sorteer expliciet zodat de groei niet van de API-volgorde afhangt.
+    row = row.sort_index()
     vals = [safe_float(v) for v in row.tolist()]
-    vals = [v for v in vals if not math.isnan(v)]
-    return list(reversed(vals))
+    return [v for v in vals if math.isfinite(v)]
 
 def _piotroski_f_score(tk, cashflow):
     try:
@@ -249,7 +251,10 @@ def analyse_ticker(ticker: str, cfg: dict) -> Optional[GrahamSignaal]:
 
         graham_multiple = pe_ratio * pb_ratio if not math.isnan(pe_ratio) and not math.isnan(pb_ratio) else float("nan")
         pb_ok = not math.isnan(pb_ratio) and 0 < pb_ratio <= cfg["pb_max"]
-        multiple_ok = not math.isnan(graham_multiple) and graham_multiple <= cfg["graham_multiple_max"]
+        multiple_ok = (math.isfinite(pe_ratio) and pe_ratio > 0
+                       and math.isfinite(pb_ratio) and pb_ratio > 0
+                       and math.isfinite(graham_multiple)
+                       and graham_multiple <= cfg["graham_multiple_max"])
         graham_number_ok = pb_ok or multiple_ok
         if graham_number_ok:
             score += 1
@@ -310,12 +315,12 @@ def _score_bar(score: int) -> str:
     return "█" * score + "░" * (9 - score) + f" {score}/9"
 
 def format_bericht(exchange_name: str, signalen: List[GrahamSignaal], alle: List[GrahamSignaal], cfg: dict) -> Optional[str]:
-    if not alle:
+    if not signalen:
         return None
 
     nu     = today_str()
     top_n  = cfg["top_n"]
-    top_tonen = sorted(alle, key=lambda s: (s.score, -s.pe_ratio if s.pe_ratio > 0 else -999), reverse=True)[:top_n]
+    top_tonen = sorted(signalen, key=lambda s: (-s.score, s.pe_ratio if s.pe_ratio > 0 else float("inf")))[:top_n]
     max_sc = max((s.score for s in signalen), default=0) if signalen else 0
     lbl    = {9: "⭐ PERFECTE SCORE (9/9)", 8: "🟡 STERK (8/9)", 7: "🟠 GOED (7/9)"}.get(max_sc, "📊")
 
@@ -363,7 +368,7 @@ def run_live_engine():
         return
 
     email_delen: List[str] = []
-    reeds_verwerkt: set = set()
+    analyse_cache: Dict[str, Optional[GrahamSignaal]] = {}
     totaal_gedupliceerd = 0
 
     for ex_name, tlist in exchange_tickers.items():
@@ -371,19 +376,19 @@ def run_live_engine():
 
         alle: List[GrahamSignaal] = []
         for ticker in tlist:
-            if ticker in reeds_verwerkt:
+            if ticker in analyse_cache:
                 totaal_gedupliceerd += 1
-                continue
-            reeds_verwerkt.add(ticker)
-            sig = analyse_ticker(ticker, cfg)
+            else:
+                analyse_cache[ticker] = analyse_ticker(ticker, cfg)
+                time.sleep(cfg["throttle_sec"])
+            sig = analyse_cache[ticker]
             if sig is not None:
                 alle.append(sig)
                 if sig.score >= cfg["min_score"]:
                     print(f"  ✓ {ticker}: score {sig.score}/9 | P/E={sig.pe_ratio:.1f} | P/B={sig.pb_ratio:.2f}")
-            time.sleep(cfg["throttle_sec"])
 
         kandidaten = [s for s in alle if s.score >= cfg["min_score"]]
-        kandidaten.sort(key=lambda s: (s.score, -s.pe_ratio if s.pe_ratio > 0 else -999), reverse=True)
+        kandidaten.sort(key=lambda s: (-s.score, s.pe_ratio if s.pe_ratio > 0 else float("inf")))
         signalen = kandidaten[:cfg["top_n"]]
 
         print(f"  → top {len(signalen)} van {len(kandidaten)} kandidaten (score >= {cfg['min_score']}) uit {len(alle)} geanalyseerd")
@@ -428,7 +433,7 @@ def run_live_engine():
         send_email(f"Graham Defensive Investor rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
 
     if totaal_gedupliceerd:
-        print(f"\nDeduplicatie: {totaal_gedupliceerd} dubbele ticker-occurrence(s) overgeslagen.")
+        print(f"\nDeduplicatie: {totaal_gedupliceerd} dubbele ticker-occurrence(s) uit cache hergebruikt.")
 
     print(f"\n{'='*60}\nKlaar.")
 
