@@ -143,6 +143,15 @@ def _sanitize(value):
     tokens NaN/Infinity, wat GEEN geldige JSON is -- Postgres' jsonb-type
     weigert dat met 'invalid input syntax for type json'.
     """
+    # NumPy/Pandas scalars must become native Python values before both
+    # JSON encoding and psycopg2 parameter binding (e.g. np.float64).
+    if hasattr(value, "item") and not isinstance(value, (str, bytes, dict, list, tuple)):
+        try:
+            native = value.item()
+            if native is not value:
+                return _sanitize(native)
+        except (AttributeError, TypeError, ValueError):
+            pass
     if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
         return None
     if isinstance(value, dict):
