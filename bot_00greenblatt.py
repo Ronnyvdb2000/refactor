@@ -88,7 +88,13 @@ def analyse_ticker(ticker: str, exchange: str, cfg: dict) -> Optional[Greenblatt
             return None
 
         sector = info.get("sector") or "Onbekend"
-        if sector in UITGESLOTEN_SECTOREN:
+        sector_norm = str(sector).casefold()
+        industry_norm = str(info.get("industry") or "").casefold()
+        if (sector in UITGESLOTEN_SECTOREN
+                or "utilit" in sector_norm
+                or "financial" in sector_norm
+                or "insurance" in sector_norm
+                or "bank" in industry_norm):
             return None
 
         market_cap = safe_float(info.get("marketCap"))
@@ -106,8 +112,13 @@ def analyse_ticker(ticker: str, exchange: str, cfg: dict) -> Optional[Greenblatt
         ebit_row = _row(inc, ["EBIT", "Operating Income"])
         if ebit_row is None or len(ebit_row) == 0:
             return None
-        ebit = safe_float(ebit_row.iloc[0])
-        if math.isnan(ebit) or ebit <= 0:
+        # Align the income statement and balance sheet to the same fiscal year.
+        shared_dates = sorted(set(inc.columns).intersection(bs.columns), reverse=True)
+        if not shared_dates:
+            return None
+        fiscal_date = shared_dates[0]
+        ebit = safe_float(ebit_row.loc[fiscal_date])
+        if not math.isfinite(ebit) or ebit <= 0:
             return None
 
         ca_row  = _row(bs, ["Current Assets", "Total Current Assets"])
@@ -115,15 +126,15 @@ def analyse_ticker(ticker: str, exchange: str, cfg: dict) -> Optional[Greenblatt
         ppe_row = _row(bs, ["Net PPE", "Property Plant And Equipment Net", "Net Tangible Assets"])
         if ca_row is None or cl_row is None or ppe_row is None:
             return None
-        ca  = safe_float(ca_row.iloc[0])
-        cl  = safe_float(cl_row.iloc[0])
-        ppe = safe_float(ppe_row.iloc[0])
-        if any(math.isnan(v) for v in (ca, cl, ppe)):
+        ca  = safe_float(ca_row.loc[fiscal_date])
+        cl  = safe_float(cl_row.loc[fiscal_date])
+        ppe = safe_float(ppe_row.loc[fiscal_date])
+        if not all(math.isfinite(v) for v in (ca, cl, ppe)):
             return None
 
         nwc = ca - cl
         invested_capital = nwc + ppe
-        if invested_capital <= 0:
+        if not math.isfinite(invested_capital) or invested_capital <= 0:
             return None
 
         roc = ebit / invested_capital
@@ -135,7 +146,7 @@ def analyse_ticker(ticker: str, exchange: str, cfg: dict) -> Optional[Greenblatt
             total_debt = safe_float(info.get("totalDebt"), 0.0)
             total_cash = safe_float(info.get("totalCash"), 0.0)
             ev = market_cap + total_debt - total_cash
-        if math.isnan(ev) or ev <= 0:
+        if not math.isfinite(ev) or ev <= 0:
             return None
 
         earnings_yield = ebit / ev
@@ -174,7 +185,7 @@ def rangschik_globaal(alle: List[GreenblattSignaal]) -> List[GreenblattSignaal]:
     for s in alle:
         s.combined_rank = s.roc_rank + s.ey_rank
 
-    return sorted(alle, key=lambda s: s.combined_rank)
+    return sorted(alle, key=lambda s: (s.combined_rank, -s.roc, -s.earnings_yield, s.ticker))
 
 # ============================================================
 # OUTPUT
@@ -238,17 +249,20 @@ def run_live_engine():
 
     alle: List[GreenblattSignaal] = []
     universum_grootte = 0
+    analyse_cache: Dict[str, Optional[GreenblattSignaal]] = {}
 
     for ex_name, tlist in exchange_tickers.items():
         print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
         gevonden_in_beurs = 0
         for ticker in tlist:
-            universum_grootte += 1
-            sig = analyse_ticker(ticker, ex_name, cfg)
-            if sig is not None:
-                alle.append(sig)
-                gevonden_in_beurs += 1
-            time.sleep(cfg["throttle_sec"])
+            if ticker not in analyse_cache:
+                universum_grootte += 1
+                analyse_cache[ticker] = analyse_ticker(ticker, ex_name, cfg)
+                time.sleep(cfg["throttle_sec"])
+                sig = analyse_cache[ticker]
+                if sig is not None:
+                    alle.append(sig)
+                    gevonden_in_beurs += 1
         print(f"  → {gevonden_in_beurs}/{len(tlist)} tickers voldoen aan de basisfilters (sector/marktkap/EBIT/IC)")
 
     if not alle:
