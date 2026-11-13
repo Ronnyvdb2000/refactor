@@ -428,10 +428,18 @@ def run_backtest():
     trades:    List[Dict]      = []
     price_map: Dict[str, float] = {}
 
-    # RS ratings voor de hele periode (simulatief)
+    scan_dates = [
+        d for d in all_dates
+        if d.weekday() == 0 and pd.Timestamp(BACKTEST_START).date() <= d <= pd.Timestamp(BACKTEST_END).date()
+    ]
+    print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
+
+    for scan_date in scan_dates:
+        df_hist = df[df["Date"] <= pd.Timestamp(scan_date)].copy()
+    # RS ratings uitsluitend met koershistoriek tot dit scanmoment
     rs_ratings = {}
     perf = {}
-    for ticker, group in df.groupby("Ticker", sort=False):
+    for ticker, group in df_hist.groupby("Ticker", sort=False):
         g = group.sort_values("Date")
         if len(g) < 252:
             continue
@@ -449,11 +457,7 @@ def run_backtest():
             rank = sum(1 for v in values if v < p)
             rs_ratings[ticker] = round((rank / n) * 99, 1)
 
-    scan_dates = [d for d in all_dates if d.weekday() == 0]
-    print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
 
-    for scan_date in scan_dates:
-        df_hist = df[df["Date"] <= pd.Timestamp(scan_date)].copy()
         day_df  = df[df["Date"] == pd.Timestamp(scan_date)].copy()
 
         price_map = {}
