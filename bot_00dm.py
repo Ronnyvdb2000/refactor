@@ -440,25 +440,29 @@ def run_backtest():
     trades:    List[Dict]      = []
     price_map: Dict[str, float] = {}
 
-    rs_ratings = compute_rs_ratings(df)
-    rs_top20   = top_pct_filter(rs_ratings, DM_CFG["top_pct"])
-
-    perf_proxy: Dict[str, float] = {}
-    for ticker, group in df.groupby("Ticker", sort=False):
-        g = group.sort_values("Date")
-        if len(g) < 252:
-            continue
-        c_now  = safe_float(g["Close"].iloc[-1])
-        c_12m  = safe_float(g["Close"].iloc[-252])
-        if c_12m > 0:
-            perf_proxy[ticker] = (c_now - c_12m) / c_12m * 100
-    rev_top20_proxy = top_pct_filter(perf_proxy, DM_CFG["top_pct"])
-
-    scan_dates = [d for d in all_dates if d.weekday() == 0]
+    scan_dates = [
+        d for d in all_dates
+        if d.weekday() == 0
+        and pd.Timestamp(BACKTEST_START).date() <= d <= pd.Timestamp(BACKTEST_END).date()
+    ]
     print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
 
     for scan_date in scan_dates:
         df_hist = df[df["Date"] <= pd.Timestamp(scan_date)].copy()
+        # Bereken de rangschikking opnieuw per scan: nooit toekomstige
+        # koersen gebruiken voor historische momentumselectie.
+        rs_ratings = compute_rs_ratings(df_hist)
+        rs_top20 = top_pct_filter(rs_ratings, DM_CFG["top_pct"])
+        perf_proxy: Dict[str, float] = {}
+        for ticker, group in df_hist.groupby("Ticker", sort=False):
+            g = group.sort_values("Date")
+            if len(g) < 252:
+                continue
+            c_now = safe_float(g["Close"].iloc[-1])
+            c_12m = safe_float(g["Close"].iloc[-252])
+            if math.isfinite(c_now) and math.isfinite(c_12m) and c_12m > 0:
+                perf_proxy[ticker] = (c_now - c_12m) / c_12m * 100
+        rev_top20_proxy = top_pct_filter(perf_proxy, DM_CFG["top_pct"])
         day_df  = df[df["Date"] == pd.Timestamp(scan_date)].copy()
 
         price_map = {}
@@ -524,14 +528,16 @@ def run_backtest():
             
             if aandelen <= 0:
                 continue
-            investering = entry * aandelen + trade_cost(entry * aandelen)
+            entry_notional = entry * aandelen
+            entry_fee = trade_cost(entry_notional)
+            investering = entry_notional + entry_fee
             if investering > cash:
                 continue
 
             cash -= investering
             positions[ticker] = BTPosition(
                 ticker=ticker, entry_date=scan_date, entry_price=round(entry, 4),
-                size=aandelen, cost=trade_cost(investering),
+                size=aandelen, cost=entry_fee,
                 sl=sig.stop, tp=None,
                 atr=0.0, days=0
             )
