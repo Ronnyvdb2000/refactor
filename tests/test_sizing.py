@@ -9,6 +9,16 @@ def test_trade_cost_formule():
     assert trade_cost(1000) == pytest.approx(TRADE_COST_FIXED)
     assert trade_cost(10000) == pytest.approx(10000 * TRADE_COST_PCT)
     assert trade_cost(0) == pytest.approx(0.0)
+    assert trade_cost(2500) == pytest.approx(15.0)
+    assert trade_cost(15 / TRADE_COST_PCT) == pytest.approx(15.0)
+    assert trade_cost(5000) == pytest.approx(17.50)
+
+def test_trade_cost_is_per_transactie():
+    # Een volledige roundtrip heeft twee afzonderlijke kostenposten.
+    aankoop = 2500.0
+    verkoop = 2750.0
+    assert trade_cost(aankoop) + trade_cost(verkoop) == pytest.approx(30.0)
+    assert trade_cost(aankoop + verkoop) == pytest.approx(18.375)
 
 def test_positie_risico_5_procent():
     aandelen, max_verlies = bereken_positie(
