@@ -485,13 +485,13 @@ def run_backtest():
             if a not in current_prices or b not in current_prices:
                 continue
             z_info = snel_zscore(a, b, data_till)
-            if z_info is None:
-                # De positie blijft open, maar de houdperiode loopt door.
+            z = z_info[0] if z_info is not None else None
+            # De maximale houdperiode geldt ook wanneer de z-score
+            # tijdelijk niet berekend kan worden.
+            exit_signal = pos['days'] >= 60 or (z is not None and abs(z) < EXIT_Z)
+            if z is None and not exit_signal:
                 positions[pair_key]['days'] += 1
                 continue
-            z = z_info[0]
-
-            exit_signal = abs(z) < EXIT_Z or pos['days'] >= 60
             if exit_signal:
                 price_a, price_b = float(current_prices[a]), float(current_prices[b])
                 if not (math.isfinite(price_a) and math.isfinite(price_b) and price_a > 0 and price_b > 0):
