@@ -1,35 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-bot_00xxxV2.py — GLOBAL ENGINE v2.1
-
-v2.1 t.o.v. v2.0 (herstel van functionaliteit die bij de refactor verloren ging):
-  - Volledige backtest hersteld: BacktestPortfolio, run_backtest en de
-    statistieken (totaal rendement, CAGR, max drawdown, Sharpe, profit factor,
-    resultaat per substrategie). Uitvoer: backtest_trades.csv en
-    backtest_portfolio.csv.
-  - Handmatige posities via commands.txt (/buy /sell) hersteld; CLI-modus
-    "apply".
-  - FALLBACK_TICKERS en BACKTEST_START/END hersteld.
-  - FIX: 'import time' ontbrak (run_live_engine gebruikt time.sleep en crashte daardoor
-    met NameError na het eerste bericht).
-  - De common/-refactor van v2.0 blijft behouden.
-
-Gebruik:
-  python bot_00xxxV2.py live | backtest | apply
-
-v2.0: gebruikt common/ voor alle gedeelde bouwstenen.
-Bevat de ATR-sizing, de LivePortfolio state en de CSV-logging.
+"""GLOBAL ENGINE: six strategy advice scanner, independent-ticker backtests,
+and an explicitly invoked local manual ledger. No broker execution.
+Live mode leaves local portfolio state untouched.
 """
 
 import os
 import sys
 import math
 import csv
-import time
-import warnings
+import json
+import hashlib
+import copy
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
 import numpy as np
@@ -39,20 +24,16 @@ import yfinance as yf
 from common import (
     today_str, safe_float, yahoo_link,
     download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
-    wilder_smooth, compute_rsi_series, compute_atr_series, compute_ibs, compute_adx_series,
-    send_telegram, send_email,
-    bereken_atr_positie, trade_cost, sizing_tekst,
-    SLIPPAGE_PCT, RISICO_PCT_DEFAULT, TRADE_COST_FIXED, TRADE_COST_PCT
+    compute_rsi_series, compute_atr_series, compute_ibs, compute_adx_series,
+    send_telegram, send_email, trade_cost, SLIPPAGE_PCT,
 )
 
 try:
     from db_logger import log_selectie
-except Exception as _e:
-    print(f"[WARN] db_logger niet beschikbaar ({_e}) — DB-logging wordt overgeslagen")
+except ImportError as exc:
+    print(f"[WARN] db_logger niet beschikbaar: {exc}")
     def log_selectie(*args, **kwargs):
         return False
-
-warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ============================================================
 # CONFIG
@@ -63,28 +44,13 @@ MAX_POSITIONS        = 10
 MIN_CASH_RATIO       = 0.10
 RISICO_PCT_PER_TRADE = 0.05
 ATR_STOP_MULT        = 2.0
-TAX_RATE             = 0.10
+TAX_RATE             = 0.0  # Geen belastingmodel; geen fiscale aanname.
 MAX_HOLD_DAYS        = 20
 
-TELEGRAM_TOKEN   = os.getenv("TELEGRAM_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-
+LIVE_STATE_FILE = "live_state.json"
 LIVE_TRADES_FILE    = "trades_live.csv"
 LIVE_POSITIONS_FILE = "positions_live.csv"
 LIVE_PORTFOLIO_FILE = "portfolio_live.csv"
-
-FALLBACK_TICKERS = {
-    "048 Nasdaq/NYSE": [
-        "AAPL","MSFT","NVDA","META","GOOGL",
-        "AMZN","TSLA","AMD","INTC","NFLX",
-        "ORCL","CRM","ADBE","QCOM","TXN",
-    ],
-    "041 Benelux Ierland": [
-        "ASML","AD.AS","INGA.AS","PHIA.AS","UNA.AS",
-        "ABN.AS","NN.AS","RAND.AS","WKL.AS","BESI.AS",
-        "AKZA.AS","HEIA.AS","IMCD.AS","DSM.AS","AGN.AS",
-    ],
-}
 
 BACKTEST_START = "2019-01-01"
 BACKTEST_END   = dt.date.today().isoformat()
@@ -105,7 +71,7 @@ STRAT_CONFIG = {
 def add_indicators(df: pd.DataFrame) -> pd.DataFrame:
     parts = []
     for ticker, group in df.groupby("Ticker", sort=False):
-        g     = group.copy()
+        g     = group.sort_values("Date").copy()
         close = g["Close"]
         high  = g["High"]
         low   = g["Low"]
@@ -169,9 +135,9 @@ def generate_signals_for_day(df: pd.DataFrame, date: dt.date) -> List[Signal]:
         ibs       = safe_float(row.get("IBS"))
         atr       = safe_float(row.get("ATR14"))
         adx       = safe_float(row.get("ADX14"))
-        next_open = safe_float(row.get("Next_Open"), default=close)
+        next_open = None  # Uitvoering wordt pas op de volgende sessie bepaald.
 
-        if math.isnan(close) or close <= 0 or math.isnan(atr) or atr <= 0:
+        if not math.isfinite(close) or close <= 0 or not math.isfinite(atr) or atr <= 0:
             continue
 
         def make(strategy: str, reason: str) -> Signal:
@@ -182,19 +148,19 @@ def generate_signals_for_day(df: pd.DataFrame, date: dt.date) -> List[Signal]:
                           reason=reason, price=close, atr=atr, sl=sl, tp=tp,
                           rr_ratio=_calc_rr(close, sl, tp), next_open=next_open)
 
-        if not (math.isnan(ma50) or math.isnan(ma200) or math.isnan(adx)):
+        if all(math.isfinite(x) for x in (ma50,ma200,adx)):
             if ma50 > ma200 and close > ma50 and adx > 15:
                 signals.append(make("Traag", "MA50>MA200 & Close>MA50 & ADX>15"))
 
-        if not (math.isnan(ma20) or math.isnan(ma50) or math.isnan(adx)):
+        if all(math.isfinite(x) for x in (ma20,ma50,adx)):
             if ma20 > ma50 and close > ma20 and adx > 15:
                 signals.append(make("Snel", "MA20>MA50 & Close>MA20 & ADX>15"))
 
-        if not (math.isnan(ma50) or math.isnan(ma200) or math.isnan(adx) or math.isnan(rsi)):
+        if all(math.isfinite(x) for x in (ma50,ma200,adx,rsi)):
             if ma50 > ma200 and close > ma50 and adx > 20 and rsi > 55:
                 signals.append(make("Hyper Trend", "ADX>20 & RSI>55 & MA50>MA200"))
 
-        if not (math.isnan(rsi) or math.isnan(ibs)):
+        if all(math.isfinite(x) for x in (rsi,ibs)):
             if rsi < 30 and ibs < 0.2:
                 signals.append(make("Hyper Scalp", "RSI<30 & IBS<0.2"))
             if rsi < 35 and ibs < 0.3:
@@ -202,556 +168,429 @@ def generate_signals_for_day(df: pd.DataFrame, date: dt.date) -> List[Signal]:
             if rsi < 40 and ibs < 0.4:
                 signals.append(make("MRA Traag", "RSI<40 & IBS<0.4"))
 
-    signals.sort(key=lambda s: s.rr_ratio, reverse=True)
+    signals = [s for s in signals if all(math.isfinite(v) for v in (s.sl,s.tp,s.rr_ratio)) and 0 < s.sl < s.price < s.tp]
+    signals.sort(key=lambda s: (-s.rr_ratio, s.ticker, s.strategy))
     return signals
 
 # ============================================================
-# LIVE PORTEFEUILLE
+# HISTORY AND SIMULATED ACCOUNT
 # ============================================================
+
+def clean_history(frame):
+    required = ["Date","Open","High","Low","Close","Volume"]
+    if frame.empty or any(c not in frame for c in required):
+        return pd.DataFrame()
+    g=frame.copy()
+    g["Date"]=pd.to_datetime(g["Date"],errors="coerce")
+    if g["Date"].dt.tz is not None: g["Date"]=g["Date"].dt.tz_localize(None)
+    g["Date"]=g["Date"].dt.normalize()
+    for c in required[1:]:
+        g[c]=pd.to_numeric(g[c],errors="coerce").replace([np.inf,-np.inf],np.nan)
+    valid=g[required].notna().all(axis=1) & (g[["Open","High","Low","Close"]]>0).all(axis=1)
+    valid &= (g.Volume>=0) & (g.High>=g[["Open","Close","Low"]].max(axis=1))
+    valid &= g.Low<=g[["Open","Close"]].min(axis=1)
+    return g.loc[valid].sort_values("Date").drop_duplicates("Date",keep="last").reset_index(drop=True)
+
+
+def atomic_json(path, payload):
+    temp=str(path)+".tmp"
+    with open(temp,"w",encoding="utf-8") as handle:
+        json.dump(payload,handle,ensure_ascii=False,allow_nan=False)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temp,path)
+
 
 @dataclass
 class LivePosition:
-    ticker:      str
-    strategy:    str
-    entry_date:  str
+    ticker: str
+    strategy: str
+    entry_date: str
     entry_price: float
-    size:        int
-    cost:        float
-    sl:          Optional[float]
-    tp:          Optional[float]
-    atr:         float = 0.0
-    days_open:   int   = 0
+    size: int
+    cost: float
+    sl: Optional[float]
+    tp: Optional[float]
+    atr: float = 0.0
+    days_open: int = 0
+
 
 class LivePortfolio:
-    def __init__(self, start_capital: float):
-        self.cash       = start_capital
-        self.positions: Dict[str, LivePosition] = {}
-        self.load_state()
+    """Local simulation ledger, never connected to an order-execution API."""
+    def __init__(self,start_capital,load=True,currency=None):
+        self.cash=float(start_capital)
+        self.currency=currency or os.getenv("PORTFOLIO_CURRENCY","USD")
+        self.positions={}
+        self.trades=[]
+        self.applied_batches=[]
+        if load:self.load_state()
 
     def load_state(self):
-        if os.path.exists(LIVE_PORTFOLIO_FILE):
-            df = pd.read_csv(LIVE_PORTFOLIO_FILE)
-            if not df.empty:
-                self.cash = float(df.iloc[-1]["cash"])
-        if os.path.exists(LIVE_POSITIONS_FILE):
-            dfp = pd.read_csv(LIVE_POSITIONS_FILE)
-            for _, r in dfp.iterrows():
-                self.positions[r["ticker"]] = LivePosition(
-                    ticker=r["ticker"], strategy=r["strategy"],
-                    entry_date=r["entry_date"], entry_price=float(r["entry_price"]),
-                    size=int(r["size"]), cost=float(r["cost"]),
-                    sl=float(r["sl"]) if not pd.isna(r["sl"]) else None,
-                    tp=float(r["tp"]) if not pd.isna(r["tp"]) else None,
-                    atr=float(r.get("atr", 0.0)), days_open=int(r.get("days_open", 0)),
-                )
+        if Path(LIVE_STATE_FILE).exists():
+            state=json.loads(Path(LIVE_STATE_FILE).read_text())
+            if state["currency"] != self.currency:
+                raise ValueError("Accountvaluta verschilt van opgeslagen state")
+            self.cash=float(state["cash"])
+            self.positions={p["ticker"]:LivePosition(**p) for p in state["positions"]}
+            self.trades=state["trades"]
+            self.applied_batches=state.get("applied_batches",[])
+            self.validate()
+        elif any(Path(p).exists() for p in (LIVE_PORTFOLIO_FILE,LIVE_POSITIONS_FILE,LIVE_TRADES_FILE)):
+            raise ValueError("Legacy CSV-state aanwezig: expliciete valutacontrole en migratie naar live_state.json vereist")
 
-    def save_state(self, date: str, prices: Dict[str, float]):
-        ensure_csv_header(LIVE_POSITIONS_FILE,
-            ["ticker","strategy","entry_date","entry_price","size","cost","sl","tp","atr","days_open"])
-        with open(LIVE_POSITIONS_FILE, "w", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
-            w.writerow(["ticker","strategy","entry_date","entry_price","size","cost","sl","tp","atr","days_open"])
-            for p in self.positions.values():
-                w.writerow([p.ticker, p.strategy, p.entry_date, p.entry_price,
-                            p.size, p.cost,
-                            p.sl if p.sl is not None else "",
-                            p.tp if p.tp is not None else "",
-                            p.atr, p.days_open])
-        ensure_csv_header(LIVE_PORTFOLIO_FILE, ["date","cash","positions_value","total"])
-        pos_val = sum(prices.get(t, p.entry_price) * p.size for t, p in self.positions.items())
-        with open(LIVE_PORTFOLIO_FILE, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([date, self.cash, pos_val, self.cash + pos_val])
+    def validate(self):
+        if not math.isfinite(self.cash) or self.cash<0: raise ValueError("Ongeldig kassaldo")
+        if len(self.positions)>MAX_POSITIONS:raise ValueError("Te veel posities")
+        for p in self.positions.values():
+            if not isinstance(p.size,int) or p.size<=0 or not math.isfinite(p.entry_price) or p.entry_price<=0:
+                raise ValueError("Ongeldige positie")
+            if not math.isfinite(p.cost) or p.cost<0:raise ValueError("Ongeldige instapkosten")
+            if p.sl is not None and (not math.isfinite(p.sl) or p.sl<=0):raise ValueError("Ongeldige stop")
+            if p.tp is not None and (not math.isfinite(p.tp) or p.tp<=0):raise ValueError("Ongeldig doel")
+            dt.date.fromisoformat(p.entry_date)
 
-    def current_total_value(self, prices: Dict[str, float]) -> float:
-        return self.cash + sum(prices.get(t, p.entry_price) * p.size for t, p in self.positions.items())
+    def save_state(self,date,prices):
+        self.validate()
+        # One authoritative transaction contains cash, holdings, trades and replay IDs.
+        atomic_json(LIVE_STATE_FILE,dict(version=1,currency=self.currency,cash=self.cash,
+            positions=[asdict(p) for p in self.positions.values()],trades=self.trades,
+            applied_batches=self.applied_batches,last_update=date))
+        # CSVs are replaceable projections; JSON remains authoritative after a crash.
+        for path,frame in ((LIVE_POSITIONS_FILE,pd.DataFrame([asdict(p) for p in self.positions.values()],columns=list(LivePosition.__dataclass_fields__))),
+                           (LIVE_TRADES_FILE,pd.DataFrame(self.trades,columns=["date","ticker","strategy","side","price","size","cost","pnl","tax","net","reason"]))):
+            temp=path+".tmp";frame.to_csv(temp,index=False);os.replace(temp,path)
+        value=self.current_total_value(prices) if all(t in prices for t in self.positions) else None
+        temp=LIVE_PORTFOLIO_FILE+".tmp"
+        pd.DataFrame([dict(date=date,currency=self.currency,cash=self.cash,total=value)]).to_csv(temp,index=False)
+        os.replace(temp,LIVE_PORTFOLIO_FILE)
 
-    def can_open_new_position(self, prices: Dict[str, float], investering: float) -> bool:
-        if len(self.positions) >= MAX_POSITIONS:
-            return False
-        total = self.current_total_value(prices)
-        return (self.cash - investering) >= total * MIN_CASH_RATIO and investering <= self.cash
+    def current_total_value(self,prices):
+        if any(t not in prices or not math.isfinite(prices[t]) or prices[t]<=0 for t in self.positions):
+            raise ValueError("Waarderingskoers ontbreekt voor bestaande positie")
+        return self.cash+sum(prices[t]*p.size for t,p in self.positions.items())
 
-    def open_position(self, sig: Signal, prices: Dict[str, float]) -> Optional[LivePosition]:
-        if sig.ticker in self.positions:
-            return None
-        cfg         = STRAT_CONFIG.get(sig.strategy, {"sl_mult": 2.0, "tp_mult": 3.0})
-        entry       = (sig.next_open or sig.price) * (1 + SLIPPAGE_PCT)
-        aandelen, stop, _ = bereken_atr_positie(self.current_total_value(prices), entry, sig.atr, cfg["sl_mult"])
-        if aandelen <= 0:
-            return None
-        investering = entry * aandelen
-        cost        = trade_cost(investering)
-        if not self.can_open_new_position(prices, investering + cost):
-            return None
-        self.cash -= investering + cost
-        p = LivePosition(ticker=sig.ticker, strategy=sig.strategy,
-                         entry_date=sig.date.isoformat(), entry_price=round(entry, 4),
-                         size=aandelen, cost=cost,
-                         sl=round(stop, 4), tp=round(entry + cfg["tp_mult"] * sig.atr, 4),
-                         atr=sig.atr, days_open=0)
-        self.positions[sig.ticker] = p
-        self.log_trade(sig.date.isoformat(), sig.ticker, sig.strategy,
-                       "BUY", entry, aandelen, cost, 0.0, 0.0, 0.0)
-        return p
+    def log_trade(self,date,ticker,strategy,side,price,size,cost,pnl,tax,net,reason=""):
+        self.trades.append(dict(date=date,ticker=ticker,strategy=strategy,side=side,price=price,
+            size=size,cost=cost,pnl=pnl,tax=tax,net=net,reason=reason))
 
-    def close_position(self, ticker: str, date: str, exit_price: float, reason: str):
-        if ticker not in self.positions:
-            return
-        p          = self.positions[ticker]
-        exit_slip  = exit_price * (1 - SLIPPAGE_PCT)
-        gross      = exit_slip * p.size
-        cost       = trade_cost(gross)
-        pnl        = gross - cost - (p.entry_price * p.size + p.cost)
-        tax        = pnl * TAX_RATE if pnl > 0 else 0.0
-        self.cash += gross - cost - tax
-        self.log_trade(date, ticker, p.strategy, "SELL",
-                       exit_slip, p.size, cost, pnl, tax, pnl - tax, reason)
-        del self.positions[ticker]
+    def close_position(self,ticker,date,exit_price,reason,size=None,slippage=True):
+        p=self.positions[ticker]
+        size=p.size if size is None else size
+        if not isinstance(size,int) or not 0<size<=p.size:raise ValueError("Ongeldig verkoopaantal")
+        if not math.isfinite(exit_price) or exit_price<=0:raise ValueError("Ongeldige verkoopprijs")
+        fill=exit_price*(1-SLIPPAGE_PCT) if slippage else exit_price
+        gross=fill*size;cost=trade_cost(gross)
+        allocated_cost=p.cost*size/p.size
+        pnl=gross-cost-p.entry_price*size-allocated_cost
+        self.cash+=gross-cost
+        self.log_trade(str(date),ticker,p.strategy,"SELL",fill,size,cost,pnl,0.,pnl,reason)
+        p.cost-=allocated_cost;p.size-=size
+        if p.size==0:del self.positions[ticker]
 
-    def log_trade(self, date, ticker, strategy, side, price, size, cost, pnl, tax, net, reason=""):
-        ensure_csv_header(LIVE_TRADES_FILE,
-            ["date","ticker","strategy","side","price","size","cost","pnl","tax","net","reason"])
-        with open(LIVE_TRADES_FILE, "a", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow([date, ticker, strategy, side, price, size, cost, pnl, tax, net, reason])
-
-def ensure_csv_header(path: str, header: List[str]) -> None:
-    if not os.path.exists(path):
-        with open(path, "w", newline="", encoding="utf-8") as f:
-            csv.writer(f).writerow(header)
 
 # ============================================================
-# EXIT ENGINE
+# MANUAL COMMANDS: VALIDATE AND COMMIT A COMPLETE BATCH
 # ============================================================
 
-def generate_exit_signals(portfolio: LivePortfolio, df: pd.DataFrame, date: dt.date) -> List[Signal]:
-    signals: List[Signal] = []
-    day_df = df[df["Date"] == pd.Timestamp(date)].copy()
-    if day_df.empty:
-        return signals
-
-    day_map: Dict = {}
-    for _, row in day_df.iterrows():
-        t = row.get("Ticker")
-        if t:
-            day_map[t] = row
-
-    for t, p in list(portfolio.positions.items()):
-        if t not in day_map:
-            continue
-        row   = day_map[t]
-        close = safe_float(row.get("Close"))
-        ma20  = safe_float(row.get("MA20"))
-        rsi   = safe_float(row.get("RSI14"))
-        if math.isnan(close):
-            continue
-
-        reason: Optional[str] = None
-        if p.sl is not None and close <= p.sl:
-            reason = f"Stoploss geraakt (SL={p.sl:.2f})"
-        elif p.tp is not None and close >= p.tp:
-            reason = f"Take Profit geraakt (TP={p.tp:.2f})"
-        elif not math.isnan(ma20) and close < ma20 and p.strategy in ("Traag", "Snel", "Hyper Trend"):
-            reason = f"Trend exit: Close<MA20 ({close:.2f}<{ma20:.2f})"
-        elif not math.isnan(rsi) and rsi > 70 and p.strategy in ("MRA Snel", "MRA Traag", "Hyper Scalp"):
-            reason = f"RSI exit: RSI>70 ({rsi:.1f})"
-        elif p.days_open >= MAX_HOLD_DAYS:
-            reason = f"Time exit: {p.days_open} dagen open"
-
-        if reason:
-            signals.append(Signal(ticker=t, date=date, strategy=p.strategy,
-                                  direction="SELL", reason=reason, price=close, atr=p.atr))
-    return signals
-
-# ============================================================
-# OUTPUT
-# ============================================================
-
-def _strat_emoji(strategy: str) -> str:
-    return {"Traag":"🐢","Snel":"⚡","Hyper Trend":"🚀","Hyper Scalp":"🔥","MRA Snel":"🛡️","MRA Traag":"🐢"}.get(strategy,"📊")
-
-def format_signals_per_exchange(
-    exchange_name: str, buy_signals: List[Signal], sell_signals: List[Signal],
-    portfolio: LivePortfolio, portfolio_waarde: float,
-) -> Tuple[str, str]:
-    nu = today_str()
-
-    def koop_blok(signals: List[Signal]) -> str:
-        if not signals:
-            return "_Geen signalen_"
-        lines = []
-        for s in signals:
-            cfg = STRAT_CONFIG.get(s.strategy, {"sl_mult": 2.0, "tp_mult": 3.0})
-            lines.append(
-                f"• `{s.ticker}` {_strat_emoji(s.strategy)} *{s.strategy}*"
-                f" | EUR{s.price:.2f} | R/R:{s.rr_ratio:.1f} | {yahoo_link(s.ticker)}\n"
-                + sizing_tekst(s.price, s.sl, s.tp, portfolio_waarde)
-            )
-        return "\n\n".join(lines)
-
-    def verkoop_blok(signals: List[Signal]) -> str:
-        if not signals:
-            return "_Geen signalen_"
-        lines = []
-        for s in signals:
-            pos  = portfolio.positions.get(s.ticker)
-            size = pos.size if pos else 0
-            pnl_str = f" | PnL est: EUR{(s.price*(1-SLIPPAGE_PCT)-pos.entry_price)*size:+.2f}" if pos else ""
-            lines.append(
-                f"• `{s.ticker}` {_strat_emoji(s.strategy)} *VERKOOP*\n"
-                f"  Reden: {s.reason} | Prijs: EUR{s.price:.2f}{pnl_str}\n"
-                f"  Commando: `/sell {s.ticker} {s.price:.2f} {size}`"
-            )
-        return "\n\n".join(lines)
-
-    deel1 = "\n\n".join([
-        f"📊 *{exchange_name}*",
-        f"_{nu} | Portfolio: EUR{portfolio_waarde:,.0f} | Risico: 5%/trade_",
-        "─────────────────────────────",
-        "🐢 *TRAAG (50/200):*",  koop_blok([s for s in buy_signals if s.strategy=="Traag"]),
-        "⚡ *SNEL (20/50):*",    koop_blok([s for s in buy_signals if s.strategy=="Snel"]),
-        "🔴 *VERKOOPSIGNALEN:*", verkoop_blok(sell_signals),
-    ])
-
-    deel2_parts = [
-        f"📊 *{exchange_name} (2/2)*", "",
-        "🚀 *HYPER TREND:*",  koop_blok([s for s in buy_signals if s.strategy=="Hyper Trend"]), "",
-        "🔥 *HYPER SCALP:*",  koop_blok([s for s in buy_signals if s.strategy=="Hyper Scalp"]), "",
-        "🛡️ *MRA SNEL:*",     koop_blok([s for s in buy_signals if s.strategy=="MRA Snel"]),   "",
-        "🐢 *MRA TRAAG:*",    koop_blok([s for s in buy_signals if s.strategy=="MRA Traag"]),  "",
-        f"💼 *PORTFOLIO:* {len(portfolio.positions)}/{MAX_POSITIONS} posities | Cash: EUR{portfolio.cash:,.2f}",
-    ]
-    for t, pos in portfolio.positions.items():
-        deel2_parts.append(
-            f"  • `{t}`: {pos.size}x @ EUR{pos.entry_price:.2f} "
-            f"({pos.strategy}, {pos.days_open}d | SL:{pos.sl} TP:{pos.tp})"
-        )
-    deel2_parts += ["", "⚙️ *PARAMETERS:*", f"_ATR-sizing: 5% risico/trade | Slippage: 0.1%_", f"_Entry: open T+1 | SL: 2×ATR | TP: 3-5×ATR | Time-exit: {MAX_HOLD_DAYS}d_"]
-    return deel1, "\n".join(deel2_parts)
-
-# ============================================================
-# MAIN: LIVE ENGINE
-# ============================================================
-
-# v2.1: handmatige /buy en /sell uit commands.txt (hersteld uit v1; CLI-modus 'apply')
-def apply_telegram_commands(portfolio: LivePortfolio, commands_file: str):
-    if not os.path.exists(commands_file):
+def apply_telegram_commands(portfolio,commands_file):
+    path=Path(commands_file)
+    if not path.exists() or not path.read_text().strip():return
+    if Path(LIVE_STATE_FILE).exists():portfolio.load_state()
+    original=path.read_text()
+    batch_id=hashlib.sha256(original.encode()).hexdigest()
+    if batch_id in portfolio.applied_batches:
+        portfolio.save_state(today_str(),{})
+        path.write_text("")
+        print("Eerder verwerkt commandobestand leeggemaakt; geen heruitvoering")
         return
-    with open(commands_file, "r", encoding="utf-8") as f:
-        lines = [x.strip() for x in f.readlines() if x.strip()]
-    today = today_str()
-    for line in lines:
-        parts = line.split()
-        if len(parts) < 4:
-            continue
-        cmd, ticker = parts[0].lower(), parts[1]
-        try:
-            price, size = float(parts[2]), int(parts[3])
-        except ValueError:
-            continue
-        if cmd == "/buy":
-            cost = trade_cost(price * size)
-            portfolio.cash -= price * size + cost
-            portfolio.positions[ticker] = LivePosition(
-                ticker=ticker, strategy="MANUAL", entry_date=today,
-                entry_price=price, size=size, cost=cost, sl=None, tp=None, atr=0.0, days_open=0)
-            portfolio.log_trade(today, ticker, "MANUAL", "BUY", price, size, cost, 0.0, 0.0, 0.0, "Manual")
-        elif cmd == "/sell":
-            portfolio.close_position(ticker, today, price, "Manual /sell")
-    with open(commands_file, "w", encoding="utf-8") as f:
-        f.write("")
+    work=copy.deepcopy(portfolio)
+    currencies={}
+    for ticker in work.positions:
+        currencies[ticker]=(yf.Ticker(ticker).info or {}).get("currency")
+        if currencies[ticker]!=work.currency:raise ValueError(f"Accountvaluta niet bevestigd voor {ticker}")
+    for line in original.splitlines():
+        line=line.strip()
+        if not line or line.startswith("#"):continue
+        parts=line.split()
+        if len(parts)!=4 or parts[0].lower() not in ("/buy","/sell"):
+            raise ValueError(f"Ongeldig commando: {line}")
+        command,ticker=parts[0].lower(),parts[1].upper()
+        price,size=float(parts[2]),int(parts[3])
+        if not math.isfinite(price) or price<=0 or size<=0:raise ValueError("Prijs/aantal moet positief en eindig zijn")
+        if ticker not in currencies:currencies[ticker]=(yf.Ticker(ticker).info or {}).get("currency")
+        if currencies[ticker]!=work.currency:raise ValueError(f"{ticker}: koerseenheid verschilt van account {work.currency}")
+        if command=="/buy":
+            if ticker in work.positions:raise ValueError("Dubbele koop: gebruik een afzonderlijk gevalideerde positie")
+            cost=trade_cost(price*size)
+            if len(work.positions)>=MAX_POSITIONS or price*size+cost>work.cash:raise ValueError("Onvoldoende cash of positieruimte")
+            work.cash-=price*size+cost
+            work.positions[ticker]=LivePosition(ticker,"MANUAL",today_str(),price,size,cost,None,None)
+            work.log_trade(today_str(),ticker,"MANUAL","BUY",price,size,cost,0.,0.,0.,"Manual")
+        else:
+            # A manually supplied price is the execution price, not another slippage estimate.
+            work.close_position(ticker,today_str(),price,"Manual /sell",size=size,slippage=False)
+    work.applied_batches.append(batch_id)
+    work.save_state(today_str(),{})
+    portfolio.__dict__.update(work.__dict__)
+    # Only remove the input after the authoritative ledger has committed.
+    path.write_text("")
+    print(f"Handmatige batch opgeslagen in {work.currency}; geen brokerorders verstuurd")
+
+
+# ============================================================
+# LIVE: ADVISORY SCAN WITHOUT PORTFOLIO MUTATIONS
+# ============================================================
+
+def format_signal(s):
+    return (f"{s.ticker} | {s.strategy} | koersdag {s.date} | koers {s.price:.4f} | "
+        f"ATR {s.atr:.4f} | referentie-SL {s.sl:.4f} | referentie-TP {s.tp:.4f} | R/R {s.rr_ratio:.2f} | {yahoo_link(s.ticker)}")
+
+
+def generate_exit_signals(portfolio,df,date=None):
+    """Read-only exit advice; holding time comes from distinct observed sessions."""
+    result=[]
+    for ticker,original in portfolio.positions.items():
+        g=df.loc[df.Ticker==ticker].sort_values("Date")
+        if date is not None:g=g.loc[g.Date<=pd.Timestamp(date)]
+        if g.empty:continue
+        row=g.iloc[-1]
+        if row.Date.date()<dt.date.fromisoformat(original.entry_date):continue
+        pos=copy.copy(original)
+        pos.days_open=len(g.loc[g.Date>=pd.Timestamp(pos.entry_date)])
+        fill,reason=intraday_exit(row,pos)
+        if reason is None:
+            reason=close_exit_reason(row,pos)
+            fill=float(row.Close)
+        if reason:
+            result.append(Signal(ticker,row.Date.date(),pos.strategy,"SELL",
+                "Advies, geen uitvoering: "+reason,fill,pos.atr))
+    return result
 
 
 def run_live_engine():
-    all_tickers: List[str] = []
-    exchange_tickers: Dict[str, List[str]] = {}
-    for f_name in bouw_bestandslijst():
-        tlist = load_tickers_from_file(f_name)
-        if not tlist:
-            continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-    all_tickers = sorted(set(all_tickers))
-    if not all_tickers:   # v2.1: terugval op vaste tickers als er geen tickerbestanden zijn (hersteld)
-        for ex_name, tlist in FALLBACK_TICKERS.items():
-            exchange_tickers[ex_name] = tlist
-            all_tickers.extend(tlist)
-        all_tickers = sorted(set(all_tickers))
+    print(f"GLOBAL ENGINE — ADVIES {today_str()}")
+    exchanges,missing={},[]
+    for path in bouw_bestandslijst():
+        members=load_tickers_from_file(path)
+        if members:exchanges[label_voor(path)]=sorted(set(members))
+        else:missing.append(path)
+    tickers=sorted({t for members in exchanges.values() for t in members})
+    if not tickers:raise RuntimeError("Geen tickerlijsten; geen verborgen fallbackuniversum")
+    local_portfolio,portfolio_error=None,None
+    if any(Path(p).exists() for p in (LIVE_STATE_FILE,LIVE_PORTFOLIO_FILE,LIVE_POSITIONS_FILE,LIVE_TRADES_FILE)):
+        try:local_portfolio=LivePortfolio(START_CAPITAL)
+        except Exception as exc:portfolio_error=f"Lokale portefeuille niet leesbaar: {exc}"
+    if local_portfolio is not None:tickers=sorted(set(tickers)|set(local_portfolio.positions))
+    df=download_history(tickers,period="2y")
+    cache,skipped,errors={}, {}, []
+    if portfolio_error:errors.append(portfolio_error)
+    exit_histories=[]
+    today=pd.Timestamp(today_str())
+    for ticker in tickers:
+        g=clean_history(df.loc[df.Ticker==ticker]) if "Ticker" in df else pd.DataFrame()
+        if not g.empty:g=g.loc[g.Date<today]
+        if len(g)<200:skipped[ticker]=f"{len(g)} geldige afgeronde sessies; minimaal 200 vereist"
+        elif (today-g.Date.iloc[-1]).days>7:skipped[ticker]="laatste koers ouder dan 7 dagen"
+        elif g.Volume.tail(20).sum()<=0:skipped[ticker]="geen recent handelsvolume"
+        else:
+            try:
+                enriched=add_indicators(g)
+                cache[ticker]=generate_signals_for_day(enriched,g.Date.iloc[-1].date())
+                if local_portfolio is not None and ticker in local_portfolio.positions:exit_histories.append(enriched)
+            except Exception as exc:errors.append(f"{ticker}: {type(exc).__name__}: {exc}")
+    coverage=f"Datadekking: {len(tickers)} uniek gevraagd | {len(cache)} geanalyseerd | {len(skipped)} overgeslagen | {len(errors)} fouten"
+    print(coverage)
+    for t,reason in skipped.items():print(f"[SKIP:data] {t}: {reason}")
+    rows,reports=[],[];saved=0
+    for exchange,members in exchanges.items():
+        signals=sorted([s for t in members for s in cache.get(t,[])],key=lambda s:(-s.rr_ratio,s.ticker,s.strategy))
+        # Show the existing ten-entry report limit without claiming cash availability.
+        selected=signals[:MAX_POSITIONS]
+        reports.append(f"{exchange}: {sum(t in cache for t in members)}/{len(members)} geanalyseerd | {len(signals)} strategie-signalen | {len(selected)} getoond\n"+"\n".join(format_signal(s) for s in selected))
+        for rank,sig in enumerate(selected,1):
+            row=dict(ticker=sig.ticker,datum=today_str(),signal_date=sig.date.isoformat(),beurs=exchange,
+                rank=rank,substrategie=sig.strategy,richting=sig.direction,reden=sig.reason,koers=sig.price,
+                atr=sig.atr,stop=sig.sl,target=sig.tp,rr_ratio=sig.rr_ratio,price_unit="native_quote_unit")
+            rows.append(row)
+            saved+=bool(log_selectie(ticker=sig.ticker,datum=today_str(),strategie="bot_00xxxV2",
+                beurs=exchange,koers=sig.price,parameters={k:v for k,v in row.items() if k not in ("ticker","datum","beurs","koers")}))
+    exit_advice=[]
+    if local_portfolio is not None and exit_histories:
+        try:exit_advice=generate_exit_signals(local_portfolio,pd.concat(exit_histories,ignore_index=True))
+        except Exception as exc:errors.append(f"Verkoopadvies: {exc}")
+    partial=bool(skipped or missing or errors or saved<len(rows))
+    columns=["ticker","datum","signal_date","beurs","rank","substrategie","richting","reden","koers","atr","stop","target","rr_ratio","price_unit"]
+    pd.DataFrame(rows,columns=columns).to_csv(f"xxxV2_signalen_{today_str()}.csv",index=False)
+    atomic_json("xxxV2_scan.json",dict(date=today_str(),complete=not partial,requested=len(tickers),analysed=len(cache),
+        skipped=skipped,errors=errors,missing_files=missing,database=dict(saved=saved,requested=len(rows)),signals=rows,
+        exit_advice=[dict(ticker=s.ticker,signal_date=s.date.isoformat(),reason=s.reason,reference_price=s.price) for s in exit_advice]))
+    body=coverage+f"\nDatabase: {saved}/{len(rows)} selecties opgeslagen\n\n"+"\n\n".join(reports)
+    if local_portfolio is not None:
+        body+="\n\nLokale portefeuille ("+local_portfolio.currency+"): "+str(len(local_portfolio.positions))+" posities. Geen automatische uitvoering.\n"
+        body+="\n".join(f"{s.ticker}: {s.reason} | koersdag {s.date} | referentie {s.price:.4f}" for s in exit_advice) or "Geen verkoopadviezen"
+    body+="\n\nOorspronkelijke koerseenheden, geen valutaomrekening/positiegrootte. Onafhankelijke adviezen per strategie; dezelfde ticker kan meerdere signalen geven. Referentieniveaus op slotkoers, werkelijke volgende opening onbekend. Live scan voert geen transacties uit en wijzigt geen portefeuille."
+    body+="\nOvergeslagen: "+json.dumps(skipped,ensure_ascii=False)+"\nOntbrekende/lege lijsten: "+(", ".join(missing) or "geen")
+    body+="\nAnalysefouten: "+("; ".join(errors) or "geen")
+    if os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
+        for report in reports:
+            if not send_telegram(report,parse_mode=None):print("[WARN] Telegram niet verstuurd")
+    else:print("Telegram uitgeschakeld (geen configuratie)")
+    print(f"Database: {saved}/{len(rows)} selecties opgeslagen")
+    if not send_email(f"{'[ONVOLLEDIG] ' if partial else ''}xxx V2 rapport {today_str()}",body):raise RuntimeError("E-mail niet verstuurd")
+    print("E-mail verstuurd")
+    if not cache or errors or saved<len(rows):raise RuntimeError("Scan/opslag onvolledig; zie rapport")
+    print("Klaar met gemelde databeperkingen." if partial else "Klaar.")
 
-    df = download_history(all_tickers, period="5y")
-    if df.empty:
-        print("[ERROR] Geen data. Bot gestopt.")
-        return
-    df["Next_Open"] = df.groupby("Ticker")["Open"].shift(-1)
-    df = add_indicators(df)
-
-    last_date = df["Date"].max().date()
-    portfolio = LivePortfolio(START_CAPITAL)
-    day_df    = df[df["Date"] == pd.Timestamp(last_date)].copy()
-
-    price_map: Dict[str, float] = {}
-    for _, row in day_df.iterrows():
-        t = row.get("Ticker")
-        c = safe_float(row.get("Close"))
-        if t and not math.isnan(c):
-            price_map[t] = c
-
-    for p in portfolio.positions.values():
-        p.days_open += 1
-
-    portfolio_waarde = portfolio.current_total_value(price_map)
-    exit_signals_all = generate_exit_signals(portfolio, df, last_date)
-
-    for ex_name, tlist in exchange_tickers.items():
-        if not tlist:
-            continue
-        df_ex       = df[df["Ticker"].isin(tlist)].copy()
-        buy_signals = generate_signals_for_day(df_ex, last_date)
-
-        filtered_buys: List[Signal] = []
-        for sig in buy_signals:
-            cfg   = STRAT_CONFIG.get(sig.strategy, {"sl_mult": 2.0, "tp_mult": 3.0})
-            entry = (sig.next_open or sig.price) * (1 + SLIPPAGE_PCT)
-            n, _, _ = bereken_atr_positie(portfolio_waarde, entry, sig.atr, cfg["sl_mult"])
-            if portfolio.can_open_new_position(price_map, entry * n + trade_cost(entry * n)):
-                filtered_buys.append(sig)
-                if len(filtered_buys) + len(portfolio.positions) >= MAX_POSITIONS:
-                    break
-
-        for rank, sig in enumerate(filtered_buys, start=1):
-            log_selectie(
-                ticker=sig.ticker, datum=today_str(), strategie="bot_00xxxV2", beurs=ex_name, koers=sig.price,
-                parameters={
-                    "rank": rank, "substrategie": sig.strategy, "richting": sig.direction, "reden": sig.reason,
-                    "atr": sig.atr, "stop": sig.sl, "rr_pct": sig.rr_ratio, "grafiek": yahoo_link(sig.ticker),
-                },
-            )
-
-        exit_ex = [s for s in exit_signals_all if s.ticker in tlist]
-        deel1, deel2 = format_signals_per_exchange(ex_name, filtered_buys, exit_ex, portfolio, portfolio_waarde)
-        send_telegram(deel1, parse_mode="Markdown")
-        time.sleep(1)
-        send_telegram(deel2, parse_mode="Markdown")
-
-    portfolio.save_state(last_date.isoformat(), price_map)
 
 # ============================================================
-# BACKTEST ENGINE
+# BACKTEST: ONE INDEPENDENT NATIVE-UNIT ACCOUNT PER TICKER
 # ============================================================
 
-@dataclass
-class BTPosition:
-    ticker:      str
-    strategy:    str
-    entry_date:  dt.date
-    entry_price: float
-    size:        int
-    cost:        float
-    sl:          Optional[float]
-    tp:          Optional[float]
-    atr:         float = 0.0
-    days_open:   int   = 0
+def affordable_size(cash,total,entry,stop):
+    if not all(math.isfinite(v) and v>0 for v in (cash,total,entry,stop)) or stop>=entry:return 0
+    reserve=total*MIN_CASH_RATIO
+    low,high=0,max(0,int((cash-reserve)/entry))
+    while low<high:
+        size=(low+high+1)//2
+        notional=entry*size;proceeds=stop*(1-SLIPPAGE_PCT)*size
+        loss=notional+trade_cost(notional)-proceeds+trade_cost(proceeds)
+        if notional+trade_cost(notional)<=cash-reserve and loss<=total*RISICO_PCT_PER_TRADE:low=size
+        else:high=size-1
+    return low
 
 
-class BacktestPortfolio:
-    def __init__(self, start_capital: float):
-        self.cash             = start_capital
-        self.positions:       Dict[str, BTPosition] = {}
-        self.closed_trades:   List[Dict]            = []
-        self.daily_snapshots: List[Dict]            = []
+class BacktestPortfolio(LivePortfolio):
+    def __init__(self,start_capital):
+        super().__init__(start_capital,load=False,currency="native_quote_unit")
+        self.closed_trades=[];self.daily_snapshots=[]
 
-    def current_total_value(self, prices: Dict[str, float]) -> float:
-        return self.cash + sum(prices.get(t, p.entry_price) * p.size for t, p in self.positions.items())
-
-    def can_open(self, prices: Dict[str, float], investering: float) -> bool:
-        if len(self.positions) >= MAX_POSITIONS:
-            return False
-        return (self.cash - investering) >= self.current_total_value(prices) * MIN_CASH_RATIO and investering <= self.cash
-
-    def open_position(self, sig: Signal, prices: Dict[str, float]) -> bool:
-        if sig.ticker in self.positions:
-            return False
-        cfg   = STRAT_CONFIG.get(sig.strategy, {"sl_mult": 2.0, "tp_mult": 3.0})
-        entry = (sig.next_open or sig.price) * (1 + SLIPPAGE_PCT)
-        aandelen, stop, _ = bereken_atr_positie(self.current_total_value(prices), entry, sig.atr, cfg["sl_mult"])
-        if aandelen <= 0:
-            return False
-        gross = entry * aandelen
-        cost  = trade_cost(gross)
-        if not self.can_open(prices, gross + cost):
-            return False
-        self.cash -= gross + cost
-        self.positions[sig.ticker] = BTPosition(
-            ticker=sig.ticker, strategy=sig.strategy, entry_date=sig.date,
-            entry_price=round(entry, 4), size=aandelen, cost=cost,
-            sl=round(stop, 4), tp=round(entry + cfg["tp_mult"] * sig.atr, 4),
-            atr=sig.atr, days_open=0)
+    def open_position(self,sig,prices):
+        if sig.ticker in self.positions or len(self.positions)>=MAX_POSITIONS:return False
+        opening=safe_float(sig.next_open)
+        if not math.isfinite(opening) or opening<=0:return False
+        entry=opening*(1+SLIPPAGE_PCT)
+        cfg=STRAT_CONFIG[sig.strategy]
+        stop=entry-cfg["sl_mult"]*sig.atr;target=entry+cfg["tp_mult"]*sig.atr
+        total=self.current_total_value(prices)
+        size=affordable_size(self.cash,total,entry,stop)
+        if not size:return False
+        cost=trade_cost(entry*size);self.cash-=entry*size+cost
+        self.positions[sig.ticker]=LivePosition(sig.ticker,sig.strategy,str(sig.date),entry,size,cost,stop,target,sig.atr)
         return True
 
-    def close_position(self, ticker: str, date: dt.date, exit_price: float, reason: str):
-        if ticker not in self.positions:
-            return
-        p         = self.positions[ticker]
-        exit_slip = exit_price * (1 - SLIPPAGE_PCT)
-        gross     = exit_slip * p.size
-        cost      = trade_cost(gross)
-        pnl       = gross - cost - (p.entry_price * p.size + p.cost)
-        tax       = pnl * TAX_RATE if pnl > 0 else 0.0
-        self.cash += gross - cost - tax
-        self.closed_trades.append({
-            "entry_date": p.entry_date.isoformat(), "exit_date": date.isoformat(),
-            "ticker": ticker, "strategy": p.strategy,
-            "entry_price": p.entry_price, "exit_price": round(exit_slip, 4),
-            "size": p.size, "atr": p.atr,
-            "pnl": round(pnl, 2), "tax": round(tax, 2), "net": round(pnl - tax, 2),
-            "reason": reason, "days_open": p.days_open,
-        })
-        del self.positions[ticker]
+    def close_position(self,ticker,date,exit_price,reason):
+        pos=copy.copy(self.positions[ticker]);before=self.cash
+        super().close_position(ticker,str(date),exit_price,reason)
+        trade=self.trades[-1]
+        self.closed_trades.append(dict(entry_date=pos.entry_date,exit_date=str(date),ticker=ticker,strategy=pos.strategy,
+            entry_price=pos.entry_price,exit_price=trade["price"],size=pos.size,entry_cost=pos.cost,
+            exit_cost=trade["cost"],net=self.cash-before-pos.entry_price*pos.size-pos.cost,
+            reason=reason,days_open=pos.days_open))
 
-    def snapshot(self, date: dt.date, prices: Dict[str, float]):
-        pos_val = sum(prices.get(t, p.entry_price) * p.size for t, p in self.positions.items())
-        self.daily_snapshots.append({
-            "date": date.isoformat(), "cash": round(self.cash, 2),
-            "positions_value": round(pos_val, 2), "total": round(self.cash + pos_val, 2),
-            "n_positions": len(self.positions),
-        })
+    def snapshot(self,date,prices):
+        total=self.current_total_value(prices)
+        self.daily_snapshots.append(dict(date=str(date),cash=self.cash,positions_value=total-self.cash,total=total,n_positions=len(self.positions)))
+
+
+def intraday_exit(row,pos):
+    if pos.sl is not None and row.Open<=pos.sl:return float(row.Open),"SL-gap"
+    if pos.tp is not None and row.Open>=pos.tp:return float(row.Open),"TP-gap"
+    if pos.sl is not None and row.Low<=pos.sl:return pos.sl,"SL"
+    if pos.tp is not None and row.High>=pos.tp:return pos.tp,"TP"
+    return None,None
+
+
+def close_exit_reason(row,pos):
+    if pos.strategy in ("Traag","Snel","Hyper Trend") and math.isfinite(row.MA20) and row.Close<row.MA20:return "Trend exit MA20"
+    if pos.strategy in ("MRA Snel","MRA Traag","Hyper Scalp") and math.isfinite(row.RSI14) and row.RSI14>70:return "RSI exit"
+    if pos.days_open>=MAX_HOLD_DAYS:return "Time exit"
+    return None
+
+
+def backtest_ticker(ticker,history,start=BACKTEST_START,end=None):
+    g=clean_history(history)
+    if g.empty:return BacktestPortfolio(START_CAPITAL)
+    g=g.loc[g.Date<=pd.Timestamp(end or BACKTEST_END)].reset_index(drop=True)
+    g=add_indicators(g)
+    bt=BacktestPortfolio(START_CAPITAL)
+    pending_buy,pending_sell=None,None
+    for index,row in g.iterrows():
+        if row.Date<pd.Timestamp(start):continue
+        date=row.Date.date();opening={ticker:float(row.Open)}
+        if pending_sell and ticker in bt.positions:
+            bt.close_position(ticker,date,float(row.Open),pending_sell);pending_sell=None
+        if pending_buy is not None:
+            if ticker not in bt.positions and (row.Date-pd.Timestamp(pending_buy.date)).days<=7:
+                sig=copy.copy(pending_buy);sig.next_open=float(row.Open);sig.date=date
+                bt.open_position(sig,opening)
+            pending_buy=None
+        if ticker in bt.positions:
+            pos=bt.positions[ticker];pos.days_open+=1
+            fill,reason=intraday_exit(row,pos)
+            if fill is not None:bt.close_position(ticker,date,fill,reason)
+            else:pending_sell=close_exit_reason(row,pos)
+        bt.snapshot(date,{ticker:float(row.Close)})
+        if ticker not in bt.positions and index>=199:
+            signals=generate_signals_for_day(g.iloc[[index]],date)
+            if signals:pending_buy=signals[0]
+    return bt
+
+
+def account_stats(bt):
+    snapshots=pd.DataFrame(bt.daily_snapshots)
+    if snapshots.empty:return {}
+    values=snapshots.total.astype(float)
+    end=float(values.iloc[-1]);returns=values.pct_change(fill_method=None)
+    returns.iloc[0]=values.iloc[0]/START_CAPITAL-1
+    peaks=values.cummax().clip(lower=START_CAPITAL)
+    days=(pd.Timestamp(snapshots.date.iloc[-1])-pd.Timestamp(snapshots.date.iloc[0])).days
+    cagr=None
+    if days>=365 and end>0:
+        exponent=math.log(end/START_CAPITAL)/(days/365.25)
+        cagr=math.expm1(exponent)*100 if exponent<700 else None
+    std=returns.std()
+    wins=sum(t["net"] for t in bt.closed_trades if t["net"]>0)
+    losses=-sum(t["net"] for t in bt.closed_trades if t["net"]<0)
+    return dict(final_value=end,return_pct=(end/START_CAPITAL-1)*100,cagr_pct=cagr,
+        max_drawdown_pct=float(((values-peaks)/peaks*100).min()),
+        sharpe=float(returns.mean()/std*math.sqrt(252)) if len(returns)>1 and math.isfinite(std) and std>1e-12 else None,
+        profit_factor=wins/losses if losses>0 else None,closed_trades=len(bt.closed_trades),
+        n_open=len(bt.positions),first_session=snapshots.date.iloc[0],last_session=snapshots.date.iloc[-1])
 
 
 def run_backtest():
-    print("=" * 60)
-    print(f"BACKTEST  {BACKTEST_START} -> {BACKTEST_END}")
-    print(f"Kapitaal: EUR{START_CAPITAL:,.0f} | Risico: {int(RISICO_PCT_PER_TRADE*100)}% | Slippage: {SLIPPAGE_PCT*100:.1f}%")
-    print("=" * 60)
+    tickers=sorted({t for path in bouw_bestandslijst() for t in load_tickers_from_file(path)})
+    if not tickers:raise RuntimeError("Geen tickerlijsten")
+    start=(pd.Timestamp(BACKTEST_START)-pd.Timedelta(days=730)).date().isoformat()
+    end=(pd.Timestamp(BACKTEST_END)+pd.Timedelta(days=1)).date().isoformat()
+    df=download_history(tickers,start=start,end=end)
+    summaries,trades,snapshots,strategy_rows,skipped=[],[],[],[],[]
+    for ticker in tickers:
+        g=clean_history(df.loc[df.Ticker==ticker]) if "Ticker" in df else pd.DataFrame()
+        if not g.empty:g=g.loc[g.Date<pd.Timestamp(today_str())]
+        if g.empty or len(g.loc[g.Date<pd.Timestamp(BACKTEST_START)])<200:
+            skipped.append(ticker);continue
+        bt=backtest_ticker(ticker,g)
+        stats=account_stats(bt)
+        if not stats:skipped.append(ticker);continue
+        summaries.append(dict(ticker=ticker,**stats))
+        trades.extend(bt.closed_trades)
+        snapshots.extend(dict(ticker=ticker,**row) for row in bt.daily_snapshots)
+        for strategy in STRAT_CONFIG:
+            closed=[r for r in bt.closed_trades if r["strategy"]==strategy]
+            strategy_rows.append(dict(ticker=ticker,strategy=strategy,trades=len(closed),net_closed=sum(r["net"] for r in closed)))
+    pd.DataFrame(summaries,columns=["ticker","final_value","return_pct","cagr_pct","max_drawdown_pct","sharpe","profit_factor","closed_trades","n_open","first_session","last_session"]).to_csv("backtest_summary_per_ticker.csv",index=False)
+    pd.DataFrame(trades,columns=["entry_date","exit_date","ticker","strategy","entry_price","exit_price","size","entry_cost","exit_cost","net","reason","days_open"]).to_csv("backtest_trades.csv",index=False)
+    pd.DataFrame(snapshots,columns=["ticker","date","cash","positions_value","total","n_positions"]).to_csv("backtest_portfolio.csv",index=False)
+    pd.DataFrame(strategy_rows,columns=["ticker","strategy","trades","net_closed"]).to_csv("backtest_strategy_per_ticker.csv",index=False)
+    print(f"Backtest: {len(summaries)} accounts | {len(skipped)} overgeslagen: {', '.join(skipped)}")
+    print("Elk account: 50.000 oorspronkelijke koerseenheden per ticker. Geen gezamenlijk EUR-portefeuillerendement. Geen belastingmodel. Kosten/slippage zijn modelaannames, geen uitvoeringsgarantie.")
+    if not summaries:raise RuntimeError("Geen bruikbare backtesthistorie")
 
-    all_tickers: List[str] = []
-    for f_name in bouw_bestandslijst():
-        all_tickers.extend(load_tickers_from_file(f_name))
-    all_tickers = sorted(set(all_tickers))
-    if not all_tickers:
-        for tlist in FALLBACK_TICKERS.values():
-            all_tickers.extend(tlist)
-        all_tickers = sorted(set(all_tickers))
-    print(f"Tickers: {len(all_tickers)}")
-
-    df = download_history(all_tickers, start=BACKTEST_START, end=BACKTEST_END)
-    if df.empty:
-        print("Geen data.")
-        return
-    # v2.1: common.download_history levert geen Next_Open; de oude download_history deed dat wel.
-    df["Next_Open"] = df.groupby("Ticker")["Open"].shift(-1)
-    df = add_indicators(df)
-    all_dates = sorted(df["Date"].dt.date.unique())
-    print(f"Handelsdagen: {len(all_dates)}")
-
-    bt = BacktestPortfolio(START_CAPITAL)
-
-    for date in all_dates:
-        day_df = df[df["Date"] == pd.Timestamp(date)].copy()
-
-        # Veilige prices dict — geen dict-comprehension met row["Ticker"]
-        prices: Dict[str, float] = {}
-        for _, row in day_df.iterrows():
-            t = row.get("Ticker")
-            c = safe_float(row.get("Close"))
-            if t and not math.isnan(c):
-                prices[t] = c
-
-        for p in bt.positions.values():
-            p.days_open += 1
-
-        for ticker, pos in list(bt.positions.items()):
-            if ticker not in prices:
-                continue
-            close = prices[ticker]
-            row_s = day_df[day_df["Ticker"] == ticker]
-            if row_s.empty:
-                continue
-            r    = row_s.iloc[0]
-            ma20 = safe_float(r.get("MA20"))
-            rsi  = safe_float(r.get("RSI14"))
-
-            reason: Optional[str] = None
-            if pos.sl is not None and close <= pos.sl:
-                reason = f"Stoploss ({pos.sl:.2f})"
-            elif pos.tp is not None and close >= pos.tp:
-                reason = f"Take Profit ({pos.tp:.2f})"
-            elif not math.isnan(ma20) and close < ma20 and pos.strategy in ("Traag", "Snel", "Hyper Trend"):
-                reason = "Trend exit MA20"
-            elif not math.isnan(rsi) and rsi > 70 and pos.strategy in ("MRA Snel", "MRA Traag", "Hyper Scalp"):
-                reason = f"RSI exit ({rsi:.1f})"
-            elif pos.days_open >= MAX_HOLD_DAYS:
-                reason = f"Time exit ({pos.days_open}d)"
-            if reason:
-                bt.close_position(ticker, date, close, reason)
-
-        for sig in generate_signals_for_day(day_df, date):
-            total = bt.current_total_value(prices)
-            cfg   = STRAT_CONFIG.get(sig.strategy, {"sl_mult": 2.0, "tp_mult": 3.0})
-            entry = (sig.next_open or sig.price) * (1 + SLIPPAGE_PCT)
-            n, _, _ = bereken_atr_positie(total, entry, sig.atr, cfg["sl_mult"])
-            if bt.can_open(prices, entry * n + trade_cost(entry * n)):
-                bt.open_position(sig, prices)
-
-        bt.snapshot(date, prices)
-
-    if bt.closed_trades:
-        pd.DataFrame(bt.closed_trades).to_csv("backtest_trades.csv", index=False)
-        print(f"Trades: backtest_trades.csv ({len(bt.closed_trades)})")
-    snap_df = pd.DataFrame(bt.daily_snapshots)
-    snap_df.to_csv("backtest_portfolio.csv", index=False)
-    _print_stats(bt, snap_df)
-
-
-def _print_stats(bt: BacktestPortfolio, snap_df: pd.DataFrame):
-    print("\n" + "=" * 60)
-    if snap_df.empty:
-        print("Geen data.")
-        return
-    start_val  = START_CAPITAL
-    end_val    = snap_df.iloc[-1]["total"]
-    years      = max((pd.to_datetime(snap_df.iloc[-1]["date"]) - pd.to_datetime(snap_df.iloc[0]["date"])).days / 365.25, 1e-6)
-    cagr       = ((end_val / start_val) ** (1 / years) - 1) * 100
-    snap_df    = snap_df.copy()
-    snap_df["peak"]      = snap_df["total"].cummax()
-    snap_df["drawdown"]  = (snap_df["total"] - snap_df["peak"]) / snap_df["peak"] * 100
-    snap_df["daily_ret"] = snap_df["total"].pct_change()
-    std_d  = snap_df["daily_ret"].std()
-    sharpe = (snap_df["daily_ret"].mean() / std_d * math.sqrt(252)) if std_d > 1e-9 else 0.0
-
-    print(f"Startkapitaal    : EUR{start_val:>12,.2f}")
-    print(f"Eindkapitaal     : EUR{end_val:>12,.2f}")
-    print(f"Totaal rendement : {(end_val-start_val)/start_val*100:>+.1f}%")
-    print(f"CAGR             : {cagr:>+.1f}%")
-    print(f"Max Drawdown     : {snap_df['drawdown'].min():>.1f}%")
-    print(f"Sharpe Ratio     : {sharpe:>.2f}")
-
-    if bt.closed_trades:
-        tdf  = pd.DataFrame(bt.closed_trades)
-        n    = len(tdf)
-        nwin = (tdf["net"] > 0).sum()
-        pf   = abs(tdf.loc[tdf["net"]>0,"net"].sum()) / max(abs(tdf.loc[tdf["net"]<=0,"net"].sum()), 1e-9)
-        print(f"\nTrades: {n} | Winnaars: {nwin} ({nwin/n*100:.1f}%) | PF: {pf:.2f}")
-        print(f"Gem. winst: EUR{tdf.loc[tdf['net']>0,'net'].mean() if nwin else 0:+.2f} | "
-              f"Gem. verlies: EUR{tdf.loc[tdf['net']<=0,'net'].mean() if (n-nwin) else 0:+.2f}")
-        print(f"Belasting: EUR{tdf['tax'].sum():,.2f} | Gem. houdduur: {tdf['days_open'].mean():.1f}d")
-
-        print(f"\n{'Strategie':<15} {'#':>4} {'Win%':>6} {'Net':>10} {'Avg':>9}")
-        for s, g in tdf.groupby("strategy"):
-            wr = (g["net"]>0).sum()/len(g)*100
-            print(f"{s:<15} {len(g):>4} {wr:>5.1f}% {g['net'].sum():>+10.2f} {g['net'].mean():>+9.2f}")
-    print("=" * 60)
-
-# ============================================================
-# ENTRYPOINT
-# ============================================================
 
 if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
-    if mode == "backtest":
-        run_backtest()
-    elif mode == "apply":
-        p = LivePortfolio(START_CAPITAL)
-        apply_telegram_commands(p, "commands.txt")
-        p.save_state(today_str(), {})
-    else:
-        run_live_engine()
+    mode=sys.argv[1].lower() if len(sys.argv)>1 else "live"
+    if mode=="live":run_live_engine()
+    elif mode=="backtest":run_backtest()
+    elif mode=="apply":apply_telegram_commands(LivePortfolio(START_CAPITAL),"commands.txt")
+    else:sys.exit("Gebruik: python bot_00xxxV2.py [live|backtest|apply]")

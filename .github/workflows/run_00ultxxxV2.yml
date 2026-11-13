@@ -1,9 +1,12 @@
-name: "Bot 00: FULL Scanner (041-060) xxx V2"
+name: "Bot 00: FULL Scanner (041-059) xxx V2"
 
 on:
   workflow_dispatch:
   schedule:
     - cron: '30 20 * * 1-5'
+
+permissions:
+  contents: read
 
 jobs:
   run_global:
@@ -20,15 +23,31 @@ jobs:
       - name: Python instellen
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
-          cache: 'pip'
+          python-version: '3.11'
 
       - name: Bibliotheken installeren
         run: |
-          pip install yfinance pandas requests python-dotenv numpy
+          pip install yfinance pandas requests python-dotenv numpy psycopg2-binary
 
       - name: Voer Triplex Bot uit
         env:
+          PYTHONUNBUFFERED: "1"
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python bot_00xxxV2.py
+        run: python bot_00xxxV2.py live
+
+
+      - name: Bewaar scanresultaten
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xxxV2-signals
+          path: |
+            xxxV2_scan.json
+            xxxV2_signalen_*.csv
+          retention-days: 7
+          if-no-files-found: warn
