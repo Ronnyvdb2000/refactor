@@ -293,8 +293,13 @@ def run_backtest():
     if hist.empty: return
 
     dataset = build_dataset(hist)
-    dataset = dataset[dataset["Date"] >= pd.Timestamp(BACKTEST_START) - pd.Timedelta(days=XGB_CFG["is_window"] * 2)]
-    if dataset.empty: return
+    dataset = dataset[
+        (dataset["Date"] >= pd.Timestamp(BACKTEST_START) - pd.Timedelta(days=XGB_CFG["is_window"] * 2))
+        & (dataset["Date"] <= pd.Timestamp(BACKTEST_END))
+    ]
+    if dataset.empty:
+        print("[WARN] Geen data binnen de backtestperiode.")
+        return
 
     alle_datums = sorted(dataset["Date"].unique())
     is_window, rescan_days, horizon = XGB_CFG["is_window"], XGB_CFG["rescan_days"], XGB_CFG["horizon_days"]
@@ -375,7 +380,9 @@ def run_backtest():
     print(f"Eindkapitaal:  EUR {kapitaal:,.2f}")
     print(f"Rendement:     {(kapitaal-FX_START_CAPITAL)/FX_START_CAPITAL*100:+.1f}%")
     if fold_metrics:
-        print(f"Gem. out-of-sample AUC: {np.mean([f['auc'] for f in fold_metrics]):.3f}")
+        # Deze validatieset is ook voor early stopping gebruikt: dit is
+        # geen onafhankelijke out-of-sample score.
+        print(f"Gem. validatie-AUC (early stopping): {np.mean([f['auc'] for f in fold_metrics]):.3f}")
 
 def run_live_engine():
     print(f"{'='*60}\nXGBOOSTMETA (FOREX) — LIVE  {today_str()}\n{'='*60}")
