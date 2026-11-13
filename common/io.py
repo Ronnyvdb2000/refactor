@@ -7,6 +7,7 @@ from __future__ import annotations
 import os
 import time
 from typing import List, Optional
+import numpy as np
 import pandas as pd
 import yfinance as yf
 
@@ -68,15 +69,35 @@ def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
     df = df_raw.copy().dropna(how="all")
     if df.empty:
         return None
-    if df.index.name in ("Date", "Datetime") or isinstance(df.index, pd.DatetimeIndex):
+    if isinstance(df.columns, pd.MultiIndex):
+        # Ook de per-ticker download kan MultiIndex-kolommen teruggeven.
+        for level in range(df.columns.nlevels):
+            if "Close" in df.columns.get_level_values(level):
+                df.columns = df.columns.get_level_values(level)
+                break
+    df = df.loc[:, ~df.columns.duplicated()]
+    if "Date" not in df.columns and "Datetime" not in df.columns and (
+        df.index.name in ("Date", "Datetime") or isinstance(df.index, pd.DatetimeIndex)
+    ):
+        df.index.name = "Date"
         df = df.reset_index()
-    if "Date" in df.columns:
-        df = df.loc[:, ~df.columns.duplicated()]
     if "Datetime" in df.columns and "Date" not in df.columns:
         df = df.rename(columns={"Datetime": "Date"})
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    if "Close" not in df.columns:
+    if "Close" not in df.columns or "Date" not in df.columns:
+        return None
+
+    df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+    if df["Date"].dt.tz is not None:
+        # Behoud de handelsdatum; converteer lokale middernacht niet naar UTC.
+        df["Date"] = df["Date"].dt.tz_localize(None)
+    for col in ("Open", "High", "Low", "Close", "Adj Close", "Volume"):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    # Batchdownloads delen een kalender. Een ontbrekende slotkoers mag nooit
+    # als de laatste koers van een ticker bij de indicatoren terechtkomen.
+    valid = df["Date"].notna() & df["Close"].notna() & (df["Close"] > 0)
+    df = df.loc[valid].sort_values("Date").drop_duplicates("Date", keep="last").copy()
+    if df.empty:
         return None
     df["Ticker"] = ticker
     return df
@@ -126,10 +147,14 @@ def download_history(tickers: List[str], period: str = "2y",
             if norm is not None:
                 frames.append(norm)
 
-    if not frames:
-        for t in tickers:
+    # Herstel ook een gedeeltelijk geslaagde batch, niet alleen totaal falen.
+    loaded = {frame["Ticker"].iloc[0] for frame in frames}
+    missing = sorted(set(tickers) - loaded)
+    if missing:
+        print(f"[INFO] {len(missing)} tickers zonder bruikbare batchdata; probeer afzonderlijk.")
+        for t in missing:
             try:
-                kw = dict(tickers=t, auto_adjust=auto_adjust, progress=False)
+                kw = dict(tickers=t, auto_adjust=auto_adjust, progress=False, threads=False)
                 if start and end:
                     kw.update({"start": start, "end": end})
                 else:
@@ -137,8 +162,6 @@ def download_history(tickers: List[str], period: str = "2y",
                 raw = yf.download(**kw)
                 if raw is None or (isinstance(raw, pd.DataFrame) and raw.empty):
                     continue
-                if isinstance(raw, pd.DataFrame) and isinstance(raw.columns, pd.MultiIndex):
-                    raw.columns = raw.columns.get_level_values(0)
                 norm = _normalise(raw, t)
                 if norm is not None:
                     frames.append(norm)
@@ -146,6 +169,10 @@ def download_history(tickers: List[str], period: str = "2y",
             except Exception as e:
                 print(f"[WARN] {t}: mislukt ({e})")
 
+    loaded = {frame["Ticker"].iloc[0] for frame in frames}
+    missing = sorted(set(tickers) - loaded)
+    if missing:
+        print(f"[WARN] Geen bruikbare koersdata voor {len(missing)} tickers: {', '.join(missing)}")
     if not frames:
         return pd.DataFrame()
     df = pd.concat(frames, ignore_index=True)
@@ -154,3 +181,4 @@ def download_history(tickers: List[str], period: str = "2y",
     df.sort_values(["Ticker", "Date"], inplace=True)
     df.reset_index(drop=True, inplace=True)
     return df
+

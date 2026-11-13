@@ -10,7 +10,7 @@ Backtest-functionaliteit is volledig behouden.
 
 import sys
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import List, Dict, Optional, Tuple
 
 import numpy as np
@@ -66,10 +66,27 @@ BACKTEST_END   = today_str()
 # INDICATOREN
 # ============================================================
 
+def _clean_prices(g: pd.DataFrame, required=("Close",)) -> pd.DataFrame:
+    """Sorteer echte handelsrijen; vul ontbrekende koersen nooit vooruit in."""
+    g = g.copy()
+    g["Date"] = pd.to_datetime(g["Date"], errors="coerce")
+    for col in ("Open", "High", "Low", "Close", "Volume"):
+        if col in g.columns:
+            g[col] = pd.to_numeric(g[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    g = g.dropna(subset=["Date", *required])
+    price_cols = [col for col in required if col != "Volume"]
+    g = g.loc[(g[price_cols] > 0).all(axis=1)]
+    if "Volume" in required:
+        g = g.loc[g["Volume"] >= 0]
+    return g.sort_values("Date").drop_duplicates("Date", keep="last").reset_index(drop=True)
+
+
 def add_indicators(df: pd.DataFrame, universe_rs: Dict[str, float]) -> pd.DataFrame:
     parts = []
     for ticker, group in df.groupby("Ticker", sort=False):
-        g     = group.copy()
+        g     = _clean_prices(group, ("Close", "High", "Low", "Volume"))
+        if g.empty:
+            continue
         close = g["Close"]
         high  = g["High"]
         low   = g["Low"]
@@ -84,25 +101,25 @@ def add_indicators(df: pd.DataFrame, universe_rs: Dict[str, float]) -> pd.DataFr
         g["VolMA20"] = vol.rolling(20).mean()
         g["High52w"] = close.rolling(252).max()
         g["Low52w"]  = close.rolling(252).min()
-        g["RS"]      = universe_rs.get(ticker, 50.0)
+        g["RS"]      = universe_rs.get(ticker, np.nan)
         g["Ticker"]  = ticker
         parts.append(g)
 
     if not parts:
-        return df
+        return df.iloc[:0].copy()
     return pd.concat(parts).sort_values(["Ticker", "Date"]).reset_index(drop=True)
 
 def compute_rs_ratings(df: pd.DataFrame) -> Dict[str, float]:
     rs_map: Dict[str, float] = {}
     perf:   Dict[str, float] = {}
     for ticker, group in df.groupby("Ticker", sort=False):
-        g = group.sort_values("Date")
+        g = _clean_prices(group)
         if len(g) < 252:
             continue
         c_now = safe_float(g["Close"].iloc[-1])
         c_3m  = safe_float(g["Close"].iloc[-63])
         c_12m = safe_float(g["Close"].iloc[-252])
-        if math.isnan(c_now) or math.isnan(c_12m) or c_12m <= 0 or c_3m <= 0:
+        if not all(math.isfinite(value) and value > 0 for value in (c_now, c_3m, c_12m)):
             continue
         perf[ticker] = 0.4 * (c_now - c_3m) / c_3m + 0.6 * (c_now - c_12m) / c_12m
 
@@ -264,13 +281,13 @@ class SEPASignaal:
 
 def analyse_ticker(ticker: str, g: pd.DataFrame) -> Optional[SEPASignaal]:
     try:
-        g = g.sort_values("Date").copy()
+        g = _clean_prices(g)
         if len(g) < MS_CFG["ma_slow"] + 10:
             return None
 
         last = g.iloc[-1]
         current_price = safe_float(last.get("Close"))
-        if current_price <= 0 or math.isnan(current_price):
+        if current_price <= 0 or not math.isfinite(current_price):
             return None
 
         trend_passed, trend_details = check_trend_template(last)
@@ -362,6 +379,7 @@ def run_live_engine():
     for f_name in bouw_bestandslijst():
         tlist = load_tickers_from_file(f_name)
         if not tlist:
+            print(f"Bestand {f_name} niet gevonden of leeg, overslaan.")
             continue
         ex_name = label_voor(f_name)
         exchange_tickers[ex_name] = tlist
@@ -370,32 +388,48 @@ def run_live_engine():
 
     all_tickers = sorted(set(all_tickers))
     if not all_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
-        return
+        raise RuntimeError("Geen ticker bestanden gevonden.")
 
     print(f"\nTotaal: {len(all_tickers)} unieke tickers")
     print("Data downloaden (2 jaar)...")
     df = download_history(all_tickers, period="2y")
     if df.empty:
-        print("[ERROR] Geen data.")
-        return
+        raise RuntimeError("Geen bruikbare koersdata gedownload.")
 
     print(f"Data geladen: {df['Ticker'].nunique()} tickers")
     print("RS ratings berekenen...")
     rs_ratings = compute_rs_ratings(df)
     print(f"RS ratings: {len(rs_ratings)} tickers")
+    if not rs_ratings:
+        raise RuntimeError("Geen RS ratings berekend; controleer de koershistorie.")
+    no_rs = sorted(set(df["Ticker"]) - set(rs_ratings))
+    if no_rs:
+        print(f"[WARN] Geen RS rating voor {len(no_rs)} tickers (minimaal 252 geldige slotkoersen): {', '.join(no_rs)}")
     print("Indicatoren berekenen...")
     df = add_indicators(df, rs_ratings)
 
     portfolio_waarde = START_CAPITAL
     email_delen: List[str] = []
+    csv_rows: List[Dict] = []
+    total_analysed = 0
 
     for ex_name, tlist in exchange_tickers.items():
         print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
         df_ex = df[df["Ticker"].isin(tlist)].copy()
+        missing = sorted(set(tlist) - set(df_ex["Ticker"]))
+        if missing:
+            print(f"  → Geen bruikbare OHLCV-data ({len(missing)}): {', '.join(missing)}")
 
         signalen: List[SEPASignaal] = []
+        analysed = 0
+        insufficient = 0
         for ticker, group in df_ex.groupby("Ticker", sort=False):
+            required = ["Close", "MA50", "MA150", "MA200", "MA200_slope", "High52w", "Low52w", "ATR14", "VolMA20", "RS"]
+            if len(group) < 252 or not all(math.isfinite(safe_float(group.iloc[-1].get(col))) for col in required):
+                insufficient += 1
+                print(f"[WARN] {ticker}: onvoldoende koers-, indicator- of RS-data")
+                continue
+            analysed += 1
             sig = analyse_ticker(ticker, group)
             if sig:
                 signalen.append(sig)
@@ -403,8 +437,11 @@ def run_live_engine():
 
         signalen.sort(key=lambda s: s.total_score, reverse=True)
         print(f"  → {len(signalen)} SEPA kandidaten")
+        total_analysed += analysed
+        print(f"  → {analysed} beoordeeld | {analysed - len(signalen)} voldoen niet aan SEPA | {insufficient} onvoldoende data | {len(missing)} zonder koersdata")
 
         for s in signalen:
+            csv_rows.append({"datum": today_str(), "beurs": ex_name, **asdict(s)})
             log_selectie(
                 ticker=s.ticker, datum=today_str(), strategie="bot_00ms",
                 beurs=ex_name, koers=s.price,
@@ -418,14 +455,21 @@ def run_live_engine():
 
         bericht = format_bericht(ex_name, signalen, portfolio_waarde)
         if bericht:
-            send_telegram(bericht, parse_mode="Markdown")
+            delivered = send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
-            print(f"  → Telegram verstuurd")
+            print("  → Telegram verstuurd" if delivered else "  → [WARN] Telegram niet verstuurd; controleer secrets en verzendfouten")
         else:
-            print(f"  → Overgeslagen: {ex_name}")
+            print(f"  → Geen kandidaten voor bericht: {ex_name}")
 
+    csv_path = f"ms_signalen_{today_str()}.csv"
+    columns = ["datum", "beurs", *SEPASignaal.__dataclass_fields__]
+    pd.DataFrame(csv_rows, columns=columns).to_csv(csv_path, index=False)
+    print(f"Opgeslagen: {csv_path} ({len(csv_rows)} signalen)")
+    if total_analysed == 0:
+        raise RuntimeError("Geen enkele ticker kon worden beoordeeld; controleer de koersdata.")
     if email_delen:
-        send_email(subject=f"Minervini SEPA rapport {today_str()}", body="\n\n" + ("=" * 40 + "\n\n").join(email_delen))
+        delivered = send_email(subject=f"Minervini SEPA rapport {today_str()}", body="\n\n" + ("=" * 40 + "\n\n").join(email_delen))
+        print("E-mail verstuurd" if delivered else "[WARN] E-mail niet verstuurd; controleer secrets en verzendfouten")
 
     print(f"\n{'='*60}")
     print("Klaar.")
@@ -570,3 +614,4 @@ if __name__ == "__main__":
         run_backtest()
     else:
         run_live_engine()
+

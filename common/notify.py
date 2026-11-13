@@ -31,11 +31,11 @@ def send_telegram(text: str, *, parse_mode: str | None = "Markdown",
         payload["parse_mode"] = parse_mode
     try:
         r = requests.post(url, json=payload, timeout=15)
-        if r.status_code != 200:
+        if r.status_code != 200 or not r.json().get("ok", False):
             # Fallback zonder opmaak bij parse-fout
             payload.pop("parse_mode", None)
-            requests.post(url, json=payload, timeout=15)
-            return False
+            retry = requests.post(url, json=payload, timeout=15)
+            return retry.status_code == 200 and bool(retry.json().get("ok", False))
         return True
     except Exception as e:
         print(f"[WARN] Telegram: {e}")
@@ -71,3 +71,4 @@ def send_email(subject: str, body: str, *, html_body: bool = False,
     except Exception as e:
         print(f"[WARN] Email: {e}")
         return False
+

@@ -10,10 +10,11 @@ Backtest-functionaliteit is volledig behouden.
 
 import sys
 import math
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import List, Dict, Optional, Tuple
 
 import pandas as pd
+import numpy as np
 
 from common import (
     today_str, safe_float, yahoo_link, esc,
@@ -87,10 +88,25 @@ class KSSignaal:
     tp_pct: float
 
 
-def analyse_ticker(ticker: str, g: pd.DataFrame, include_current_dividend: bool = True) -> Optional[KSSignaal]:
+def analyse_ticker(ticker: str, g: pd.DataFrame, include_current_dividend: bool = True,
+                   report_skips: bool = False) -> Optional[KSSignaal]:
     try:
-        g = g.sort_values("Date").copy()
+        required = ["Date", "Close", "High", "Low"]
+        missing = [col for col in required if col not in g.columns]
+        if missing:
+            if report_skips:
+                print(f"[WARN] {ticker}: overgeslagen, ontbrekende kolommen: {', '.join(missing)}")
+            return None
+        g = g.copy()
+        g["Date"] = pd.to_datetime(g["Date"], errors="coerce")
+        for col in ("Close", "High", "Low"):
+            g[col] = pd.to_numeric(g[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
+        g = g.dropna(subset=required)
+        g = g.loc[(g[["Close", "High", "Low"]] > 0).all(axis=1)]
+        g = g.sort_values("Date").drop_duplicates("Date", keep="last").reset_index(drop=True)
         if len(g) < 60:
+            if report_skips:
+                print(f"[WARN] {ticker}: overgeslagen, {len(g)} geldige koersrijen (minimaal 60)")
             return None
 
         close = g["Close"]
@@ -98,12 +114,12 @@ def analyse_ticker(ticker: str, g: pd.DataFrame, include_current_dividend: bool 
         low = g["Low"]
 
         current_price = safe_float(close.iloc[-1])
-        if current_price <= 0 or math.isnan(current_price):
+        if current_price <= 0 or not math.isfinite(current_price):
             return None
 
         atr_s = compute_atr_series(high, low, close, KS_CFG["atr_period"])
         atr_val = safe_float(atr_s.iloc[-1])
-        if math.isnan(atr_val) or atr_val <= 0:
+        if not math.isfinite(atr_val) or atr_val <= 0:
             atr_val = current_price * 0.02
 
         score = 0
@@ -300,27 +316,30 @@ def run_live_engine():
 
     all_tickers = sorted(set(all_tickers))
     if not all_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
-        return
+        raise RuntimeError("Geen ticker bestanden gevonden.")
 
     print(f"\nTotaal: {len(all_tickers)} unieke tickers")
     print("Data downloaden (3 jaar)...")
     df = download_history(all_tickers, period="3y")
     if df.empty:
-        print("[ERROR] Geen data.")
-        return
+        raise RuntimeError("Geen bruikbare koersdata gedownload.")
 
     print(f"Data geladen: {df['Ticker'].nunique()} tickers, {len(df)} rijen")
     portfolio_waarde = START_CAPITAL
     email_delen: List[str] = []
+    csv_rows: List[Dict] = []
+    total_analysed = 0
 
     for ex_name, tlist in exchange_tickers.items():
         print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
         df_ex = df[df["Ticker"].isin(tlist)].copy()
+        missing = sorted(set(tlist) - set(df_ex["Ticker"]))
+        if missing:
+            print(f"  → Geen koersdata ({len(missing)}): {', '.join(missing)}")
 
         alle: List[KSSignaal] = []
         for ticker, group in df_ex.groupby("Ticker", sort=False):
-            sig = analyse_ticker(ticker, group)
+            sig = analyse_ticker(ticker, group, report_skips=True)
             if sig is not None:
                 alle.append(sig)
                 if sig.score >= KS_CFG["min_score"]:
@@ -331,8 +350,11 @@ def run_live_engine():
         alle.sort(key=lambda s: (s.score * 10 + s.rr_pct), reverse=True)
 
         print(f"  → {len(signalen)} kandidaten (score >= {KS_CFG['min_score']}) | top-2 uit {len(alle)} geanalyseerd")
+        total_analysed += len(alle)
+        print(f"  → {len(tlist) - len(alle)} tickers niet geanalyseerd")
 
         for s in signalen:
+            csv_rows.append({"datum": today_str(), "beurs": ex_name, **asdict(s)})
             log_selectie(
                 ticker=s.ticker,
                 datum=today_str(),
@@ -356,17 +378,29 @@ def run_live_engine():
 
         bericht = format_bericht(ex_name, signalen, alle, portfolio_waarde)
         if bericht:
-            send_telegram(bericht, parse_mode="Markdown")
+            delivered = send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
-            print(f"  → Telegram verstuurd")
+            if delivered:
+                print("  → Telegram verstuurd")
+            else:
+                print("  → [WARN] Telegram niet verstuurd; controleer secrets en verzendfouten")
         else:
             print(f"  → Overgeslagen: {ex_name}")
 
+    # Eén dagsnapshot, ook met alleen kolomkoppen als er geen kandidaten zijn.
+    csv_path = f"ks_signalen_{today_str()}.csv"
+    columns = ["datum", "beurs", *KSSignaal.__dataclass_fields__]
+    pd.DataFrame(csv_rows, columns=columns).to_csv(csv_path, index=False)
+    print(f"Opgeslagen: {csv_path} ({len(csv_rows)} signalen)")
+    if total_analysed == 0:
+        raise RuntimeError("Geen enkele ticker kon worden geanalyseerd; controleer de koersdata.")
+
     if email_delen:
-        send_email(
+        delivered = send_email(
             f"Kritische Selectie rapport {today_str()}",
             "\n\n" + ("=" * 40 + "\n\n").join(email_delen),
         )
+        print("E-mail verstuurd" if delivered else "[WARN] E-mail niet verstuurd; controleer secrets en verzendfouten")
 
     print(f"\n{'='*60}")
     print("Klaar.")
@@ -531,3 +565,4 @@ if __name__ == "__main__":
         run_backtest()
     else:
         run_live_engine()
+
