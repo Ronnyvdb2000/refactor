@@ -13,7 +13,7 @@ RISICO_PCT_DEFAULT = 0.05
 
 def trade_cost(amount: float) -> float:
     """Totale transactiekost voor een bepaald bedrag."""
-    return TRADE_COST_FIXED + amount * TRADE_COST_PCT
+    return max(TRADE_COST_FIXED, amount * TRADE_COST_PCT) if amount > 0 else 0.0
 
 
 def bereken_positie(portfolio_waarde: float, entry_prijs: float,
