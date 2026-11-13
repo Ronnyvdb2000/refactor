@@ -103,25 +103,43 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
                 e_bt, v_bt, v_ma_bt = e200.iloc[-252:], vol.iloc[-252:], v_ma.iloc[-252:]
                 atr_bt, adx_bt = atr.iloc[-252:], adx.iloc[-252:]
                 
-                profit, pos, instap, high_p, sl_val = 0, False, 0, 0, 0
-                kosten = trade_cost(inzet)
-
+                profit, pos, instap, high_p, sl_val = 0.0, False, 0.0, 0.0, 0.0
+                # Signals use the previous completed candle; orders execute
+                # at the next session's open, never at the signal close.
+                opens = t_data['Open'].reindex(p_bt.index)
                 for i in range(1, len(p_bt)):
-                    cp_i = p_bt.iloc[i]
+                    j = i - 1
+                    fill = safe_float(opens.iloc[i])
+                    if not np.isfinite(fill) or fill <= 0:
+                        continue
                     if not pos:
-                        if f_bt.iloc[i] > s_bt.iloc[i] and f_bt.iloc[i-1] <= s_bt.iloc[i-1]:
-                            if adx_bt.iloc[i] > 15 and v_bt.iloc[i] > (v_ma_bt.iloc[i] * 0.6):
-                                if not use_tr or cp_i > e_bt.iloc[i]:
-                                    instap, high_p, sl_val, pos = cp_i, cp_i, cp_i - (2 * atr_bt.iloc[i]), True
-                                    profit -= kosten
-                                    num_trades[strat_key] += 1
+                        crossed = f_bt.iloc[j] > s_bt.iloc[j] and f_bt.iloc[j-1] <= s_bt.iloc[j-1] if j >= 1 else False
+                        if crossed and adx_bt.iloc[j] > 15 and v_bt.iloc[j] > v_ma_bt.iloc[j] * 0.6:
+                            if not use_tr or p_bt.iloc[j] > e_bt.iloc[j]:
+                                instap, high_p = fill, fill
+                                sl_val = fill - 2 * atr_bt.iloc[j]
+                                if not np.isfinite(sl_val):
+                                    continue
+                                pos = True
+                                profit -= trade_cost(inzet)
+                                num_trades[strat_key] += 1
                     else:
-                        high_p = max(high_p, cp_i)
-                        sl_val = max(sl_val, high_p - (2 * atr_bt.iloc[i]))
-                        if cp_i < sl_val or f_bt.iloc[i] < s_bt.iloc[i]:
-                            profit += (inzet * (cp_i / instap) - inzet) - kosten
+                        # Yesterday's closing stop/trend condition determines
+                        # today's open exit; no intraday stop fill is assumed.
+                        should_exit = p_bt.iloc[j] < sl_val or f_bt.iloc[j] < s_bt.iloc[j]
+                        if should_exit:
+                            gross = inzet * fill / instap
+                            profit += gross - inzet - trade_cost(gross)
                             pos = False
-                
+                        else:
+                            high_p = max(high_p, p_bt.iloc[j])
+                            if np.isfinite(atr_bt.iloc[j]):
+                                sl_val = max(sl_val, high_p - 2 * atr_bt.iloc[j])
+
+                # Include unrealized P/L of a still-open trade at the last close.
+                if pos and instap > 0:
+                    profit += inzet * (p_bt.iloc[-1] / instap - 1)
+
                 res[strat_key] += profit
 
                 cp, catr, crsi = p.iloc[-1], atr.iloc[-1], rsi.iloc[-1]
@@ -141,10 +159,11 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
     def get_s(lst): return "\n".join(lst) if lst else "Geen actie"
     rapport_lijst = [
         f"📊 *{label} {naam_sector} RAPPORT mail*", f"_{nu}_", "----------------------------------",
-        f"🐢 *Traag (50/200):* €{100000 + res['T']:,.0f} ({num_trades['T']} trades)",
-        f"⚡ *Snel (20/50):* €{100000 + res['S']:,.0f} ({num_trades['S']} trades)",
-        f"🚀 *Hyper Trend:* €{100000 + res['HT']:,.0f} ({num_trades['HT']} trades)",
-        f"🔥 *Hyper Scalp:* €{100000 + res['HS']:,.0f} ({num_trades['HS']} trades)",
+        f"🐢 *Traag (50/200) P/L:* €{res['T']:+,.0f} ({num_trades['T']} entries)",
+        f"⚡ *Snel (20/50) P/L:* €{res['S']:+,.0f} ({num_trades['S']} entries)",
+        f"🚀 *Hyper Trend P/L:* €{res['HT']:+,.0f} ({num_trades['HT']} entries)",
+        f"🔥 *Hyper Scalp P/L:* €{res['HS']:+,.0f} ({num_trades['HS']} entries)",
+        "_P/L = som van afzonderlijke €2.500-posities; geen portefeuillewaarde. Open posities tegen laatste slotkoers gewaardeerd._",
         "", "🛡️ *SIGNALEN TRAAG (RSI):*", get_s(sig["T"]),
         "", "🎯 *SIGNALEN SNEL (RSI):*", get_s(sig["S"]),
         "", "📈 *SIGNALEN HYPER TREND (CRSI):*", get_s(sig["HT"]),
