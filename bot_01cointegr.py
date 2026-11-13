@@ -476,7 +476,10 @@ def run_backtest():
         if i < start_idx:
             continue
 
-        data_till = pivot.iloc[:i + 1]
+        # Signalen en pairselectie uitsluitend met gegevens tot de vorige
+        # handelsdag. Uitvoering gebeurt pas tegen de huidige slotkoers.
+        # Zo wordt niet op dezelfde slotkoers gehandeld die het signaal vormde.
+        signal_data = pivot.iloc[:i]
         current_prices = pivot.iloc[i]
 
         # --- Exits (goedkope z-score-check, geen coint-hertest) ---
@@ -484,7 +487,7 @@ def run_backtest():
             a, b = pair_key.split('/')
             if a not in current_prices or b not in current_prices:
                 continue
-            z_info = snel_zscore(a, b, data_till)
+            z_info = snel_zscore(a, b, signal_data)
             z = z_info[0] if z_info is not None else None
             # De maximale houdperiode geldt ook wanneer de z-score
             # tijdelijk niet berekend kan worden.
@@ -528,9 +531,9 @@ def run_backtest():
             else:
                 positions[pair_key]['days'] += 1
 
-        # --- Walk-forward herselectie: enkel met data tot nu (in-sample venster) ---
+        # --- Walk-forward herselectie: alleen data tot gisteren ---
         if i - laatste_selectie_idx >= RESCAN_DAYS:
-            is_data = data_till.tail(IS_WINDOW)
+            is_data = signal_data.tail(IS_WINDOW)
             totaal_paren = 0
             for ex_name, tlist in exchange_tickers.items():
                 geselecteerd = selecteer_gecointegreerde_paren(tlist, is_data)
@@ -555,7 +558,7 @@ def run_backtest():
                             or current_prices[a] <= 0 or current_prices[b] <= 0):
                         continue
 
-                    z_info = snel_zscore(a, b, data_till)
+                    z_info = snel_zscore(a, b, signal_data)
                     if z_info is None:
                         continue
                     z = z_info[0]
