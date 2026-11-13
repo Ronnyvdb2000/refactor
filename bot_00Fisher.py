@@ -110,7 +110,9 @@ def analyse_ticker(ticker: str, cfg: dict) -> Optional[FisherSignaal]:
         except Exception:
             inc = None
         rev_row = _row(inc, ["Total Revenue"]) if inc is not None else None
-        if rev_row is not None and len(rev_row) >= 2:
+        if rev_row is not None and len(rev_row.dropna()) >= 2:
+            # Yahoo levert verslagjaren niet altijd in dezelfde volgorde.
+            rev_row = rev_row.dropna().sort_index(ascending=False)
             rev_nu, rev_vorig = safe_float(rev_row.iloc[0]), safe_float(rev_row.iloc[1])
             if not math.isnan(rev_nu) and not math.isnan(rev_vorig) and rev_vorig > 0:
                 revenue_growth_pct = (rev_nu - rev_vorig) / rev_vorig * 100
@@ -127,7 +129,7 @@ def analyse_ticker(ticker: str, cfg: dict) -> Optional[FisherSignaal]:
             groei_label = "✗ onbekend (< 2 jaar resultatenrekening)"
 
         debt_to_equity = safe_float(info.get("debtToEquity"))
-        if not math.isnan(debt_to_equity) and debt_to_equity <= cfg["debt_equity_max"]:
+        if math.isfinite(debt_to_equity) and 0 <= debt_to_equity <= cfg["debt_equity_max"]:
             score += 1
             schuld_label = f"✓ D/E {debt_to_equity:.0f} (<= {cfg['debt_equity_max']:.0f})"
         else:
@@ -168,7 +170,7 @@ def format_bericht(exchange_name: str, signalen: List[FisherSignaal], alle: List
 
     nu = today_str()
     top_n = cfg["top_n"]
-    top_tonen = sorted(alle, key=lambda s: (s.score, -s.ps_ratio if s.ps_ratio > 0 else -999), reverse=True)[:top_n]
+    top_tonen = sorted(signalen, key=lambda s: (-s.score, s.ps_ratio if s.ps_ratio > 0 else float("inf")))[:top_n]
 
     def sig_regel(s: FisherSignaal, detail: bool = False) -> str:
         r = (
@@ -226,23 +228,22 @@ def run_live_engine():
         return
 
     email_delen: List[str] = []
-    reeds_verwerkt: set = set()
+    analyse_cache: Dict[str, Optional[FisherSignaal]] = {}
 
     for ex_name, tlist in exchange_tickers.items():
         print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
 
         alle: List[FisherSignaal] = []
         for ticker in tlist:
-            if ticker in reeds_verwerkt:
-                continue
-            reeds_verwerkt.add(ticker)
-            sig = analyse_ticker(ticker, cfg)
+            if ticker not in analyse_cache:
+                analyse_cache[ticker] = analyse_ticker(ticker, cfg)
+                time.sleep(cfg["throttle_sec"])
+            sig = analyse_cache[ticker]
             if sig is not None:
                 alle.append(sig)
-            time.sleep(cfg["throttle_sec"])
 
         kandidaten = [s for s in alle if s.score >= cfg["min_score"]]
-        kandidaten.sort(key=lambda s: (s.score, -s.ps_ratio if s.ps_ratio > 0 else -999), reverse=True)
+        kandidaten.sort(key=lambda s: (-s.score, s.ps_ratio if s.ps_ratio > 0 else float("inf")))
         signalen = kandidaten[:cfg["top_n"]]
 
         print(f"  → top {len(signalen)} van {len(kandidaten)} kandidaten (score >= {cfg['min_score']}) uit {len(alle)} geanalyseerd")
