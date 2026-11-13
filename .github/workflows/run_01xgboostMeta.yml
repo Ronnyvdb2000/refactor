@@ -58,7 +58,7 @@ jobs:
       - name: Installeer packages
         run: |
           python -m pip install --upgrade pip
-          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn
+          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn yfinance
       - name: Controleer of model aanwezig is
         run: |
           if [ ! -f model_xgboostmeta.json ] || [ ! -f model_xgboostmeta_meta.json ]; then
@@ -91,7 +91,7 @@ jobs:
       - name: Installeer packages
         run: |
           python -m pip install --upgrade pip
-          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn
+          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn yfinance
       - name: Run bot_01xgboostMeta (train)
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
@@ -127,7 +127,7 @@ jobs:
       - name: Installeer packages
         run: |
           python -m pip install --upgrade pip
-          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn
+          pip install pandas numpy requests psycopg2-binary xgboost scikit-learn yfinance
       - name: Run bot_01xgboostMeta (backtest)
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
