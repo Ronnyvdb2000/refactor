@@ -87,7 +87,7 @@ class KSSignaal:
     tp_pct: float
 
 
-def analyse_ticker(ticker: str, g: pd.DataFrame) -> Optional[KSSignaal]:
+def analyse_ticker(ticker: str, g: pd.DataFrame, include_current_dividend: bool = True) -> Optional[KSSignaal]:
     try:
         g = g.sort_values("Date").copy()
         if len(g) < 60:
@@ -186,15 +186,18 @@ def analyse_ticker(ticker: str, g: pd.DataFrame) -> Optional[KSSignaal]:
         # Dividend
         div_yield = 0.0
         div_label = "✗ geen dividend"
-        try:
-            import yfinance as yf
-            info = yf.Ticker(ticker).info
-            div_yield = (info.get("dividendYield") or 0.0) * 100
-            if div_yield > 0:
-                score += 1
-                div_label = f"✓ {div_yield:.2f}%"
-        except Exception:
-            pass
+        if include_current_dividend:
+            try:
+                import yfinance as yf
+                info = yf.Ticker(ticker).info
+                div_yield = safe_float(info.get("dividendYield"), 0.0) * 100
+                if math.isfinite(div_yield) and div_yield > 0:
+                    score += 1
+                    div_label = f"✓ {div_yield:.2f}%"
+            except Exception:
+                pass
+        else:
+            div_label = "✗ dividend niet historisch beschikbaar"
 
         return KSSignaal(
             ticker=ticker, price=round(current_price, 2), score=score,
@@ -225,11 +228,11 @@ def format_bericht(
     alle: List[KSSignaal],
     portfolio_waarde: float,
 ) -> Optional[str]:
-    if not alle:
+    if not signalen:
         return None
 
     nu = today_str()
-    top2 = sorted(alle, key=lambda s: (s.score * 10 + s.rr_pct), reverse=True)[:2]
+    top2 = sorted(signalen, key=lambda s: (s.score, s.rr_pct), reverse=True)[:2]
     max_sc = max((s.score for s in signalen), default=0) if signalen else 0
     toon = [s for s in signalen if s.score == max_sc] if signalen else []
     lbl = {5: "⭐ PERFECTE SCORE (5/5)", 4: "🟡 STERK (4/5)",
@@ -411,7 +414,9 @@ def run_backtest():
     positions: Dict[str, BTPosition] = {}
     trades:    List[Dict]      = []
     
-    scan_dates = [d for d in all_dates if d.weekday() == 0]
+    start_date = pd.Timestamp(BACKTEST_START).date()
+    end_date = pd.Timestamp(BACKTEST_END).date()
+    scan_dates = [d for d in all_dates if start_date <= d <= end_date and d.weekday() == 0]
     print(f"Scanmomenten: {len(scan_dates)} (wekelijks maandag)")
 
     for scan_date in scan_dates:
@@ -426,7 +431,7 @@ def run_backtest():
                 price_map[t] = c
 
         for ticker, pos in list(positions.items()):
-            pos.days += 1
+            pos.days = (pd.Timestamp(scan_date) - pos.entry_date).days
             if ticker not in price_map:
                 continue
             close  = price_map[ticker]
@@ -464,7 +469,8 @@ def run_backtest():
         for ticker, group in df_hist.groupby("Ticker", sort=False):
             if ticker in positions or len(positions) >= MAX_POSITIONS:
                 continue
-            sig = analyse_ticker(ticker, group)
+            # Never use today's Yahoo dividend yield in a historical scan.
+            sig = analyse_ticker(ticker, group, include_current_dividend=False)
             if not sig or sig.score < KS_CFG["min_score"]:
                 continue
             
@@ -476,7 +482,9 @@ def run_backtest():
             
             if aandelen <= 0:
                 continue
-            investering = entry * aandelen + trade_cost(entry * aandelen)
+            notional = entry * aandelen
+            entry_fee = trade_cost(notional)
+            investering = notional + entry_fee
             if investering > cash:
                 continue
             cash -= investering
@@ -487,7 +495,7 @@ def run_backtest():
             positions[ticker] = BTPosition(
                 ticker=ticker, strategy=str(sig.score),
                 entry_date=scan_date, entry_price=round(entry, 4),
-                size=aandelen, cost=trade_cost(investering),
+                size=aandelen, cost=entry_fee,
                 sl=stop_loss, tp=tp_price,
                 atr=sig.atr, days=0
             )
