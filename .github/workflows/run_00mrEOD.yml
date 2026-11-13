@@ -1,42 +1,42 @@
 name: "Bot 00: FULL Scanner (041-059) MR EOD"
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "30 19 * * 1-5"
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: "eod | orb | status | backtest"
-        required: false
-        default: "eod"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mr-eod-scan
+  cancel-in-progress: false
 
 jobs:
   bot-00mr-eod:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install yfinance pandas numpy requests python-dotenv supabase
-      - name: Run bot_00mr EOD
+      - name: Installeer dependencies
+        run: pip install yfinance pandas numpy requests python-dotenv psycopg2-binary
+      - name: Run MR EOD
         env:
-          # TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
-          # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          EMAIL_USER:       ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
-          EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
-          SUPABASE_URL:     ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY:     ${{ secrets.SUPABASE_KEY }}
-        run: python bot_00mr.py ${{ github.event.inputs.mode || 'eod' }}
-      - name: Opslaan state
+          PYTHONUNBUFFERED: "1"
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python bot_00mr.py eod
+      - name: Bewaar scanresultaten
         if: always()
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f mr_portfolio.json 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "bot_00mr EOD $(date '+%Y-%m-%d')"
-          git pull --rebase=false -X ours origin main
-          git push
+        uses: actions/upload-artifact@v4
+        with:
+          name: mr-eod-signals
+          path: |
+            mr_eod_scan.json
+            mr_eod_signalen_*.csv
+          retention-days: 7
+          if-no-files-found: warn

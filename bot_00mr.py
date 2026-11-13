@@ -1,72 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""IBS/RSI and Opening Range Breakout advisory scans. No simulated fills,
+portfolio mutations or broker execution; legacy state is read only for MR exits.
 """
-bot_00mr.py — MULTI-SYSTEEM ENGINE v2.1
-
-Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
-Combineert IBS+RSI Mean Reversion en Opening Range Breakout (ORB).
-Backtest-functionaliteit is volledig behouden en gecorrigeerd.
-"""
-
 import os
 import sys
-import math
 import json
-import warnings
-import datetime as dt
-from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+import math
+from pathlib import Path
+from dataclasses import dataclass,asdict
+from collections import Counter
+from typing import List,Dict,Tuple
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
-
-from common import (
-    today_str, safe_float, yahoo_link,
-    download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
-    wilder_smooth, compute_rsi_series, compute_ibs,
-    send_telegram, send_email,
-    bereken_positie, trade_cost,
-    SLIPPAGE_PCT, RISICO_PCT_DEFAULT, TRADE_COST_FIXED, TRADE_COST_PCT
-)
-
+from common import (today_str,safe_float,yahoo_link,download_history,
+    load_tickers_from_file,bouw_bestandslijst,label_voor,
+    compute_rsi_series,compute_ibs,compute_atr_series,send_email,send_telegram)
 try:
     from db_logger import log_selectie
-except Exception as _e:
-    print(f"[WARN] db_logger niet beschikbaar ({_e}) — DB-logging wordt overgeslagen")
-    def log_selectie(*args, **kwargs):
-        return False
+except ImportError as exc:
+    print(f"[WARN] db_logger niet beschikbaar: {exc}")
+    def log_selectie(*args,**kwargs):return False
 
-try:
-    from supabase import create_client, Client
-    _SUPABASE_AVAILABLE = True
-except ImportError:
-    _SUPABASE_AVAILABLE = False
-
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# ============================================================
-# CONFIG
-# ============================================================
-
-PORTFOLIO_FILE   = "mr_portfolio.json"
-SUPABASE_URL     = os.getenv("SUPABASE_URL", "")
-SUPABASE_KEY     = os.getenv("SUPABASE_KEY", "")
-TRADES_TABLE     = "mr_trades"
-SNAPSHOTS_TABLE  = "mr_snapshots"
-
+PORTFOLIO_FILE="mr_portfolio.json"
 CFG = {
-    "start_capital":        50_000.0,
-    "max_positions":        10,
-    "min_cash_ratio":       0.10,
-    "budget_mr":            0.40,
-    "budget_orb":           0.30,
-    "budget_reserve":       0.30,
-    "risico_pct":           0.04,
-    "max_daily_loss_pct":   0.03,
-    "cost_fixed":           15.0,
-    "cost_pct":             0.0035,
-    "tax_rate":             0.10,
     "ibs_entry":            0.20,
     "ibs_exit":             0.70,
     "rsi_period":           3,
@@ -74,182 +34,65 @@ CFG = {
     "ma_trend":             200,
     "ma_exit":              20,
     "atr_period":           14,
-    "mr_max_hold":          10,
     "orb_minutes":          15,
     "orb_vol_mult":         1.5,
     "orb_tp_mult":          2.0,
-    "orb_max_hold":         1,
 }
 
-# ============================================================
-# PORTFOLIO STATE
-# ============================================================
+def load_portfolio():
+    """Legacy simulation state is read, never reset, traded or saved by a scan."""
+    if not Path(PORTFOLIO_FILE).exists():return {"positions":{}}
+    state=json.loads(Path(PORTFOLIO_FILE).read_text())
+    if not isinstance(state.get("positions"),dict) or any(not isinstance(pos,dict) for pos in state["positions"].values()):
+        raise ValueError("Ongeldige positions in MR-state")
+    return state
 
-def load_portfolio() -> Dict:
-    default = {
-        "cash":           CFG["start_capital"],
-        "positions":      {},
-        "daily_pnl":      0.0,
-        "daily_start":    today_str(),
-        "total_trades":   0,
-    }
-    if os.path.exists(PORTFOLIO_FILE):
-        try:
-            with open(PORTFOLIO_FILE) as f:
-                data = json.load(f)
-            if data.get("daily_start") != today_str():
-                data["daily_pnl"]   = 0.0
-                data["daily_start"] = today_str()
-            return data
-        except Exception:
-            pass
-    return default
 
-def save_portfolio(p: Dict) -> None:
-    with open(PORTFOLIO_FILE, "w") as f:
-        json.dump(p, f, indent=2)
+def clean_prices(frame,intraday=False,timezone=None):
+    if frame is None or frame.empty:return pd.DataFrame()
+    g=frame.copy()
+    if isinstance(g.columns,pd.MultiIndex):
+        for level in range(g.columns.nlevels):
+            if "Close" in g.columns.get_level_values(level):
+                g.columns=g.columns.get_level_values(level);break
+    g=g.loc[:,~g.columns.duplicated()]
+    if "Date" not in g:
+        if "Datetime" in g:g=g.rename(columns={"Datetime":"Date"})
+        elif isinstance(g.index,pd.DatetimeIndex):g=g.rename_axis("Date").reset_index()
+    required=["Date","Open","High","Low","Close","Volume"]
+    if any(c not in g for c in required):return pd.DataFrame()
+    dates=pd.to_datetime(g.Date,errors="coerce")
+    if intraday:
+        if dates.dt.tz is None:
+            if not timezone:raise ValueError("Intraday-tijdzone ontbreekt")
+            dates=dates.dt.tz_localize(timezone,ambiguous="NaT",nonexistent="NaT")
+        dates=dates.dt.tz_convert("UTC")
+    else:
+        if dates.dt.tz is not None:dates=dates.dt.tz_localize(None)
+        dates=dates.dt.normalize()
+    g["Date"]=dates
+    for c in required[1:]:g[c]=pd.to_numeric(g[c],errors="coerce").replace([np.inf,-np.inf],np.nan)
+    valid=g[required].notna().all(axis=1)&(g[["Open","High","Low","Close"]]>0).all(axis=1)
+    valid &=(g.Volume>=0)&(g.High>=g[["Open","Low","Close"]].max(axis=1))
+    valid &=g.Low<=g[["Open","Close"]].min(axis=1)
+    return g.loc[valid].sort_values("Date").drop_duplicates("Date",keep="last").reset_index(drop=True)
 
-def portfolio_waarde(p: Dict, prices: Dict[str, float]) -> float:
-    pos_val = sum(prices.get(t, pos["entry_price"]) * pos["size"] for t, pos in p["positions"].items())
-    return p["cash"] + pos_val
 
-def risk_budget(p: Dict, systeem: str, prices: Dict[str, float]) -> float:
-    totaal = portfolio_waarde(p, prices)
-    pct    = CFG[f"budget_{systeem}"]
-    return totaal * pct
+def download_eod(tickers,period="2y"):
+    return download_history(tickers,period=period)
 
-def max_daily_loss_bereikt(p: Dict, prices: Dict[str, float]) -> bool:
-    totaal = portfolio_waarde(p, prices)
-    return p["daily_pnl"] <= -(totaal * CFG["max_daily_loss_pct"])
 
-def log_trade(datum, ticker, systeem, side, price, size, cost, pnl, tax, net, reason=""):
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        sb.table(TRADES_TABLE).insert({
-            "datum": str(datum), "ticker": ticker, "systeem": systeem,
-            "side": side, "price": price, "size": size, "cost": cost,
-            "pnl": pnl, "tax": tax, "net": net, "reason": reason,
-        }).execute()
-    except Exception as e:
-        print(f"[supabase] Kon trade voor {ticker} niet wegschrijven: {e}")
-
-def log_snapshot(p: Dict, prices: Dict[str, float]) -> None:
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        totaal  = portfolio_waarde(p, prices)
-        pos_val = totaal - p["cash"]
-        sb.table(SNAPSHOTS_TABLE).insert({
-            "datum": today_str(), "cash": round(p["cash"], 2),
-            "pos_value": round(pos_val, 2), "total": round(totaal, 2),
-            "n_pos": len(p["positions"]), "daily_pnl": round(p["daily_pnl"], 2),
-        }).execute()
-    except Exception as e:
-        print(f"[supabase] Kon snapshot niet wegschrijven: {e}")
-
-# ============================================================
-# DATA DOWNLOAD (EOD & Intraday)
-# ============================================================
-
-def download_eod(tickers: List[str], period: str = "1y") -> pd.DataFrame:
-    if not tickers:
-        return pd.DataFrame()
-    frames = []
-    try:
-        data = yf.download(tickers, auto_adjust=True, group_by="ticker", progress=False, threads=True, period=period)
-        if data is not None and not data.empty:
-            if isinstance(data.columns, pd.MultiIndex):
-                ticker_level = 1
-                for lvl in range(data.columns.nlevels):
-                    if any(t in set(data.columns.get_level_values(lvl)) for t in tickers):
-                        ticker_level = lvl
-                        break
-                for t in tickers:
-                    try:
-                        df = data.xs(t, axis=1, level=ticker_level).dropna(how="all").copy()
-                        df["Ticker"] = t
-                        if "Date" not in df.columns:
-                            df = df.reset_index()
-                        frames.append(df)
-                    except Exception:
-                        pass
-            else:
-                df = data.copy()
-                df["Ticker"] = tickers[0]
-                if "Date" not in df.columns:
-                    df = df.reset_index()
-                frames.append(df)
-    except Exception as e:
-        print(f"[WARN] Batch download mislukt: {e}")
-
-    if not frames:
-        return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"]).dt.tz_localize(None)
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    return df.reset_index(drop=True)
-
-def download_intraday(tickers: List[str], interval: str = "15m") -> pd.DataFrame:
-    frames = []
-    for t in tickers:
-        try:
-            raw = yf.download(t, period="5d", interval=interval, auto_adjust=True, progress=False)
-            if raw is None or raw.empty:
-                continue
-            if isinstance(raw.columns, pd.MultiIndex):
-                raw.columns = raw.columns.get_level_values(0)
-            raw = raw.reset_index()
-            if "Datetime" in raw.columns:
-                raw = raw.rename(columns={"Datetime": "Date"})
-            raw["Ticker"] = t
-            frames.append(raw)
-        except Exception:
-            pass
-
-    if not frames:
-        return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    df["Date"] = pd.to_datetime(df["Date"], utc=True).dt.tz_localize(None)
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    return df.reset_index(drop=True)
-
-# ============================================================
-# INDICATOREN
-# ============================================================
-
-def add_eod_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    parts = []
-    for ticker, g in df.groupby("Ticker", sort=False):
-        g     = g.copy()
-        close = g["Close"]
-        high  = g["High"]
-        low   = g["Low"]
-
-        g["IBS"]   = compute_ibs(high, low, close)
-        g["RSI3"]  = compute_rsi_series(close, CFG["rsi_period"])
-        g["MA20"]  = close.rolling(CFG["ma_exit"]).mean()
-        g["MA200"] = close.rolling(CFG["ma_trend"]).mean()
-
-        hl  = high - low
-        hcp = (high - close.shift()).abs()
-        lcp = (low  - close.shift()).abs()
-        tr  = pd.concat([hl, hcp, lcp], axis=1).max(axis=1)
-        g["ATR14"] = wilder_smooth(tr, CFG["atr_period"])
-
-        g["Ticker"] = ticker
+def add_eod_indicators(df):
+    parts=[]
+    for ticker,group in df.groupby("Ticker",sort=False):
+        g=group.sort_values("Date").copy()
+        g["IBS"]=compute_ibs(g.High,g.Low,g.Close)
+        g["RSI3"]=compute_rsi_series(g.Close,CFG["rsi_period"])
+        g["MA20"]=g.Close.rolling(CFG["ma_exit"]).mean()
+        g["MA200"]=g.Close.rolling(CFG["ma_trend"]).mean()
+        g["ATR14"]=compute_atr_series(g.High,g.Low,g.Close,CFG["atr_period"])
         parts.append(g)
-
-    if not parts:
-        return df
-    return pd.concat(parts).sort_values(["Ticker", "Date"]).reset_index(drop=True)
-
-# ============================================================
-# SYSTEEM 1: IBS + RSI MEAN REVERSION
-# ============================================================
+    return pd.concat(parts,ignore_index=True) if parts else df
 
 @dataclass
 class MRSignaal:
@@ -264,6 +107,7 @@ class MRSignaal:
     tp:        float
     rr:        float
     exchange:  str = ""
+    signal_date: str = ""
 
 @dataclass
 class MRExitSignaal:
@@ -273,12 +117,13 @@ class MRExitSignaal:
     ibs:       float
     reden:     str
     pnl_est:   float
+    signal_date: str = ""
 
 def generate_mr_signals(df: pd.DataFrame, exchange: str) -> Tuple[List[MRSignaal], List[MRExitSignaal]]:
     entries: List[MRSignaal]     = []
     exits:   List[MRExitSignaal] = []
 
-    last_df = df.sort_values("Date").groupby("Ticker").last().reset_index()
+    last_df = df.sort_values("Date").groupby("Ticker",sort=False).tail(1).reset_index(drop=True)
 
     for _, row in last_df.iterrows():
         ticker = row.get("Ticker")
@@ -291,9 +136,9 @@ def generate_mr_signals(df: pd.DataFrame, exchange: str) -> Tuple[List[MRSignaal
         ma200  = safe_float(row.get("MA200"))
         atr    = safe_float(row.get("ATR14"))
 
-        if any(math.isnan(x) for x in [close, ibs, rsi3, ma20, ma200]):
+        if any(not math.isfinite(x) for x in [close, ibs, rsi3, ma20, ma200]):
             continue
-        if close <= 0 or atr <= 0 or math.isnan(atr):
+        if close <= 0 or atr <= 0 or not math.isfinite(atr):
             continue
 
         if (ibs < CFG["ibs_entry"] and rsi3 < CFG["rsi_entry"] and close > ma200):
@@ -301,400 +146,237 @@ def generate_mr_signals(df: pd.DataFrame, exchange: str) -> Tuple[List[MRSignaal
             tp   = ma20
             rr   = ((tp - close) / (close - stop)) if (close - stop) > 0 else 0
 
-            if rr > 0.5:
+            if 0 < stop < close < tp and math.isfinite(rr) and rr > 0.5:
                 entries.append(MRSignaal(
-                    ticker=ticker, price=round(close, 2),
-                    ibs=round(ibs, 3), rsi3=round(rsi3, 1),
-                    ma20=round(ma20, 2), ma200=round(ma200, 2),
-                    atr=round(atr, 4), stop=round(stop, 2), tp=round(tp, 2), rr=round(rr, 2),
-                    exchange=exchange,
+                    ticker=ticker, price=close,
+                    ibs=ibs, rsi3=rsi3,
+                    ma20=ma20, ma200=ma200,
+                    atr=atr, stop=stop, tp=tp, rr=rr,
+                    exchange=exchange, signal_date=pd.Timestamp(row["Date"]).date().isoformat(),
                 ))
 
         if ibs > CFG["ibs_exit"]:
-            exits.append(MRExitSignaal(ticker=ticker, price=round(close, 2), ma20=round(ma20, 2), ibs=round(ibs, 3), reden=f"IBS={ibs:.2f} > {CFG['ibs_exit']}", pnl_est=0.0))
+            exits.append(MRExitSignaal(ticker=ticker, price=close, ma20=ma20, ibs=ibs, reden=f"IBS={ibs:.2f} > {CFG['ibs_exit']}", pnl_est=0.0, signal_date=pd.Timestamp(row["Date"]).date().isoformat()))
         elif close > ma20:
-            exits.append(MRExitSignaal(ticker=ticker, price=round(close, 2), ma20=round(ma20, 2), ibs=round(ibs, 3), reden=f"Slot {close:.2f} > MA20 {ma20:.2f}", pnl_est=0.0))
+            exits.append(MRExitSignaal(ticker=ticker, price=close, ma20=ma20, ibs=ibs, reden=f"Slot {close:.2f} > MA20 {ma20:.2f}", pnl_est=0.0, signal_date=pd.Timestamp(row["Date"]).date().isoformat()))
 
-    entries.sort(key=lambda s: s.ibs)
+    entries.sort(key=lambda s: (s.ibs,s.ticker))
     return entries, exits
 
-# ============================================================
-# SYSTEEM 2: OPENING RANGE BREAKOUT (ORB)
-# ============================================================
 
 @dataclass
 class ORBSignaal:
-    ticker:       str
-    orb_high:     float
-    orb_low:      float
-    orb_range:    float
-    breakout:     bool
-    current:      float
-    stop:         float
-    tp:           float
-    vol_ratio:    float
-    exchange:     str = ""
+    ticker: str
+    orb_high: float
+    orb_low: float
+    orb_range: float
+    breakout: bool
+    current: float
+    stop: float
+    tp: float
+    vol_ratio: float
+    exchange: str = ""
+    signal_time: str = ""
+    session_start: str = ""
+    quote_currency: str = "native_quote_unit"
 
-def generate_orb_signals(tickers: List[str], exchange: str) -> List[ORBSignaal]:
-    df = download_intraday(tickers, interval="15m")
-    if df.empty:
-        return []
 
-    signalen: List[ORBSignaal] = []
-    today    = pd.Timestamp.now().date()
+class ORBUnavailable(ValueError):pass
 
-    for ticker, g in df.groupby("Ticker", sort=False):
-        g_today = g[g["Date"].dt.date == today].copy()
-        if len(g_today) < 2:
-            continue
 
-        g_today = g_today.sort_values("Date")
-        orb_candle = g_today.iloc[0]
-        orb_high   = safe_float(orb_candle.get("High"))
-        orb_low    = safe_float(orb_candle.get("Low"))
+def utc_now():return pd.Timestamp.now(tz="UTC")
 
-        if math.isnan(orb_high) or math.isnan(orb_low) or orb_high <= orb_low:
-            continue
 
-        orb_range = orb_high - orb_low
-        risk      = orb_range
-        last       = g_today.iloc[-1]
-        current    = safe_float(last.get("Close"))
-        current_vol = safe_float(last.get("Volume"))
+def session_timestamp(value):
+    if isinstance(value,(int,float,np.integer,np.floating)):
+        return pd.to_datetime(value,unit="s",utc=True)
+    stamp=pd.Timestamp(value)
+    if stamp.tzinfo is None:raise ORBUnavailable("Sessietijd zonder tijdzone")
+    return stamp.tz_convert("UTC")
 
-        if math.isnan(current):
-            continue
 
-        vol_mean  = g_today["Volume"].mean()
-        vol_ratio = (current_vol / vol_mean) if vol_mean > 0 else 0.0
-        breakout = (current > orb_high and vol_ratio >= CFG["orb_vol_mult"])
-        stop = orb_low
-        tp   = orb_high + CFG["orb_tp_mult"] * risk
-
-        if breakout or current > orb_high * 0.995:
-            signalen.append(ORBSignaal(
-                ticker=ticker, orb_high=round(orb_high, 2), orb_low=round(orb_low, 2),
-                orb_range=round(orb_range, 2), breakout=breakout, current=round(current, 2),
-                stop=round(stop, 2), tp=round(tp, 2), vol_ratio=round(vol_ratio, 2), exchange=exchange,
-            ))
-
-    signalen.sort(key=lambda s: (s.breakout, s.vol_ratio), reverse=True)
-    return signalen
-
-# ============================================================
-# PERFORMANCE TRACKER
-# ============================================================
-
-def compute_performance() -> Dict:
-    perf = {"MR": {"trades": 0, "win": 0, "net": 0.0, "tax": 0.0}, "ORB": {"trades": 0, "win": 0, "net": 0.0, "tax": 0.0}}
-    if not _SUPABASE_AVAILABLE or not SUPABASE_URL or not SUPABASE_KEY:
-        return perf
-
+def orb_for_ticker(ticker,raw,metadata,exchange,asof):
+    """The range must start at the provider's actual regular-session opening."""
+    asof=pd.Timestamp(asof)
+    if asof.tzinfo is None:raise ORBUnavailable("As-of moet tijdzone bevatten")
+    asof=asof.tz_convert("UTC")
     try:
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-        resp = sb.table(TRADES_TABLE).select("*").execute()
-        rows = resp.data or []
-        if not rows:
-            return perf
-        df = pd.DataFrame(rows)
-        for systeem in ["MR", "ORB"]:
-            sub = df[df["systeem"] == systeem]
-            if sub.empty:
-                continue
-            sells = sub[sub["side"] == "SELL"]
-            if sells.empty:
-                continue
-            perf[systeem]["trades"] = len(sells)
-            perf[systeem]["win"]    = int((sells["net"] > 0).sum())
-            perf[systeem]["net"]    = round(float(sells["net"].sum()), 2)
-            perf[systeem]["tax"]    = round(float(sells["tax"].sum()), 2)
-    except Exception as e:
-        print(f"[WARN] Performance berekening: {e}")
+        timezone=metadata["exchangeTimezoneName"]
+        zone=ZoneInfo(timezone)
+        regular=metadata["currentTradingPeriod"]["regular"]
+        opening=session_timestamp(regular["start"])
+        closing=session_timestamp(regular["end"])
+    except (KeyError,TypeError,ValueError) as exc:
+        raise ORBUnavailable(f"Onvolledige sessiemetadata: {exc}") from exc
+    if pd.isna(opening) or pd.isna(closing) or not pd.Timedelta(0)<closing-opening<=pd.Timedelta(days=1):
+        raise ORBUnavailable("Ongeldige sessiegrenzen")
+    if opening.tz_convert(zone).date()!=asof.tz_convert(zone).date() or not opening<=asof<closing:
+        return None,("closed","geen lopende reguliere sessie")
+    interval=pd.Timedelta(minutes=CFG["orb_minutes"])
+    if asof<opening+2*interval:return None,("waiting","nog geen twee afgeronde 15-minutencandles")
+    g=clean_prices(raw,intraday=True,timezone=timezone)
+    if g.empty:raise ORBUnavailable("Geen geldige intraday OHLCV")
+    g=g.loc[(g.Date>=opening)&(g.Date+interval<=asof)&(g.Date+interval<=closing)]
+    if len(g)<2 or g.Date.iloc[0]!=opening:
+        raise ORBUnavailable("Openingscandle ontbreekt; latere candle mag de openingsrange niet vervangen")
+    offsets=(g.Date-opening)/interval
+    if not np.isclose(offsets,np.round(offsets)).all():raise ORBUnavailable("Candles niet op reguliere 15-minutenrooster")
+    if not (g.Date.diff().dropna()==interval).all():raise ORBUnavailable("Ontbrekende candles binnen de reguliere sessie")
+    if asof-(g.Date.iloc[-1]+interval)>2*interval:raise ORBUnavailable("Laatste afgeronde candle is verouderd")
+    first,last=g.iloc[0],g.iloc[-1]
+    high,low=float(first.High),float(first.Low)
+    if not high>low>0:raise ORBUnavailable("Openingsrange heeft geen positieve breedte")
+    baseline=float(g.Volume.iloc[:-1].mean())
+    if baseline<=0:raise ORBUnavailable("Geen vergelijkbaar eerder sessievolume")
+    ratio=float(last.Volume)/baseline
+    current=float(last.Close);target=high+CFG["orb_tp_mult"]*(high-low)
+    breakout=current>high and ratio>=CFG["orb_vol_mult"]
+    if not low<current<target:return None,("ok","prijs buiten bruikbare stop/doelrange")
+    if breakout or current>high*.995:
+        return ORBSignaal(ticker,high,low,high-low,breakout,current,low,target,ratio,
+            exchange,last.Date.isoformat(),opening.isoformat(),metadata.get("currency","native_quote_unit")),("ok","signaal")
+    return None,("ok","geen ORB-setup")
 
-    return perf
 
-# ============================================================
-# TELEGRAM RAPPORTEN
-# ============================================================
+def generate_orb_signals(tickers,exchange,diagnostics=None,cache=None,asof=None):
+    diagnostics=diagnostics if diagnostics is not None else {}
+    cache=cache if cache is not None else {}
+    asof=utc_now() if asof is None else asof
+    result=[]
+    for ticker in sorted(set(tickers)):
+        if ticker not in cache:
+            try:
+                tk=yf.Ticker(ticker)
+                raw=tk.history(period="5d",interval="15m",auto_adjust=True,prepost=False,timeout=15)
+                md=tk.get_history_metadata()
+                sig,status=orb_for_ticker(ticker,raw,md,exchange,asof)
+                cache[ticker]=(sig,status)
+            except (ORBUnavailable,KeyError,ValueError) as exc:cache[ticker]=(None,("data",str(exc)))
+            except Exception as exc:cache[ticker]=(None,("error",f"{type(exc).__name__}: {exc}"))
+        sig,status=cache[ticker];diagnostics[ticker]=status
+        if sig is not None:
+            # The same ticker can legitimately appear in several exchange lists.
+            item=ORBSignaal(**asdict(sig));item.exchange=exchange;result.append(item)
+    return sorted(result,key=lambda s:(not s.breakout,-s.vol_ratio,s.ticker))
 
-def rapport_eod(
-    mr_entries:   Dict[str, List[MRSignaal]],
-    mr_exits:     Dict[str, List[MRExitSignaal]],
-    portfolio:    Dict,
-    prices:       Dict[str, float],
-) -> str:
-    nu    = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
-    totaal = portfolio_waarde(portfolio, prices)
-    perf  = compute_performance()
 
-    dagverlies_pct = abs(portfolio["daily_pnl"]) / totaal * 100 if totaal > 0 else 0
+def atomic_json(path,payload):
+    temp=path+".tmp"
+    with open(temp,"w",encoding="utf-8") as f:json.dump(payload,f,ensure_ascii=False,allow_nan=False,indent=2)
+    os.replace(temp,path)
 
-    lines = [
-        f"📊 *MULTI-SYSTEEM BOT — EOD RAPPORT*",
-        f"_{nu}_", f"",
-        f"💼 *PORTFOLIO STATUS:*",
-        f"  Totaal waarde : EUR{totaal:,.2f}",
-        f"  Cash          : EUR{portfolio['cash']:,.2f}",
-        f"  Posities      : {len(portfolio['positions'])}/{CFG['max_positions']}",
-        f"  Dagverlies    : EUR{portfolio['daily_pnl']:+,.2f} ({dagverlies_pct:.1f}%)",
-        f"",
-    ]
 
-    if max_daily_loss_bereikt(portfolio, prices):
-        lines.append(f"🚨 *MAX DAGVERLIES BEREIKT ({CFG['max_daily_loss_pct']*100:.0f}%) — GEEN NIEUWE TRADES*")
-        lines.append("")
+def deliver(mode,rows,reports,diagnostics,missing,errors):
+    counts=Counter(category for category,_ in diagnostics.values())
+    selected=len(rows);saved=0
+    for row in rows:
+        saved+=bool(log_selectie(ticker=row["ticker"],datum=today_str(),
+            strategie="bot_00mr_ibsrsi" if mode=="eod" else "bot_00mr_orb",
+            beurs=row["exchange"],koers=row.get("price",row.get("current")),parameters=row))
+    partial=bool(missing or errors or counts["data"] or counts["error"] or saved<selected)
+    coverage=(f"Datadekking: {len(diagnostics)} uniek gevraagd | {counts['ok']} geanalyseerd | "
+        f"{counts['closed']} buiten sessie | {counts['waiting']} wachten op openingscandles | "
+        f"{counts['data']} ontbrekende/onbruikbare data | {counts['error']} fouten")
+    print(coverage)
+    for ticker,(category,reason) in sorted(diagnostics.items()):
+        if category!="ok":print(f"[{category.upper()}] {ticker}: {reason}")
+    columns=list(MRSignaal.__dataclass_fields__) if mode=="eod" else list(ORBSignaal.__dataclass_fields__)
+    pd.DataFrame(rows,columns=columns).to_csv(f"mr_{mode}_signalen_{today_str()}.csv",index=False)
+    atomic_json(f"mr_{mode}_scan.json",dict(mode=mode,date=today_str(),complete=not partial,
+        coverage=dict(counts),diagnostics=diagnostics,missing_files=missing,errors=errors,
+        database=dict(saved=saved,requested=selected),signals=rows))
+    body=coverage+f"\nDatabase: {saved}/{selected} adviezen opgeslagen\n\n"+"\n\n".join(reports)
+    body+="\n\nKoersen in oorspronkelijke koerseenheden; geen valutaomrekening, europortefeuille, positieomvang of uitvoeringsgarantie. Geen transacties geboekt; bestaande portefeuillestate blijft intact."
+    body+="\nOntbrekende/lege lijsten: "+(", ".join(missing) or "geen")
+    body+="\nDatadetails: "+json.dumps(diagnostics,ensure_ascii=False)
+    body+="\nOverige fouten: "+("; ".join(errors) or "geen")
+    if os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
+        for report in reports:
+            if not send_telegram(report,parse_mode=None):print("[WARN] Telegram niet verstuurd")
+    else:print("Telegram uitgeschakeld (geen configuratie)")
+    print(f"Database: {saved}/{selected} adviezen opgeslagen")
+    if not send_email(f"{'[ONVOLLEDIG] ' if partial else ''}MR {mode.upper()} rapport {today_str()}",body):raise RuntimeError("E-mail niet verstuurd")
+    print("E-mail verstuurd")
+    normal=counts["ok"]+counts["closed"]+counts["waiting"]
+    if not normal or counts["error"] or errors or saved<selected:raise RuntimeError("Scan/opslag onvolledig; zie rapport")
+    print("Klaar met gemelde databeperkingen." if partial else "Klaar.")
 
-    lines += [
-        f"💰 *RISK BUDGETTEN:*",
-        f"  MR  (40%): EUR{risk_budget(portfolio, 'mr', prices):,.0f}",
-        f"  ORB (30%): EUR{risk_budget(portfolio, 'orb', prices):,.0f}",
-        f"  Reserve  : EUR{risk_budget(portfolio, 'reserve', prices):,.0f}",
-        f"", f"─────────────────────────────", f"📈 *PERFORMANCE PER SYSTEEM:*"
-    ]
-    for sys_name, p in perf.items():
-        if p["trades"] > 0:
-            wr = p["win"] / p["trades"] * 100
-            lines.append(f"  {sys_name}: {p['trades']} trades | WR:{wr:.0f}% | Net:EUR{p['net']:+,.2f} | Tax:EUR{p['tax']:,.2f}")
-        else:
-            lines.append(f"  {sys_name}: nog geen trades")
-    lines.append("")
-    lines.append("─────────────────────────────")
-
-    lines.append(f"🛡️ *SYSTEEM 1: IBS+RSI MEAN REVERSION — ENTRY SIGNALEN*")
-    total_mr = sum(len(v) for v in mr_entries.values())
-    if total_mr == 0:
-        lines.append("_Geen paniek-koop signalen vandaag_")
-    else:
-        for ex, sigs in mr_entries.items():
-            if not sigs: continue
-            lines.append(f"\n*{ex}:*")
-            for s in sigs[:5]:
-                n, ml = bereken_positie(totaal, s.price, s.stop)
-                lines.append(f"• `{s.ticker}` | IBS:{s.ibs:.2f} | RSI3:{s.rsi3:.1f} | EUR{s.price:.2f} | [Grafiek](https://finance.yahoo.com/quote/{s.ticker})\n  Entry: {s.price:.2f} | Stop: {s.stop:.2f} | {n} stuks | Max verlies: EUR{ml:,.2f}")
-    lines.append("")
-
-    total_exits = sum(len(v) for v in mr_exits.values())
-    if total_exits > 0:
-        lines.append(f"🔴 *SYSTEEM 1: EXIT SIGNALEN*")
-        for ex, exits in mr_exits.items():
-            open_tickers = set(portfolio["positions"].keys())
-            rel_exits    = [e for e in exits if e.ticker in open_tickers]
-            for e in rel_exits:
-                pos = portfolio["positions"].get(e.ticker, {})
-                pnl = (e.price - pos.get("entry_price", e.price)) * pos.get("size", 0)
-                lines.append(f"• `{e.ticker}` 🔴 VERKOOP | {e.reden}\n  Prijs: EUR{e.price:.2f} | PnL est: EUR{pnl:+.2f}")
-        lines.append("")
-
-    if portfolio["positions"]:
-        lines.append("📂 *OPEN POSITIES:*")
-        for t, pos in portfolio["positions"].items():
-            cur = prices.get(t, pos["entry_price"])
-            pnl = (cur - pos["entry_price"]) * pos["size"]
-            lines.append(f"  • `{t}` [{pos['systeem']}] {pos['size']}× @ EUR{pos['entry_price']:.2f} | nu EUR{cur:.2f} | PnL: EUR{pnl:+.2f} | dag {pos.get('days_open', 0)}")
-        lines.append("")
-
-    lines += [
-        "⚙️ *PARAMETERS:*",
-        f"_IBS entry <{CFG['ibs_entry']} | RSI(3) <{CFG['rsi_entry']} | Close>MA{CFG['ma_trend']}_",
-        f"_Exit: IBS>{CFG['ibs_exit']} OF Close>MA{CFG['ma_exit']}_",
-        f"_Risico: {CFG['risico_pct']*100:.0f}% equity/trade | Max dagverlies: {CFG['max_daily_loss_pct']*100:.0f}%_",
-    ]
-    return "\n".join(lines)
-
-def rapport_orb(orb_signalen: Dict[str, List[ORBSignaal]], portfolio: Dict, prices: Dict[str, float]) -> str:
-    nu    = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
-    totaal = portfolio_waarde(portfolio, prices)
-
-    lines = [
-        f"⚡ *SYSTEEM 2: ORB RAPPORT — {nu}*",
-        f"_Opening Range Breakout | 15m candles_",
-        f"_Budget: EUR{risk_budget(portfolio, 'orb', prices):,.0f} (30% portfolio)_", f"",
-    ]
-
-    if max_daily_loss_bereikt(portfolio, prices):
-        lines.append(f"🚨 *MAX DAGVERLIES BEREIKT — GEEN ORB TRADES*")
-        return "\n".join(lines)
-
-    total = sum(len(v) for v in orb_signalen.values())
-    if total == 0:
-        lines.append("_Geen ORB breakouts vandaag_")
-    else:
-        for ex, sigs in orb_signalen.items():
-            if not sigs: continue
-            lines.append(f"*{ex}:*")
-            for s in sigs[:3]:
-                n, ml = bereken_positie(totaal, s.current, s.stop)
-                status = "🚀 BREAKOUT" if s.breakout else "⏳ Bijna"
-                lines.append(f"• `{s.ticker}` {status} | EUR{s.current:.2f} | Vol:{s.vol_ratio:.1f}× | [Grafiek](https://finance.yahoo.com/quote/{s.ticker})\n  ORB: {s.orb_low:.2f}–{s.orb_high:.2f} (range EUR{s.orb_range:.2f})\n  Entry: {s.current:.2f} | Stop: {s.stop:.2f} | {n} stuks | Max verlies: EUR{ml:,.2f}")
-            lines.append("")
-
-    lines += [
-        "⚙️ *ORB PARAMETERS:*",
-        f"_Opening range: eerste {CFG['orb_minutes']} minuten_",
-        f"_Breakout: boven ORB high op ≥{CFG['orb_vol_mult']}× volume_",
-        f"_Stop: onder ORB low | TP: {CFG['orb_tp_mult']}× risk_",
-        f"_Exit: zelfde dag (intraday only)_",
-    ]
-    return "\n".join(lines)
-
-# ============================================================
-# EOD RUN
-# ============================================================
 
 def run_eod():
-    print(f"{'='*60}\nMULTI-SYSTEEM BOT — EOD  {today_str()}\n{'='*60}")
+    print(f"MR EOD — ADVIES {today_str()}")
+    exchanges,missing={},[]
+    for path in bouw_bestandslijst():
+        tickers=load_tickers_from_file(path)
+        if tickers:exchanges[label_voor(path)]=sorted(set(tickers))
+        else:missing.append(path)
+    all_tickers=sorted({t for members in exchanges.values() for t in members})
+    if not all_tickers:raise RuntimeError("Geen tickerlijsten")
+    errors=[]
+    try:portfolio=load_portfolio()
+    except Exception as exc:
+        errors.append(f"Legacy state niet leesbaar: {exc}");portfolio={"positions":{}}
+    all_tickers=sorted(set(all_tickers)|set(portfolio["positions"]))
+    df=download_eod(all_tickers,period="2y")
+    diagnostics,cache={},{}
+    today=pd.Timestamp(today_str())
+    for ticker in all_tickers:
+        g=clean_prices(df.loc[df.Ticker==ticker]) if "Ticker" in df else pd.DataFrame()
+        if not g.empty:g=g.loc[g.Date<today]
+        if len(g)<CFG["ma_trend"]:diagnostics[ticker]=("data",f"{len(g)} afgeronde koersdagen; minimaal {CFG['ma_trend']} vereist")
+        elif (today-g.Date.iloc[-1]).days>7:diagnostics[ticker]=("data","laatste koers ouder dan 7 dagen")
+        elif g.Volume.tail(20).sum()<=0:diagnostics[ticker]=("data","geen recent handelsvolume")
+        else:
+            try:
+                enriched=add_eod_indicators(g)
+                last=enriched.iloc[-1]
+                if not all(math.isfinite(safe_float(last.get(c))) for c in ("IBS","RSI3","ATR14","MA20","MA200")):
+                    diagnostics[ticker]=("data","onvolledige laatste indicatoren")
+                else:
+                    cache[ticker]=generate_mr_signals(enriched,"")
+                    diagnostics[ticker]=("ok","geanalyseerd")
+            except Exception as exc:diagnostics[ticker]=("error",f"{type(exc).__name__}: {exc}")
+    reports,rows=[],[]
+    for exchange,members in exchanges.items():
+        entries=[s for t in members for s in cache.get(t,([],[]))[0]]
+        entries.sort(key=lambda s:(s.ibs,s.ticker))
+        lines=[f"{exchange}: {sum(t in cache for t in members)}/{len(members)} geanalyseerd | {len(entries)} MR-kandidaten"]
+        for s in entries:
+            s=MRSignaal(**asdict(s));s.exchange=exchange;rows.append(asdict(s))
+            lines.append(f"{s.ticker}: koersdag {s.signal_date} | IBS {s.ibs:.3f} | RSI3 {s.rsi3:.2f} | koers {s.price:.4f} | stop {s.stop:.4f} | MA20-doel {s.tp:.4f} | R/R {s.rr:.2f} | {yahoo_link(s.ticker)}")
+        reports.append("\n".join(lines))
+    exit_lines=[]
+    for ticker,pos in portfolio["positions"].items():
+        if pos.get("systeem")!="MR":continue
+        for s in cache.get(ticker,([],[]))[1]:exit_lines.append(f"{s.ticker}: koersdag {s.signal_date} | exitvoorwaarde {s.reden} | referentie {s.price:.4f}; geen uitvoering")
+    reports.append("Exitvoorwaarden voor bestaande MR-posities:\n"+("\n".join(exit_lines) or "geen bruikbare exitvoorwaarden"))
+    reports.append(f"Model: IBS<{CFG['ibs_entry']}, RSI({CFG['rsi_period']})<{CFG['rsi_entry']}, Close>MA{CFG['ma_trend']}, R/R>0,5. Dit zijn setupadviezen; de volgende openingskoers is onbekend.")
+    deliver("eod",rows,reports,diagnostics,missing,errors)
 
-    portfolio = load_portfolio()
-    exchange_tickers: Dict[str, List[str]] = {}
-    all_tickers: List[str] = []
-    for f_name in bouw_bestandslijst():
-        tlist = load_tickers_from_file(f_name)
-        if not tlist: continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-    all_tickers = sorted(set(all_tickers))
-    print(f"Totaal tickers: {len(all_tickers)}")
 
-    print("EOD data downloaden...")
-    df = download_eod(all_tickers, period="1y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-    df = add_eod_indicators(df)
+ORB_EXCHANGES={"048 Nasdaq/NYSE":"tickers_048x.txt","047 Toronto":"tickers_047x.txt",
+    "045 Londen":"tickers_045x.txt","041 Benelux Ierland":"tickers_041x.txt"}
 
-    prices: Dict[str, float] = {}
-    last_df = df.groupby("Ticker").last().reset_index()
-    for _, row in last_df.iterrows():
-        t = row.get("Ticker")
-        c = safe_float(row.get("Close"))
-        if t and not math.isnan(c):
-            prices[t] = c
-
-    if max_daily_loss_bereikt(portfolio, prices):
-        print(f"🚨 MAX DAGVERLIES BEREIKT — geen nieuwe trades")
-        send_telegram(f"🚨 *MAX DAGVERLIES BEREIKT* ({CFG['max_daily_loss_pct']*100:.0f}%) — bot gestopt voor vandaag")
-        return
-
-    for t in portfolio["positions"]:
-        portfolio["positions"][t]["days_open"] = portfolio["positions"][t].get("days_open", 0) + 1
-
-    mr_entries: Dict[str, List[MRSignaal]]     = {}
-    mr_exits:   Dict[str, List[MRExitSignaal]] = {}
-    email_delen: List[str] = []
-  
-    for ex_name, tlist in exchange_tickers.items():
-        df_ex = df[df["Ticker"].isin(tlist)].copy()
-        entries, exits = generate_mr_signals(df_ex, ex_name)
-
-        for e in exits:
-            if e.ticker in portfolio["positions"]:
-                pos       = portfolio["positions"][e.ticker]
-                exit_p    = e.price * (1 - SLIPPAGE_PCT)
-                gross     = exit_p * pos["size"]
-                cost      = trade_cost(gross)
-                pnl       = gross - cost - (pos["entry_price"] * pos["size"] + pos.get("cost", 0))
-                tax       = pnl * CFG["tax_rate"] if pnl > 0 else 0.0
-                portfolio["cash"] += gross - cost - tax
-                portfolio["daily_pnl"] = portfolio.get("daily_pnl", 0) + pnl - tax
-                log_trade(today_str(), e.ticker, "MR", "SELL", exit_p, pos["size"], cost, pnl, tax, pnl - tax, e.reden)
-                del portfolio["positions"][e.ticker]
-                print(f"  EXIT {e.ticker}: {e.reden} | PnL: EUR{pnl:+.2f}")
-
-        mr_entries[ex_name] = entries
-        mr_exits[ex_name]   = exits
-
-        totaal = portfolio_waarde(portfolio, prices)
-        budget = risk_budget(portfolio, "mr", prices)
-
-        for sig in entries:
-            if sig.ticker in portfolio["positions"]: continue
-            if len(portfolio["positions"]) >= CFG["max_positions"]: break
-            if max_daily_loss_bereikt(portfolio, prices): break
-
-            entry_p  = sig.price * (1 + SLIPPAGE_PCT)
-            n, ml    = bereken_positie(totaal, entry_p, sig.stop)
-            if n <= 0: continue
-            investering = entry_p * n + trade_cost(entry_p * n)
-            if investering > portfolio["cash"] or investering > budget: continue
-
-            portfolio["cash"] -= investering
-            portfolio["positions"][sig.ticker] = {
-                "entry_price": round(entry_p, 4), "size": n, "stop": sig.stop, "tp": sig.tp,
-                "systeem": "MR", "exchange": ex_name, "days_open": 0, "cost": trade_cost(entry_p * n),
-            }
-            portfolio["total_trades"] = portfolio.get("total_trades", 0) + 1
-            log_trade(today_str(), sig.ticker, "MR", "BUY", entry_p, n, trade_cost(entry_p * n), 0, 0, 0, "IBS+RSI entry")
-            log_selectie(ticker=sig.ticker, datum=today_str(), strategie="bot_00mr_ibsrsi", beurs=ex_name, koers=entry_p, parameters={"ibs": sig.ibs, "rsi3": sig.rsi3, "ma20": sig.ma20, "ma200": sig.ma200, "atr": sig.atr, "stop": sig.stop, "tp": sig.tp, "rr_pct": sig.rr, "grafiek": yahoo_link(sig.ticker)})
-            print(f"  KOOP {sig.ticker}: IBS={sig.ibs:.2f} RSI3={sig.rsi3:.1f} | {n}× EUR{entry_p:.2f}")
-
-    for t, pos in list(portfolio["positions"].items()):
-        if (pos.get("systeem") == "MR" and pos.get("days_open", 0) >= CFG["mr_max_hold"]):
-            cur   = prices.get(t, pos["entry_price"])
-            exit_p = cur * (1 - SLIPPAGE_PCT)
-            gross  = exit_p * pos["size"]
-            cost   = trade_cost(gross)
-            pnl    = gross - cost - (pos["entry_price"] * pos["size"] + pos.get("cost", 0))
-            tax    = pnl * CFG["tax_rate"] if pnl > 0 else 0.0
-            portfolio["cash"] += gross - cost - tax
-            portfolio["daily_pnl"] = portfolio.get("daily_pnl", 0) + pnl - tax
-            log_trade(today_str(), t, "MR", "SELL", exit_p, pos["size"], cost, pnl, tax, pnl - tax, f"Max houdduur {CFG['mr_max_hold']}d")
-            del portfolio["positions"][t]
-            print(f"  TIME EXIT {t}: max houdduur | PnL: EUR{pnl:+.2f}")
-
-    log_snapshot(portfolio, prices)
-    save_portfolio(portfolio)
-
-    rapport = rapport_eod(mr_entries, mr_exits, portfolio, prices)
-    send_telegram(rapport)
-    send_email(f"Multi-Systeem EOD rapport {today_str()}", rapport.replace("*","").replace("`",""))
-    print("EOD rapport verzonden.")
-
-# ============================================================
-# ORB RUN (INTRADAY)
-# ============================================================
 
 def run_orb():
-    print(f"{'='*60}\nMULTI-SYSTEEM BOT — ORB  {dt.datetime.now().strftime('%Y-%m-%d %H:%M')}\n{'='*60}")
-
-    portfolio = load_portfolio()
-    orb_exchanges = {"048 Nasdaq/NYSE": "tickers_048x.txt", "047 Toronto": "tickers_047x.txt", "045 Londen": "tickers_045x.txt", "041 Benelux": "tickers_041x.txt"}
-
-    all_tickers = sorted(set(
-        ticker for path in orb_exchanges.values()
-        for ticker in load_tickers_from_file(path)
-    ))
-    if not all_tickers:
-        print("[WARN] Geen ORB-tickers gevonden.")
-        return
-
-    orb_signalen: Dict[str, List[ORBSignaal]] = {}
-    prices: Dict[str, float] = {}
-    for ex_name, path in orb_exchanges.items():
-        tickers = load_tickers_from_file(path)
-        if not tickers:
-            continue
-        signals = generate_orb_signals(tickers, ex_name)
-        orb_signalen[ex_name] = signals
-        for sig in signals:
-            prices[sig.ticker] = sig.current
-        print(f"  {ex_name}: {len(signals)} ORB-signalen")
-
-    # ORB remains signal-only: there is no verified intraday order execution
-    # or position management in this file. Never invent simulated fills.
-    report = rapport_orb(orb_signalen, portfolio, prices)
-    send_telegram(report)
-    send_email(f"Multi-Systeem ORB rapport {today_str()}",
-               report.replace("*", "").replace("`", ""))
-    print("ORB signaleringsrapport verzonden (geen orders uitgevoerd).")
+    print(f"MR ORB — ADVIES {utc_now().isoformat()}")
+    diagnostics,cache,rows,reports,missing={},{},[],[],[]
+    asof=utc_now()
+    for exchange,path in ORB_EXCHANGES.items():
+        tickers=load_tickers_from_file(path)
+        if not tickers:missing.append(path);continue
+        signals=generate_orb_signals(tickers,exchange,diagnostics=diagnostics,cache=cache,asof=asof)
+        lines=[f"{exchange}: {len(signals)} ORB-adviezen"]
+        for s in signals:
+            rows.append(asdict(s))
+            lines.append(f"{s.ticker}: {'BREAKOUT' if s.breakout else 'nabij pivot, onbevestigd'} | candle start {s.signal_time} | sessieopening {s.session_start} | {s.quote_currency} {s.current:.4f} | range {s.orb_low:.4f}-{s.orb_high:.4f} | stop {s.stop:.4f} | doel {s.tp:.4f} | volume {s.vol_ratio:.2f}x | {yahoo_link(s.ticker)}")
+        reports.append("\n".join(lines))
+    if not diagnostics:raise RuntimeError("Geen ORB-tickerlijsten")
+    reports.append("ORB: 15-minutenrange vanaf bevestigde reguliere sessieopening, alleen afgeronde candles. Volume vergeleken met eerdere candles van dezelfde sessie, zonder de signaalcandle. Dit is vertraagde signalering, geen realtime orderbewaking of intraday exitservice.")
+    deliver("orb",rows,reports,diagnostics,missing,[])
 
 
-if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "eod"
-    if mode in ("eod", "live"):
-        run_eod()
-    elif mode == "orb":
-        run_orb()
-    else:
-        print("Gebruik: python bot_00mr.py [eod|live|orb]")
-        sys.exit(2)
+if __name__=="__main__":
+    mode=sys.argv[1].lower() if len(sys.argv)>1 else "eod"
+    if mode in ("eod","live"):run_eod()
+    elif mode=="orb":run_orb()
+    else:sys.exit("Gebruik: python bot_00mr.py [eod|live|orb]; backtest/status niet geïmplementeerd")
