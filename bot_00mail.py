@@ -104,7 +104,7 @@ def voer_lijst_uit(bestandsnaam, label, naam_sector):
                 atr_bt, adx_bt = atr.iloc[-252:], adx.iloc[-252:]
                 
                 profit, pos, instap, high_p, sl_val = 0, False, 0, 0, 0
-                kosten = 15.0 + (inzet * 0.0035)
+                kosten = trade_cost(inzet)
 
                 for i in range(1, len(p_bt)):
                     cp_i = p_bt.iloc[i]
