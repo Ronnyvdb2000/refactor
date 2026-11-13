@@ -115,7 +115,7 @@ def voer_lijst_uit(bestandsnaam: str, label: str, naam_sector: str) -> str:
             if len(t_data) < 250: continue
 
             p, f, sl, e100, v_ma, rsi, atr, adx, vol, ibs, l_bb, ma5 = bereken_indicatoren_vectorized(t_data, 50, 200, True, False)
-            kosten = 15.0 + (inzet * 0.0035)
+            kosten = trade_cost(inzet)
 
             for skey, s_p, t_p, utr, ihyp in STRATS:
                 pi, fi, sli, ei, vmai, rsii, atri, dxi, voli, _, _, _ = bereken_indicatoren_vectorized(t_data, s_p, t_p, utr, ihyp)
