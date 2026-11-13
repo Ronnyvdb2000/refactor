@@ -209,8 +209,8 @@ def download_history(tickers: List[str], period: str = "2y") -> pd.DataFrame:
     df = pd.concat(frames, ignore_index=True)
     if "Date" in df.columns:
         df["Date"] = pd.to_datetime(df["Date"])
-    df.sort_values(["Ticker", "Date"], inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    # Pandas 3.1 depreceert inplace= voor deze bewerkingen.
+    df = df.sort_values(["Ticker", "Date"]).reset_index(drop=True)
     return df
 
 # ============================================================
