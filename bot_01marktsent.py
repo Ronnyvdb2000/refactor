@@ -280,13 +280,22 @@ def run_live_engine():
         else:
             issues.append(f'{filename}: ontbrekende of lege tickerlijst')
     tickers = sorted({t for values in exchanges.values() for t in values})
-    raw = download_history(tickers,period='2y')
+    frames = []
+    for start in range(0, len(tickers), 100):
+        batch = tickers[start:start+100]
+        print(f'[DOWNLOAD] {start+1}..{start+len(batch)}/{len(tickers)} unieke tickers', flush=True)
+        try:
+            frames.append(download_history(batch, period='2y', request_timeout=15))
+        except Exception as exc:
+            errors.append(f'batch {start//100+1}: download mislukt ({type(exc).__name__})')
+    raw = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    groups = dict(tuple(raw.groupby('Ticker'))) if 'Ticker' in raw else {}
     technical = {}
     if not NEWSAPI_KEY:
         issues.append('NEWSAPI_KEY ontbreekt: alleen technische selectie')
     for ticker in tickers:
         try:
-            group = raw.loc[raw.Ticker==ticker] if 'Ticker' in raw else pd.DataFrame()
+            group = groups.get(ticker, pd.DataFrame())
             history = prepare_history(group)
             if history.attrs['discarded_rows']:
                 issues.append(f'{ticker}: {history.attrs["discarded_rows"]} ongeldige oudere OHLCV-rijen verwijderd')

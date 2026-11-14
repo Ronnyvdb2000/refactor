@@ -422,10 +422,12 @@ def run_live_engine():
         except Exception as exc:
             errors.append(f"{filename}: laden mislukt ({type(exc).__name__})")
     frames = []
-    for start in range(0, len(requested), 100):
-        batch = sorted(requested)[start:start+100]
+    ordered = sorted(requested)
+    for start in range(0, len(ordered), 100):
+        batch = ordered[start:start+100]
+        print(f"[DOWNLOAD] {start+1}..{start+len(batch)}/{len(ordered)} unieke tickers", flush=True)
         try:
-            frames.append(download_history(batch, period=f"{SZ_CFG['lookback_years']}y"))
+            frames.append(download_history(batch, period=f"{SZ_CFG['lookback_years']}y", request_timeout=15))
         except Exception as exc:
             errors.append(f"batch {start//100+1}: download mislukt ({type(exc).__name__})")
     df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()

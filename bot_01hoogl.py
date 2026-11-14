@@ -37,7 +37,8 @@ except Exception as _e:
 RATE_LIMIT_CONSECUTIVE_DREMPEL = 5
 RATE_LIMIT_PAUZE_SEC           = 300
 RATE_LIMIT_MAX_PAUZES          = 6
-RATE_LIMIT_THROTTLE_VERHOGING  = 0.5
+RATE_LIMIT_THROTTLE_VERHOGING  = 0.1
+RATE_LIMIT_MAX_THROTTLE       = 0.5
 
 MODUS_CFG = {
     "live": {
@@ -51,7 +52,7 @@ MODUS_CFG = {
         "top_n":                5,
         "strategie":            "bot_01hoogl",
         "label":                "GARP ONDERWAARDERING",
-        "throttle_sec":         0.15,
+        "throttle_sec":         0.05,
     },
     "full": {
         "bestand_suffix":       "a",
@@ -64,7 +65,7 @@ MODUS_CFG = {
         "top_n":                3,
         "strategie":            "bot_01hoogl_full",
         "label":                "GARP ONDERWAARDERING — WEEKLY FULL SCAN",
-        "throttle_sec":         0.12,
+        "throttle_sec":         0.05,
     },
 }
 
@@ -292,6 +293,7 @@ def run_engine(modus: str):
                     issues.append(f"{ticker}: rate limiting; niet geanalyseerd")
                 else:
                     consecutive = 0
+                    throttle = cfg["throttle_sec"]
                     if sig is None:
                         issues.append(f"{ticker}: onbruikbare koers/valuta of verouderde koersdatum")
                 cache[ticker] = sig
@@ -306,13 +308,15 @@ def run_engine(modus: str):
                     errors.append(f"Run gestopt: rate-limitpauzebudget uitgeput ({rate_errors} fouten)")
                 else:
                     pauses += 1
-                    throttle += RATE_LIMIT_THROTTLE_VERHOGING
+                    throttle = min(RATE_LIMIT_MAX_THROTTLE, throttle + RATE_LIMIT_THROTTLE_VERHOGING)
                     print(f"Rate-limitpauze {pauses}/{RATE_LIMIT_MAX_PAUZES}", flush=True)
                     remaining = RATE_LIMIT_PAUZE_SEC
                     while remaining > 0:
                         time.sleep(min(60, remaining))
                         remaining -= min(60, remaining)
                     consecutive = 0
+            if len(cache) == 1 or len(cache) % 50 == 0:
+                print(f"[VOORTGANG] {len(cache)} unieke tickers verwerkt; pauze {throttle:g}s", flush=True)
             time.sleep(throttle)
         all_signals = [cache[t] for t in tickers if cache.get(t) is not None]
         candidates = sorted((s for s in all_signals if s.score >= cfg["min_score"]), key=ranking)

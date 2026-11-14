@@ -62,9 +62,9 @@ MODUS_CFG = {
         "top_n":           3,
         "strategie":       "bot_01beurssig_full",
         "label":           "BEURSSIGNALEN-METHODIEK — WEEKLY FULL SCAN",
-        "throttle_sec":    0.5,
+        "throttle_sec":    0.1,
         "pause_every":     100,
-        "pause_sec":       30,
+        "pause_sec":       5,
     },
 }
 
@@ -357,6 +357,8 @@ def run_engine(modus: str):
                           f"{cfg['pause_sec']}s rust", flush=True)
                     pause(cfg["pause_sec"])
                 attempted += 1
+                if attempted == 1 or attempted % 50 == 0:
+                    print(f"[VOORTGANG] {attempted} unieke analyses aangevraagd", flush=True)
                 try:
                     cache[key] = analyse_with_cooldown(ticker, cfg, us)
                     analysed += 1

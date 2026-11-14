@@ -28,6 +28,7 @@ RSI_MAX = float(os.getenv("RSI_MAX", "15.0"))
 VEREIST_UPTREND = os.getenv("VEREIST_UPTREND", "1") == "1"
 TOP_N = int(os.getenv("TOP_N", "3"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
+BATCH_PAUSE_SEC = float(os.getenv("BATCH_PAUSE_SEC", "5"))
 RSI_PERIOD, ATR_PERIOD, MA_TREND = 3, 14, 100
 FIELDS = ["Open", "High", "Low", "Close", "Volume"]
 
@@ -53,8 +54,9 @@ class RequestGate:
 def validate_config():
     if not (all(math.isfinite(x) for x in [MIN_ATR_PCT, MAX_ATR_PCT, IBS_MAX, RSI_MAX])
             and 0 < MIN_ATR_PCT <= MAX_ATR_PCT and 0 <= IBS_MAX <= 1 and 0 <= RSI_MAX <= 100
-            and TOP_N > 0 and 1 <= BATCH_SIZE <= 150):
-        raise ValueError("Ongeldige ATR/IBS/RSI/TOP_N/BATCH_SIZE configuratie")
+            and TOP_N > 0 and 1 <= BATCH_SIZE <= 150
+            and math.isfinite(BATCH_PAUSE_SEC) and 0 <= BATCH_PAUSE_SEC <= 30):
+        raise ValueError("Ongeldige ATR/IBS/RSI/TOP_N/BATCH_SIZE/BATCH_PAUSE_SEC configuratie")
 
 
 def pause(seconds, gate):
@@ -306,9 +308,9 @@ def run_live():
         print(f"[VOORTGANG] batch {start//BATCH_SIZE+1}/{math.ceil(len(tickers)/BATCH_SIZE)}; "
               f"{len(cache)} analyses; {len(data)}/{len(batch)} histories bruikbaar",flush=True)
         if start+BATCH_SIZE < len(tickers) and not gate.blocked_reason:
-            print("[PAUZE] 30s rust voor volgende batch",flush=True)
+            print(f"[PAUZE] {BATCH_PAUSE_SEC:g}s rust voor volgende batch",flush=True)
             try:
-                pause(30,gate)
+                pause(BATCH_PAUSE_SEC,gate)
             except ProviderStop:
                 break
     if gate.blocked_reason:

@@ -105,14 +105,18 @@ def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
 
 def download_history(tickers: List[str], period: str = "2y",
                      start: Optional[str] = None, end: Optional[str] = None,
-                     auto_adjust: bool = True) -> pd.DataFrame:
+                     auto_adjust: bool = True, *,
+                     request_timeout: Optional[float] = None) -> pd.DataFrame:
     """Download OHLCV voor een lijst tickers. Valt terug op per-ticker
     downloads als de batch faalt. Retourneert een lange DataFrame met
-    kolom 'Ticker'."""
+    kolom 'Ticker'. request_timeout begrenst individuele providerrequests,
+    niet de totale downloadduur van een batch."""
     if not tickers:
         return pd.DataFrame()
     kwargs = dict(tickers=tickers, auto_adjust=auto_adjust,
                   group_by="ticker", progress=False, threads=True)
+    if request_timeout is not None:
+        kwargs["timeout"] = request_timeout
     if start and end:
         kwargs.update({"start": start, "end": end})
     else:
@@ -155,6 +159,8 @@ def download_history(tickers: List[str], period: str = "2y",
         for t in missing:
             try:
                 kw = dict(tickers=t, auto_adjust=auto_adjust, progress=False, threads=False)
+                if request_timeout is not None:
+                    kw["timeout"] = request_timeout
                 if start and end:
                     kw.update({"start": start, "end": end})
                 else:

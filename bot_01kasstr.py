@@ -398,7 +398,9 @@ def run_live_engine():
             except Exception as exc:
                 cache[ticker] = None
                 errors.append(f"{ticker}: analyse mislukt ({type(exc).__name__}: {exc})")
-            time.sleep(.15)
+            if len(cache) == 1 or len(cache) % 50 == 0:
+                print(f"[VOORTGANG] {len(cache)} unieke tickers verwerkt", flush=True)
+            time.sleep(.05)
         all_signals = [cache[t] for t in tickers if cache[t] is not None]
         candidates = sorted((s for s in all_signals if s.score>=FCF_CFG["min_score"]),key=ranking)
         signals = candidates[:5]

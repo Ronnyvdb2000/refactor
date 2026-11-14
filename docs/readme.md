@@ -7,6 +7,10 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Architectuurevaluatie](EVALUATION.md) — eerdere evaluatie; controleer voortgangsclaims aan de hand van de huidige code.
 - [Tickercorrecties mailbot](ticker_correcties_00mail.md)
 
+## Uitvoering
+
+- [Scantempo en wachttijden](scantempo.md)
+
 ## Controlerapporten
 
 Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigingen kunnen de bevindingen veranderen.
