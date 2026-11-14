@@ -2,7 +2,7 @@ name: "Bot 01: FULL scanner (041-059) Pairs trading"
 
 on:
   schedule:
-    # Weekdagen 19:50 UTC â€” binnen het bestaande 19:30-20:10 UTC-venster van de andere bots
+    # Weekdagen 19:50 UTC — binnen het bestaande 19:30-20:10 UTC-venster van de andere bots
     - cron: '50 19 * * 1-5'
   workflow_dispatch:
     inputs:
@@ -15,16 +15,20 @@ on:
           - live
           - backtest
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 300
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Pull laatste wijzigingen (rebase-safe)
-        run: |
-          git pull --rebase=false -X ours
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -38,6 +42,7 @@ jobs:
 
       - name: Draai bot_01cointegr
         env:
+          PYTHONUNBUFFERED: "1"
           # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
@@ -46,3 +51,12 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           python bot_01cointegr.py ${{ github.event.inputs.mode || 'live' }}
+
+      - name: Bewaar backtestuitvoer
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cointegr-backtest
+          path: backtest_results/*.csv
+          if-no-files-found: ignore
+          retention-days: 7

@@ -3,23 +3,15 @@
 """
 bot_01cointegr.py — STATISTISCHE ARBITRAGE (Pairs Trading) v2.1
 
-v2.1 t.o.v. v2.0 (herstel van functionaliteit die bij de refactor verloren ging):
-  - Walk-forward backtest hersteld (v1.1): selectie op een in-sample venster
-    (IS_WINDOW), dan RESCAN_DAYS out-of-sample verhandelen; per beurs
-    gesegmenteerd, met echte marge-reservering. Uitvoer:
-    backtest_results/backtest_cointegr.csv.
-  - Download met logging en retry-meldingen hersteld (v2.0 slikte elke fout
-    stil in) en de tak voor een batch met een enkele ticker.
-  - laad_exchange_tickers() en BACKTEST_START/END terug.
-  - De common/-refactor van v2.0 blijft behouden.
-
-v2.0: gebruikt common/ voor alle gedeelde bouwstenen.
-Bevat Engle-Granger co-integratie, walk-forward backtest en FDR-correctie.
+Pairwise Engle-Granger-selectie met BH/FDR na correlatievoorfilter.
+Live adviesrapport met e-mail/database; Telegram uit.
+Backtest: synthetische genormaliseerde indexeenheden, geen EUR-portefeuille.
 
 Gebruik:  python bot_01cointegr.py live | backtest
 """
 
 import os
+import argparse
 import sys
 import math
 import time
@@ -38,7 +30,7 @@ from statsmodels.tsa.stattools import coint
 from common import (
     today_str, safe_float, yahoo_link,
     load_tickers_from_file, bouw_bestandslijst, label_voor,
-    send_telegram, send_email,
+    send_email, download_history as common_download_history,
     trade_cost, SLIPPAGE_PCT, TRADE_COST_FIXED, TRADE_COST_PCT
 )
 
@@ -61,7 +53,7 @@ MAX_TOTAL_PAIRS      = 20
 SLIPPAGE_PCT         = 0.001
 TRADE_COST_FIXED     = 15.0
 TRADE_COST_PCT       = 0.0035
-TAX_RATE             = 0.10
+TAX_RATE             = 0.0  # Geen willekeurige belastinginhouding
 
 LOOKBACK             = 60
 ENTRY_Z              = 2.0
@@ -107,7 +99,7 @@ def fdr_correctie(p_waarden: List[float], alpha: float = FDR_ALPHA) -> List[bool
     n = len(p_waarden)
     if n == 0:
         return []
-    geindexeerd = sorted(enumerate(p_waarden), key=lambda x: x[1])
+    geindexeerd = sorted(enumerate([p if math.isfinite(p) and 0 <= p <= 1 else 1.0 for p in p_waarden]), key=lambda x: x[1])
     grens_idx = -1
     for k, (_, p) in enumerate(geindexeerd):
         drempel = (k + 1) / n * alpha
@@ -123,95 +115,60 @@ def fdr_correctie(p_waarden: List[float], alpha: float = FDR_ALPHA) -> List[bool
 # DATA DOWNLOAD (aangepast voor Pairs)
 # ============================================================
 
-def _normalise(df_raw, ticker: str) -> Optional[pd.DataFrame]:
-    if df_raw is None or not isinstance(df_raw, pd.DataFrame) or df_raw.empty:
-        return None
-    df = df_raw.copy().dropna(how="all")
-    if df.empty:
-        return None
-    if df.index.name in ("Date", "Datetime") or isinstance(df.index, pd.DatetimeIndex):
-        df = df.reset_index()
-    if "Date" in df.columns:
-        df = df.loc[:, ~df.columns.duplicated()]
-    if "Datetime" in df.columns and "Date" not in df.columns:
-        df = df.rename(columns={"Datetime": "Date"})
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-    if "Close" not in df.columns:
-        return None
-    df["Ticker"] = ticker
-    return df
-
-def _download_batch(batch: List[str], period: str) -> List[pd.DataFrame]:
-    """Download 1 batch tickers via yf.download(); retourneert lijst van
-    genormaliseerde per-ticker DataFrames. Retryt met backoff bij rate-limit."""
-    frames: List[pd.DataFrame] = []
-    kwargs = dict(tickers=batch, auto_adjust=True, group_by="ticker",
-                  progress=False, threads=True, period=period)
-
-    data = None
-    for poging in range(DOWNLOAD_BATCH_RETRIES + 1):
-        try:
-            data = yf.download(**kwargs)
-            break
-        except Exception as e:
-            wacht = DOWNLOAD_BATCH_PAUSE * (2 ** poging)
-            print(f"[WARN] Batch mislukt ({e}), retry over {wacht:.0f}s "
-                  f"(poging {poging + 1}/{DOWNLOAD_BATCH_RETRIES + 1})...")
-            time.sleep(wacht)
-            data = None
-
-    if data is not None and not data.empty:
-        if isinstance(data.columns, pd.MultiIndex):
-            ticker_level = 1
-            for lvl in range(data.columns.nlevels):
-                if any(t in set(data.columns.get_level_values(lvl)) for t in batch):
-                    ticker_level = lvl
-                    break
-            available = set(data.columns.get_level_values(ticker_level))
-            for t in batch:
-                if t not in available:
-                    continue
-                try:
-                    norm = _normalise(data.xs(t, axis=1, level=ticker_level).copy(), t)
-                    if norm is not None:
-                        frames.append(norm)
-                except Exception:
-                    continue
-        else:
-            norm = _normalise(data, batch[0])
-            if norm is not None:
-                frames.append(norm)
-
-    return frames
-
-def download_history(tickers: List[str], period: str = "2y") -> pd.DataFrame:
-    """Download historische koersdata in batches van DOWNLOAD_BATCH_SIZE
-    tickers, met een pauze ertussen — voorkomt dat Yahoo Finance de hele
-    aanvraag rate-limit't zoals bij één grote call met duizenden tickers."""
-    if not tickers:
-        return pd.DataFrame()
-
-    frames: List[pd.DataFrame] = []
-    batches = [tickers[i:i + DOWNLOAD_BATCH_SIZE]
-               for i in range(0, len(tickers), DOWNLOAD_BATCH_SIZE)]
-
-    for i, batch in enumerate(batches):
-        frames.extend(_download_batch(batch, period))
-        if i < len(batches) - 1:
+def download_history(tickers: List[str], period: str = "2y", start=None, end=None) -> pd.DataFrame:
+    """Bounded batches with common's individual retry for missing tickers."""
+    tickers = sorted(set(tickers))
+    frames = []
+    for offset in range(0, len(tickers), DOWNLOAD_BATCH_SIZE):
+        batch = tickers[offset:offset + DOWNLOAD_BATCH_SIZE]
+        frame = common_download_history(batch, period=period, start=start, end=end)
+        if not frame.empty:
+            frames.append(frame)
+        print(f"Download: {min(offset + len(batch), len(tickers))}/{len(tickers)}", flush=True)
+        if offset + len(batch) < len(tickers):
             time.sleep(DOWNLOAD_BATCH_PAUSE)
-        if (i + 1) % 10 == 0 or i == len(batches) - 1:
-            print(f"  → batch {i + 1}/{len(batches)} verwerkt "
-                  f"({len(frames)} tickers met data tot nu toe)")
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
-    if not frames:
+
+def prepare_prices(df: pd.DataFrame, tickers: List[str], live=True):
+    issues = {}
+    series = {}
+    today = pd.Timestamp(today_str())
+    for ticker in sorted(set(tickers)):
+        if df.empty or not {"Date", "Ticker", "Close"}.issubset(df.columns):
+            issues[ticker] = "geen koersdata"
+            continue
+        g = df.loc[df.Ticker == ticker, ["Date", "Close"]].copy()
+        g["Date"] = pd.to_datetime(g.Date, errors="coerce")
+        if g.Date.dt.tz is not None:
+            g["Date"] = g.Date.dt.tz_localize(None)
+        g["Date"] = g.Date.dt.normalize()
+        g = g.loc[g.Date.notna() & (g.Date < today)].sort_values("Date").drop_duplicates("Date", keep="last")
+        g["Close"] = pd.to_numeric(g.Close, errors="coerce")
+        valid = np.isfinite(g.Close) & (g.Close > 0)
+        if g.empty or (live and not valid.iloc[-1]):
+            issues[ticker] = "ontbrekende/ongeldige laatste koers"
+            continue
+        g = g.loc[valid]
+        if len(g) < LOOKBACK or (live and (today - g.Date.iloc[-1]).days > 7):
+            issues[ticker] = "te korte of verouderde koershistorie"
+            continue
+        series[ticker] = g.set_index("Date").Close
+    return pd.DataFrame(series).sort_index(), issues
+
+
+def pair_history(a, b, data, lookback=LOOKBACK):
+    if a not in data or b not in data:
         return pd.DataFrame()
-    df = pd.concat(frames, ignore_index=True)
-    if "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"])
-    # Pandas 3.1 depreceert inplace= voor deze bewerkingen.
-    df = df.sort_values(["Ticker", "Date"]).reset_index(drop=True)
-    return df
+    pair = data[[a, b]].replace([np.inf, -np.inf], np.nan)
+    pair = pair.where(pair > 0).dropna().sort_index()
+    pair = pair.loc[~pair.index.duplicated(keep="last")]
+    if len(pair) < lookback:
+        return pd.DataFrame()
+    # Both legs must have a quote on their own latest available session.
+    if any(pair.index[-1] != data[t].dropna().index[-1] for t in (a,b)):
+        return pd.DataFrame()
+    return pair
 
 # ============================================================
 # PAIR ANALYSE
@@ -232,12 +189,12 @@ class PairSignaal:
     price_b:       float
     signal:        str
     score:         float
+    signal_date:   str = ""
 
-def analyseer_pair_ruw(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int = LOOKBACK) -> Optional[PairSignaal]:
+def analyseer_pair_ruw(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int = LOOKBACK, filter_half_life: bool = True) -> Optional[PairSignaal]:
     try:
-        if ticker_a not in data.columns or ticker_b not in data.columns:
-            return None
-        if len(data[ticker_a].dropna()) < lookback or len(data[ticker_b].dropna()) < lookback:
+        data = pair_history(ticker_a, ticker_b, data, lookback)
+        if data.empty:
             return None
 
         spread = data[ticker_a] / data[ticker_b]
@@ -248,14 +205,16 @@ def analyseer_pair_ruw(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookbac
         current_mean = spread_mean.iloc[-1]
         current_std = spread_std.iloc[-1]
 
-        if math.isnan(current_std) or current_std <= 0:
+        if not all(math.isfinite(x) for x in (current_spread, current_mean, current_std)) or current_std <= 0:
             return None
 
         z_score = (current_spread - current_mean) / current_std
         _, p_value, _ = coint(data[ticker_a], data[ticker_b])
         half_life = schat_half_life(spread)
         
-        if half_life > MAX_HALF_LIFE or half_life <= 0:
+        if not math.isfinite(p_value) or not 0 <= p_value <= 1:
+            return None
+        if filter_half_life and (not math.isfinite(half_life) or half_life > MAX_HALF_LIFE or half_life <= 0):
             return None
 
         if z_score > ENTRY_Z:
@@ -269,45 +228,42 @@ def analyseer_pair_ruw(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookbac
 
         return PairSignaal(
             pair=f"{ticker_a}/{ticker_b}", ticker_a=ticker_a, ticker_b=ticker_b,
-            p_value=float(round(p_value, 4)), half_life=float(round(half_life, 1)),
-            current_z=float(round(z_score, 2)), spread=float(round(current_spread, 4)),
-            spread_mean=float(round(current_mean, 4)), spread_std=float(round(current_std, 4)),
-            price_a=float(round(data[ticker_a].iloc[-1], 2)),
-            price_b=float(round(data[ticker_b].iloc[-1], 2)),
-            signal=signal, score=float(score_val),
+            p_value=float(p_value), half_life=float(half_life),
+            current_z=float(z_score), spread=float(current_spread),
+            spread_mean=float(current_mean), spread_std=float(current_std),
+            price_a=float(data[ticker_a].iloc[-1]),
+            price_b=float(data[ticker_b].iloc[-1]),
+            signal=signal, score=float(score_val), signal_date=pd.Timestamp(data.index[-1]).date().isoformat(),
         )
-    except Exception:
+    except (ValueError, np.linalg.LinAlgError) as exc:
+        print(f"[DATA] {ticker_a}/{ticker_b}: statistische toets mislukt ({exc})")
         return None
 
 def selecteer_gecointegreerde_paren(tickers: List[str], data: pd.DataFrame, corr_prefilter: float = CORR_PREFILTER, fdr_alpha: float = FDR_ALPHA, lookback: int = LOOKBACK) -> List[PairSignaal]:
-    beschikbaar = [t for t in tickers if t in data.columns]
-    if len(beschikbaar) < 2:
-        return []
-
-    sub = data[beschikbaar].dropna()
-    if sub.shape[1] < 2 or len(sub) < lookback:
-        return []
-
-    corr_matrix = sub.corr().abs()
-    kandidaten = [(a, b) for a, b in combinations(beschikbaar, 2) if a in corr_matrix.index and b in corr_matrix.columns and corr_matrix.loc[a, b] >= corr_prefilter]
-    if not kandidaten:
-        return []
-
-    ruw: List[PairSignaal] = []
-    for a, b in kandidaten:
-        sig = analyseer_pair_ruw(a, b, sub, lookback)
-        if sig is not None:
-            ruw.append(sig)
-    if not ruw:
-        return []
-
-    mask = fdr_correctie([s.p_value for s in ruw], fdr_alpha)
-    significant = [s for s, keep in zip(ruw, mask) if keep]
-    significant.sort(key=lambda s: s.score, reverse=True)
+    available = sorted(set(tickers) & set(data.columns))
+    raw, pvalues = [], []
+    clean = data[available].replace([np.inf, -np.inf], np.nan)
+    clean = clean.where(clean > 0)
+    correlations = clean.corr(min_periods=lookback).abs()
+    for a, b in combinations(available, 2):
+        corr = correlations.loc[a, b]
+        if not math.isfinite(corr) or corr < corr_prefilter:
+            continue
+        pair = pair_history(a, b, clean, lookback)
+        if pair.empty:
+            continue
+        sig = analyseer_pair_ruw(a, b, pair, lookback, filter_half_life=False)
+        raw.append(sig)
+        pvalues.append(sig.p_value if sig is not None else 1.0)
+    mask = fdr_correctie(pvalues, fdr_alpha)
+    significant = [sig for sig, keep in zip(raw, mask) if keep and sig is not None
+                   and math.isfinite(sig.half_life) and 0 < sig.half_life <= MAX_HALF_LIFE]
+    significant.sort(key=lambda sig: (-sig.score, sig.pair))
     return significant
 
 def snel_zscore(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int = LOOKBACK) -> Optional[Tuple[float, float, float, float]]:
-    if ticker_a not in data.columns or ticker_b not in data.columns:
+    data = pair_history(ticker_a, ticker_b, data, lookback)
+    if data.empty:
         return None
     spread = data[ticker_a] / data[ticker_b]
     spread_mean = spread.rolling(lookback).mean()
@@ -315,7 +271,7 @@ def snel_zscore(ticker_a: str, ticker_b: str, data: pd.DataFrame, lookback: int 
     current_spread = spread.iloc[-1]
     current_mean = spread_mean.iloc[-1]
     current_std = spread_std.iloc[-1]
-    if math.isnan(current_std) or current_std <= 0:
+    if not all(math.isfinite(x) for x in (current_spread, current_mean, current_std)) or current_std <= 0:
         return None
     z = (current_spread - current_mean) / current_std
     return z, current_spread, current_mean, current_std
@@ -335,7 +291,7 @@ def format_pairs_bericht(exchange_name: str, signalen: List[PairSignaal]) -> Opt
         elif s == "SHORT": return "🔴 SHORT"
         return "⚪ NEUTRAL"
 
-    top = signalen[:3]
+    top = signalen[:MAX_PAIRS]
     delen = [
         f"📊 *PAIRS TRADING — {exchange_name}*",
         f"_{nu} | {len(signalen)} actieve signals_",
@@ -344,77 +300,77 @@ def format_pairs_bericht(exchange_name: str, signalen: List[PairSignaal]) -> Opt
     ]
 
     for s in top:
-        delen.append(f"• {signal_emoji(s.signal)} `{s.pair}`\n  Z-score: {s.current_z:.2f} | p={s.p_value:.4f} | Half-life: {s.half_life:.1f}d\n  Spread: {s.spread:.4f} (mean={s.spread_mean:.4f}, σ={s.spread_std:.4f})\n  {yahoo_link(s.ticker_a)} / {yahoo_link(s.ticker_b)} | Koers: {s.price_a:.2f} / {s.price_b:.2f}")
+        delen.append(f"• {signal_emoji(s.signal)} `{s.pair}`\n  Z-score: {s.current_z:.2f} | p={s.p_value:.4f} | Half-life: {s.half_life:.1f}d\n  Spread: {s.spread:.4f} (mean={s.spread_mean:.4f}, σ={s.spread_std:.4f})\n  {yahoo_link(s.ticker_a)} / {yahoo_link(s.ticker_b)} | Koers (bronkoerseenheden): {s.price_a:.4f} / {s.price_b:.4f} | koersdag {s.signal_date}")
 
-    if len(signalen) > 3:
-        extra = signalen[3:]
+    if len(signalen) > MAX_PAIRS:
+        extra = signalen[MAX_PAIRS:]
         delen.append("─────────────────────────────\n📋 *Overige signalen:*")
         for s in extra:
             emoji = "🟢" if s.signal == "LONG" else "🔴" if s.signal == "SHORT" else "⚪"
             delen.append(f"  {emoji} `{s.pair}` | z={s.current_z:.2f} | p={s.p_value:.4f}")
 
+    delen.append("LONG = long A / short B; SHORT = short A / long B. Ratio-spread, geen geschatte hedge-ratio. Advies, geen orders; shortbaarheid, FX en leenkosten niet getoetst.")
     delen.append(f"\n⚙️ _Entry: ±{ENTRY_Z}σ | Exit: ±{EXIT_Z}σ | Lookback: {LOOKBACK}d | FDR α: {FDR_ALPHA}_")
     return "\n\n".join(delen)
 
 def run_live_engine():
-    print(f"{'='*60}\nPAIRS TRADING — LIVE  {today_str()}\n{'='*60}")
-
+    reports, issues, errors = [], [], []
     exchange_tickers = {}
-    all_tickers = []
-    for f_name in bouw_bestandslijst():
-        tlist = load_tickers_from_file(f_name)
-        if not tlist: continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-
-    all_tickers = sorted(set(all_tickers))
-    if not all_tickers:
-        print("[ERROR] Geen tickers.")
-        return
-
-    print(f"Totaal: {len(all_tickers)} unieke tickers | Data downloaden (2 jaar)...")
-    df = download_history(all_tickers, period="2y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-
-    pivot = df.pivot(index="Date", columns="Ticker", values="Close").dropna(axis=1, how='all')
-    print(f"Data geladen: {len(pivot.columns)} tickers met voldoende data")
-
-    email_delen: List[str] = []
-
-    for ex_name, tlist in exchange_tickers.items():
-        print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
-        signalen = selecteer_gecointegreerde_paren(tlist, pivot)
-        top_signalen = signalen[:MAX_PAIRS]
-        actieve_signalen = [s for s in top_signalen if s.signal != "NEUTRAL"]
-
-        print(f"  → {len(signalen)} co-geintegreerde paren (na FDR-correctie)")
-        print(f"  → {len(actieve_signalen)} actieve signalen")
-
-        if actieve_signalen:
-            for s in actieve_signalen[:3]:
-                log_selectie(
-                    ticker=s.pair, datum=today_str(), strategie="bot_01cointegr", beurs=ex_name, koers=s.spread,
-                    parameters={
-                        "signal": s.signal, "z_score": s.current_z, "p_value": s.p_value,
-                        "half_life": s.half_life, "spread_mean": s.spread_mean, "spread_std": s.spread_std,
-                        "price_a": s.price_a, "price_b": s.price_b, "score": s.score,
-                        "grafiek": f"https://finance.yahoo.com/quote/{s.ticker_a}/chart?p={s.ticker_a}",
-                    },
-                )
-
-            bericht = format_pairs_bericht(ex_name, actieve_signalen)
-            if bericht:
-                send_telegram(bericht, parse_mode="Markdown")
-                email_delen.append(bericht)
-                print(f"  → Telegram verstuurd: {ex_name}")
-
-    if email_delen:
-        send_email(f"PAIRS TRADING rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
-
-    print(f"\n{'='*60}\nKlaar.")
+    for filename in bouw_bestandslijst():
+        tickers = load_tickers_from_file(filename)
+        if tickers:
+            exchange_tickers[label_voor(filename)] = sorted(set(tickers))
+        else:
+            issues.append(f"{filename}: ontbrekende of lege lijst")
+    tickers = sorted({t for values in exchange_tickers.values() for t in values})
+    df = download_history(tickers, period="2y")
+    prices, bad = prepare_prices(df, tickers)
+    issues += [f"{ticker}: {reason}" for ticker, reason in bad.items()]
+    if len(prices.columns) < 2:
+        errors.append("Minder dan twee bruikbare tickers")
+    stored = selected = tested_exchanges = 0
+    for exchange, universe in exchange_tickers.items():
+        available = [t for t in universe if t in prices]
+        if len(available) < 2:
+            issues.append(f"{exchange}: minder dan twee bruikbare tickers")
+            continue
+        try:
+            signals = selecteer_gecointegreerde_paren(available, prices)
+            tested_exchanges += 1
+        except Exception as exc:
+            errors.append(f"{exchange}: analyse mislukt ({exc})")
+            continue
+        active = [s for s in signals if s.signal != "NEUTRAL"][:MAX_PAIRS]
+        selected += len(active)
+        for sig in active:
+            try:
+                ok = log_selectie(ticker=sig.pair, datum=sig.signal_date,
+                    strategie="bot_01cointegr", beurs=exchange, koers=sig.spread,
+                    parameters={"signal": sig.signal, "z_score": sig.current_z, "p_value": sig.p_value,
+                        "half_life": sig.half_life, "spread_mean": sig.spread_mean,
+                        "spread_std": sig.spread_std, "price_a": sig.price_a, "price_b": sig.price_b,
+                        "score": sig.score, "signal_date": sig.signal_date,
+                        "grafiek": yahoo_link(sig.ticker_a)})
+                if not ok:
+                    raise RuntimeError("geen opslagbevestiging")
+                stored += 1
+            except Exception as exc:
+                errors.append(f"{sig.pair}: database mislukt ({exc})")
+        reports.append(f"{exchange}: {len(available)}/{len(universe)} tickers; "
+                       f"{len(signals)} paren na FDR; {len(active)} actieve topselecties.\n" +
+                       (format_pairs_bericht(exchange, active) or "Geen actieve signalen."))
+        print(reports[-1], flush=True)
+    if not tested_exchanges:
+        errors.append("Geen beurs met bruikbaar analyse-universum")
+    summary = f"Datadekking: {len(prices.columns)}/{len(tickers)} unieke tickers. Database: {stored}/{selected} selecties. Telegram uit."
+    body = "\n\n".join([summary] + reports + ["Databeperkingen:"] + issues + ["Fouten:"] + errors)
+    print(body, flush=True)
+    subject = ("[ONVOLLEDIG] " if issues or errors else "") + "PAIRS TRADING rapport " + today_str()
+    if not send_email(subject, body):
+        errors.append("E-mail niet verzonden")
+    if errors:
+        raise RuntimeError("; ".join(errors))
+    print("Klaar — e-mail verzonden.", flush=True)
 
 def laad_exchange_tickers() -> Dict[str, List[str]]:
     """Bouwt {beursnaam: [tickers]} - identiek gebruikt door live en backtest,
@@ -436,17 +392,24 @@ def run_backtest():
     exchange_tickers = laad_exchange_tickers()
     all_tickers = sorted(set(t for tlist in exchange_tickers.values() for t in tlist))
     if not all_tickers:
-        print("[ERROR] Geen tickers gevonden.")
-        return
+        raise RuntimeError("Geen tickers gevonden")
 
     print(f"Tickers: {len(all_tickers)} over {len(exchange_tickers)} beurzen | Data downloaden (5y)...")
-    df = download_history(all_tickers, period="5y")
+    df = download_history(all_tickers, start=(pd.Timestamp(BACKTEST_START) - pd.DateOffset(years=2)).date().isoformat(),
+                          end=(pd.Timestamp(BACKTEST_END) + pd.Timedelta(days=1)).date().isoformat())
     if df.empty:
-        print("[ERROR] Geen data.")
-        return
+        raise RuntimeError("Geen backtestdata")
 
-    pivot = df.pivot(index="Date", columns="Ticker", values="Close")
-    pivot = pivot.dropna(axis=1, how='all')
+    pivot, limitations = prepare_prices(df, all_tickers, live=False)
+    print(f"Databeperkingen: {limitations}")
+    # Common synthetic units: each leg rebased to 100 using pre-test data only.
+    for ticker in list(pivot):
+        prior = pivot.loc[pivot.index < pd.Timestamp(BACKTEST_START), ticker].dropna()
+        if len(prior) < IS_WINDOW:
+            pivot = pivot.drop(columns=ticker)
+        else:
+            pivot[ticker] = 100 * pivot[ticker] / prior.iloc[0]
+    print("Synthetische indexeenheden; geen EUR-rendement, FX-, borrow- of margincallmodel.")
     print(f"Data: {len(pivot.columns)} tickers | {len(pivot)} dagen")
 
     cash = START_CAPITAL
@@ -462,16 +425,15 @@ def run_backtest():
     dates = sorted(pivot.index)
     warmup = max(LOOKBACK, IS_WINDOW)
     if len(dates) <= warmup:
-        print(f"[WARN] Onvoldoende handelsdagen voor backtest: {len(dates)} beschikbaar, minimaal {warmup + 1} nodig.")
-        return
+        raise RuntimeError(f"Onvoldoende handelsdagen: {len(dates)}; minimaal {warmup + 1}")
     requested_start = pd.Timestamp(BACKTEST_START)
     first_test_idx = next((i for i, day in enumerate(dates) if day >= requested_start), None)
     if first_test_idx is None:
-        print("[WARN] Geen handelsdagen binnen de ingestelde backtestperiode.")
-        return
+        raise RuntimeError("Geen handelsdagen binnen de backtestperiode")
     start_idx = max(warmup, first_test_idx)
     print(f"Backtest van {dates[start_idx].date()} tot {dates[-1].date()}")
 
+    valuation_table = pivot.ffill()
     for i, date in enumerate(dates):
         if i < start_idx:
             continue
@@ -481,19 +443,20 @@ def run_backtest():
         # Zo wordt niet op dezelfde slotkoers gehandeld die het signaal vormde.
         signal_data = pivot.iloc[:i]
         current_prices = pivot.iloc[i]
+        valuation_prices = valuation_table.iloc[i]
 
         # --- Exits (goedkope z-score-check, geen coint-hertest) ---
         for pair_key, pos in list(positions.items()):
             a, b = pair_key.split('/')
             if a not in current_prices or b not in current_prices:
                 continue
+            pos['days'] = max(0, len(pivot.loc[pos['entry_date']:date, [a,b]].dropna()) - 1)
             z_info = snel_zscore(a, b, signal_data)
             z = z_info[0] if z_info is not None else None
             # De maximale houdperiode geldt ook wanneer de z-score
             # tijdelijk niet berekend kan worden.
             exit_signal = pos['days'] >= 60 or (z is not None and abs(z) < EXIT_Z)
             if z is None and not exit_signal:
-                positions[pair_key]['days'] += 1
                 continue
             if exit_signal:
                 price_a, price_b = float(current_prices[a]), float(current_prices[b])
@@ -528,8 +491,6 @@ def run_backtest():
                     'days': pos['days'],
                 })
                 del positions[pair_key]
-            else:
-                positions[pair_key]['days'] += 1
 
         # --- Walk-forward herselectie: alleen data tot gisteren ---
         if i - laatste_selectie_idx >= RESCAN_DAYS:
@@ -602,13 +563,12 @@ def run_backtest():
             a, b = pair_key.split('/')
             # Ook bij ontbrekende koers blijft de gereserveerde marge meetellen.
             portfolio_value += pos['reserved']
-            if (a in current_prices and b in current_prices
-                    and math.isfinite(current_prices[a]) and math.isfinite(current_prices[b])
-                    and current_prices[a] > 0 and current_prices[b] > 0):
+            if (a in valuation_prices and b in valuation_prices
+                    and math.isfinite(valuation_prices[a]) and math.isfinite(valuation_prices[b])):
                 sign_a = 1 if pos['direction'] == 'LONG' else -1
                 sign_b = -sign_a
-                exit_a = float(current_prices[a]) * (1 - sign_a * SLIPPAGE_PCT)
-                exit_b = float(current_prices[b]) * (1 - sign_b * SLIPPAGE_PCT)
+                exit_a = float(valuation_prices[a]) * (1 - sign_a * SLIPPAGE_PCT)
+                exit_b = float(valuation_prices[b]) * (1 - sign_b * SLIPPAGE_PCT)
                 unrealized = (sign_a * (exit_a - pos['entry_a']) * pos['size_a']
                               + sign_b * (exit_b - pos['entry_b']) * pos['size_b'])
                 estimated_exit_fees = (trade_cost(pos['size_a'] * exit_a)
@@ -617,6 +577,14 @@ def run_backtest():
 
         equity_curve.append({'date': date, 'value': portfolio_value})
 
+    # Always expose empty trades, open positions and valuation history.
+    os.makedirs('backtest_results', exist_ok=True)
+    pd.DataFrame(trades, columns=['entry_date','exit_date','pair','direction','entry_z',
+        'exit_z','gross_pnl','net_pnl','days']).to_csv('backtest_results/backtest_cointegr.csv', index=False)
+    pd.DataFrame(equity_curve, columns=['date','value']).to_csv('backtest_results/cointegr_equity.csv', index=False)
+    pd.DataFrame([dict(pair=k, **v) for k,v in positions.items()],
+        columns=['pair','entry_date','entry_a','entry_b','entry_fees','size_a','size_b',
+                 'direction','entry_z','days','reserved']).to_csv('backtest_results/cointegr_open.csv', index=False)
     # --- Resultaten ---
     if trades:
         tdf = pd.DataFrame(trades)
@@ -627,10 +595,10 @@ def run_backtest():
 
         gross_profit = tdf[tdf['net_pnl'] > 0]['net_pnl'].sum()
         gross_loss = abs(tdf[tdf['net_pnl'] <= 0]['net_pnl'].sum())
-        profit_factor = gross_profit / gross_loss if gross_loss > 0 else 0
+        profit_factor = gross_profit / gross_loss if gross_loss > 0 else float('nan')
 
         equity_df = pd.DataFrame(equity_curve)
-        equity_df['peak'] = equity_df['value'].cummax()
+        equity_df['peak'] = equity_df['value'].cummax().clip(lower=START_CAPITAL)
         equity_df['drawdown'] = (equity_df['peak'] - equity_df['value']) / equity_df['peak']
         max_dd = equity_df['drawdown'].max() * 100
 
@@ -640,8 +608,8 @@ def run_backtest():
         print(f"\n{'='*60}")
         print(f"📊 BACKTEST RESULTATEN — bot_01cointegr (walk-forward)")
         print(f"{'='*60}")
-        print(f"Startkapitaal     : EUR{START_CAPITAL:>12,.2f}")
-        print(f"Eindkapitaal      : EUR{final_value:>12,.2f}")
+        print(f"Startkapitaal     : indexeenheden {START_CAPITAL:>12,.2f}")
+        print(f"Eindkapitaal      : indexeenheden {final_value:>12,.2f}")
         print(f"Totaal rendement  : {total_return:>+11.1f}%")
         print(f"Trades            : {len(tdf):>12}")
         print(f"Winnaars          : {n_win:>12} ({win_rate:.1f}%)")
@@ -653,7 +621,7 @@ def run_backtest():
         top_pairs = tdf.groupby('pair')['net_pnl'].sum().sort_values(ascending=False).head(5)
         print("\n🏆 Beste paren:")
         for pair, pnl in top_pairs.items():
-            print(f"  {pair}: EUR{pnl:,.2f}")
+            print(f"  {pair}: indexeenheden {pnl:,.2f}")
 
         print("\n💾 Resultaten opgeslagen in backtest_results/backtest_cointegr.csv")
     else:
@@ -664,7 +632,9 @@ def run_backtest():
 # ============================================================
 
 if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", nargs="?", choices=("live", "backtest"), default="live")
+    mode = parser.parse_args().mode
     if mode == "backtest":
         run_backtest()
     else:
