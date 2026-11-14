@@ -1,150 +1,180 @@
-Technische Handleiding: refactor repository (branch: refactor/phase-1-common)
-1. Doel van de repository
+# refactor
 
-Deze repository is een gerefactorde versie van de Fantasie-repo. Het doel is om de dubbele code (in 20+ bots) te centraliseren in één common/-package, de statistiek te verbeteren (Newey-West), en de onderhoudbaarheid te vergroten. De data-generatie, feature-stores en modellen draaien nu op deze centrale architectuur.
+Python-repository voor aandelenscreening, technische en fundamentele features, forward returns, modeltraining en rapportage via GitHub Actions.
 
-2. Mappenstructuur (gebaseerd op de door jou aangeleverde bestanden)
+Deze handleiding beschrijft de code op `main`. De repository `Ronnyvdb2000/refactor-lab` is een afzonderlijk project; gebruik daarvoor eigen code, configuratie en documentatie.
 
-common/: De centrale package. Bevat alle gedeelde logica.
-__init__.py: Exporteert de functies.
-indicators.py: Canonieke technische indicatoren (Wilder/TA-Lib-conform).
-io.py: download_history, ticker-loaders, bestandslijsten.
-notify.py: send_telegram, send_email.
-sizing.py: bereken_positie, trade_cost, sizing_tekst.
-text.py: safe_float, today_str, esc.
-tests/: Unit tests voor de common/-package.
-test_indicators.py
-test_io.py
-test_sizing.py
-examples/ (indien aanwezig): Voorbeeldscripts.
-Root: De bots (bot_*.py), combineerders (a_*.py), feature-stores (bouw_*.py), analyses (analyse_*.py) en de modellen (a_par_model.py, a_meta_model*.py).
-.github/workflows/: GitHub Actions workflows (momenteel uitgeschakeld via "Disable actions").
+## Dataflow
 
-3. De common/-package (de kern)
+1. Tickerlijsten (`tickers_*.txt`) vormen het universum voor de scanners.
+2. Strategieën (`bot_*.py`) produceren selecties en rapporten.
+3. Feature-builders vullen technische en fundamentele gegevens in Supabase/PostgreSQL.
+4. `bouw_forward_returns.py` koppelt selecties aan latere rendementen.
+5. Analyse- en modelscripts gebruiken deze gegevens voor evaluatie, training en scoring.
+6. Workflows bewaren, afhankelijk van het script, CSV-bestanden, modelresultaten of andere rapporten en sturen notificaties.
 
-3.1 common/indicators.py
-Bevat de canonieke implementatie van alle technische indicatoren. Alle bots en feature-stores gebruiken deze functies.
-wilder_smooth(series, period): De basis voor RSI, ATR, ADX.
-compute_rsi_series(close, period=14)
-compute_atr_series(high, low, close, period=14)
-compute_adx_series(high, low, close, period=14)
-compute_macd_series(close, fast=12, slow=26, signal=9)
-compute_bb(close, period=20, std_mult=2.0)
-compute_stoch(high, low, close, k_period=14, k_smooth=3, d_smooth=3)
-compute_ibs(high, low, close)
-compute_hv(close, period) (historische volatiliteit)
-compute_ema(close, span)
-bereken_alle_indicatoren(hist, index_ret=None): Berekent de volledige featureset voor de feature-store.
+De precieze invoer, uitvoer en eventuele schrijfacties verschillen per script. Lees vóór uitvoering de bijbehorende workflow en scriptopties.
 
-3.2 common/io.py
-bouw_bestandslijst(suffix="x", start=41, eind=59): Genereert de lijst met tickerbestanden.
-load_tickers_from_file(path): Leest tickers uit een bestand (komma/enter-gescheiden).
-alle_tickers(suffix="x"): Haalt alle tickers op uit alle bestanden.
-download_history(tickers, period="2y", start=None, end=None, auto_adjust=True): Centrale downloadfunctie met fallback naar per-ticker downloads.
+## Structuur
 
-3.3 common/notify.py
-send_telegram(text, parse_mode="Markdown", silent_on_missing=True): Verstuurt berichten naar Telegram.
-send_email(subject, body, html_body=False, silent_on_missing=True): Verstuurt e-mails via Gmail SMTP.
+| Pad | Functie |
+| --- | --- |
+| [common/](common/) | Gedeelde indicatoren, koersdownloads, notificaties, tekst- en positiegroottefuncties |
+| [common.py](common.py) | Compatibiliteitsbestand naast de package |
+| [tests/](tests/) | Tests voor gedeelde functies en verschillende bots |
+| `bot_*.py` | Strategieën en scanners |
+| `a_*.py` | Combineerders, parameter- en meta-modellen |
+| `bouw_*.py` | Feature-stores en forward returns |
+| `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
+| [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
+| [EVALUATION.md](EVALUATION.md) | Eerdere architectuurevaluatie; voortgangsclaims daarin opnieuw controleren |
+| `controle_*.md` | Gerichte controlerapporten van afzonderlijke bots |
 
-3.4 common/sizing.py
-trade_cost(amount): Berekent de transactiekosten (vast + percentage).
-bereken_positie(portfolio_waarde, entry, stop, risico_pct=0.05): Berekent het aantal aandelen op basis van risico.
-bereken_atr_positie(portfolio_waarde, entry, atr, sl_mult=2.0, risico_pct=0.05): Idem, maar met ATR als stopafstand.
-sizing_tekst(entry, stop, tp, portfolio_waarde, risico_pct=0.05): Genereert een geformatteerde tekst voor rapporten.
+### Gedeelde functies
 
-3.5 common/text.py
-today_str(): Geeft de huidige datum als YYYY-MM-DD.
-safe_float(val, default=nan): NaN-veilige conversie.
-esc(s): HTML-escape voor Telegram.
-yahoo_link(ticker): Geeft een Yahoo Finance-link.
-fmt_koers(koers): Formatteert een koers.
+Importeer gedeelde functies via `from common import ...`. De publieke exports staan in [common/__init__.py](common/__init__.py).
 
-4. De Bots (bot_*.py)
+- [indicators.py](common/indicators.py): onder meer RSI, ATR, ADX, MACD, Bollinger Bands, stochastic, IBS en voortschrijdende gemiddelden.
+- [io.py](common/io.py): tickerlijsten en `download_history`.
+- [notify.py](common/notify.py): Telegram en e-mail.
+- [sizing.py](common/sizing.py): positiegrootte, ATR-stops en transactiekosten.
+- [text.py](common/text.py): veilige conversies, opmaak en links.
 
-Alle bots zijn gerefactord om from common import ... te gebruiken. Ze hebben hun eigen unieke logica (criteria, scoring) maar delen de basis.
-Data-ophaling: download_history uit common/io.py.
-Indicatoren: compute_* uit common/indicators.py.
-Notificaties: send_telegram / send_email uit common/notify.py.
-Sizing: bereken_positie / trade_cost uit common/sizing.py.
-Belangrijke bots:
-bot_00kr.py: Kritische Selectie (maandelijkse RSI/MACD).
-bot_00db.py: Darvas Box (met backtest).
-bot_00vcp.py: VCP (met backtest).
-bot_00cs.py: CAN SLIM (met backtest).
-bot_00dm.py: Dual Momentum (met backtest).
-bot_00ms.py: Minervini SEPA (met backtest).
-bot_00mr.py: Multi-Systeem (IBS+RSI en ORB).
-bot_00graham.py: Graham Defensive Investor.
-bot_00greenblatt.py: Magic Formula (globale ranking).
-bot_00oshaughnessy.py: Trending Value (VC2 + momentum).
-bot_01kasstr.py: Kasstroom Onderwaardering (FCF).
-bot_01hoogl.py: GARP Onderwaardering.
-bot_00Fisher.py: Price-to-Sales.
-bot_01beurssign.py: Beurssignalen-methodiek.
-bot_01cointegr.py: Pairs Trading (co-integratie).
-bot_01marktsent.py: Marktsentiment (VADER).
-bot_01repititief.py: Seizoenseffecten (BH-correctie).
-bot_01volhunter.py: Volatiliteits-dip scanner.
-bot_00supervar.py: Superbot (Trend + VCP + Volatiliteit).
-bot_00xxxV2.py: Global Engine (Traag/Snel/Hyper).
-bot_01xgboost.py: XGBoost voorspelling (aandelen).
-bot_01xgboostMeta.py: XGBoost voorspelling (forex).
+Niet ieder script gebruikt uitsluitend deze package. Controleer bij aanpassingen ook lokale implementaties en constanten. Het gedeelde kostenmodel gebruikt momenteel `max(15.0, bedrag * 0.0035)` voor een positief bedrag; dit is geen vaste kost plus percentage. Slippage is een afzonderlijke constante en wordt door `trade_cost` niet toegevoegd.
 
-5. Combineerders (a_*.py)
+## Strategieën en modellen
 
-a_trade.py: Telt overlap over de laatste dagen, verrijkt met XGBoost-scores.
-a_trade_q.py: Telt overlap enkel op de meest recente datum ("vers signaal").
-a_trade_combi.py: Gewogen kwaliteitsscore op basis van Sharpe-ratio's van strategieën, met volatiliteitsfilter.
-a_par_model.py: Lineair multi-factor model met rolling IC-gewichten (Newey-West HAC).
-a_meta_model_train.py: Traint de Ridge-regressie en slaat het model op in Supabase.
-a_meta_model.py: Walk-forward evaluatie van het Ridge-model.
-a_meta_model_score.py: Scoort de laatste selecties met het getrainde model.
-a_top_dist_sma50.py: Ad hoc script voor tickers met laagste pct_from_ma50.
+De scanners omvatten onder meer CAN SLIM, Darvas Box, Dual Momentum, Minervini, Graham, Greenblatt, O'Shaughnessy, Fisher, VCP, mean reversion, Beurssignalen, co-integratie en verschillende XGBoost-varianten.
 
-6. Feature-stores (bouw_*.py)
+Belangrijke vervolgstappen in de pipeline:
 
-bouw_generieke_technicals.py: Vult de generieke_technicals-tabel met indicatoren (via common/indicators.py).
-bouw_generieke_fundamentals.py: Vult de generieke_fundamentals-tabel met fundamentele data.
-bouw_forward_returns.py: Vult de forward_returns-tabel met de gelabelde forward returns (met split- en eenheidscorrectie).
+| Script | Rol |
+| --- | --- |
+| [bot_041mV2.py](bot_041mV2.py) | Tickerselectie V2 |
+| [a_trade.py](a_trade.py), [a_trade_q.py](a_trade_q.py), [a_trade_combi.py](a_trade_combi.py) | Combineren en rangschikken van signalen |
+| [a_par_model.py](a_par_model.py) | Parametermodel |
+| [a_meta_model.py](a_meta_model.py) | Evaluatie van het meta-model |
+| [a_meta_model_train.py](a_meta_model_train.py), [a_meta_model_score.py](a_meta_model_score.py) | Training en scoring van het meta-model |
+| [score_xgboost.py](score_xgboost.py) | XGBoost-scoring |
+| [xLightgbmV2.py](xLightgbmV2.py) | LightGBM V2-training |
+| [vergelijk_meta_par_horizons.py](vergelijk_meta_par_horizons.py) | Vergelijking over rendementshorizonten |
 
-7. Analyses (analyse_*.py en analyseer_*.py)
+### Feature-stores
 
-analyse_parameter_correlatie.py: Berekent cross-sectionele IC's en toetst deze met Newey-West HAC (voor overlappende returns) en BH-FDR-correctie.
-analyse_parameter_ic.py: Berekent de IC-matrix per parameter en horizon.
-analyse_forward_returns.py: Analyseert de prestaties per strategie over meerdere horizonnen.
-analyse_selecties.py: Berekent rendementen per strategie (via yfinance).
-analyseer_forward_correlaties.py: Test parameters tegen een langere horizon (weken).
-analyseer_weekly_correlaties.py: Test parameters tegen wekelijkse prestaties.
+- [bouw_generieke_technicals.py](bouw_generieke_technicals.py): technische features in `generieke_technicals`.
+- [bouw_generieke_fundamentals.py](bouw_generieke_fundamentals.py): fundamentele gegevens in `generieke_fundamentals`.
+- [bouw_forward_returns.py](bouw_forward_returns.py): labels in `forward_returns`; de workflow vraagt horizons 5, 10, 20, 30 en 60 aan.
 
-8. Workflows (GitHub Actions)
+Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is. Veel tickers op weinig datums vervangen geen langere historie. Controleer ook dat koersaanpassingen, peildatums en rendementseenheden overeenkomen tussen builders en modellen.
 
-Momenteel uitgeschakeld via "Disable actions" in de repo-instellingen (om te voorkomen dat ze draaien zonder de juiste secrets).
-De workflows zijn te vinden in .github/workflows/ (o.a. run_00cs.yml, etc.).
-Secrets: Er zijn nog geen secrets aangemaakt in de refactor-repo (bevestigd via screenshot). De workflows zullen falen totdat SUPABASE_DB_URL, TELEGRAM_TOKEN, etc. zijn toegevoegd.
+## LightGBM V2
 
-9. Tests
+De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `xLightgbmV2.py` met Python 3.11. In deze workflow is alleen handmatige uitvoering (`workflow_dispatch`) actief; de wekelijkse planning staat uitgecommentarieerd.
 
-Uitvoeren met: python -m pytest tests/ -v
-De tests controleren de common/-package (indicatoren, sizing, io).
-Verwachte output: 20 tests, allemaal geslaagd (bevestigd door jouw terminal-output).
+Het model:
 
-10. Bekende problemen / Aandachtspunten
+- gebruikt standaard de horizons `10d,30d,60d`;
+- koppelt `generieke_technicals` en gededupliceerde `forward_returns` op ticker en datum;
+- gebruikt elf technische features;
+- voorspelt standaard of het rendement boven de mediaan van dezelfde datum ligt (`--target excess`);
+- ondersteunt `--target abs` voor een positief absoluut rendement;
+- splitst chronologisch, met standaard een embargo van `ceil(horizon * 7 / 5) + 2` kalenderdagen;
+- rapporteert onder meer AUC, IC en top-20%-rendementen.
 
-Geen nieuwe database: De refactor-repo gebruikt de bestaande Supabase-database van Fantasie. Zorg dat de Fantasie-repo (of de bijbehorende Actions) uit staat om dubbele rijen te voorkomen.
-Secrets: Nog niet ingesteld in refactor. De workflows kunnen pas draaien als deze zijn toegevoegd.
-Onzinbestanden: Er zijn per ongeluk 9 onzinbestanden gecommit (zoals (vmai.iloc[-1]). Deze moeten worden verwijderd met git rm (zoals eerder aangegeven).
+De rendementsopmaak in dit script verwacht forward returns in procentpunten: `2.5` wordt `2.5%`. Fracties zoals accuracy worden afzonderlijk met 100 vermenigvuldigd.
 
-11. Hoe te draaien
+### Eerst databeschikbaarheid controleren
 
-Lokaal testen: python -c "import bot_00kr; print('Import OK')" (vereist de juiste packages, zoals pandas, yfinance, psycopg2, etc.).
-Live draaien: python bot_00kr.py live (vereist SUPABASE_DB_URL en andere secrets in de omgeving).
-Tests: python -m pytest tests/ -v.
+[lightgbm_v2_preflight.py](lightgbm_v2_preflight.py) controleert de buitenste train/test-split zonder training of schrijfacties naar Supabase:
 
-12. Toekomstige stappen (indien gewenst)
+```bash
+python lightgbm_v2_preflight.py --database --output preflight.json
+```
 
-Verwijder de onzinbestanden.
-Stel de secrets in.
-Zet de Actions weer aan (gefaseerd).
-Archiveer de Fantasie-repo om dubbele data te voorkomen.
-Voeg de xgboost-botten toe aan de common/-structuur (indien nog niet gedaan).
-Voeg CI/CD toe (pytest in GitHub Actions).
+Of met een CSV met `ticker`, `datum`, de elf features en de drie forward-returnkolommen:
+
+```bash
+python lightgbm_v2_preflight.py --csv trainingsdata.csv
+```
+
+`WAIT_DATA` betekent dat meer bruikbare historie nodig is. `READY` betekent alleen dat de gecontroleerde buitenste split uitvoerbaar is; interne validatie en modelkwaliteit moeten daarna nog worden beoordeeld. Een geslaagde workflow bewijst op zichzelf niet dat alle horizons een model hebben opgeleverd.
+
+### Training uitvoeren
+
+Installeer eerst de dependencies uit de V2-workflow en stel `SUPABASE_DB_URL` in.
+
+```bash
+python xLightgbmV2.py --horizons 10d --geen-notify
+python xLightgbmV2.py --geen-notify
+```
+
+Resultaten komen standaard in `results/` (aanpasbaar via `RESULTS_DIR`):
+
+- `lightgbmV2_<h>_model.pkl`
+- `lightgbmV2_<h>_feature_importance.csv`
+- `lightgbmV2_<h>_correlations.csv`
+- `lightgbmV2_<h>_test_predictions.csv`
+- `lightgbmV2_summary.txt`
+
+Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De workflow uploadt `results/` als Actions-artifact met een bewaartermijn van 30 dagen. Controleer de samenvatting en bestanden per horizon.
+
+## Installatie en configuratie
+
+Voer scripts vanuit de repository-root uit, zodat relatieve ticker- en uitvoerpaden kloppen. Python 3.11 wordt onder meer door de V2- en feature-storeworkflows gebruikt.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+```
+
+Kies daarna de dependencies van de specifieke workflow. [requirements.txt](requirements.txt) en [requirements-analysis.txt](requirements-analysis.txt) zijn geen volledige dependencylijst voor alle scripts. De V2-workflow installeert bijvoorbeeld ook LightGBM, SciPy, scikit-learn en joblib met vastgelegde versies.
+
+Veelgebruikte omgevingsvariabelen:
+
+| Variabele | Gebruik |
+| --- | --- |
+| `SUPABASE_DB_URL` | PostgreSQL-verbinding voor scripts die Supabase gebruiken |
+| `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID` | Telegram-notificaties waar ingeschakeld |
+| `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_RECEIVER` | E-mailrapporten waar ingeschakeld |
+| `RUN_URL` | Link naar de Actions-run, onder meer in V2 |
+| `RESULTS_DIR` | Alternatieve resultaatmap voor LightGBM V2 |
+
+De vereiste variabelen en extra providerconfiguratie verschillen per workflow. Bewaar geheime waarden in GitHub Actions Secrets of de lokale omgeving, niet in broncode.
+
+## GitHub Actions
+
+De repository bevat zowel geplande als handmatig startbare workflows. De YAML-bestanden beschrijven de triggers; de feitelijke ingeschakelde status en recente uitkomsten controleer je op de [Actions-pagina](https://github.com/Ronnyvdb2000/refactor/actions).
+
+Voorbeelden van de huidige YAML-configuratie:
+
+| Taak | Planning / uitvoering |
+| --- | --- |
+| Generieke technicals | Dagelijks 21:00 UTC en handmatig |
+| Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python bouw_forward_returns.py build` |
+| Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python bot_00kr.py live` |
+| LightGBM V2 | Handmatig |
+
+Cron-tijden zijn UTC; de Belgische lokale tijd verschilt met zomer- en wintertijd. Losse tijdschema's garanderen geen afhankelijkheidsvolgorde: controleer voltooiing van de benodigde databouw vóór een modelrun.
+
+Sommige workflows schrijven CSV-bestanden terug naar GitHub en hebben daarom `contents: write`; andere gebruiken alleen leestoegang. Vermijd gelijktijdige runs die dezelfde bestanden of databasegegevens wijzigen.
+
+## Tests en onderhoud
+
+Installeer `pytest` en de dependencies voor de te testen modules.
+
+```bash
+python -m pytest tests/ -v
+python -m pytest test_lightgbm_v2_preflight.py -v
+```
+
+De testverzameling groeit; deze handleiding legt geen vast aantal geslaagde tests vast. Een import of een live-run is geen vervanging voor tests en kan bij scripts met uitvoer op moduleniveau neveneffecten hebben.
+
+Bij verdere wijzigingen:
+
+- Controleer eerst het concrete script én de bijbehorende workflow.
+- Beoordeel modelresultaten per horizon, datumbereik, embargo en hoeveelheid onafhankelijke historie.
+- Houd rekening met ontbrekende of gewijzigde Yahoo Finance-data.
+- Controleer per analyse hoe overlappende rendementen en meerdere toetsen worden behandeld.
+- Controleer database- en bestandsgebruik voordat dezelfde pipeline vanuit een andere repository wordt gestart.
+- Gebruik `controle_*.md` en `EVALUATION.md` als achtergrond; actuele code en nieuwe controles bepalen de huidige status.
