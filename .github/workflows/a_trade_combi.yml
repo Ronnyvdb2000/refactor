@@ -2,8 +2,15 @@ name: "A trade volatiel: Q score x volatiliteit"
 
 on:
   schedule:
-    - cron: "0 5 * * *"   # zaterdag 06:00 UTC
+    - cron: "0 5 * * *"   # Dagelijks 05:00 UTC
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
 
 jobs:
   bot-combi-volatiel:
@@ -17,7 +24,10 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install yfinance pandas numpy scipy requests python-dotenv psycopg2-binary
-      - name: Run a_trade_volatiel
+      - name: Controleer module-import
+        run: python -c "import importlib; importlib.import_module('combiners.a_trade_combi')"
+
+      - name: Run combiners.a_trade_combi
         env:
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -28,4 +38,4 @@ jobs:
           MIN_ATR_PCT: "4.0"
           MAX_ATR_PCT: "25.0"
           TOP_N: "10"
-        run: python a_trade_combi.py
+        run: python -m combiners.a_trade_combi

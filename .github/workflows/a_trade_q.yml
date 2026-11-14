@@ -2,13 +2,23 @@ name: A trade Q - Beste Signaal
 
 on:
   schedule:
-    # elke dag om 20:20 UTC, 5 min na a_trade.py
+    # Elke dag om 19:20 UTC, vijf minuten na de geplande a_trade-start.
     - cron: '20 19 * * *'
   workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
 
 jobs:
   vers-signaal:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,9 +29,12 @@ jobs:
           python-version: '3.11'
 
       - name: Installeer dependencies
-        run: pip install psycopg2-binary requests
+        run: pip install psycopg2-binary requests pandas numpy yfinance
 
-      - name: Draai vers_signaal.py
+      - name: Controleer module-import
+        run: python -c "import importlib; importlib.import_module('combiners.a_trade_q')"
+
+      - name: Draai combiners.a_trade_q
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -33,4 +46,4 @@ jobs:
           BESCHIKBAAR_KAPITAAL: '2500'
           TRANSACTIE_BEDRAG: '2500'
           AANTAL_PICKS: '5'
-        run: python a_trade_q.py;
+        run: python -m combiners.a_trade_q

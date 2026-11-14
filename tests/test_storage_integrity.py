@@ -11,7 +11,7 @@ import psycopg2
 import pytest
 import db_logger as db
 import a_par_model as parameter
-import a_trade_combi as combi
+from combiners import a_trade_combi as combi
 import bouw_forward_returns as forward
 
 
@@ -147,26 +147,25 @@ def test_forward_upsert_preserves_labels_and_entry_on_conflict(database,monkeypa
 
 
 def test_quote_for_combi_comes_from_completed_session_without_rounding():
-    raw=pd.DataFrame({'Ticker':['A']*3,'Date':pd.to_datetime(['2026-11-12','2026-11-13','2026-11-14']),
-                      'Close':[19.,20.123456,999.]})
-    from types import SimpleNamespace
+    dates=pd.bdate_range(end='2026-11-13',periods=20)
+    raw=pd.DataFrame({'Ticker':'A','Date':dates,'Open':20.,'High':22.,'Low':18.,'Close':20.123456,'Volume':100.})
+    future=raw.tail(1).copy();future['Date']=pd.Timestamp('2026-11-14');future['Close']=999.
+    raw=pd.concat([raw,future],ignore_index=True)
     quotes={}
     with patch.object(combi,'today_str',return_value='2026-11-14'), \
-        patch.object(combi,'download_history',return_value=raw), \
-        patch.object(combi.kr,'analyse_ticker',return_value=SimpleNamespace(price=20.12,atr=2)) as analyse:
+        patch.object(combi,'download_universe',return_value=raw):
         assert combi.compute_atr_pct({'market':['A']},['A'],quotes)['A']>0
         assert quotes=={'A':(20.123456,'2026-11-13')}
-        assert len(analyse.call_args.args[1])==2
 
 
 def test_combi_passes_real_quote_and_date_to_storage():
-    def atr(exchanges,tickers,quotes):
+    def atr(exchanges,tickers,quotes,**kwargs):
         quotes['A']=(20.123456,'2026-11-13')
         return {'A':5}
     signals={'market':{'A'}}
-    with patch.multiple(combi, today_str=lambda:'2026-11-14',herbereken_gewichten=lambda:{'vcp':1},
-        bouw_exchange_tickers=lambda:({'market':['A']},['A']), warm_up_yfinance=lambda:True,
-        compute_atr_pct=atr,selecties_repititief=lambda *a:signals,selecties_vcp=lambda *a:signals,
+    with patch.dict("os.environ", {"SUPABASE_DB_URL":"offline"}), patch.multiple(combi, today_str=lambda:'2026-11-14',herbereken_gewichten=lambda:{'vcp':1},
+        bouw_exchange_tickers=lambda:({'market':['A']},['A']), warm_up_yfinance=lambda:True,download_universe=lambda *a:pd.DataFrame(),
+        compute_atr_pct=atr,selecties_repititief=lambda *a:signals,selecties_vcp=lambda *a,**kw:signals,
         selecties_kasstr=lambda *a:signals,selecties_fisher=lambda *a:signals,selecties_hoogl=lambda *a:signals,
         send_email=lambda **k:True,send_telegram=lambda *a,**k:True), \
         patch.object(combi.db_logger,'log_selectie',return_value=True) as log:

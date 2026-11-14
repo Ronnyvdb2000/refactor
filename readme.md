@@ -25,7 +25,8 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | [common.py](common.py) | Compatibiliteitsbestand naast de package |
 | [tests/](tests/) | Tests voor gedeelde functies en verschillende bots |
 | `bot_*.py` | Strategieën en scanners |
-| `a_*.py` | Combineerders, parameter- en meta-modellen |
+| [combiners/](combiners/) | Combineerders van strategische signalen |
+| `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
@@ -44,6 +45,8 @@ Importeer gedeelde functies via `from common import ...`. De publieke exports st
 
 Niet ieder script gebruikt uitsluitend deze package. Controleer bij aanpassingen ook lokale implementaties en constanten. Het gedeelde kostenmodel gebruikt momenteel `max(15.0, bedrag * 0.0035)` voor een positief bedrag; dit is geen vaste kost plus percentage. Slippage is een afzonderlijke constante en wordt door `trade_cost` niet toegevoegd.
 
+De combineerders staan in [combiners/](combiners/) en starten als Python-modules vanuit de hoofdmap. Zie [de controle en uitvoerinstructies](docs/combiners.md).
+
 ## Strategieën en modellen
 
 De scanners omvatten onder meer CAN SLIM, Darvas Box, Dual Momentum, Minervini, Graham, Greenblatt, O'Shaughnessy, Fisher, VCP, mean reversion, Beurssignalen, co-integratie en verschillende XGBoost-varianten.
@@ -53,7 +56,7 @@ Belangrijke vervolgstappen in de pipeline:
 | Script | Rol |
 | --- | --- |
 | [bot_041mV2.py](bot_041mV2.py) | Tickerselectie V2 |
-| [a_trade.py](a_trade.py), [a_trade_q.py](a_trade_q.py), [a_trade_combi.py](a_trade_combi.py) | Combineren en rangschikken van signalen |
+| [a_trade.py](combiners/a_trade.py), [a_trade_q.py](combiners/a_trade_q.py), [a_trade_combi.py](combiners/a_trade_combi.py) | Combineren en rangschikken van signalen |
 | [a_par_model.py](a_par_model.py) | Parametermodel |
 | [a_meta_model.py](a_meta_model.py) | Evaluatie van het meta-model |
 | [a_meta_model_train.py](a_meta_model_train.py), [a_meta_model_score.py](a_meta_model_score.py) | Training en scoring van het meta-model |

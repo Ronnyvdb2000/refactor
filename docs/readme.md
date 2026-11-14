@@ -9,6 +9,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 ## Uitvoering
 
+- [Combineerders: structuur en inhoudelijke controle](combiners.md)
+
 - [Scantempo en wachttijden](scantempo.md)
 - [Opslagintegriteit en herstarts](opslag_integriteit.md)
 
