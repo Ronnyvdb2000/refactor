@@ -103,3 +103,34 @@ open via run_01cointr.yml, mode live, main. Controleer looptijd, datadekking,
 paren, koersdatums, opslag en ontvangen e-mail. Geen live run of grote historische
 backtest gestart. MR EOD en ORB blijven open; ORB ook tijdens beursuren testen.
 Volgende bot in bestandsvolgorde: bot_01hoogl.py.
+
+
+## Live hertest ontvangen — 14 november 2026
+
+Aangeleverde volledige Actions-log: mode live op commit c79482e, van
+04:49:46 tot 04:56:55 UTC. Technisch geslaagd; 994/1000 tickers bruikbaar,
+zes uitgesloten: ACA, CADLR.OL, ING.AS, KVUE, PINE.L en SDR.L. Lijsten
+049x, 050x, 055x en 059x ontbreken of zijn leeg. Er waren vijf paren na FDR
+(1 Benelux, 2 Nasdaq/NYSE, 1 Helsinki, 1 NYSE), alle zonder actieve entry.
+Nul actieve selecties is een geldige uitkomst en is geen reden om de drempels
+te versoepelen. E-mailverzending is bevestigd; Telegram uit.
+
+Database 0/0: deze run valideert de echte insert niet. De Supabase-secret werd
+wel doorgegeven, maar zonder actieve selecties is geen connectie/insert uitgevoerd.
+Opslag bij een toekomstige actieve selectie blijft live te bevestigen.
+Geen backtest-artifact in mode live is normaal: de live-modus maakt geen
+backtest_results/*.csv aan. De uploadstap meldt dit als informatie.
+
+ANTO.L gaf tijdens de eerste batch OperationalError('database is locked') in de
+Yahoo-downloadlaag. De gemeenschappelijke downloader probeerde de ontbrekende
+ticker afzonderlijk; ANTO.L staat niet bij de uiteindelijke missers. Dit is geen
+bewijs van een fout in de Supabase-selectieopslag.
+
+Beperking bij Europese koersen: het tijdens de BeursSignalen-hertest gevonden
+ontbreken van de laatste Yahoo-slotkoers kan ook de bronhistorie hier raken.
+De gedeelde downloader verwijdert ongeldige slotkoersrijen vóór prepare_prices;
+994 bruikbare histories betekent niet 994 geldige slotkoersen van 13 november.
+De eerder gedocumenteerde zevendagengrens blijft gelden. Deze run bewijst dus
+technische uitvoering met databeperkingen, geen volledige actualiteit van alle
+laatste sessies. Het BeursSignalen-herstel uit 25971a1 wijzigt alleen die bot,
+niet de gedeelde downloader of de cointegratiehistorie.

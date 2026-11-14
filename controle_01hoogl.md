@@ -103,6 +103,7 @@ onbekende criteria, opslag en ontvangen e-mail. Geen nieuwe live-run gestart.
 
 Andere open validatie: BeursSignalen moet na herstelcommit 25971a1 opnieuw worden
 gestart voor x- en a-lijsten; de eerder aangeleverde x-run was technisch geslaagd
-met onvolledige Europese koersdata. Cointegratierun volgens gebruiker lopend,
-resultaat hier nog niet ontvangen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
+met onvolledige Europese koersdata. Cointegratierun technisch live geslaagd met
+994/1000 tickers en e-mail; geen actieve selecties en daardoor geen echte
+database-insert getest. Zie controle_01cointegr.md voor databeperkingen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
 Volgende bot in bestandsvolgorde: bot_01kasstr.py.
