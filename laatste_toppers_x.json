@@ -1,167 +1,1142 @@
 [
   {
     "beurs": "01 Hoogland",
-    "ticker": "NXXCF",
-    "week_perf": 0.0
+    "ticker": "SANM",
+    "week_perf": 17.55,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "01 Hoogland",
-    "ticker": "SFRRF",
-    "week_perf": 0.0
+    "ticker": "BTU",
+    "week_perf": 8.61,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "01 Hoogland",
-    "ticker": "PAUIF",
-    "week_perf": -0.88
+    "ticker": "AAGFF",
+    "week_perf": 7.14,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "01 Hoogland",
-    "ticker": "GLO",
-    "week_perf": -2.68
+    "ticker": "NE",
+    "week_perf": 6.78,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "01 Hoogland",
-    "ticker": "SRUUF",
-    "week_perf": -2.71
+    "ticker": "TPZ",
+    "week_perf": 5.79,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "02 Macrotrends",
+    "ticker": "RIG",
+    "week_perf": 5.73,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "02 Macrotrends",
     "ticker": "PXT.TO",
-    "week_perf": 5.65
+    "week_perf": 5.65,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "02 Macrotrends",
-    "ticker": "GLO",
-    "week_perf": -2.68
+    "ticker": "OXY",
+    "week_perf": 4.2,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "02 Macrotrends",
-    "ticker": "FVL.TO",
-    "week_perf": -13.48
+    "ticker": "AMR",
+    "week_perf": 4.01,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "02 Macrotrends",
-    "ticker": "JAG.TO",
-    "week_perf": -22.41
+    "ticker": "STNG",
+    "week_perf": 3.74,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "03 Beursbrink",
-    "ticker": "VET.TO",
-    "week_perf": 8.74
+    "ticker": "CLF",
+    "week_perf": 10.38,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "03 Beursbrink",
-    "ticker": "IPO.TO",
-    "week_perf": 4.73
+    "ticker": "WTI",
+    "week_perf": 8.76,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "03 Beursbrink",
-    "ticker": "BKY.AX",
-    "week_perf": 3.7
+    "ticker": "ARGX.BR",
+    "week_perf": 7.67,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "03 Beursbrink",
-    "ticker": "KPT.TO",
-    "week_perf": 3.29
+    "ticker": "BESI.AS",
+    "week_perf": 7.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "03 Beursbrink",
-    "ticker": "JOY.TO",
-    "week_perf": 1.94
+    "ticker": "DEC.L",
+    "week_perf": 6.94,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "04 Benelux",
+    "ticker": "ARGX.BR",
+    "week_perf": 7.67,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "04 Benelux",
+    "ticker": "BESI.AS",
+    "week_perf": 7.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "04 Benelux",
+    "ticker": "AD.AS",
+    "week_perf": 5.35,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "04 Benelux",
+    "ticker": "INGA.AS",
+    "week_perf": 4.89,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "04 Benelux",
+    "ticker": "ASML.AS",
+    "week_perf": 4.3,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "05 Parijs",
+    "ticker": "TEP.PA",
+    "week_perf": 6.63,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "05 Parijs",
+    "ticker": "SU.PA",
+    "week_perf": 6.47,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "05 Parijs",
+    "ticker": "AIR.PA",
+    "week_perf": 5.22,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "05 Parijs",
+    "ticker": "LR.PA",
+    "week_perf": 5.21,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "05 Parijs",
+    "ticker": "SAN.PA",
+    "week_perf": 4.61,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "06 Power & AI",
-    "ticker": "KAP.L",
-    "week_perf": -1.26
+    "ticker": "AVGO",
+    "week_perf": 18.16,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "06 Power & AI",
-    "ticker": "ISO.TO",
-    "week_perf": -16.19
+    "ticker": "ANET",
+    "week_perf": 15.51,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "06 Power & AI",
+    "ticker": "MU",
+    "week_perf": 12.8,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "06 Power & AI",
+    "ticker": "VRT",
+    "week_perf": 10.51,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "06 Power & AI",
+    "ticker": "ARM",
+    "week_perf": 9.11,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "07 Metalen",
+    "ticker": "MP",
+    "week_perf": 9.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "07 Metalen",
+    "ticker": "GLEN.L",
+    "week_perf": 3.08,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "07 Metalen",
+    "ticker": "HBM",
+    "week_perf": 2.25,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "07 Metalen",
     "ticker": "ERO.TO",
-    "week_perf": -6.18
+    "week_perf": 1.72,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "07 Metalen",
-    "ticker": "IVN.TO",
-    "week_perf": -10.49
-  },
-  {
-    "beurs": "07 Metalen",
-    "ticker": "CS.TO",
-    "week_perf": -12.56
-  },
-  {
-    "beurs": "08 Defensie",
-    "ticker": "CAE.TO",
-    "week_perf": 2.26
+    "ticker": "ANTO.L",
+    "week_perf": 1.03,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "08 Defensie",
-    "ticker": "MDA.TO",
-    "week_perf": -4.98
+    "ticker": "CAMT.TA",
+    "week_perf": 6.42,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "08 Defensie",
-    "ticker": "NANO.TO",
-    "week_perf": -6.94
+    "ticker": "HII",
+    "week_perf": 6.06,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "08 Defensie",
+    "ticker": "HEN.DE",
+    "week_perf": 5.61,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "08 Defensie",
+    "ticker": "ESLT.TA",
+    "week_perf": 5.52,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "08 Defensie",
+    "ticker": "AIR.PA",
+    "week_perf": 5.22,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "09 Varia",
+    "ticker": "WOLF",
+    "week_perf": 4.37,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "09 Varia",
+    "ticker": "CARR",
+    "week_perf": 3.47,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "09 Varia",
+    "ticker": "BAYN.DE",
+    "week_perf": 1.69,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "09 Varia",
+    "ticker": "AWK",
+    "week_perf": 0.14,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "041 Benelux Ierland",
+    "ticker": "ARGX.BR",
+    "week_perf": 7.67,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "041 Benelux Ierland",
+    "ticker": "BESI.AS",
+    "week_perf": 7.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "041 Benelux Ierland",
+    "ticker": "MELE.BR",
+    "week_perf": 6.93,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "041 Benelux Ierland",
+    "ticker": "ASM.AS",
+    "week_perf": 6.7,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "041 Benelux Ierland",
+    "ticker": "SBMO.AS",
+    "week_perf": 6.42,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "042 Parijs",
+    "ticker": "STMPA.PA",
+    "week_perf": 11.45,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "042 Parijs",
+    "ticker": "VU.PA",
+    "week_perf": 8.7,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "042 Parijs",
+    "ticker": "TEP.PA",
+    "week_perf": 6.63,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "042 Parijs",
+    "ticker": "SU.PA",
+    "week_perf": 6.47,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "042 Parijs",
+    "ticker": "RXL.PA",
+    "week_perf": 5.54,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "043 Frankfurt",
+    "ticker": "AMD.DE",
+    "week_perf": 20.0,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "043 Frankfurt",
+    "ticker": "MTE.DE",
+    "week_perf": 10.11,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "043 Frankfurt",
+    "ticker": "TL0.DE",
+    "week_perf": 9.24,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "043 Frankfurt",
+    "ticker": "DRW3.DE",
+    "week_perf": 8.53,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "043 Frankfurt",
+    "ticker": "LLY.DE",
+    "week_perf": 6.45,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "044 Spanje/Portugal",
+    "ticker": "ENO.MC",
+    "week_perf": 8.95,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "044 Spanje/Portugal",
+    "ticker": "HOME.MC",
+    "week_perf": 6.07,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "044 Spanje/Portugal",
+    "ticker": "BCP.LS",
+    "week_perf": 5.58,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "044 Spanje/Portugal",
+    "ticker": "LDA.MC",
+    "week_perf": 5.28,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "044 Spanje/Portugal",
+    "ticker": "MAP.MC",
+    "week_perf": 5.18,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "045 Londen",
-    "ticker": "RBN.L",
-    "week_perf": 0.0
+    "ticker": "FCH.L",
+    "week_perf": 24.69,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "045 Londen",
+    "ticker": "CER.L",
+    "week_perf": 13.92,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "045 Londen",
+    "ticker": "ALU.L",
+    "week_perf": 13.33,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "045 Londen",
+    "ticker": "TBCG.L",
+    "week_perf": 11.72,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "045 Londen",
+    "ticker": "PEB.L",
+    "week_perf": 9.43,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "046 Milaan",
+    "ticker": "AVIO.MI",
+    "week_perf": 14.0,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "046 Milaan",
+    "ticker": "PHN.MI",
+    "week_perf": 12.1,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "046 Milaan",
+    "ticker": "STMMI.MI",
+    "week_perf": 11.41,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "046 Milaan",
+    "ticker": "BAMI.MI",
+    "week_perf": 10.64,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "046 Milaan",
+    "ticker": "CMB.MI",
+    "week_perf": 9.7,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "047 Toronto",
-    "ticker": "CEU.TO",
-    "week_perf": 14.21
-  },
-  {
-    "beurs": "047 Toronto",
-    "ticker": "KXS.TO",
-    "week_perf": 9.66
-  },
-  {
-    "beurs": "047 Toronto",
-    "ticker": "OVV.TO",
-    "week_perf": 9.25
+    "ticker": "AMD.TO",
+    "week_perf": 19.24,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "047 Toronto",
     "ticker": "CLS.TO",
-    "week_perf": 8.82
+    "week_perf": 17.17,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "047 Toronto",
-    "ticker": "CVE.TO",
-    "week_perf": 6.44
+    "ticker": "CEU.TO",
+    "week_perf": 14.88,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
-    "beurs": "058 TSXV",
-    "ticker": "LGN.V",
-    "week_perf": 3.97
+    "beurs": "047 Toronto",
+    "ticker": "KXS.TO",
+    "week_perf": 10.91,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
-    "beurs": "058 TSXV",
-    "ticker": "LMN.V",
-    "week_perf": 1.97
+    "beurs": "047 Toronto",
+    "ticker": "OVV.TO",
+    "week_perf": 9.15,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
-    "beurs": "058 TSXV",
-    "ticker": "AFM.V",
-    "week_perf": -0.79
+    "beurs": "048 Nasdaq/NYSE",
+    "ticker": "AAON",
+    "week_perf": 40.32,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
-    "beurs": "058 TSXV",
-    "ticker": "ARTG.V",
-    "week_perf": -6.63
+    "beurs": "048 Nasdaq/NYSE",
+    "ticker": "AMD",
+    "week_perf": 18.93,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "048 Nasdaq/NYSE",
+    "ticker": "CHA",
+    "week_perf": 15.61,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "048 Nasdaq/NYSE",
+    "ticker": "CIEN",
+    "week_perf": 15.26,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "048 Nasdaq/NYSE",
+    "ticker": "COHR",
+    "week_perf": 13.14,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "ASB.WA",
+    "week_perf": 7.41,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "GPP.WA",
+    "week_perf": 7.27,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "APR.WA",
+    "week_perf": 6.28,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "TOA.WA",
+    "week_perf": 6.09,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "CMP.WA",
+    "week_perf": 4.52,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "052 Oslo",
+    "ticker": "FRO.OL",
+    "week_perf": 4.9,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "052 Oslo",
+    "ticker": "ODFB.OL",
+    "week_perf": 2.28,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "052 Oslo",
+    "ticker": "SUBC.OL",
+    "week_perf": 2.1,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "053 Kopenhagen",
+    "ticker": "TRMD-A.CO",
+    "week_perf": 6.45,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "053 Kopenhagen",
+    "ticker": "NETC.CO",
+    "week_perf": 3.35,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "053 Kopenhagen",
+    "ticker": "BOOZT-DKK.CO",
+    "week_perf": 2.11,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "053 Kopenhagen",
+    "ticker": "DNORD.CO",
+    "week_perf": 1.63,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "KCR.HE",
+    "week_perf": 5.07,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "FORTUM.HE",
+    "week_perf": 2.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "TIETO.HE",
+    "week_perf": 1.95,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "TYRES.HE",
+    "week_perf": 1.48,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "SSABBH.HE",
+    "week_perf": 1.18,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "056 NYSE int",
+    "ticker": "STVN",
+    "week_perf": 16.43,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "056 NYSE int",
+    "ticker": "ASX",
+    "week_perf": 12.39,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "056 NYSE int",
+    "ticker": "STM",
+    "week_perf": 12.01,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "056 NYSE int",
+    "ticker": "NU",
+    "week_perf": 9.89,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "056 NYSE int",
+    "ticker": "CEPU",
+    "week_perf": 9.04,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "057 NYSE",
+    "ticker": "AMPY",
+    "week_perf": 22.22,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "057 NYSE",
+    "ticker": "GEO",
+    "week_perf": 17.01,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "057 NYSE",
+    "ticker": "GRDN",
+    "week_perf": 16.82,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "057 NYSE",
+    "ticker": "CLS",
+    "week_perf": 16.29,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "057 NYSE",
+    "ticker": "ATEN",
+    "week_perf": 15.75,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   },
   {
     "beurs": "058 TSXV",
     "ticker": "MMY.V",
-    "week_perf": -10.84
+    "week_perf": 4.23,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "058 TSXV",
+    "ticker": "LGN.V",
+    "week_perf": 3.97,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
+  },
+  {
+    "beurs": "058 TSXV",
+    "ticker": "AFM.V",
+    "week_perf": 2.46,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 2
   }
 ]
