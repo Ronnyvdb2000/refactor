@@ -42,6 +42,7 @@ jobs:
     timeout-minutes: 180
 
     env:
+      PYTHONUNBUFFERED: "1"
       SUPABASE_DB_URL:       ${{ secrets.SUPABASE_DB_URL }}
       # Het script herkent "true"/"false" (en 1/0, ja/nee). Leeg = dry-run.
       BACKFILL_DRY_RUN:      ${{ github.event.inputs.dry_run }}

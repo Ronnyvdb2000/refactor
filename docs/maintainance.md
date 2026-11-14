@@ -34,3 +34,11 @@ Deze verplaatsing voert zelf geen backfill uit en verandert geen databasegegeven
 ## Controle
 
 De nieuwe modulecommando's en de shellcommando's uit beide YAML-bestanden zijn getest. Tests controleren de dry-run/apply-keuze, het behoud van de veilige technische dry-run-default en de foutcode van Python door de logpipeline. Databaseverbindingen en backfill-schrijfacties zijn hiervoor niet uitgevoerd.
+
+## Historiecontrole technische backfill (2026-11-14)
+
+Eén Yahoo-koersbalk levert bij EMA en MACD startwaarden op, geen bruikbare historische indicatoren. De backfill vereist daarom per feature volledige opwarming: 130 balken voor MACD, 40 voor EMA8, 100 voor EMA20 en het EMA-verschil, 70 voor ADX; rolling-indicatoren vereisen hun volledige venster (tot 252 balken). De live formules blijven behouden. Een echte nulwaarde blijft toegestaan wanneer voldoende historie beschikbaar is.
+
+Ongeldige OHLCV-balken en onderbrekingen langer dan zeven kalenderdagen starten de opwarming opnieuw. Dubbele koersdatums geven een fout. De bestaande MA50 en RSI worden vóór iedere update gecontroleerd: minstens één vergelijkbare controle is vereist; alle aanwezige controles moeten berekenbaar zijn en binnen 2% (MA50) respectievelijk 3 punten (RSI) overeenkomen. Anders blijft de rij onaangeroerd. Bestaande niet-NULL-waarden blijven behouden.
+
+Het log toont ontvangen koershistorie, geblokkeerde controles en ontbrekende opwarming. Download- en SQL-fouten maken de workflow na de samenvatting rood. Ontbrekende historie wordt afzonderlijk gerapporteerd. Python-uitvoer verschijnt direct, ook via de logpipeline.

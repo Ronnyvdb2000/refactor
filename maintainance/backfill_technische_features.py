@@ -66,7 +66,8 @@ G. DRY-RUN CONTROLEERT DE UPDATE-WHERE: in dry-run draait nu dezelfde WHERE
    naar een Timestamp.
 F. Controle: ma50 en rsi14 (reeds in de tabel) worden herberekend en
    vergeleken met de opgeslagen waarde; dit toont of de koersdata/as-of
-   uitlijning klopt (informatief, geen blokkade).
+   uitlijning klopt. Sinds de review van 2026-11-14 blokkeert een
+   ontbrekende of afwijkende controle de betreffende rij.
 
 WIJZIGINGEN v2 (2026-10-10):
 H. EMA8, EMA20, pct_from_ema8, pct_from_ema20 en ema8_minus_ema20
@@ -81,7 +82,6 @@ import math
 import time
 import random
 import warnings
-import datetime as dt
 
 import pandas as pd
 import psycopg2
@@ -185,6 +185,43 @@ CONTROLE_KOLOMMEN = [
     ("rsi14", "RSI14", "abs", 3.0),  # max 3 RSI-punten verschil
 ]
 
+# EWM krijgt vijf spans opwarmhistorie; rolling-features hun volledige venster.
+MIN_BALKEN = dict(zip(DOEL_FEATURES, (130, 130, 130, 20, 20, 16, 18, 70,
+                                    21, 21, 61, 252, 50, 40, 100, 40, 100, 100)))
+
+
+def veilige_indicatoren(hist, index_ret):
+    """Bereken uitsluitend binnen aaneengesloten, geldige OHLCV-historie."""
+    hist = hist.copy()
+    hist.index = pd.to_datetime(hist.index).tz_localize(None).normalize()
+    hist = hist.sort_index()
+    if hist.index.has_duplicates:
+        raise ValueError("Dubbele koersdatums; historie niet eenduidig")
+    required = ["Open", "High", "Low", "Close", "Volume"]
+    for col in required:
+        if col not in hist:
+            hist[col] = float("nan")
+        hist[col] = pd.to_numeric(hist[col], errors="coerce")
+    geldig = hist[required].apply(lambda col: col.map(math.isfinite)).all(axis=1)
+    geldig &= (hist[["Open", "High", "Low", "Close"]] > 0).all(axis=1)
+    geldig &= (hist.Volume >= 0) & (hist.High >= hist[["Open", "Close", "Low"]].max(axis=1))
+    geldig &= hist.Low <= hist[["Open", "Close", "High"]].min(axis=1)
+    breuk = (~geldig) | (~geldig.shift(fill_value=False))
+    breuk |= hist.index.to_series().diff().dt.days.gt(MAX_BAR_AFSTAND_DAGEN)
+    groepen = breuk.cumsum()
+    resultaat = pd.DataFrame(index=hist.index)
+    resultaat["_geldig"] = geldig
+    resultaat["_balken"] = 0
+    for _, deel in hist[geldig].groupby(groepen[geldig]):
+        g = bereken_indicatoren(deel, index_ret)
+        for kolom, minimum in MIN_BALKEN.items():
+            g.loc[g.index[:minimum - 1], KOLOM_NAAR_G[kolom]] = float("nan")
+        for col in g:
+            resultaat.loc[g.index, col] = pd.to_numeric(g[col], errors="coerce").astype(float)
+        resultaat.loc[g.index, "_balken"] = range(1, len(g) + 1)
+    return resultaat
+
+
 MAX_VOORBEELDEN = 3   # aantal tickers waarvan een voorbeeldrij wordt getoond
 
 
@@ -203,10 +240,9 @@ def _veilig(waarde, is_int: bool = False):
 
 
 def _sql_datum(d):
-    """Zet Timestamp/datetime om naar date voor gebruik in SQL."""
-    if isinstance(d, (pd.Timestamp, dt.datetime)):
-        return d.date()
-    return d
+    """De database bewaart datum als ISO-tekst."""
+    return pd.Timestamp(d).date().isoformat()
+
 
 
 # --------------------------------------------------------------------------
@@ -268,41 +304,31 @@ def update_features(conn, ticker, datum, waarden: dict) -> int:
         return cur.rowcount
 
 
-def controleer_tegen_db(conn, ticker, controle_rijen):
-    """
-    Vergelijkt herberekende ma50/rsi14 met de opgeslagen waarden.
-    controle_rijen = lijst van (datum_sql, {db_kolom: herberekende waarde}).
-    Retourneert (n_vergeleken, n_afwijkend). Informatief.
-    """
-    if not controle_rijen:
-        return 0, 0
-    kolommen = ", ".join(k[0] for k in CONTROLE_KOLOMMEN)
-    query = (f"SELECT datum, {kolommen} FROM generieke_technicals "
-             f"WHERE ticker = %s AND datum = ANY(%s)")
-    datums = [d for d, _ in controle_rijen]
+def haal_controlewaarden(conn, ticker, datums):
     with conn.cursor() as cur:
-        cur.execute(query, (ticker, datums))
-        db_rijen = {_sql_datum(r[0]): r[1:] for r in cur.fetchall()}
+        cur.execute("SELECT datum, ma50, rsi14 FROM generieke_technicals "
+                    "WHERE ticker = %s AND datum = ANY(%s)",
+                    (ticker, [_sql_datum(d) for d in datums]))
+        return {_sql_datum(r[0]): r[1:] for r in cur.fetchall()}
 
-    n_vergeleken = 0
-    n_afwijkend = 0
-    for datum, nieuw in controle_rijen:
-        opgeslagen = db_rijen.get(datum)
-        if opgeslagen is None:
+
+def controleer_rij(rij, opgeslagen):
+    """Alle aanwezige controles moeten berekenbaar zijn en overeenkomen."""
+    vergeleken = afwijkend = 0
+    if opgeslagen is None:
+        return False, 0, 0
+    for (_, g_kol, soort, tol), oud in zip(CONTROLE_KOLOMMEN, opgeslagen):
+        if oud is None:
             continue
-        for (db_kol, _, soort, tol), oud in zip(CONTROLE_KOLOMMEN, opgeslagen):
-            nw = nieuw.get(db_kol)
-            if oud is None or nw is None:
-                continue
-            oud = float(oud)
-            n_vergeleken += 1
-            if soort == "rel":
-                verschil = abs(nw - oud) / abs(oud) if oud != 0 else abs(nw)
-            else:
-                verschil = abs(nw - oud)
-            if verschil > tol:
-                n_afwijkend += 1
-    return n_vergeleken, n_afwijkend
+        nieuw = _veilig(rij.get(g_kol))
+        if nieuw is None or not math.isfinite(float(oud)):
+            return False, vergeleken, afwijkend
+        vergeleken += 1
+        verschil = abs(nieuw - float(oud))
+        if soort == "rel" and oud != 0:
+            verschil /= abs(float(oud))
+        afwijkend += verschil > tol
+    return vergeleken > 0 and afwijkend == 0, vergeleken, afwijkend
 
 
 # --------------------------------------------------------------------------
@@ -314,6 +340,7 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
         "n_rijen": 0, "n_bijgewerkt": 0,
         "n_onvolledig": 0, "n_geen_bar": 0,
         "n_controle": 0, "n_afwijkend": 0,
+        "n_warmup": 0, "n_geblokkeerd": 0,
         "voorbeeld": None,
     }
 
@@ -321,7 +348,8 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
     start = (vroegste - pd.Timedelta(days=LOOKBACK_BUFFER_DAGEN)).strftime("%Y-%m-%d")
 
     try:
-        hist = yf.Ticker(ticker).history(start=start, auto_adjust=True)
+        eind = (max(pd.Timestamp(d) for d in datums) + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
+        hist = yf.Ticker(ticker).history(start=start, end=eind, auto_adjust=True, timeout=15)
     except Exception as e:
         stat["status"] = "download_fout"
         stat["fout"] = str(e)
@@ -331,10 +359,9 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
         stat["status"] = "geen_data"
         return stat
 
-    hist.index = pd.to_datetime(hist.index).tz_localize(None)
-    g = bereken_indicatoren(hist, index_ret)
-
-    controle_rijen = []
+    g = veilige_indicatoren(hist, index_ret)
+    controles = haal_controlewaarden(conn, ticker, datums)
+    print(f"  historie: {len(hist)} balken, {g.index.min().date()} t/m {g.index.max().date()}")
     for datum_db in datums:
         doel = pd.Timestamp(datum_db)
 
@@ -348,7 +375,7 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
 
         # Onvolledige koersbalk: niet invullen (de datums zijn historisch,
         # er komt geen betere balk meer bij).
-        if pd.isna(rij["Close"]) or pd.isna(rij["High"]) or pd.isna(rij["Low"]):
+        if not rij["_geldig"]:
             stat["n_onvolledig"] += 1
             continue
 
@@ -362,13 +389,14 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
             if v is not None:
                 waarden[kolom] = v
 
-        # Voor de controle tegen reeds opgeslagen ma50 / rsi14
-        controle_rijen.append((
-            datum_sql,
-            {db_kol: _veilig(rij[g_kol]) for db_kol, g_kol, _, _ in CONTROLE_KOLOMMEN},
-        ))
-
         if not waarden:
+            stat["n_warmup"] += 1
+            continue
+        akkoord, n_v, n_a = controleer_rij(rij, controles.get(datum_sql))
+        stat["n_controle"] += n_v
+        stat["n_afwijkend"] += n_a
+        if not akkoord:
+            stat["n_geblokkeerd"] += 1
             continue
 
         stat["n_rijen"] += 1
@@ -378,15 +406,6 @@ def verwerk_ticker(conn, ticker, datums, index_ret) -> dict:
 
     if not DRY_RUN:
         conn.commit()
-
-    # Controle na de commit, zodat een eventuele SQL-fout hier geen
-    # reeds uitgevoerde updates terugdraait.
-    try:
-        n_v, n_a = controleer_tegen_db(conn, ticker, controle_rijen)
-        stat["n_controle"], stat["n_afwijkend"] = n_v, n_a
-    except Exception as e:
-        conn.rollback()
-        print(f"  [INFO] controle tegen DB overgeslagen: {e}")
 
     return stat
 
@@ -449,6 +468,7 @@ def main():
         totaal = {
             "n_rijen": 0, "n_bijgewerkt": 0, "n_onvolledig": 0,
             "n_geen_bar": 0, "n_controle": 0, "n_afwijkend": 0,
+            "n_warmup": 0, "n_geblokkeerd": 0,
         }
         n_geen_data = 0
         n_download_fout = 0
@@ -504,6 +524,8 @@ def main():
         print(f"Download mislukt      : {n_download_fout}")
         print(f"Geen koersbalk (datum): {totaal['n_geen_bar']}")
         print(f"Onvolledige balk      : {totaal['n_onvolledig']}")
+        print(f"Onvoldoende opwarming: {totaal['n_warmup']}")
+        print(f"Controle blokkeert rij: {totaal['n_geblokkeerd']}")
         if totaal["n_controle"]:
             pct = 100 * totaal["n_afwijkend"] / totaal["n_controle"]
             print(f"Controle ma50/rsi14   : {totaal['n_controle']} vergeleken, "
@@ -513,6 +535,7 @@ def main():
             print(f"\nFouten ({len(fouten)}):")
             for t, e in fouten[:20]:
                 print(f"  {t}: {e}")
+            raise RuntimeError(f"Backfill onvolledig: {len(fouten)} fouten; zie log")
     finally:
         conn.close()
 
