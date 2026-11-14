@@ -1,28 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-bot_01repititief.py — SEIZOENSEFFECTEN ENGINE v2.1
-
-v2.1 t.o.v. v2.0 (herstel van functionaliteit die bij de refactor verloren ging):
-  - Automatische historische check hersteld (v1.3): meteen na de live
-    FDR-selectie wordt elk gevonden ticker/buckettype walk-forward gecheckt
-    over alle beschikbare jaren; het resultaat (bv. "4/5j positief, PF 1.6")
-    staat in het bericht en in Supabase. Er wordt nergens een tickerlijst
-    vastgelegd.
-  - Walk-forward backtest hersteld (v1.2): alle drie de buckettypes
-    (weekdag, maand, kwartaal), BH-gecorrigeerd, resultaat in
-    seizoen_backtest_trades.csv.
-  - Supabase-parameters weer volledig: historische_check plus gemiddelde,
-    winrate en p-waarde per buckettype.
-  - De common/-refactor van v2.0 blijft behouden (download, tickerlijsten,
-    notificaties, kosten via common).
-
-v2.0: gebruikt common/ voor alle gedeelde bouwstenen.
-Combineert weekdag-, maand- en kwartaaleffecten met BH-correctie.
-
-Gebruik:
-  python bot_01repititief.py live      # live rapport
-  python bot_01repititief.py backtest  # walk-forward backtest (alle 3 buckettypes)
+"""Seizoenseffecten: positieve historische dagrendementen, FDR per beurs/type.
+Live historische check is beschrijvend, na selectie, geen onafhankelijke validatie.
+Backtest traint uitsluitend op eerdere jaren; vaste afzonderlijke notional per trade.
 """
 
 import sys
@@ -41,7 +21,7 @@ from scipy import stats
 from common import (
     today_str, safe_float, yahoo_link, trade_cost,
     download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
-    send_telegram, send_email
+    send_email
 )
 
 try:
@@ -61,10 +41,9 @@ START_CAPITAL    = 50_000.0
 SLIPPAGE_PCT     = 0.001
 TRADE_COST_FIXED = 15.0
 TRADE_COST_PCT   = 0.0035
-TAX_RATE         = 0.10
+TAX_RATE         = 0.0
 
-TELEGRAM_THROTTLE_SEC = 1.2
-TELEGRAM_MAX_POGINGEN = 4
+
 
 SZ_CFG = {
     "lookback_years": 15,
@@ -89,6 +68,7 @@ def bh_correctie(p_waarden: List[float], alpha: float) -> List[bool]:
     m = len(p_waarden)
     if m == 0:
         return []
+    p_waarden = [p if math.isfinite(p) and 0 <= p <= 1 else 1.0 for p in p_waarden]
     volgorde = sorted(range(m), key=lambda i: p_waarden[i])
     laatste_significante_rank = -1
     for rang, idx in enumerate(volgorde, start=1):
@@ -113,6 +93,8 @@ class SeizoenKandidaat:
     maand:      Optional[dict]
     kwartaal:   Optional[dict]
     jaren_data: float
+    signal_date: str = ""
+    target_date: str = ""
 
 @dataclass
 class SeizoenSignaal:
@@ -125,52 +107,76 @@ class SeizoenSignaal:
     significante_buckets: Set[str]
     jaren_data:           float
     checks:               Dict[str, dict] = field(default_factory=dict)
+    signal_date: str = ""
+    target_date: str = ""
 
 def bereken_bucket_stats(rendementen: np.ndarray) -> Optional[dict]:
+    rendementen = np.asarray(rendementen, dtype=float)
+    rendementen = rendementen[np.isfinite(rendementen)]
     n = len(rendementen)
     if n < 5:
         return None
     gemiddelde = float(np.mean(rendementen))
     win_rate   = float(np.mean(rendementen > 0))
-    _, p_waarde = stats.ttest_1samp(rendementen, 0.0)
+    if np.std(rendementen) <= np.finfo(float).eps:
+        p_waarde = 1.0  # degenerate samples do not establish significance
+    else:
+        _, p_waarde = stats.ttest_1samp(rendementen, 0.0)
     return {"gemiddelde": gemiddelde, "win_rate": win_rate, "p_waarde": float(p_waarde), "n": n}
 
+class DataUnavailable(ValueError):
+    pass
+
+
+def target_day():
+    # Weekends advance to Monday; exchange holidays are not modelled.
+    d = pd.Timestamp(today_str())
+    while d.weekday() >= 5:
+        d += pd.Timedelta(days=1)
+    return d
+
+
+def prepare_history(df, live=True):
+    if df is None or df.empty or not {"Date", "Close"}.issubset(df.columns):
+        raise DataUnavailable("geen gedateerde Close-historie")
+    g = df.copy()
+    dates = pd.to_datetime(g["Date"], errors="coerce")
+    if dates.dt.tz is not None:
+        dates = dates.dt.tz_localize(None)
+    g["Date"] = dates.dt.normalize()
+    g = g.loc[g.Date.notna() & (g.Date < pd.Timestamp(today_str()))]
+    g = g.sort_values("Date").drop_duplicates("Date", keep="last").set_index("Date")
+    g["Close"] = pd.to_numeric(g.Close, errors="coerce")
+    valid = np.isfinite(g.Close) & (g.Close > 0)
+    if g.empty or not valid.iloc[-1]:
+        raise DataUnavailable("laatste slotkoers ontbreekt of ongeldig")
+    # Preserve gaps as NaN: never compute a one-day return across a bad row.
+    g.loc[~valid, "Close"] = np.nan
+    if live and (pd.Timestamp(today_str()) - g.index[-1]).days > 7:
+        raise DataUnavailable("laatste koers ouder dan zeven dagen")
+    return g
+
+
+def daily_returns(g):
+    r = g.Close.pct_change(fill_method=None)
+    return r.where(g.index.to_series().diff().dt.days <= 7).dropna()
+
+
 def analyseer_ticker(ticker: str, df_ticker: pd.DataFrame) -> Optional[SeizoenKandidaat]:
-    try:
-        g = df_ticker.sort_values("Date").copy()
-        if len(g) < 250 * SZ_CFG["min_jaren"]:
-            return None
-
-        g = g.set_index("Date")
-        rendement = g["Close"].pct_change().dropna()
-        aantal_jaren = (rendement.index[-1] - rendement.index[0]).days / 365.25
-        if aantal_jaren < SZ_CFG["min_jaren"]:
-            return None
-
-        current_price = safe_float(g["Close"].iloc[-1])
-        if current_price <= 0 or math.isnan(current_price):
-            return None
-
-        vandaag = dt.datetime.now(dt.timezone.utc)
-        huidige_weekdag = vandaag.weekday()
-        huidige_maand   = vandaag.month
-        huidig_kwartaal = (vandaag.month - 1) // 3 + 1
-
-        weekdag_stats  = bereken_bucket_stats(rendement[rendement.index.weekday == huidige_weekdag].values)
-        maand_stats    = bereken_bucket_stats(rendement[rendement.index.month == huidige_maand].values)
-        kwartaal_stats = bereken_bucket_stats(rendement[rendement.index.quarter == huidig_kwartaal].values)
-
-        if not (weekdag_stats or maand_stats or kwartaal_stats):
-            return None
-
-        return SeizoenKandidaat(
-            ticker=ticker, price=round(current_price, 2),
-            weekdag=weekdag_stats, maand=maand_stats, kwartaal=kwartaal_stats,
-            jaren_data=round(aantal_jaren, 1),
-        )
-    except Exception as e:
-        print(f"[WARN] {ticker}: fout — {e}")
-        return None
+    g = prepare_history(df_ticker)
+    rendement = daily_returns(g)
+    if len(rendement) < 250 * SZ_CFG["min_jaren"]:
+        raise DataUnavailable("te weinig geldige rendementen")
+    aantal_jaren = (rendement.index[-1] - rendement.index[0]).days / 365.25
+    if aantal_jaren < SZ_CFG["min_jaren"]:
+        raise DataUnavailable("minder dan vijf jaar historie")
+    d = target_day()
+    return SeizoenKandidaat(
+        ticker=ticker, price=float(g.Close.iloc[-1]),
+        weekdag=bereken_bucket_stats(rendement[rendement.index.weekday == d.weekday()].values),
+        maand=bereken_bucket_stats(rendement[rendement.index.month == d.month].values),
+        kwartaal=bereken_bucket_stats(rendement[rendement.index.quarter == d.quarter].values),
+        jaren_data=aantal_jaren, signal_date=str(g.index[-1].date()), target_date=str(d.date()))
 
 def pas_bh_toe_op_beurs(kandidaten: List[SeizoenKandidaat], alpha: float) -> List[SeizoenSignaal]:
     significant_per_kandidaat: Dict[int, Set[str]] = {}
@@ -182,7 +188,7 @@ def pas_bh_toe_op_beurs(kandidaten: List[SeizoenKandidaat], alpha: float) -> Lis
         p_waarden = [getattr(kandidaten[i], bucket_key)["p_waarde"] for i in indices]
         mask = bh_correctie(p_waarden, alpha)
         for pos, kandidaat_idx in enumerate(indices):
-            if mask[pos]:
+            if mask[pos] and getattr(kandidaten[kandidaat_idx], bucket_key)["gemiddelde"] > 0:
                 significant_per_kandidaat.setdefault(kandidaat_idx, set()).add(bucket_key)
 
     resultaten: List[SeizoenSignaal] = []
@@ -198,6 +204,7 @@ def pas_bh_toe_op_beurs(kandidaten: List[SeizoenKandidaat], alpha: float) -> Lis
             ticker=k.ticker, price=k.price, score=score,
             weekdag=k.weekdag, maand=k.maand, kwartaal=k.kwartaal,
             significante_buckets=sig_keys, jaren_data=k.jaren_data,
+            signal_date=k.signal_date, target_date=k.target_date,
         ))
     return resultaten
 
@@ -208,7 +215,7 @@ def pas_bh_toe_op_beurs(kandidaten: List[SeizoenKandidaat], alpha: float) -> Lis
 def _bucket_regel(key: str, stat: Optional[dict], significante_buckets: Set[str], checks: Optional[Dict[str, dict]] = None) -> Optional[str]:
     if key not in significante_buckets or not stat:
         return None
-    vandaag = dt.datetime.now(dt.timezone.utc)
+    vandaag = target_day()
     if key == "weekdag":
         kort, label = "wk", WEEKDAGEN[vandaag.weekday()]
     elif key == "maand":
@@ -219,10 +226,10 @@ def _bucket_regel(key: str, stat: Optional[dict], significante_buckets: Set[str]
              f"(winrate {stat['win_rate']*100:.0f}%, n={stat['n']}, p={stat['p_waarde']:.3f})")
     check = (checks or {}).get(key)
     if check:
-        regel += (f" — check: {check['jaren_winst']}/{check['jaren_getest']}j positief, "
-                  f"{check['n_trades']}x, PF {check['pf']:.2f}")
+        regel += (f" — beschrijvende check: {check['jaren_winst']}/{check['jaren_getest']}j positief, "
+                  f"{check['n_trades']}x, PF " + (f"{check['pf']:.2f}" if check['pf'] is not None else "n.v.t. (geen verlies)"))
     else:
-        regel += " — check: onvoldoende historische trades"
+        regel += " — beschrijvende check: onvoldoende historische trades"
     return regel
 
 def sig_regel(s: SeizoenSignaal) -> str:
@@ -232,7 +239,8 @@ def sig_regel(s: SeizoenSignaal) -> str:
         _bucket_regel("kwartaal", s.kwartaal, s.significante_buckets, s.checks),
     ) if r]
     return (
-        f"• `{s.ticker}` score {s.score*100:+.2f}% | EUR{s.price:.2f} | "
+        f"• `{s.ticker}` score {s.score*100:+.2f}% | {s.price:.4f} bronkoerseenheden | "
+        f"koersdag {s.signal_date}, doelkalenderdag {s.target_date} | "
         f"{s.jaren_data:.0f}j data | {yahoo_link(s.ticker)}\n"
         f"  {' | '.join(onderbouwing)}"
     )
@@ -248,22 +256,18 @@ def format_bericht(exchange_name: str, top: List[SeizoenSignaal], alle: List[Sei
         "\n\n".join(sig_regel(s) for s in top),
         "─────────────────────────────",
         f"⚙️ _Weekdag/maand/kwartaal t.o.v. eigen historiek (max {SZ_CFG['lookback_years']}j) | "
-        f"Benjamini-Hochberg FDR={SZ_CFG['fdr_alpha']:.2f} per buckettype_",
+        f"Benjamini-Hochberg FDR={SZ_CFG['fdr_alpha']:.2f} per beurs/buckettype_",
+        "Statistieken zijn gemiddelde dagelijkse close-to-close rendementen binnen de bucket, "
+        "geen maand-/kwartaalrendement of verwacht rendement na kosten. "
+        "Historische check: achteraf gekozen patroon, geen onafhankelijke walk-forward-validatie. "
+        "Eigen heuristiek; geen orders. Beursfeestdagen en afhankelijkheid tussen dagrendementen niet gemodelleerd.",
     ]
     return "\n\n".join(delen)
 
 # ============================================================
-# HISTORISCHE CHECK + BACKTEST-BOUWSTENEN  (hersteld uit v1.3)
-# ============================================================
-# Voor elk buckettype (weekdag/maand/kwartaal) en elk testjaar wordt de
-# bucket-statistiek herberekend op basis van UITSLUITEND de jaren die vóór
-# dat testjaar liggen (expanding window, geen look-ahead).
-#
-# Maand/kwartaal: één positie, aangehouden van de eerste tot de laatste
-# handelsdag van die maand/dat kwartaal in het testjaar.
-# Weekdag: elk voorkomen van de doelweekdag in het testjaar wordt apart
-# verhandeld: kopen op de vorige handelsdag-close, verkopen op de close van
-# de doelweekdag zelf (1-dagstrade, telkens met kosten/slippage/taks).
+# HISTORISCHE CHECK EN JAARLIJKS GETRAINDE BACKTEST
+# Live: descriptieve check van achteraf gekozen buckets. Alleen run_backtest
+# herberekent selectie/FDR met uitsluitend eerdere kalenderjaren.
 
 def _train_bucket_stats_per_ticker(rendement: pd.Series, test_jaar: int, bucket_key: str) -> Dict[int, dict]:
     """Ruwe (ongecorrigeerde) bucket-stats op basis van de trainingsjaren."""
@@ -288,79 +292,97 @@ def _train_bucket_stats_per_ticker(rendement: pd.Series, test_jaar: int, bucket_
             resultaat[waarde] = stat
     return resultaat
 
-def _trades_voor_bucket(bucket_key: str, waarde: int, g: pd.DataFrame, test_jaar: int) -> List[Tuple[float, float]]:
-    """Geeft (entry_price, exit_price)-paren terug voor deze ticker/waarde/jaar."""
-    if bucket_key == "maand":
-        data = g[(g.index.year == test_jaar) & (g.index.month == waarde)]
-        if len(data) < 5:
-            return []
-        entry = safe_float(data["Close"].iloc[0]) * (1 + SLIPPAGE_PCT)
-        exit_ = safe_float(data["Close"].iloc[-1]) * (1 - SLIPPAGE_PCT)
-        return [(entry, exit_)] if entry > 0 and not math.isnan(entry) and not math.isnan(exit_) else []
+def bucket_trades(bucket_key, waarde, g, test_jaar):
+    """Dated close-to-close trades; month/quarter require a completed period.
 
-    if bucket_key == "kwartaal":
-        data = g[(g.index.year == test_jaar) & (g.index.quarter == waarde)]
-        if len(data) < 10:
-            return []
-        entry = safe_float(data["Close"].iloc[0]) * (1 + SLIPPAGE_PCT)
-        exit_ = safe_float(data["Close"].iloc[-1]) * (1 - SLIPPAGE_PCT)
-        return [(entry, exit_)] if entry > 0 and not math.isnan(entry) and not math.isnan(exit_) else []
+    These hypothetical prior-close fills are calendar decisions known beforehand,
+    not executions of the current intraperiod live report.
+    """
+    g = g.sort_index()
+    result = []
+    if bucket_key == "weekdag":
+        for pos in range(1, len(g)):
+            date, prev = g.index[pos], g.index[pos - 1]
+            if date.year == test_jaar and prev.year >= test_jaar and date.weekday() == waarde and (date-prev).days <= 7:
+                result.append((prev, date, g.Close.iloc[pos-1], g.Close.iloc[pos]))
+    else:
+        freq = "M" if bucket_key == "maand" else "Q"
+        for period, data in g.groupby(g.index.to_period(freq)):
+            val = period.month if bucket_key == "maand" else period.quarter
+            if period.year != test_jaar or val != waarde:
+                continue
+            # Need observations around both calendar boundaries. No partial period exit.
+            after = g.loc[g.index > period.end_time]
+            before = g.loc[g.index < period.start_time]
+            if after.empty or before.empty or len(data) < (5 if freq == "M" else 10):
+                continue
+            if data.Close.isna().any() or data.index.to_series().diff().dt.days.gt(7).any():
+                continue
+            prev, last = before.index[-1], data.index[-1]
+            if ((data.index[0]-prev).days > 7 or (data.index[0]-period.start_time).days > 7
+                    or (period.end_time.normalize()-last).days > 7 or (after.index[0]-last).days > 7):
+                continue
+            # Training uses prior calendar years: never enter before that year's model exists.
+            if prev.year < test_jaar:
+                continue
+            result.append((prev, last, before.Close.iloc[-1], data.Close.iloc[-1]))
+    return [(a,b,float(e)*(1+SLIPPAGE_PCT),float(x)*(1-SLIPPAGE_PCT))
+            for a,b,e,x in result if np.isfinite(e) and np.isfinite(x) and e > 0 and x > 0]
 
-    # weekdag: elk voorkomen apart, 1-dagstrade (vorige close -> close van de doeldag)
-    jaar_data = g[g.index.year == test_jaar]
-    if jaar_data.empty:
-        return []
-    posities = np.where(jaar_data.index.weekday == waarde)[0]
-    trades = []
-    for pos in posities:
-        if pos == 0:
-            continue  # geen vorige handelsdag binnen dit testjaar beschikbaar
-        entry = safe_float(jaar_data["Close"].iloc[pos - 1]) * (1 + SLIPPAGE_PCT)
-        exit_ = safe_float(jaar_data["Close"].iloc[pos]) * (1 - SLIPPAGE_PCT)
-        if entry > 0 and not math.isnan(entry) and not math.isnan(exit_):
-            trades.append((entry, exit_))
-    return trades
+
+def _trades_voor_bucket(bucket_key, waarde, g, test_jaar):
+    return [(e,x) for _,_,e,x in bucket_trades(bucket_key, waarde, g, test_jaar)]
 
 def _bereken_pnl(entry_price: float, exit_price: float) -> Dict:
     risico_bedrag = START_CAPITAL * 0.05
-    aandelen = max(1, int(risico_bedrag / entry_price))
+    if not all(math.isfinite(x) and x > 0 for x in (entry_price, exit_price)):
+        raise ValueError("ongeldige uitvoeringskoers")
+    aandelen = max(0, int(risico_bedrag / entry_price))
+    while aandelen and entry_price * aandelen + trade_cost(entry_price * aandelen) > risico_bedrag:
+        aandelen -= 1
     investering = entry_price * aandelen + trade_cost(entry_price * aandelen)
     gross = exit_price * aandelen
     cost  = trade_cost(gross)
     pnl   = gross - cost - investering
     tax   = pnl * TAX_RATE if pnl > 0 else 0.0
     net   = pnl - tax
-    return {"size": aandelen, "pnl": round(pnl, 2), "tax": round(tax, 2), "net": round(net, 2)}
+    return {"size": aandelen, "pnl": pnl, "tax": tax, "net": net}
 
 def _boek_trade(trades_list: List[Dict], ticker: str, jaar: int, bucket_key: str,
-                 waarde: int, entry_price: float, exit_price: float, train_stat: dict) -> None:
+                 waarde: int, entry_price: float, exit_price: float, train_stat: dict, entry_date=None, exit_date=None, exchange="") -> None:
     r = _bereken_pnl(entry_price, exit_price)
+    if not r["size"]:
+        return
     trades_list.append({
+        "beurs": exchange, "entry_date": entry_date, "exit_date": exit_date,
+        "units": "synthetische indexeenheden (rebased 100)",
         "ticker": ticker, "jaar": jaar, "bucket_type": bucket_key, "bucket_waarde": waarde,
         "train_gemiddelde": train_stat["gemiddelde"], "train_p": train_stat["p_waarde"],
-        "entry_price": round(entry_price, 4), "exit_price": round(exit_price, 4),
+        "entry_price": entry_price, "exit_price": exit_price,
         "size": r["size"], "pnl": r["pnl"], "tax": r["tax"], "net": r["net"],
     })
 
 def historische_check(bucket_key: str, waarde: int, g: pd.DataFrame) -> Optional[dict]:
-    """
-    Automatische walk-forward-check: past het exact zelfde handelsmechanisme
-    toe als de backtest (_trades_voor_bucket), maar dan enkel op deze ene
-    ticker/bucket/waarde-combinatie -- meteen na de live FDR-selectie, zonder
-    dat er ooit een tickerlijst wordt vastgelegd. "waarde" is de bucketwaarde
-    van VANDAAG (de weekdag/maand/kwartaal die net significant bleek); hier
-    wordt gekeken hoe die zich in elk beschikbaar historisch jaar gedroeg.
-    """
-    testjaren = range(pd.Timestamp(BACKTEST_START).year, dt.date.today().year + 1)
+    """Descriptive, post-selection history; no yearly selection/FDR in this check."""
+    g = g.copy()
+    valid = g.Close.dropna()
+    if valid.empty:
+        return None
+    g["Close"] = g.Close / valid.iloc[0] * 100
+    testjaren = range(pd.Timestamp(BACKTEST_START).year, pd.Timestamp(today_str()).year + 1)
     resultaten_per_jaar: Dict[int, float] = {}
     n_trades = 0
     netto_totaal = 0.0
+    trade_nets = []
 
     for jaar in testjaren:
         netto_dit_jaar = 0.0
         gevonden = False
         for entry_price, exit_price in _trades_voor_bucket(bucket_key, waarde, g, jaar):
             r = _bereken_pnl(entry_price, exit_price)
+            if not r["size"]:
+                continue
+            trade_nets.append(r["net"])
             netto_dit_jaar += r["net"]
             netto_totaal   += r["net"]
             n_trades += 1
@@ -373,13 +395,13 @@ def historische_check(bucket_key: str, waarde: int, g: pd.DataFrame) -> Optional
 
     jaren_getest  = len(resultaten_per_jaar)
     jaren_winst   = sum(1 for v in resultaten_per_jaar.values() if v > 0)
-    winst_totaal  = sum(v for v in resultaten_per_jaar.values() if v > 0)
-    verlies_totaal = abs(sum(v for v in resultaten_per_jaar.values() if v <= 0))
-    pf = winst_totaal / max(verlies_totaal, 1e-9)
+    winst_totaal = sum(v for v in trade_nets if v > 0)
+    verlies_totaal = abs(sum(v for v in trade_nets if v < 0))
+    pf = winst_totaal / verlies_totaal if verlies_totaal else None
 
     return {
         "jaren_getest": jaren_getest, "jaren_winst": jaren_winst,
-        "n_trades": n_trades, "netto_totaal": round(netto_totaal, 2), "pf": round(pf, 2),
+        "n_trades": n_trades, "netto_totaal": round(netto_totaal, 2), "pf": pf, "method": "beschrijvend na selectie; synthetische indexbasis 100",
     }
 
 # ============================================================
@@ -387,213 +409,159 @@ def historische_check(bucket_key: str, waarde: int, g: pd.DataFrame) -> Optional
 # ============================================================
 
 def run_live_engine():
-    print(f"{'='*60}\nSEIZOENSEFFECTEN — LIVE  {today_str()}\n{'='*60}")
-
-    exchange_tickers: Dict[str, List[str]] = {}
-    all_tickers: List[str] = []
-
-    for f_name in bouw_bestandslijst():
-        tlist = load_tickers_from_file(f_name)
-        if not tlist:
-            continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-        print(f"  {ex_name}: {len(tlist)} tickers")
-
-    all_tickers = sorted(set(all_tickers))
-    if not all_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
-        return
-
-    print(f"\nTotaal: {len(all_tickers)} unieke tickers")
-    print(f"Data downloaden ({SZ_CFG['lookback_years']} jaar)...")
-    df = download_history(all_tickers, period=f"{SZ_CFG['lookback_years']}y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-
-    print(f"Data geladen: {df['Ticker'].nunique()} tickers, {len(df)} rijen")
-    email_delen: List[str] = []
-
-    for ex_name, tlist in exchange_tickers.items():
-        print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
-        df_ex = df[df["Ticker"].isin(tlist)].copy()
-
-        kandidaten: List[SeizoenKandidaat] = []
-        for ticker, group in df_ex.groupby("Ticker", sort=False):
-            k = analyseer_ticker(ticker, group)
-            if k is not None:
-                kandidaten.append(k)
-
-        if not kandidaten:
-            print(f"  → Overgeslagen: {ex_name} (te weinig data)")
-            continue
-
-        top_alles = pas_bh_toe_op_beurs(kandidaten, SZ_CFG["fdr_alpha"])
-        print(f"  {len(kandidaten)} geanalyseerd, {len(top_alles)} FDR-significant")
-
-        if not top_alles:
-            print(f"  → Overgeslagen: {ex_name} (niets overleeft de FDR-correctie)")
-            continue
-
-        top_alles.sort(key=lambda s: s.score, reverse=True)
-        top = top_alles[:SZ_CFG["top_n"]]
-
-        # Automatische historische check (hersteld uit v1.3): exact de
-        # tickers/buckets die de FDR-selectie hierboven net (dynamisch, dit
-        # run) heeft gevonden -- nooit een vooraf vastgelegde lijst.
-        vandaag = dt.datetime.now(dt.timezone.utc)
-        huidige_bucketwaarde = {
-            "weekdag":  vandaag.weekday(),
-            "maand":    vandaag.month,
-            "kwartaal": (vandaag.month - 1) // 3 + 1,
-        }
-        for s in top:
-            ticker_data = df_ex[df_ex["Ticker"] == s.ticker].sort_values("Date").set_index("Date")
-            for bucket_key in s.significante_buckets:
-                resultaat = historische_check(bucket_key, huidige_bucketwaarde[bucket_key], ticker_data)
-                if resultaat:
-                    s.checks[bucket_key] = resultaat
-            if s.checks:
-                check_str = " | ".join(
-                    f"{k}: {v['jaren_winst']}/{v['jaren_getest']}j" for k, v in s.checks.items()
-                )
-                print(f"    check {s.ticker}: {check_str}")
-
-        for s in top:
-            log_selectie(
-                ticker=s.ticker, datum=today_str(), strategie="bot_01repititief", beurs=ex_name, koers=s.price,
-                parameters={
-                    "score": s.score, "grafiek": yahoo_link(s.ticker),
-                    "jaren_data": s.jaren_data, "significante_buckets": sorted(s.significante_buckets),
-                    "historische_check": s.checks,
-                    "weekdag_gemiddelde": s.weekdag["gemiddelde"] if s.weekdag else None,
-                    "weekdag_winrate":    s.weekdag["win_rate"] if s.weekdag else None,
-                    "weekdag_p":          s.weekdag["p_waarde"] if s.weekdag else None,
-                    "maand_gemiddelde":   s.maand["gemiddelde"] if s.maand else None,
-                    "maand_winrate":      s.maand["win_rate"] if s.maand else None,
-                    "maand_p":            s.maand["p_waarde"] if s.maand else None,
-                    "kwartaal_gemiddelde": s.kwartaal["gemiddelde"] if s.kwartaal else None,
-                    "kwartaal_winrate":    s.kwartaal["win_rate"] if s.kwartaal else None,
-                    "kwartaal_p":          s.kwartaal["p_waarde"] if s.kwartaal else None,
-                },
-            )
-
-        bericht = format_bericht(ex_name, top, kandidaten)
-        if bericht:
-            send_telegram(bericht, parse_mode="Markdown")
-            email_delen.append(bericht)
-            print(f"  → Telegram verstuurd")
-            time.sleep(TELEGRAM_THROTTLE_SEC)
-
-    if email_delen:
-        send_email(f"Seizoenseffecten rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
-
-    print(f"\n{'='*60}\nKlaar.")
+    reports, issues, errors = [], [], []
+    exchange_tickers, requested = {}, set()
+    for filename in bouw_bestandslijst():
+        try:
+            tickers = sorted(set(load_tickers_from_file(filename)))
+            if not tickers:
+                issues.append(f"{filename}: ontbrekende of lege tickerlijst")
+                continue
+            exchange_tickers[label_voor(filename)] = tickers
+            requested.update(tickers)
+        except Exception as exc:
+            errors.append(f"{filename}: laden mislukt ({type(exc).__name__})")
+    frames = []
+    for start in range(0, len(requested), 100):
+        batch = sorted(requested)[start:start+100]
+        try:
+            frames.append(download_history(batch, period=f"{SZ_CFG['lookback_years']}y"))
+        except Exception as exc:
+            errors.append(f"batch {start//100+1}: download mislukt ({type(exc).__name__})")
+    df = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    groups = dict(tuple(df.groupby("Ticker"))) if "Ticker" in df else {}
+    cache, histories = {}, {}
+    for ticker in sorted(requested):
+        try:
+            raw = groups.get(ticker, pd.DataFrame())
+            cache[ticker] = analyseer_ticker(ticker, raw)
+            histories[ticker] = prepare_history(raw)
+            if raw.empty or len(histories[ticker]) < len(raw):
+                issues.append(f"{ticker}: dubbele, ongedateerde of onvoltooide rijen verwijderd")
+            if histories[ticker].Close.isna().any():
+                issues.append(f"{ticker}: ongeldige historische slotkoersen; rendementen rond gaten uitgesloten")
+        except DataUnavailable as exc:
+            issues.append(f"{ticker}: {exc}")
+        except Exception as exc:
+            errors.append(f"{ticker}: analyse mislukt ({type(exc).__name__}: {exc})")
+    stored = selected = 0
+    check_cache = {}
+    for exchange, tickers in exchange_tickers.items():
+        candidates = [cache[t] for t in tickers if cache.get(t) is not None]
+        signals = sorted(pas_bh_toe_op_beurs(candidates, SZ_CFG["fdr_alpha"]),
+                         key=lambda x: (-x.score, x.ticker))
+        top = signals[:SZ_CFG["top_n"]]
+        selected += len(top)
+        coverage = f"{exchange}: {len(candidates)}/{len(tickers)} geanalyseerd, {len(signals)} kandidaten, {len(top)} topselecties."
+        print(coverage, flush=True)
+        for sig in top:
+            d = pd.Timestamp(sig.target_date)
+            for key in sorted(sig.significante_buckets):
+                value = {"weekdag": d.weekday(), "maand": d.month, "kwartaal": d.quarter}[key]
+                ck = (sig.ticker, key, value)
+                if ck not in check_cache:
+                    check_cache[ck] = historische_check(key, value, histories[sig.ticker])
+                if check_cache[ck]:
+                    sig.checks[key] = check_cache[ck]
+            parameters = {"score": sig.score, "grafiek": yahoo_link(sig.ticker),
+                "jaren_data": sig.jaren_data, "significante_buckets": sorted(sig.significante_buckets),
+                "historische_check": sig.checks, "signal_date": sig.signal_date,
+                "target_date": sig.target_date, "statistiek": "dagrendementen binnen kalenderbucket"}
+            for key in BUCKET_TYPES:
+                stat = getattr(sig, key)
+                for label, fieldname in (("gemiddelde","gemiddelde"),("winrate","win_rate"),("p","p_waarde")):
+                    parameters[f"{key}_{label}"] = stat[fieldname] if stat else None
+            try:
+                if not log_selectie(ticker=sig.ticker, datum=today_str(), strategie="bot_01repititief",
+                                    beurs=exchange, koers=sig.price, parameters=parameters):
+                    raise RuntimeError("geen opslagbevestiging")
+                stored += 1
+            except Exception as exc:
+                errors.append(f"{sig.ticker}: database mislukt ({exc})")
+        reports.append(coverage + "\n" + (format_bericht(exchange, top, candidates) or "Geen bruikbare analyses."))
+    count = sum(v is not None for v in cache.values())
+    if not count:
+        errors.append("Geen bruikbare analyses")
+    summary = f"{count}/{len(requested)} unieke tickers geanalyseerd. Database {stored}/{selected} selecties opgeslagen. Telegram uit."
+    body = "\n\n".join([summary] + reports + ["Databeperkingen:"] + issues + ["Fouten:"] + errors)
+    print(body, flush=True)
+    if not send_email(("[ONVOLLEDIG] " if issues or errors else "") + "Seizoenseffecten " + today_str(), body):
+        errors.append("E-mail niet verzonden")
+    if errors:
+        raise RuntimeError(f"{len(errors)} fout(en): " + "; ".join(errors[:5]))
+    print("Klaar — e-mail verzonden.", flush=True)
 
 # ============================================================
 # BACKTEST ENGINE (hersteld uit v1.2/v1.3)
 # ============================================================
-# Per buckettype en testjaar worden de getrainde p-waarden over ALLE tickers
-# gepoold en BH-gecorrigeerd (zelfde principe als in de live-engine); enkel
-# wie na correctie significant én positief is, wordt verhandeld.
+# FDR per beurs, jaar, buckettype en waarde; positieve effecten na correctie.
+
+TRADE_COLUMNS = ["beurs", "ticker", "jaar", "bucket_type", "bucket_waarde",
+                 "entry_date", "exit_date", "units", "train_gemiddelde", "train_p",
+                 "entry_price", "exit_price", "size", "pnl", "tax", "net"]
+
 
 def run_backtest():
-    print(f"{'='*60}")
-    print(f"SEIZOENSEFFECTEN BACKTEST (weekdag+maand+kwartaal, BH-gecorrigeerd)  {BACKTEST_START} -> {BACKTEST_END}")
-    print(f"{'='*60}")
-
-    all_tickers: List[str] = []
-    for f_name in bouw_bestandslijst():
-        all_tickers.extend(load_tickers_from_file(f_name))
-    all_tickers = sorted(set(all_tickers))
-
-    if not all_tickers:
-        print("[ERROR] Geen tickers gevonden.")
-        return
-
-    print(f"Tickers: {len(all_tickers)} | Data downloaden ({SZ_CFG['lookback_years']}y)...")
-    df = download_history(all_tickers, period=f"{SZ_CFG['lookback_years']}y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-
-    # Per ticker de rendementenreeks + geïndexeerde koersen klaarzetten
-    reeksen: Dict[str, Tuple[pd.Series, pd.DataFrame]] = {}
-    for ticker, group in df.groupby("Ticker", sort=False):
-        g = group.sort_values("Date").set_index("Date")
-        rendement = g["Close"].pct_change().dropna()
-        if not rendement.empty:
-            reeksen[ticker] = (rendement, g)
-
-    trades: List[Dict] = []
-    testjaren = list(range(pd.Timestamp(BACKTEST_START).year, pd.Timestamp(BACKTEST_END).year + 1))
-
-    for bucket_key in BUCKET_TYPES:
-        mogelijke_waarden = {
-            "maand":    range(1, 13),
-            "kwartaal": range(1, 5),
-            "weekdag":  range(0, 5),
-        }[bucket_key]
-
-        for test_jaar in testjaren:
-            # 1) per ticker de ruwe getrainde bucket-stats ophalen (geen look-ahead)
-            getraind: Dict[str, Dict[int, dict]] = {}
-            for ticker, (rendement, _g) in reeksen.items():
-                stats_per_waarde = _train_bucket_stats_per_ticker(rendement, test_jaar, bucket_key)
-                if stats_per_waarde:
-                    getraind[ticker] = stats_per_waarde
-            if not getraind:
+    exchanges = {}
+    for filename in bouw_bestandslijst():
+        tickers = sorted(set(load_tickers_from_file(filename)))
+        if tickers:
+            exchanges[label_voor(filename)] = tickers
+    tickers = sorted({t for ts in exchanges.values() for t in ts})
+    if not tickers:
+        raise RuntimeError("Geen tickers voor backtest")
+    # Explicit dates include warmup and keep the user's end date inclusive.
+    end = min(pd.Timestamp(BACKTEST_END), pd.Timestamp(today_str()) - pd.Timedelta(days=1))
+    begin = pd.Timestamp(BACKTEST_START)
+    frames = [download_history(tickers[i:i+100],
+              start=str((begin-pd.DateOffset(years=SZ_CFG['lookback_years'])).date()),
+              end=str((end+pd.Timedelta(days=1)).date())) for i in range(0,len(tickers),100)]
+    df = pd.concat(frames, ignore_index=True)
+    if df.empty or "Ticker" not in df:
+        raise RuntimeError("Geen backtestdata")
+    series = {}
+    for ticker, group in df.groupby("Ticker", sort=True):
+        try:
+            g = prepare_history(group, live=False).loc[:end].copy()
+            if g.empty:
                 continue
-
-            # 2) BH-correctie per bucketwaarde, gepoold over alle tickers dit testjaar
-            significant_dit_jaar: Dict[str, Set[int]] = {}
-            for waarde in mogelijke_waarden:
-                tickers_met_waarde = [t for t, sm in getraind.items() if waarde in sm]
-                if not tickers_met_waarde:
-                    continue
-                p_waarden = [getraind[t][waarde]["p_waarde"] for t in tickers_met_waarde]
-                mask = bh_correctie(p_waarden, SZ_CFG["fdr_alpha"])
-                for t, sig in zip(tickers_met_waarde, mask):
-                    if sig and getraind[t][waarde]["gemiddelde"] > 0:
-                        significant_dit_jaar.setdefault(t, set()).add(waarde)
-
-            # 3) enkel de significante ticker/waarde-combinaties effectief verhandelen
-            for ticker, waarden in significant_dit_jaar.items():
-                _rendement, g = reeksen[ticker]
-                for waarde in waarden:
-                    for entry_price, exit_price in _trades_voor_bucket(bucket_key, waarde, g, test_jaar):
-                        _boek_trade(trades, ticker, test_jaar, bucket_key, waarde,
-                                    entry_price, exit_price, getraind[ticker][waarde])
-
-    if not trades:
-        print("Geen trades gegenereerd (na BH-correctie bleef geen enkele combinatie over).")
-        return
-
-    tdf = pd.DataFrame(trades)
+            # Basis is fixed before the first test year; all currencies become
+            # synthetic indices, not a claimed FX conversion or actual share count.
+            base = g.loc[g.index < begin, "Close"].dropna()
+            if base.empty:
+                continue
+            g["Close"] = g.Close / base.iloc[-1] * 100
+            series[ticker] = (daily_returns(g), g)
+        except DataUnavailable as exc:
+            print(f"[DATA] {ticker}: {exc}", flush=True)
+    trades = []
+    for exchange, members in exchanges.items():
+        for year in range(begin.year, end.year + 1):
+            for key in BUCKET_TYPES:
+                trained = {t: _train_bucket_stats_per_ticker(series[t][0], year, key)
+                           for t in members if t in series}
+                values = {"weekdag": range(5), "maand": range(1,13), "kwartaal": range(1,5)}[key]
+                for value in values:
+                    tested = [t for t in sorted(trained) if value in trained[t]]
+                    mask = bh_correctie([trained[t][value]["p_waarde"] for t in tested], SZ_CFG["fdr_alpha"])
+                    for ticker, significant in zip(tested, mask):
+                        stat = trained[ticker][value]
+                        if not significant or stat["gemiddelde"] <= 0:
+                            continue
+                        for entry_date, exit_date, entry, exit_ in bucket_trades(key, value, series[ticker][1], year):
+                            if entry_date < begin or exit_date > end:
+                                continue
+                            _boek_trade(trades, ticker, year, key, value, entry, exit_, stat,
+                                        str(entry_date.date()), str(exit_date.date()), exchange)
+        print(f"[BACKTEST] {exchange} afgerond", flush=True)
+    tdf = pd.DataFrame(trades, columns=TRADE_COLUMNS)
     tdf.to_csv("seizoen_backtest_trades.csv", index=False)
-
-    def _print_samenvatting(naam: str, sub: pd.DataFrame) -> None:
-        if sub.empty:
-            print(f"{naam:>10}: geen trades")
-            return
-        n    = len(sub)
-        nwin = (sub["net"] > 0).sum()
-        pf   = abs(sub.loc[sub["net"] > 0, "net"].sum()) / max(
-               abs(sub.loc[sub["net"] <= 0, "net"].sum()), 1e-9)
-        print(f"{naam:>10}: {n:>5} trades | winrate {nwin/n*100:5.1f}% | "
-              f"PF {pf:5.2f} | netto EUR{sub['net'].sum():>12,.2f} | belasting EUR{sub['tax'].sum():>10,.2f}")
-
-    print(f"\n{'='*60}")
-    for bucket_key in BUCKET_TYPES:
-        _print_samenvatting(bucket_key, tdf[tdf["bucket_type"] == bucket_key])
-    print("-" * 60)
-    _print_samenvatting("TOTAAL", tdf)
-    print(f"{'='*60}")
-    print("Opgeslagen: seizoen_backtest_trades.csv (kolom bucket_type onderscheidt weekdag/maand/kwartaal)")
-    print("Let op: 'netto' is de som over alle posities t.o.v. eenzelfde vast risicobudget per trade,")
-    print("geen samengesteld kapitaal — vergelijk de PF/winrate per buckettype, niet de absolute EUR-bedragen 1-op-1.")
+    print(f"{len(tdf)} trades opgeslagen: seizoen_backtest_trades.csv", flush=True)
+    print("Afzonderlijke hypothetische posities, indexbasis 100 per ticker; 2500 synthetische "
+          "eenheden inclusief aankoopkosten per trade; 0,1% slippage per kant, "
+          "kosten max(15, 0,35% notional) per kant; geen belastingaanname. "
+          "Geen gedeelde cash, compounding, portefeuillerendement of totale EUR-winst. "
+          "Huidige tickerlijsten en aangepaste historische koersen kunnen survivorship/revision bias bevatten.")
 
 # ============================================================
 # ENTRYPOINT
@@ -603,5 +571,7 @@ if __name__ == "__main__":
     mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
     if mode == "backtest":
         run_backtest()
-    else:
+    elif mode == "live":
         run_live_engine()
+    else:
+        raise SystemExit("Gebruik live of backtest")
