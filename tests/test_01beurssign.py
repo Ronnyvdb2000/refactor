@@ -134,11 +134,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.insider(df),70)
         self.assertTrue(math.isnan(self.insider(df.drop(columns='Transaction'))))
 
-    def run_bot(self, candidate=True, db=True, email=True, error=None, missing=False, mode='live'):
+    def run_bot(self, candidate=True, db=True, email=True, error=None, missing=False, mode='live', tickers=None):
         sig=self.analyse();sig.score=3 if candidate else 0
         with patch.multiple(b,
             bouw_bestandslijst=MagicMock(return_value=['tickers_041x.txt','tickers_042x.txt']),
-            load_tickers_from_file=MagicMock(return_value=[] if missing else ['A','A']),
+            load_tickers_from_file=MagicMock(return_value=[] if missing else (tickers or ['A','A'])),
             analyse_ticker=MagicMock(return_value=sig,side_effect=error),
             send_email=MagicMock(return_value=email),log_selectie=MagicMock(return_value=db)), \
             patch.object(b.time,'sleep'), patch.object(b.yf,'Ticker') as yahoo, \
@@ -204,6 +204,50 @@ class Tests(unittest.TestCase):
             patch.object(b.time,'sleep'), contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(RuntimeError):b.run_engine('live')
             self.assertIn('db test',b.send_email.call_args.args[1])
+
+    def test_rate_limit_recovers(self):
+        with patch.object(b, 'analyse_ticker', side_effect=[b.YFRateLimitError(), 'ok']) as analyse, patch.object(b.time, 'sleep') as sleep:
+            self.assertEqual(b.analyse_with_cooldown('A', b.MODUS_CFG['full'], False), 'ok')
+            self.assertEqual(analyse.call_count, 2)
+            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list), 60)
+            self.assertTrue(all(c.args[0] <= 30 for c in sleep.call_args_list))
+
+    def test_persistent_limit_stops_and_emails(self):
+        mail, db, analyse, error = self.run_bot(error=b.YFRateLimitError(), mode='full', tickers=['A','B'])
+        self.assertEqual(analyse.call_count, 4)
+        self.assertIsNotNone(error)
+        db.assert_not_called()
+        self.assertIn('analyses niet aangevraagd', mail.call_args.args[1])
+        self.assertIn('[ONVOLLEDIG]', mail.call_args.args[0])
+
+    def test_persistent_limit_wait_budget(self):
+        with patch.object(b, 'analyse_ticker', side_effect=b.YFRateLimitError()), patch.object(b.time, 'sleep') as sleep:
+            with self.assertRaises(b.YFRateLimitError):
+                b.analyse_with_cooldown('A', b.MODUS_CFG['full'], False)
+            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list), 540)
+
+    def test_non_rate_error_not_retried(self):
+        with patch.object(b, 'analyse_ticker', side_effect=ValueError('bug')) as analyse, patch.object(b.time, 'sleep') as sleep:
+            with self.assertRaises(ValueError):
+                b.analyse_with_cooldown('A', b.MODUS_CFG['full'], False)
+            analyse.assert_called_once()
+            sleep.assert_not_called()
+
+    def test_insider_rate_propagates(self):
+        with patch.object(b.yf, 'Ticker', side_effect=b.YFRateLimitError()):
+            with self.assertRaises(b.YFRateLimitError):
+                b._insider_net_shares('A')
+
+    def test_periodic_full_pause(self):
+        sig = self.analyse()
+        cfg = dict(b.MODUS_CFG['full'], pause_every=1, pause_sec=30)
+        with patch.dict(b.MODUS_CFG, full=cfg), patch.multiple(b,
+            bouw_bestandslijst=MagicMock(return_value=['tickers_041a.txt']),
+            load_tickers_from_file=MagicMock(return_value=['A', 'B']),
+            analyse_ticker=MagicMock(return_value=sig), send_email=MagicMock(return_value=True),
+            log_selectie=MagicMock(return_value=True)), patch.object(b.time, 'sleep') as sleep, contextlib.redirect_stdout(io.StringIO()):
+            b.run_engine('full')
+            self.assertIn(30, [c.args[0] for c in sleep.call_args_list])
 
     def test_workflows_keep_services_and_telegram_disabled(self):
         from pathlib import Path

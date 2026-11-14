@@ -144,3 +144,14 @@ en een kleine clustering slagen (yfinance 1.8.0, scikit-learn 1.9.1). In diezelf
 omgeving herstellen ASML.AS en AIR.PA met de echte Yahoo-route beide koersdag
 2026-11-13. Geen e-mail of database-insert bij deze controles. De Actions-workflows
 blijven Python 3.11 gebruiken; de volledige live hertest op de runner staat open.
+
+
+## Hertest 14 november 2026 en Yahoo-pauzes
+
+X-run op 6511591: 993/1000 analyses, 13/13 inserts en e-mail bevestigd, Telegram uit. Full-run: 13.945 unieke tickers gevraagd, 468 analyses, 5/5 inserts. Vanaf Frankfurt aanhoudende YFRateLimitError, exitcode 1; geen expliciete e-mailbevestiging in de log.
+
+Full krijgt 0,5 seconde tussen analyses en 30 seconden na iedere 100 nieuwe analyses. Expliciete YFRateLimitError, ook uit insiders, geeft drie pauzes van 60, 180 en 300 seconden met herpoging van dezelfde analyse. Sleeps duren maximaal 30 seconden per stuk. Live behoudt zijn gewone tussenpauze maar gebruikt dezelfde herstelpauzes. Een herpoging kan reeds uitgevoerde history-aanvragen herhalen. Andere fouten worden niet herhaald.
+
+Na de vierde rate-limitfout stopt de run nieuwe analyses, gebruikt reeds gecachte resultaten, vermeldt overgeslagen aantallen per lijst, bewaart geldige selecties en probeert het onvolledige rapport te mailen. De job blijft terecht rood. Foutieve a-symbolen blijven afzonderlijk open; er worden geen suffixen gegokt. Pauzes garanderen geen opheffing van Yahoo-blokkades. De bestaande full-timeout van 300 minuten blijft gelden; de extra wachttijd kan die limiet bereiken. Nieuwe full-hertest nodig.
+
+Validatie: 38 offline tests geslaagd onder lokale Python 3.12, inclusief herstel na rate limiting, begrensd wachtbudget, stoppen van nieuwe aanvragen, periodieke pauze en e-mailrapportage. Geen live diensten aangeroepen.

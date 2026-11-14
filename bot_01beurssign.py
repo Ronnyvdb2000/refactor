@@ -18,6 +18,7 @@ from typing import List, Dict, Optional
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from yfinance.exceptions import YFRateLimitError
 
 from common import (
     today_str, safe_float, yahoo_link,
@@ -61,9 +62,32 @@ MODUS_CFG = {
         "top_n":           3,
         "strategie":       "bot_01beurssig_full",
         "label":           "BEURSSIGNALEN-METHODIEK — WEEKLY FULL SCAN",
-        "throttle_sec":    0.12,
+        "throttle_sec":    0.5,
+        "pause_every":     100,
+        "pause_sec":       30,
     },
 }
+
+def pause(seconds: float):
+    """Keep each wait short and log long cooldowns before waiting."""
+    while seconds > 0:
+        chunk = min(seconds, 30)
+        time.sleep(chunk)
+        seconds -= chunk
+
+
+def analyse_with_cooldown(ticker, cfg, us):
+    for attempt in range(4):
+        try:
+            return analyse_ticker(ticker, cfg, us)
+        except YFRateLimitError:
+            if attempt == 3:
+                raise
+            delay = (60, 180, 300)[attempt]
+            print(f"[RATE] {ticker}: Yahoo-limiet; {delay}s pauze, "
+                  f"herpoging {attempt + 1}/3", flush=True)
+            pause(delay)
+
 
 def is_us_beurs(f_name: str) -> bool:
     getal = f_name.replace("tickers_", "")[:3]
@@ -169,6 +193,8 @@ def _insider_net_shares(ticker: str, dagen: int = 90) -> float:
         if not np.isfinite(shares[relevant]).all():
             return float("nan")
         return float(shares[buy].sum() - shares[sell].sum())
+    except YFRateLimitError:
+        raise
     except Exception as exc:
         print(f"[DATA] {ticker}: insiderdata niet beschikbaar ({type(exc).__name__})")
         return float("nan")
@@ -304,7 +330,8 @@ def run_engine(modus: str):
     reports, issues, errors = [], [], []
     cache = {}
     requested = set()
-    stored = selected = analysed = 0
+    stored = selected = analysed = attempted = 0
+    provider_blocked = False
     print(f"{cfg['label']} {today_str()} — Telegram uit", flush=True)
     for filename in bouw_bestandslijst(cfg["bestand_suffix"]):
         try:
@@ -318,16 +345,30 @@ def run_engine(modus: str):
         requested.update(tickers)
         us = is_us_beurs(filename)
         all_signals = []
+        skipped = 0
         for ticker in tickers:
             key = (ticker, us)
+            if provider_blocked and key not in cache:
+                skipped += 1
+                continue
             if key not in cache:
+                if attempted and cfg.get("pause_every") and attempted % cfg["pause_every"] == 0:
+                    print(f"[PAUZE] {attempted} unieke analyses aangevraagd; "
+                          f"{cfg['pause_sec']}s rust", flush=True)
+                    pause(cfg["pause_sec"])
+                attempted += 1
                 try:
-                    cache[key] = analyse_ticker(ticker, cfg, us)
+                    cache[key] = analyse_with_cooldown(ticker, cfg, us)
                     analysed += 1
                     if cache[key].data_note:
                         issues.append(f"{ticker}: {cache[key].data_note}")
                     if us and not math.isfinite(cache[key].insider_net_shares):
                         issues.append(f"{ticker}: insiderdata onbekend; geen insiderpunt")
+                except YFRateLimitError:
+                    cache[key] = None
+                    provider_blocked = True
+                    errors.append(f"{ticker}: Yahoo-limiet blijft na drie pauzes/herpogingen; "
+                                  "verdere nieuwe analyses gestopt")
                 except DataUnavailable as exc:
                     cache[key] = None
                     issues.append(f"{ticker}: {exc}")
@@ -337,6 +378,8 @@ def run_engine(modus: str):
                 time.sleep(cfg["throttle_sec"])
             if cache[key] is not None:
                 all_signals.append(cache[key])
+        if skipped:
+            issues.append(f"{filename}: {skipped} analyses niet aangevraagd wegens Yahoo-limiet")
         candidates = sorted((x for x in all_signals if x.score >= cfg["min_score"]),
                             key=lambda x: (-x.score / x.max_score, -x.vol_ratio_20d, x.ticker))
         signals = candidates[:cfg["top_n"]]
@@ -372,7 +415,7 @@ def run_engine(modus: str):
     if not send_email(subject, body):
         errors.append("E-mail niet verzonden")
     if errors:
-        raise RuntimeError("; ".join(errors))
+        raise RuntimeError(f"{len(errors)} fout(en): " + "; ".join(errors[:5]))
     print("Klaar — e-mail verzonden.", flush=True)
 
 
