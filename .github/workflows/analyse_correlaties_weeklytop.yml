@@ -10,14 +10,19 @@ on:
 jobs:
   correlatie-analyse:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install pandas numpy scipy requests python-dotenv psycopg2-binary
+      - name: Verify weekly import
+        run: python -c "import weekly.analyseer_weekly_correlaties"
       - name: Run Correlatie-analyse
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
@@ -26,7 +31,7 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-        run: python analyseer_weekly_correlaties.py
+        run: python -m weekly.analyseer_weekly_correlaties
       - name: Upload volledig rapport als artifact
         if: always()
         uses: actions/upload-artifact@v4

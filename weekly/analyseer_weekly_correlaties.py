@@ -1,39 +1,10 @@
-"""
-analyseer_weekly_correlaties.py
-================================
-Ad hoc analysescript (workflow_dispatch, GEEN cron) dat na verloop van tijd
-op de data in weekly_toppers + weekly_topper_parameters een correlatie
-zoekt tussen de weekprestatie (week_perf) en de parameters, opgesplitst in
-drie families:
-
-  - "evolutie (delta binnen de week)": de VERANDERING van elke dagaccurate
-    Groep A-parameter over de week (dag_index max - dag_index min).
-    LET OP: voor prijs-afgeleide parameters (close, rsi, macd_hist,
-    dist_sma*_pct, ...) is deze evolutie mechanisch verweven met week_perf
-    zelf (delta close IS letterlijk de teller van week_perf) -- een sterke
-    correlatie hier is dus verwacht en weinig informatief op zich, tenzij
-    het om DIVERGENTIE gaat (prijs op, indicator neer). Toch mee opgenomen
-    omdat dit letterlijk was wat gevraagd werd ("evolutie van 1 of meer
-    parameters").
-  - "startniveau (dag 1, voorspellend)": de waarde van diezelfde Groep
-    A-parameters op de EERSTE dag van de week, dus vóór het grootste deel
-    van de weekbeweging plaatsvond. Dit is de forward-looking/voorspellende
-    variant en dus de familie die het meest interessant is als er ooit
-    iets bruikbaars uitkomt.
-  - "fundamenteel/rank": Groep B (fundamenteel, quasi-constant binnen de
-    week) en Groep C (cross-sectionele rank/score, bevroren herhaald)
-    parameters vs week_perf.
-
-Elke familie krijgt een EIGEN Benjamini-Hochberg FDR-correctie
-(alpha=0.05, zelfde drempel als bot_01repititief), zodat het gelijktijdig
-testen van tientallen parameters niet vanzelf "significante"
-toevalstreffers oplevert. Gebruikt Spearman-correlatie (robuuster tegen de
-elders in dit project al gedocumenteerde yfinance-outliers/extreme
-ratio's) i.p.v. Pearson.
-
-Draait bewust NIET op een schema -- pas zinvol na een aantal weken
-accumulatie van data. Trigger handmatig via workflow_dispatch in
-analyse_correlaties.yml wanneer er genoeg data verzameld is.
+"""Beschrijvende correlaties van weekly technische dagparameters.
+Alleen weken vanaf 2026-11-16 gebruiken de gecontroleerde nieuwe opslag.
+De eerste en laatste aanwezige weekslotkoers bepalen het analyse-rendement;
+dit verschilt van het volledige vorige-vrijdag-tot-vrijdag rapport-rendement.
+Winnaars/dalers zijn achteraf geselecteerd en ticker-weken zijn afhankelijk:
+ook met FDR zijn de uitkomsten verkennend, geen bewijs van voorspelkracht.
+Actuele fundamentals worden niet als historische features geanalyseerd.
 """
 
 import os
@@ -48,7 +19,7 @@ from scipy.stats import spearmanr
 import requests
 from dotenv import load_dotenv
 
-import weekly_db_opvolg as db
+from . import weekly_db_opvolg as db
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -84,7 +55,7 @@ GROEP_BC_KOLOMMEN = [
 # correleert mechanisch bijna altijd sterk met week_perf zelf -- zie de
 # module-docstring. Die familie blijft wel in het volledige CSV-rapport
 # staan, maar wordt niet apart uitgelicht in Telegram/e-mail.)
-NOEMENSWAARDIGE_FAMILIES = ["startniveau (dag 1, voorspellend)", "fundamenteel/rank"]
+NOEMENSWAARDIGE_FAMILIES = ["startniveau (dag 1, beschrijvend)"]
 
 
 def stuur_telegram(bericht):
@@ -117,7 +88,7 @@ def stuur_email(html_body: str, onderwerp: str):
         msg["To"] = EMAIL_RECEIVER
         msg.attach(MIMEText(html_body, "html"))
 
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as server:
             server.starttls()
             server.login(EMAIL_USER, EMAIL_PASS)
             server.sendmail(EMAIL_USER, EMAIL_RECEIVER, msg.as_string())
@@ -161,6 +132,27 @@ def bouw_analysetabel(df_toppers, df_params):
     if df_params.empty or df_toppers.empty:
         return pd.DataFrame()
 
+    # Oudere rijen bevatten teruggedateerde fundamentals en een andere rendementsdefinitie.
+    grens = pd.Timestamp('2026-11-16')
+    df_toppers = df_toppers.copy()
+    df_params = df_params.copy()
+    for frame in (df_toppers, df_params):
+        frame['week_startdatum'] = pd.to_datetime(frame['week_startdatum'])
+    df_toppers = df_toppers.loc[df_toppers.week_startdatum >= grens]
+    df_params = df_params.loc[df_params.week_startdatum >= grens]
+    if df_toppers.empty or df_params.empty:
+        return pd.DataFrame()
+    # Een herhaalrun/typewijziging mag geen extra observatie opleveren.
+    # Tegenstrijdige uitkomsten uitsluiten in plaats van er één uit te kiezen.
+    aantallen = df_toppers.groupby(SLEUTEL, dropna=False).week_perf.transform('nunique')
+    df_toppers = df_toppers.loc[aantallen == 1].drop_duplicates(SLEUTEL)
+    df_params['datum'] = pd.to_datetime(df_params['datum'])
+    df_params = df_params.loc[(df_params.datum >= df_params.week_startdatum) &
+                             (df_params.datum <= df_params.week_startdatum + pd.Timedelta(days=4))]
+    df_params = df_params.drop_duplicates(SLEUTEL+['datum'])
+    df_params = df_params.loc[df_params.groupby(SLEUTEL,dropna=False).datum.transform('nunique') >= 2]
+    if df_params.empty:
+        return pd.DataFrame()
     groep = df_params.groupby(SLEUTEL, dropna=False)["dag_index"]
     idx_begin = groep.idxmin()
     idx_eind = groep.idxmax()
@@ -185,6 +177,13 @@ def bouw_analysetabel(df_toppers, df_params):
     for kolom in GROEP_A_KOLOMMEN:
         df[f"delta_{kolom}"] = df[f"eind_{kolom}"] - df[f"begin_{kolom}"]
 
+    # Target gelijkstellen aan de echt geobserveerde begin-/eindslotkoersen.
+    # Dit is beschrijvend (winnaars zijn achteraf geselecteerd), geen voorspelling.
+    df = df.loc[(df.begin_close > 0) & (df.eind_close > 0)].copy()
+    df['week_perf'] = (df.eind_close / df.begin_close - 1) * 100
+    # Dezelfde ticker in meerdere lijsten is geen onafhankelijke extra waarneming.
+    # Alleen identieke koerstrajecten over beurzen dedupliceren.
+    df = df.drop_duplicates(['ticker', 'week_startdatum', 'begin_close', 'eind_close'])
     return df
 
 
@@ -231,9 +230,9 @@ def analyseer_familie(df, kolomnamen, familienaam):
     for kolom in kolomnamen:
         if kolom not in df.columns:
             continue
-        subset = df[["week_perf", kolom]].dropna()
+        subset = df[["week_perf", kolom]].apply(pd.to_numeric, errors="coerce").replace([np.inf,-np.inf], np.nan).dropna()
         n = len(subset)
-        if n < MIN_N:
+        if n < MIN_N or subset["week_perf"].nunique() < 2 or subset[kolom].nunique() < 2:
             resultaten.append({
                 "familie": familienaam, "parameter": kolom, "n": n,
                 "rho": None, "p_waarde": None,
@@ -280,9 +279,10 @@ def bouw_html_rapport(rapport: pd.DataFrame, aantal_weken: int) -> str:
     voor prijs-afgeleide parameters bijna altijd mechanisch sterk met
     week_perf zelf (delta close IS de teller van week_perf) -- significantie
     daar is verwacht en weinig informatief op zich. De families
-    "startniveau (dag 1, voorspellend)" en "fundamenteel/rank" zijn de
-    families waar een significant resultaat effectief iets zou kunnen
-    betekenen.</p>
+    "startniveau (dag 1, beschrijvend)" blijft een achteraf geselecteerde
+    vergelijking, zonder bewijs van voorspelkracht. Actuele fundamentals
+    worden niet als historische waarneming geanalyseerd. Herhaalde
+    ticker-weken zijn afhankelijk; p-waarden zijn verkennend.</p>
     <table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse;">
     <tr style="background:#ddd;">
         <th>Familie</th><th>Parameter</th><th>n</th><th>rho</th>
@@ -295,6 +295,8 @@ def bouw_html_rapport(rapport: pd.DataFrame, aantal_weken: int) -> str:
 
 
 def main():
+    logger.info("Beschrijvende analyse vanaf week 2026-11-16; oudere data/fundamentals uitgesloten. "
+                "Herhaalde ticker-weken zijn afhankelijk; p-waarden zijn verkennend, geen bewijs van voorspelkracht.")
     logger.info("Data ophalen uit weekly_toppers en weekly_topper_parameters...")
     df_toppers, df_params = haal_data()
     df = bouw_analysetabel(df_toppers, df_params)
@@ -318,11 +320,9 @@ def main():
         df, [f"delta_{k}" for k in GROEP_A_KOLOMMEN], "evolutie (delta binnen de week)"
     )
     alle_resultaten += analyseer_familie(
-        df, [f"begin_{k}" for k in GROEP_A_KOLOMMEN], "startniveau (dag 1, voorspellend)"
+        df, [f"begin_{k}" for k in GROEP_A_KOLOMMEN], "startniveau (dag 1, beschrijvend)"
     )
-    alle_resultaten += analyseer_familie(
-        df, [f"niveau_{k}" for k in GROEP_BC_KOLOMMEN], "fundamenteel/rank"
-    )
+
 
     rapport = pd.DataFrame(alle_resultaten)
     rapport = rapport.sort_values(by=["familie", "p_aangepast"], na_position="last")
@@ -347,7 +347,7 @@ def main():
         telegram_bericht = (
             f"📊 <b>Correlatie-analyse</b> ({len(df)} ticker-weken)\n"
             f"Geen significante bevindingen in de betekenisvolle families "
-            f"(startniveau/fundamenteel) na FDR-correctie."
+            f"(startniveau) na FDR-correctie. Dit is verkennend, geen bewijs van voorspelkracht."
         )
     else:
         regels = "\n".join(

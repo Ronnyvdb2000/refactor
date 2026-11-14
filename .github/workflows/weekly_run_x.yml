@@ -2,37 +2,59 @@ name: Weekly Report X
 
 on:
   schedule:
-    - cron: '10 21 * * 5'   # Elke vrijdag om 21:10 UTC -- 10 min na Weekly Report, onafhankelijke runner, geen conflict
+    - cron: '15 23 * * 5'   # Vrijdag 23:15 UTC; gedeelde concurrency voor JSON-commits
   workflow_dispatch:
+
+concurrency:
+  group: weekly-json-main
+  cancel-in-progress: false
 
 jobs:
   report-x:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install yfinance pandas requests python-dotenv
+        run: pip install yfinance pandas numpy requests python-dotenv
+      - name: Verify weekly import
+        run: python -c "import weekly.weekly_report_x"
       - name: Run Report X
         env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python weekly_report_x.py
+        run: python -m weekly.weekly_report_x
       - name: Opslaan laatste_toppers_x.json
-        if: always()
+        if: success() && github.ref == 'refs/heads/main'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -f laatste_toppers_x.json 2>/dev/null || true
+          git add -f laatste_toppers_x.json
           if git diff --cached --quiet; then
             echo "Geen wijzigingen gevonden."
           else
             git commit -m "Weekly toppers X update $(date +%Y-%m-%d)"
-            git pull --rebase=false -X ours origin main
-            git push
+            for poging in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+            done
+            exit 1
           fi
+      - name: Bewaar weekrapport
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-rapport-${{ github.run_id }}
+          path: weekly_rapport_*.txt
+          if-no-files-found: warn

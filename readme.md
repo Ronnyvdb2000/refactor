@@ -28,6 +28,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | [combiners/](combiners/) | Combineerders van strategische signalen |
 | `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
+| [weekly/](weekly/) | Weekrapporten, opvolg-opslag, winnaarsanalyse en weekly-correlaties |
 | [maintainance/](maintainance/) | Handmatige backfills en onderhoud |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
@@ -47,6 +48,8 @@ Importeer gedeelde functies via `from common import ...`. De publieke exports st
 Niet ieder script gebruikt uitsluitend deze package. Controleer bij aanpassingen ook lokale implementaties en constanten. Het gedeelde kostenmodel gebruikt momenteel `max(15.0, bedrag * 0.0035)` voor een positief bedrag; dit is geen vaste kost plus percentage. Slippage is een afzonderlijke constante en wordt door `trade_cost` niet toegevoegd.
 
 De combineerders staan in [combiners/](combiners/) en starten als Python-modules vanuit de hoofdmap. Zie [de controle en uitvoerinstructies](docs/combiners.md).
+
+De weekly scripts starten eveneens als modules vanuit de hoofdmap. Zie [weekly: uitvoering en controle](docs/weekly.md). Telegram blijft aan voor weekly bots en wordt bij volgende botcontroles behouden.
 
 ## Strategieën en modellen
 

@@ -32,28 +32,16 @@ Belangrijke beperking t.o.v. bot_00super.py:
   dit script gebruikt een eenvoudigere momentum-proxy (% verandering
   over 3 en 12 maanden) in plaats van de RS-percentiel.
 
-Extra parameters gericht op vroegtijdig zicht op "verrassings"-bewegingen
-(in tegenstelling tot Trend Template/VCP, die vooral voortzetting van een
-bestaande trend detecteren):
-  - RVOL: volume t.o.v. het 20-daags gemiddelde, als losstaand signaal
-    los van prijs — een abnormale volumepiek loopt vaak 1-2 dagen vóór
-    de koersbeweging.
-  - Short% (short interest als % van de free float): hoge short interest
-    + plotse stijging wijst op een mogelijke short squeeze.
-  - Float(M): grootte van de vrij verhandelbare aandelen in miljoenen —
-    een klein float versterkt elke nieuwsgebeurtenis, en verklaart
-    vermoedelijk deels waarom de allergrootste sprongen (zoals EMGS.OL)
-    uit dunne, kleine namen komen.
-  Beide laatste twee komen uit `yf.Ticker(t).info` — een aparte, tragere
-  call per ticker die niet altijd data teruggeeft (vooral bij Europese
-  small-caps); ontbrekende waarden tonen "n.v.t.".
+RVOL gebruikt het volume van de dag vóór de piek. Historische short-interest
+of float is niet beschikbaar via deze bron; actuele waarden worden daarom
+niet als vroeg signaal gepresenteerd.
 
 Vereist: yfinance en pandas (met internettoegang naar Yahoo Finance).
-Telegram is uitgeschakeld; uitvoer verschijnt in het Actions-log.
+Uitvoer verschijnt in het Actions-log en via Telegram. Dit is een retrospectieve verkenning van winnaars, geen onafhankelijke strategietest.
 
 Gebruik:
-  python weekly_rep_backtest.py                    # default: zoekvenster van 10 dagen
-  python weekly_rep_backtest.py --zoekvenster 15    # breder zoekvenster
+  python -m weekly.weekly_rep_backtest                    # default: zoekvenster van 10 dagen
+  python -m weekly.weekly_rep_backtest --zoekvenster 15    # breder zoekvenster
 """
 
 import argparse
@@ -61,14 +49,16 @@ import json
 import math
 import os
 import warnings
+from datetime import timedelta
+from .shared import ROOT, weekgrenzen, meld
 
 import pandas as pd
 import yfinance as yf
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-# Telegram is bewust uitgeschakeld; rapportage blijft in het Actions-log.
-TOPPERS_BESTAND = "laatste_toppers.json"
+# Rapportage via Actions-log en Telegram.
+TOPPERS_BESTAND = ROOT / "laatste_toppers.json"
 
 
 def laad_toppers():
@@ -76,7 +66,11 @@ def laad_toppers():
         return None
     with open(TOPPERS_BESTAND, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return [(d["beurs"], d["ticker"], d["week_perf"]) for d in data]
+    maandag, vrijdag = weekgrenzen()
+    for d in data:
+        if d.get('data_version') != 2 or d.get('week_startdatum') != str(maandag) or d.get('week_einddatum') != str(vrijdag):
+            raise ValueError('Ongedateerde of verouderde toppers; voer eerst de nieuwe Weekly Report uit')
+    return [(d['beurs'], d['ticker'], d['week_perf'], d['week_einddatum']) for d in data]
 
 CFG = {
     "vcp_lookback": 60,
@@ -121,8 +115,8 @@ def vind_piekdag_en_snijd(df, zoekvenster):
     if zoekvenster <= 0 or len(df) < 2:
         return df, None
 
-    venster = df.tail(min(zoekvenster, len(df) - 1))
-    dag_rendement = venster["Close"].pct_change().abs()
+    # Bereken rendement vóór het afknippen, anders ontbreekt de eerste zoekdag.
+    dag_rendement = df['Close'].pct_change(fill_method=None).abs().tail(min(zoekvenster, len(df)-1))
     dag_rendement = dag_rendement.dropna()
     if dag_rendement.empty:
         return df, None
@@ -132,14 +126,30 @@ def vind_piekdag_en_snijd(df, zoekvenster):
     return df.iloc[:positie], piek_datum
 
 
-def analyseer(ticker, zoekvenster):
+def analyseer(ticker, zoekvenster, einddatum):
     try:
-        df = yf.download(ticker, period="2y", progress=False, auto_adjust=True)
+        einde = pd.Timestamp(einddatum)
+        df = yf.download(ticker, start=str((einde-timedelta(days=800)).date()),
+                         end=str((einde+timedelta(days=1)).date()), progress=False,
+                         auto_adjust=True, timeout=15, threads=False)
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
         if df.empty:
             return None
 
+        df.index = pd.to_datetime(df.index).tz_localize(None).normalize()
+        df = df.sort_index().loc[lambda x: x.index <= einde]
+        if df.index.has_duplicates or df.empty or (einde-df.index[-1]).days > 3:
+            return None
+        for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        geldig = df[['Open','High','Low','Close','Volume']].notna().all(axis=1)
+        geldig &= df[['Open','High','Low','Close','Volume']].apply(lambda col: col.map(math.isfinite)).all(axis=1)
+        geldig &= (df[['Open','High','Low','Close']] > 0).all(axis=1) & (df.Volume >= 0)
+        geldig &= df.High >= df[['Open','Low','Close']].max(axis=1)
+        geldig &= df.Low <= df[['Open','High','Close']].min(axis=1)
+        if not geldig.all() or df.index.to_series().diff().dt.days.gt(7).any():
+            return None
         df, piek_datum = vind_piekdag_en_snijd(df, zoekvenster)
         if len(df) < 260:
             return None
@@ -150,9 +160,9 @@ def analyseer(ticker, zoekvenster):
         ma150 = close.rolling(150).mean()
         ma200 = close.rolling(200).mean()
         ma200_slope = ma200.diff(20)
-        vol_ma20 = vol.rolling(20).mean()
-        high52 = close.rolling(252).max()
-        low52 = close.rolling(252).min()
+        vol_ma20 = vol.shift(1).rolling(20).mean()
+        high52 = high.rolling(252).max()
+        low52 = low.rolling(252).min()
 
         tr = pd.concat([
             high - low,
@@ -166,7 +176,7 @@ def analyseer(ticker, zoekvenster):
         def safe(x):
             try:
                 v = float(x)
-                return None if math.isnan(v) else v
+                return v if math.isfinite(v) else None
             except Exception:
                 return None
 
@@ -183,8 +193,8 @@ def analyseer(ticker, zoekvenster):
         pct_from_high = round((h52 - c) / h52 * 100, 1) if h52 else None
         pct_from_low = round((c - l52) / l52 * 100, 1) if l52 else None
 
-        mom_3m = round((c - close.iloc[-63]) / close.iloc[-63] * 100, 1) if len(close) > 63 else None
-        mom_12m = round((c - close.iloc[-252]) / close.iloc[-252] * 100, 1) if len(close) > 252 else None
+        mom_3m = round((c - close.iloc[-64]) / close.iloc[-64] * 100, 1) if len(close) > 63 else None
+        mom_12m = round((c - close.iloc[-253]) / close.iloc[-253] * 100, 1) if len(close) > 252 else None
 
         # VCP-achtige score (0-4)
         vcp_score = 0
@@ -212,7 +222,7 @@ def analyseer(ticker, zoekvenster):
         piv = CFG["pivot_lookback"]
         very_recent = df.iloc[-piv:]
         pivot_high = float(very_recent["Close"].iloc[:-1].max())
-        vol_recent_mean = safe(vol_ma20.iloc[-piv])
+        vol_recent_mean = safe(vol_ma20.iloc[-1])
         if c > pivot_high and vol_recent_mean and vol_recent_mean > 0:
             if vol.iloc[-1] >= vol_recent_mean * CFG["pivot_breakout_vol"]:
                 vcp_score += 1
@@ -224,25 +234,8 @@ def analyseer(ticker, zoekvenster):
         if vol_now is not None and vol_mean and vol_mean > 0:
             rvol = round(vol_now / vol_mean * 100, 0)
 
-        # Short interest (% van de free float) en float-grootte: klein float +
-        # hoge short interest versterkt elke nieuwsgebeurtenis (short squeeze-
-        # potentieel), en verklaart vaak net de allergrootste, meest verrassende
-        # sprongen (bv. dunne small-caps zoals EMGS.OL).
-        short_pct_float = None
-        float_mln = None
-        try:
-            info = yf.Ticker(ticker).info
-            float_shares = info.get("floatShares")
-            shares_short = info.get("sharesShort")
-            short_pct = info.get("shortPercentOfFloat")
-            if short_pct is not None:
-                short_pct_float = round(short_pct * 100, 1)
-            elif float_shares and shares_short:
-                short_pct_float = round(shares_short / float_shares * 100, 1)
-            if float_shares:
-                float_mln = round(float_shares / 1_000_000, 1)
-        except Exception:
-            pass
+        # Zonder historische bron horen actuele short/float-data niet in deze reconstructie.
+        short_pct_float = float_mln = None
 
         return {
             "close": round(c, 2),
@@ -273,15 +266,21 @@ def main():
              "(default: 10)."
     )
     args = parser.parse_args()
+    if args.zoekvenster < 1:
+        parser.error('--zoekvenster moet positief zijn')
+    print('Retrospectieve winnaarsanalyse; geen onafhankelijke backtest. Short/float historisch onbekend.')
 
     toppers = laad_toppers()
-    if not toppers:
+    if toppers == []:
+        meld('Weekly backtest: geen positieve stijgers in de actuele JSON-lijst.')
+        return
+    if toppers is None:
         melding = (
             f"⚠️ *Backtest overgeslagen:* `{TOPPERS_BESTAND}` niet gevonden of leeg. "
-            f"Draai eerst weekly_report.py."
+            f"Draai eerst python -m weekly.weekly_report."
         )
         print(melding)
-        return
+        raise RuntimeError("Geen actuele toppers voor backtest")
 
     print(f"{'Beurs':<16}{'Ticker':<11}{'Weekperf':>9}  {'Trend':<6}{'VCP':<5}"
           f"{'%<high':>8}{'%>low':>8}{'Mom3m':>8}{'Mom12m':>8}{'RVOL':>7}{'Short%':>8}{'Float(M)':>10}  Analysedatum  Piekdag")
@@ -290,8 +289,12 @@ def main():
     # Groepeer de rapportage per tickerlijst voor het Actions-log.
     regels_per_beurs = {}
 
-    for beurs, ticker, week_perf in toppers:
-        r = analyseer(ticker, args.zoekvenster)
+    analyse_cache = {}
+    for beurs, ticker, week_perf, einddatum in toppers:
+        sleutel = (ticker, args.zoekvenster, einddatum)
+        if sleutel not in analyse_cache:
+            analyse_cache[sleutel] = analyseer(ticker, args.zoekvenster, einddatum)
+        r = analyse_cache[sleutel]
         if r is None:
             print(f"{beurs:<16}{ticker:<11}{week_perf:>8.1f}%  geen data / te weinig historiek")
             regels_per_beurs.setdefault(beurs, []).append(
@@ -321,16 +324,15 @@ def main():
     print("  VCP      = VCP-achtige score 0-4 (ATR-contractie, volume-droogte, pullbacks, breakout)")
     print("  %<high   = % onder 52w-high | %>low = % boven 52w-low")
     print("  Mom3m/12m = momentum-proxy (i.p.v. volledige RS-rank t.o.v. beursuniverse)")
-    print("  RVOL     = volume op de laatst gekende dag t.o.v. 20-daags gemiddelde (>100% = bovengemiddeld)")
-    print("  Short%   = short interest als % van de free float (hoog + klein float = squeeze-potentieel)")
-    print("  Float(M) = vrij verhandelbare aandelen in miljoenen (klein float = elke move versterkt)")
+    print("  RVOL     = volume op de laatst gekende dag t.o.v. de 20 eerdere handelsdagen (>100% = bovengemiddeld)")
+    print("  Short%/Float = historisch onbekend; actuele waarden worden niet teruggedateerd")
+
     print("  Piekdag  = dag met de grootste koerssprong in het zoekvenster (vermoedelijke nieuwsdag);")
     print("             alle indicatoren zijn berekend met data tot en met de dag ervóór")
 
     voet = (
         "\n\n💡 Trend✅ + hoge VCP-score = zat al vroeger in een gezonde setup. "
-        "Hoge RVOL of klein float + hoge Short% = mogelijk vroeg teken van "
-        "opbouw/squeeze-potentieel, ook zonder klassieke trend."
+        "Dit is een retrospectieve verkenning van geselecteerde winnaars, zonder bewijs van voorspelkracht."
     )
 
     for beurs, regels in regels_per_beurs.items():
@@ -341,9 +343,9 @@ def main():
             "==================================\n\n"
         )
         bericht = kop + "\n".join(regels) + voet
-        print(bericht)
+        meld(bericht)
 
-    print(f"\nBacktest-samenvatting in log ({len(regels_per_beurs)} lijsten). Telegram uitgeschakeld.")
+    print(f"\nBacktest-samenvatting in log ({len(regels_per_beurs)} lijsten). Telegram-rapportage uitgevoerd.")
 
 
 if __name__ == "__main__":

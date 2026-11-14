@@ -9,6 +9,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 ## Uitvoering
 
+- [Weekly bots: structuur, weekgrenzen en rapportage](weekly.md)
+
 - [Onderhoud en backfills](maintainance.md)
 
 - [Combineerders: structuur en inhoudelijke controle](combiners.md)
@@ -36,3 +38,5 @@ Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigin
 | [controle_01marktsent.md](controles/controle_01marktsent.md) | Controle Marktsentiment — 14 november 2026 |
 | [controle_01repititief.md](controles/controle_01repititief.md) | Controle Seizoenseffecten — 14 november 2026 |
 | [controle_01volhunter.md](controles/controle_01volhunter.md) | Controle Volatiele Dip-Scan — 14 november 2026 |
+
+- [Controle weekly bots — 14 november 2026](controles/controle_weekly_20261114.md)
