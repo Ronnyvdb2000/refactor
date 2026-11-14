@@ -17,6 +17,8 @@ De precieze invoer, uitvoer en eventuele schrijfacties verschillen per script. L
 
 ## Structuur
 
+Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzicht van evaluaties, controlerapporten en tickercorrecties.
+
 | Pad | Functie |
 | --- | --- |
 | [common/](common/) | Gedeelde indicatoren, koersdownloads, notificaties, tekst- en positiegroottefuncties |
@@ -27,8 +29,8 @@ De precieze invoer, uitvoer en eventuele schrijfacties verschillen per script. L
 | `bouw_*.py` | Feature-stores en forward returns |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
-| [EVALUATION.md](EVALUATION.md) | Eerdere architectuurevaluatie; voortgangsclaims daarin opnieuw controleren |
-| `controle_*.md` | Gerichte controlerapporten van afzonderlijke bots |
+| [EVALUATION.md](docs/EVALUATION.md) | Eerdere architectuurevaluatie; voortgangsclaims daarin opnieuw controleren |
+| [docs/controles/](docs/controles/) | Gerichte controlerapporten van afzonderlijke bots |
 
 ### Gedeelde functies
 
@@ -177,4 +179,4 @@ Bij verdere wijzigingen:
 - Houd rekening met ontbrekende of gewijzigde Yahoo Finance-data.
 - Controleer per analyse hoe overlappende rendementen en meerdere toetsen worden behandeld.
 - Controleer database- en bestandsgebruik voordat dezelfde pipeline vanuit een andere repository wordt gestart.
-- Gebruik `controle_*.md` en `EVALUATION.md` als achtergrond; actuele code en nieuwe controles bepalen de huidige status.
+- Gebruik `docs/controles/controle_*.md` en `docs/EVALUATION.md` als achtergrond; actuele code en nieuwe controles bepalen de huidige status.

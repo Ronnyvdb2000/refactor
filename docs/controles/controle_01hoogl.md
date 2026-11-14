@@ -105,5 +105,5 @@ Andere open validatie: BeursSignalen moet na herstelcommit 25971a1 opnieuw worde
 gestart voor x- en a-lijsten; de eerder aangeleverde x-run was technisch geslaagd
 met onvolledige Europese koersdata. Cointegratierun technisch live geslaagd met
 994/1000 tickers en e-mail; geen actieve selecties en daardoor geen echte
-database-insert getest. Zie controle_01cointegr.md voor databeperkingen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
+database-insert getest. Zie [controle_01cointegr.md](controle_01cointegr.md) voor databeperkingen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
 Volgende bot in bestandsvolgorde: bot_01kasstr.py.
