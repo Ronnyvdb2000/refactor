@@ -46,6 +46,34 @@ class Tests(unittest.TestCase):
         self.assertEqual(s.score,3);self.assertEqual(s.max_score,3)
         self.assertEqual(s.signal_date,'2026-11-12')
 
+    def test_repair_recovers_missing_last_close_same_session(self):
+        raw=history();raw.iloc[-1,0]=np.nan
+        with patch.object(b.yf,'Ticker') as tk:
+            tk.return_value.history.side_effect=[raw,history()]
+            sig=b.analyse_ticker('A',b.MODUS_CFG['live'],False)
+        self.assertEqual(sig.signal_date,'2026-11-12')
+        self.assertIn('Yahoo-repair',sig.data_note)
+        self.assertTrue(tk.return_value.history.call_args.kwargs['repair'])
+
+    def test_repair_still_invalid_rejected(self):
+        raw=history();raw.iloc[-1,0]=np.nan
+        with patch.object(b.yf,'Ticker') as tk:
+            tk.return_value.history.return_value=raw
+            with self.assertRaises(b.DataUnavailable):b.analyse_ticker('A',b.MODUS_CFG['live'],False)
+
+    def test_repair_must_not_drop_bad_last_session(self):
+        raw=history();raw.iloc[-1,0]=np.nan
+        with patch.object(b.yf,'Ticker') as tk:
+            tk.return_value.history.side_effect=[raw,history().iloc[:-1]]
+            with self.assertRaisesRegex(b.DataUnavailable,'laatste koersdag niet'):
+                b.analyse_ticker('A',b.MODUS_CFG['live'],False)
+
+    def test_valid_history_does_not_trigger_repair(self):
+        with patch.object(b.yf,'Ticker') as tk:
+            tk.return_value.history.return_value=history()
+            sig=b.analyse_ticker('A',b.MODUS_CFG['live'],False)
+        self.assertFalse(sig.data_note);tk.return_value.history.assert_called_once()
+
     def test_us_extra_point(self):
         s=self.analyse(True);self.assertEqual((s.score,s.max_score),(4,4))
 

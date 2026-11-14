@@ -90,6 +90,7 @@ class BeursSigSignaal:
     volume_label:        str
     insider_label:       str
     signal_date:         str = ""
+    data_note:           str = ""
 
 def _vwap(closes: np.ndarray, volumes: np.ndarray, n: int) -> float:
     c, v = closes[-n:], volumes[-n:]
@@ -134,7 +135,9 @@ def prepare_history(hist: pd.DataFrame) -> pd.DataFrame:
              & np.isfinite(hist["Volume"]) & (hist["Volume"] >= 0))
     # Do not silently replace an invalid latest observation by an older signal.
     if len(hist) and not valid.iloc[-1]:
-        raise DataUnavailable("ongeldige laatste koers/volume")
+        row = hist.iloc[-1]
+        raise DataUnavailable(f"ongeldige laatste koers/volume op {hist.index[-1].date()}: "
+                              f"Close={row['Close']}, Volume={row['Volume']}")
     hist = hist.loc[valid]
     if len(hist) < 55:
         raise DataUnavailable("minder dan 55 geldige afgeronde sessies")
@@ -172,7 +175,28 @@ def _insider_net_shares(ticker: str, dagen: int = 90) -> float:
 
 
 def analyse_ticker(ticker: str, cfg: dict, us_beurs: bool) -> BeursSigSignaal:
-    hist = prepare_history(yf.Ticker(ticker).history(period="6mo", interval="1d", auto_adjust=True))
+    tk = yf.Ticker(ticker)
+    raw = tk.history(period="6mo", interval="1d", auto_adjust=True)
+    data_note = ""
+    try:
+        hist = prepare_history(raw)
+    except DataUnavailable as exc:
+        if not str(exc).startswith("ongeldige laatste koers/volume"):
+            raise
+        print(f"[DATA] {ticker}: {exc}; heraanvraag met Yahoo-repair", flush=True)
+        repaired = tk.history(period="6mo", interval="1d", auto_adjust=True, repair=True)
+        hist = prepare_history(repaired)
+        # Repair must restore the same last session, never bypass a bad session
+        # by returning only older data. Original timezone represents local dates.
+        original_dates = raw.index
+        if original_dates.tz is not None:
+            original_dates = original_dates.tz_localize(None)
+        original_dates = original_dates.normalize()
+        eligible = original_dates[original_dates.notna() & (original_dates < pd.Timestamp(today_str()))]
+        if hist.index[-1] != eligible.max():
+            raise DataUnavailable("Yahoo-repair herstelde de laatste koersdag niet")
+        data_note = f"Yahoo-repair gebruikt voor koersdag {hist.index[-1].date()}; providerherstel, niet onafhankelijk geverifieerd"
+        print(f"[DATA] {ticker}: {data_note}", flush=True)
     closes = hist["Close"].to_numpy(dtype=float)
     volumes = hist["Volume"].to_numpy(dtype=float)
     price = float(closes[-1])
@@ -231,7 +255,7 @@ def analyse_ticker(ticker: str, cfg: dict, us_beurs: bool) -> BeursSigSignaal:
         insider_net_shares=insider_net_shares,
         vwap_label=vwap_label, overhead_label=overhead_label,
         volume_label=volume_label, insider_label=insider_label,
-        signal_date=hist.index[-1].date().isoformat(),
+        signal_date=hist.index[-1].date().isoformat(), data_note=data_note,
     )
 # ============================================================
 # OUTPUT
@@ -300,6 +324,8 @@ def run_engine(modus: str):
                 try:
                     cache[key] = analyse_ticker(ticker, cfg, us)
                     analysed += 1
+                    if cache[key].data_note:
+                        issues.append(f"{ticker}: {cache[key].data_note}")
                     if us and not math.isfinite(cache[key].insider_net_shares):
                         issues.append(f"{ticker}: insiderdata onbekend; geen insiderpunt")
                 except DataUnavailable as exc:
@@ -323,7 +349,7 @@ def run_engine(modus: str):
                 ok = log_selectie(ticker=sig.ticker, datum=sig.signal_date,
                     strategie=cfg["strategie"], beurs=exchange, koers=sig.price,
                     parameters={"score": sig.score, "max_score": sig.max_score, "rank": rank,
-                        "signal_date": sig.signal_date, "vwap20_pct": sig.vwap20_pct,
+                        "signal_date": sig.signal_date, "data_note": sig.data_note, "vwap20_pct": sig.vwap20_pct,
                         "vwap50_pct": sig.vwap50_pct, "vol_ratio_20d": sig.vol_ratio_20d,
                         "breakout": sig.overhead_cleared,
                         "insider_net_shares": sig.insider_net_shares if math.isfinite(sig.insider_net_shares) else None,

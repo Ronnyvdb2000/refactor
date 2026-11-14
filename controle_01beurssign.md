@@ -83,3 +83,32 @@ Volgens de gebruikersoverdracht zijn O'Shaughnessy, Supervar, VCP en xxxV2
 technisch live geslaagd, met gemelde databeperkingen. Deze runs zijn hier niet
 opnieuw uitgevoerd/gevalideerd. MR EOD en ORB na commit e77d85b staan nog open;
 ORB vereist ook een test tijdens daadwerkelijk geopende beursuren.
+
+
+## Live x-lijsten en herstel laatste Europese koers — 14 november
+
+Aangeleverde live-run op commit 6d99f5a is technisch geslaagd: 446/1000 unieke
+gevraagde tickers geanalyseerd, 3/3 selecties opgeslagen, e-mail bevestigd en
+Telegram uit. Dekking was onvoldoende: vrijwel heel Europa werd geweerd wegens
+een ongeldige laatste koers. Dit is geen inhoudelijk afgeronde wereldwijde scan.
+
+Rechtstreeks gereproduceerd met yfinance 1.8.0 voor ASML.AS en AIR.PA: op
+13 november waren slotkoers en adjusted close NaN terwijl volume aanwezig was.
+Auto-adjust maakte daardoor ook Open/High/Low NaN. Zonder auto-adjust waren
+Open/High/Low aanwezig, Close nog steeds NaN. Een heraanvraag met repair=True
+herstelde dezelfde sessie voor beide tickers. Dit bevestigt bron-/herstelgedrag;
+het valideert niet onafhankelijk de door Yahoo gereconstrueerde slotkoersen.
+
+Bij een ongeldige laatste koers/volume doet de bot nu één gerichte heraanvraag
+met repair=True. Alle validaties blijven gelden; dezelfde laatste koersdag moet
+terugkomen. Oudere data is geen vervanging voor een nog steeds ongeldige laatste
+sessie. Datum, Close en Volume staan nu in de foutmelding. Herstel wordt gelogd,
+in de databeperkingen gerapporteerd en als data_note bij selecties opgeslagen.
+Ook een geslaagde herstelde analyse houdt daarmee een [ONVOLLEDIG]-markering.
+Geen wijziging van scoredrempels, geen gefabriceerde prijzen of forward-fill.
+
+32 offline tests geslaagd (vier nieuwe hersteltests), plus twee echte read-only
+Yahoo-analyses: ASML.AS en AIR.PA kregen beide koersdag 2026-11-13 terug na herstel.
+Geen e-mail of database-insert bij die twee controles. Nieuwe workflowruns voor
+x- én a-lijsten zijn nodig om de volledige dekking na dit herstel te beoordelen.
+Een nog lopende run met de eerdere commit krijgt de fix niet automatisch mee.
