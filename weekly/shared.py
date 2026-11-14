@@ -3,11 +3,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import json
 import math
+import time
 
 import pandas as pd
 
-from common.io import BEURS_NAMEN, download_history, load_tickers_from_file
+from common.io import BEURS_NAMEN, load_tickers_from_file
 from common.notify import send_email, send_telegram
+from .download import batch_download as download_history, DownloadOnderbroken
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTOREN = {'01': 'Hoogland', '02': 'Macrotrends', '03': 'Beursbrink',
@@ -33,13 +35,15 @@ def bestandslijst(suffix='a'):
 
 
 def label_voor(naam):
+    if naam in ('tickers_055a.txt', 'tickers_055x.txt'):
+        return '055 CSE'
     sector = naam.removeprefix('tickers_').removesuffix('.txt')
     return f'{sector} {SECTOREN[sector]}' if sector in SECTOREN else BEURS_NAMEN.get(
         naam.replace('a.txt', 'x.txt'), naam.removesuffix('.txt'))
 
 
 class WeekKoersen:
-    """Download elke unieke ticker eenmaal per proces, in batches van 100."""
+    """Download elke unieke ticker eenmaal per proces, in batches van 100 met maximaal vier workers."""
     def __init__(self, maandag, vrijdag, historie=False):
         self.maandag, self.vrijdag = maandag, vrijdag
         self.historie = historie
@@ -51,6 +55,8 @@ class WeekKoersen:
         for i in range(0, len(ontbrekend), 100):
             batch = ontbrekend[i:i+100]
             print(f'[weekly] Download {i+1}..{i+len(batch)}/{len(ontbrekend)}', flush=True)
+            if i:
+                time.sleep(0.5)
             data = download_history(batch, start=str(start), end=str(self.vrijdag+timedelta(days=1)),
                                     auto_adjust=True, request_timeout=15)
             for ticker in batch:
@@ -102,28 +108,67 @@ def meld(tekst):
             print('[WARN] Telegram niet verzonden; controleer configuratie/verzendlog.')
 
 
+def normaliseer_lijstticker(naam, ticker):
+    # Gebruik expliciet de bronbeurs. Een kale AMD uit 043 is geen US-notering.
+    if naam in ('tickers_043a.txt', 'tickers_043x.txt') and '.' not in ticker:
+        return ticker + '.DE'
+    if naam in ('tickers_041a.txt', 'tickers_041x.txt') and ticker.endswith('.I'):
+        return ticker[:-2]+'.IR'
+    return ticker
+
+
 def laad_lijsten(suffix='a'):
-    return {naam: load_tickers_from_file(str(ROOT / naam)) for naam in bestandslijst(suffix)
-            if (ROOT / naam).exists()}
+    return {naam: sorted({normaliseer_lijstticker(naam, t) for t in load_tickers_from_file(str(ROOT / naam))})
+            for naam in bestandslijst(suffix) if (ROOT / naam).exists()}
+
+
+def controleer_dekking(naam, tickers, data):
+    verhouding = len(data)/len(tickers) if tickers else 0
+    print(f'{naam}: {len(data)}/{len(tickers)} tickers met bruikbare weekdata ({verhouding:.1%})')
+    if not tickers:
+        return True  # Een lege kwaliteitslijst is geen mislukte download.
+    toegelaten_uitval = max(1, len(tickers)//5)
+    return bool(data) and len(tickers)-len(data) <= toegelaten_uitval
+
+
+def schrijf_dekking(suffix, lijsten, resultaten):
+    rows = []
+    for naam, tickers in lijsten.items():
+        goed = {r['ticker'] for r in resultaten.get(naam, [])}
+        for ticker in tickers:
+            rows.append(dict(lijst=naam, ticker=ticker, bruikbaar=ticker in goed))
+    pd.DataFrame(rows).to_csv(ROOT / f'weekly_dekking_{suffix}.csv', index=False)
 
 
 def maak_rapport(suffix='a'):
     maandag, vrijdag = weekgrenzen()
     lijsten = laad_lijsten(suffix)
     koersen = WeekKoersen(maandag, vrijdag)
-    koersen.laad([t for ts in lijsten.values() for t in ts])
+    try:
+        koersen.laad([t for ts in lijsten.values() for t in ts])
+    except DownloadOnderbroken as exc:
+        tekst = f'Weekrapport {suffix} ONVOLLEDIG: {exc}. Geen nieuwe toppers gepubliceerd.'
+        (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
+        meld(tekst)
+        raise
     regels = [f'Weekrapport {suffix}: {maandag} t/m {vrijdag}',
               'Rendement: laatste slot vóór maandag tot laatste slot van de week (aangepaste koersen).']
     toppers = []
     bruikbaar = 0
+    onvolledig = []
+    resultaten = {}
     for naam, tickers in lijsten.items():
         data = koersen.performance(tickers)
-        print(f'{naam}: {len(data)}/{len(tickers)} tickers met bruikbare weekdata')
+        resultaten[naam] = data
+        if not controleer_dekking(naam, tickers, data):
+            onvolledig.append(naam)
+            regels.append(f'\n{label_voor(naam)}: ONVOLLEDIG ({len(data)}/{len(tickers)}); geen ranglijst.')
+            continue
         if not data:
             continue
         bruikbaar += len(data)
         top, bottom, _ = selecteer(data)
-        regels.append('\n'+label_voor(naam))
+        regels.append(f'\n{label_voor(naam)} — {len(data)}/{len(tickers)} bruikbaar')
         for titel, selectie in [('Stijgers', top), ('Dalers', bottom)]:
             regels.append(titel+':')
             for r in selectie.itertuples():
@@ -131,7 +176,14 @@ def maak_rapport(suffix='a'):
                 if titel == 'Stijgers':
                     toppers.append(dict(beurs=label_voor(naam), ticker=r.ticker, week_perf=round(r.perf, 2),
                                         week_startdatum=str(maandag), week_einddatum=str(vrijdag),
-                                        basisdatum=r.basisdatum, einddatum=r.einddatum, data_version=2))
+                                        basisdatum=r.basisdatum, einddatum=r.einddatum, data_version=3, aantal_bruikbaar=len(data), aantal_universum=len(tickers)))
+    schrijf_dekking(suffix, lijsten, resultaten)
+    if onvolledig:
+        tekst = 'ONVOLLEDIG WEEKRAPPORT — geen nieuwe toppers gepubliceerd.\n' + '\n'.join(regels)
+        (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
+        meld(tekst)
+        send_email(f'Weekrapport {suffix} onvolledig {vrijdag}', tekst)
+        raise RuntimeError('Onvoldoende weekdata (80%-norm, bij kleine lijsten max. één ontbrekend): '+', '.join(onvolledig))
     # Altijd vervangen: een lege scan mag geen oude winnaars laten staan.
     pad = ROOT / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
     tijdelijk = pad.with_suffix('.tmp')

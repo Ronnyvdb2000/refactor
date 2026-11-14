@@ -34,3 +34,10 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m weekly.weekly_report_opvolg
+      - name: Bewaar scan-dekking
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-opvolg-dekking-${{ github.run_id }}
+          path: weekly_dekking_opvolg.csv
+          if-no-files-found: warn

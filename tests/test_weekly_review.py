@@ -162,7 +162,7 @@ def test_report_writes_dated_json_and_keeps_notifications(monkeypatch,tmp_path,s
     w.maak_rapport(suffix)
     pad=tmp_path/('laatste_toppers_x.json' if suffix=='x' else 'laatste_toppers.json')
     result=json.loads(pad.read_text())
-    assert result[0]['data_version']==2
+    assert result[0]['data_version']==3
     assert result[0]['week_startdatum']==str(MON)
     assert result[0]['week_perf']==21
     assert messages and '+21.00%' in messages[0]

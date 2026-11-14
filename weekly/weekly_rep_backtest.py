@@ -68,7 +68,7 @@ def laad_toppers():
         data = json.load(f)
     maandag, vrijdag = weekgrenzen()
     for d in data:
-        if d.get('data_version') != 2 or d.get('week_startdatum') != str(maandag) or d.get('week_einddatum') != str(vrijdag):
+        if d.get('data_version') != 3 or d.get('week_startdatum') != str(maandag) or d.get('week_einddatum') != str(vrijdag):
             raise ValueError('Ongedateerde of verouderde toppers; voer eerst de nieuwe Weekly Report uit')
     return [(d['beurs'], d['ticker'], d['week_perf'], d['week_einddatum']) for d in data]
 

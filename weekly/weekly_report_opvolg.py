@@ -8,7 +8,8 @@ import random
 import hashlib
 
 from . import weekly_db_opvolg as weekly_db
-from .shared import WeekKoersen, weekgrenzen, laad_lijsten, label_voor, selecteer, meld
+from .shared import WeekKoersen, weekgrenzen, laad_lijsten, label_voor, selecteer, meld, controleer_dekking, schrijf_dekking
+from .download import DownloadOnderbroken
 
 NEUTRAAL_STEEKPROEF_GROOTTE = 10
 
@@ -117,12 +118,14 @@ def haal_technische_parameters(hist, maandag, vrijdag):
 def verwerk_weekly_db_export(alle_entries, maandag, vrijdag, koersen):
     if not alle_entries:
         raise RuntimeError('Geen weekly-selecties om op te slaan')
+    historie = WeekKoersen(maandag, vrijdag, historie=True)
+    historie.laad([e['ticker'] for e in alle_entries])
     aantal = weekly_db.log_weekly_toppers([
         {'week_startdatum': maandag, **e} for e in alle_entries])
     print(f'{aantal} toppers opgeslagen of reeds aanwezig.')
     parameter_rijen = []
     for ticker, beurs in sorted({(e['ticker'], e['beurs']) for e in alle_entries}):
-        technisch = haal_technische_parameters(koersen.frames[ticker], maandag, vrijdag)
+        technisch = haal_technische_parameters(historie.frames[ticker], maandag, vrijdag)
         for dag in technisch:
             parameter_rijen.append({
                 'week_startdatum': maandag, 'ticker': ticker, 'beurs': beurs,
@@ -143,12 +146,21 @@ def verwerk_weekly_db_export(alle_entries, maandag, vrijdag, koersen):
 def main():
     maandag, vrijdag = weekgrenzen()
     lijsten = laad_lijsten('a')
-    koersen = WeekKoersen(maandag, vrijdag, historie=True)
-    koersen.laad([t for ts in lijsten.values() for t in ts])
+    koersen = WeekKoersen(maandag, vrijdag)
+    try:
+        koersen.laad([t for ts in lijsten.values() for t in ts])
+    except DownloadOnderbroken as exc:
+        meld(f'Weekly opvolg ONVOLLEDIG: {exc}. Geen database-export.')
+        raise
     entries = []
+    onvolledig = []
+    resultaten = {}
     for naam, tickers in lijsten.items():
         data = koersen.performance(tickers)
-        print(f'{naam}: {len(data)}/{len(tickers)} tickers met bruikbare weekdata')
+        resultaten[naam] = data
+        if not controleer_dekking(naam, tickers, data):
+            onvolledig.append(naam)
+            continue
         if not data:
             continue
         top, bottom, rest = selecteer(data)
@@ -162,7 +174,15 @@ def main():
             r = rest.loc[idx]
             entries.append(dict(lijst=naam, ticker=r['ticker'], beurs=label_voor(naam),
                                 type='neutraal', rang=None, week_perf=float(r['perf'])))
-    verwerk_weekly_db_export(entries, maandag, vrijdag, koersen)
+    schrijf_dekking('opvolg', lijsten, resultaten)
+    if onvolledig:
+        meld('Weekly opvolg ONVOLLEDIG: onvoldoende bruikbare data in '+', '.join(onvolledig)+'. Geen database-export.')
+        raise RuntimeError('Onvoldoende weekly-dekking')
+    try:
+        verwerk_weekly_db_export(entries, maandag, vrijdag, koersen)
+    except Exception:
+        meld('Weekly opvolg mislukt tijdens historie/opslag; controleer het Actions-log.')
+        raise
     meld(f'Weekly opvolg {maandag} t/m {vrijdag}: {len(entries)} selecties verwerkt. '
          'Historische technische parameters opgeslagen; actuele fundamentals niet teruggedateerd.')
 

@@ -19,13 +19,13 @@ De a-rapportage en opvolg starten vrijdag 23:00 UTC; de x-rapportage om 23:15 UT
 
 Weekprestatie loopt van de laatste beschikbare slotkoers vóór maandag tot het laatste beschikbare slot van de week, met aangepaste koersen. Vijf slotkoersen van maandag tot vrijdag zouden alleen vier dagrendementen meten. De basis mag maximaal zeven kalenderdagen vóór maandag liggen; de eindkoers maximaal drie dagen vóór vrijdag. Ontbrekende of oudere koersen worden uitgesloten en aantallen verschijnen per lijst. Positieve stijgers en negatieve dalers worden apart gerangschikt; de grootste daler krijgt rang 1. De neutrale steekproef blijft per lijst/week reproduceerbaar.
 
-Elke unieke ticker wordt per proces eenmaal opgehaald in batches van maximaal 100, met begrensde requests. Verschillende runners hebben een eigen cache en kunnen samen nog steeds providerlimieten raken.
+Elke unieke ticker wordt per proces gecachet. Downloads gebruiken batches van maximaal 100, vier workers en een timeout van 15 seconden. Ontbrekende data krijgt maximaal één batchretry; er volgen geen individuele retries. Bij een rate-limit volgt één herstelpauze van 15 seconden en bij herhaling stopt de scan. Tussen normale batches zit 0,5 seconde. De opvolgbot scant het gehele universum met korte historie en haalt lange historie alleen voor geselecteerde tickers op. Verschillende runners hebben een eigen cache en kunnen samen nog steeds providerlimieten raken.
 
 ## Telegram, e-mail en workflow
 
 Telegram blijft behouden voor de weekly rapporten, opvolg, winnaarsanalyse en correlatie-analyse. Secrets blijven in de YAML staan. Rapportberichten gebruiken tekst zonder Markdown-parsing; lange berichten worden opgedeeld. Verzendfouten worden gelogd. De a/x-rapporten leveren daarnaast tekst-artifacts en e-mail wanneer de e-mailsecrets beschikbaar zijn. De bestaande e-mail van correlaties blijft behouden. Bij volgende botcontroles wordt Telegram behouden volgens de gebruikersinstructie van 14 november 2026.
 
-Beide JSON-schrijvende workflows delen een concurrency-groep en bewaren uitvoer alleen na succes op main. Git gebruikt rebase en gewone pushes; een conflict wordt zichtbaar in plaats van met `-X ours` overschreven. De backtest volgt via `workflow_run` op een geslaagd Weekly Report en blijft handmatig startbaar. De output van de oude JSON-lijsten zonder weekdatum wordt geweigerd; draai eerst de nieuwe Weekly Report. Iedere nieuwe topper bevat weekgrenzen, werkelijke koersdatums en `data_version=2`.
+Beide JSON-schrijvende workflows delen een concurrency-groep en bewaren uitvoer alleen na succes op main. Git gebruikt rebase en gewone pushes; een conflict wordt zichtbaar in plaats van met `-X ours` overschreven. De backtest volgt via `workflow_run` op een geslaagd Weekly Report en blijft handmatig startbaar. De output van de oude JSON-lijsten zonder weekdatum wordt geweigerd; draai eerst de nieuwe Weekly Report. Iedere nieuwe topper bevat weekgrenzen, werkelijke koersdatums en `data_version=3`.
 
 ## Historische betrouwbaarheid
 
@@ -36,3 +36,13 @@ Een herhaalrun behoudt de eerste selectie per ticker/beurs/week; een ander type 
 De correlatie-analyse gebruikt alleen weken vanaf 16 november 2026. Oudere waarden met de eerdere definities blijven bewaard en zijn uitgesloten. De analysetarget is het rendement tussen de eerste en laatste werkelijk opgeslagen dagslotkoersen binnen de week, dus niet het gehele vorige-vrijdag-tot-vrijdag rapport-rendement. Dubbels worden in de analyse uitgesloten en actuele fundamentals worden niet als historische verklarende variabelen getest. De steekproef is achteraf geselecteerd en ticker-weken zijn afhankelijk: p-waarden/FDR blijven verkennend en bewijzen geen voorspelkracht.
 
 De zogenoemde backtest blijft een retrospectieve winnaarsanalyse. De piekdag wordt achteraf gekozen; dit is geen onafhankelijke rendementstest van een verhandelbare strategie. Koersdata stopt bij de opgeslagen weekgrens; indicatoren stoppen vóór de gevonden piekdag. De eerste dag van het zoekvenster telt nu mee. Short/float blijven historisch onbekend.
+
+## Live controle van 14 november: onvolledige brondata
+
+De eerste grote run na de verplaatsing duurde 36 minuten en 51 seconden en publiceerde ondanks veel providerfouten een JSON-lijst. De kleine eerdere test had deze schaalproblemen niet blootgelegd. Frankfurt leverde 165/1418 bruikbare tickers; Warschau 26/361 en Helsinki 67/188. Een groene YAML betekende hier alleen dat het proces voltooid was.
+
+De weekly invoer normaliseert nu kale symbolen uit lijst 043 naar .DE en Ierse .I-symbolen uit 041 naar .IR. De bronbestanden zelf blijven behouden. Symbolen uit andere lijsten worden niet op basis van een gok hernoemd. Daardoor is een Amerikaanse AMD geen Frankfurt-koers meer. Lijst 055 wordt als CSE aangeduid.
+
+Een niet-lege lijst moet minstens 80% bruikbare weekrendementen hebben; bij kleine lijsten is maximaal één ontbrekende ticker toegestaan. Lege kwaliteitslijsten worden overgeslagen. Bij minder data komt geen ranglijst voor die lijst en krijgt het gehele rapport de status ONVOLLEDIG met een rode workflow. Er wordt dan geen nieuwe toppers-JSON gepubliceerd, de automatische winnaarsanalyse start niet en opvolg schrijft geen selecties naar de database. De Telegram-melding blijft aan en toont de beperking. Ook bij geslaagde lijsten staat het aantal bruikbare tickers in het rapport en de JSON; 80% is een minimum voor indicatieve ranglijsten, geen garantie van volledige dekking.
+
+Het artifact weekly_dekking_<variant>.csv bevat per lijst en ticker of een bruikbaar weekrendement beschikbaar was. Dit maakt verdere controle van onder meer de Warschau- en Helsinki-symbolen mogelijk. De oude versie-2-JSON is niet meer geldig voor de winnaarsanalyse; die vereist een nieuwe versie-3-snapshot. Bij een afgebroken providerdownload is alleen een foutmelding beschikbaar, geen complete dekkings-CSV.

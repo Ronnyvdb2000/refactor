@@ -40,3 +40,5 @@ Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigin
 | [controle_01volhunter.md](controles/controle_01volhunter.md) | Controle Volatiele Dip-Scan — 14 november 2026 |
 
 - [Controle weekly bots — 14 november 2026](controles/controle_weekly_20261114.md)
+
+- [Weekly livecontrole en downloadherstel — 14 november 2026](controles/controle_weekly_live_20261114.md)
