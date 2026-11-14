@@ -173,7 +173,7 @@ def analyseer_ticker(ticker: str, df_ticker: pd.DataFrame) -> Optional[SeizoenKa
     d = target_day()
     return SeizoenKandidaat(
         ticker=ticker, price=float(g.Close.iloc[-1]),
-        weekdag=bereken_bucket_stats(rendement[rendement.index.weekday == d.weekday()].values),
+        weekdag=bereken_bucket_stats(rendement[rendement.index.day_of_week == d.weekday()].values),
         maand=bereken_bucket_stats(rendement[rendement.index.month == d.month].values),
         kwartaal=bereken_bucket_stats(rendement[rendement.index.quarter == d.quarter].values),
         jaren_data=aantal_jaren, signal_date=str(g.index[-1].date()), target_date=str(d.date()))
@@ -283,7 +283,7 @@ def _train_bucket_stats_per_ticker(rendement: pd.Series, test_jaar: int, bucket_
     elif bucket_key == "kwartaal":
         waarden, index_reeks = range(1, 5), train.index.quarter
     else:  # weekdag
-        waarden, index_reeks = range(0, 5), train.index.weekday
+        waarden, index_reeks = range(0, 5), train.index.day_of_week
 
     resultaat = {}
     for waarde in waarden:

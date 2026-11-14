@@ -97,9 +97,7 @@ python -m unittest discover -s tests -p 'test_01hoogl.py' -q
 python -m py_compile bot_01hoogl.py
 ```
 
-Live hertests staan open via run_01hoogl.yml (live/x-lijsten) en
-run_01hoogl_full.yml (full/a-lijsten) op main. Controleer dekking, valuta/FX,
-onbekende criteria, opslag en ontvangen e-mail. Geen nieuwe live-run gestart.
+Zie de hieronder vastgelegde aangeleverde live hertests. Tijdens de offline controle is geen live-run gestart.
 
 Andere open validatie: BeursSignalen moet na herstelcommit 25971a1 opnieuw worden
 gestart voor x- en a-lijsten; de eerder aangeleverde x-run was technisch geslaagd
@@ -107,3 +105,26 @@ met onvolledige Europese koersdata. Cointegratierun technisch live geslaagd met
 994/1000 tickers en e-mail; geen actieve selecties en daardoor geen echte
 database-insert getest. Zie [controle_01cointegr.md](controle_01cointegr.md) voor databeperkingen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
 Volgende bot in bestandsvolgorde: bot_01kasstr.py.
+
+
+## Aangeleverde hertests 14 november 2026
+
+Dagelijks, job bot-01hoogl op commit 890408f: 11:41:46–11:48:36 UTC
+(12:41–12:48 België), circa zeven minuten. 999/1000 unieke tickers geanalyseerd,
+64/64 selecties opgeslagen, e-mail bevestigd, Telegram uit en lege foutenlijst.
+ING.AS is uitgesloten wegens onbruikbare koers/valuta of verouderde datum na een
+Yahoo-404; dit bewijst geen fout in de reeds gecontroleerde tickerlijsten.
+Vier lege/ontbrekende x-lijsten (049, 050, 055, 059) worden vermeld.
+De getoonde selecties hebben koersdatum 13 november. Onder de overige hoogste
+scores staat bijvoorbeeld CADLR.OL met onbekende koersdatum. Ook PINE.L,
+SDR.L, KVUE en ACA melden ontbrekende datum: hun versheid is niet bevestigd.
+Veel onbekende criteria betreffen verschillende koers-/verslageenheden, vooral
+Londen, of ontbrekende providerfundamentals/FX. Die criteria leveren geen punt op;
+een live minimumscore 4/6 maakt volledige datadekking niet verplicht.
+Technische dagelijkse hertest geslaagd met deze databeperkingen.
+
+Eerder aangeleverde wekelijkse full-run: 05:34–08:24 UTC, circa 2 uur 50 minuten,
+11044/13945 unieke tickers, 18/18 selecties opgeslagen, e-mail bevestigd,
+Telegram uit, geen uitvoeringsfouten en één rate-limitpauze van vijf minuten.
+Ook de volledige run is technisch geslaagd met databeperkingen. Dit zijn geen
+validatie van de strategie of onafhankelijke verificatie van Yahoo-fundamentals.
