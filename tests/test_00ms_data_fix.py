@@ -71,18 +71,20 @@ class MinerviniTests(unittest.TestCase):
                      patch.object(bot, "download_history", return_value=frame), \
                      patch.object(bot, "analyse_ticker", return_value=signal if candidate else None), \
                      patch.object(bot, "log_selectie"), \
-                     patch.object(bot, "send_telegram", return_value=False), \
+                     patch("common.send_telegram") as telegram, \
                      patch.object(bot, "send_email", return_value=True), \
                      contextlib.redirect_stdout(output):
                     bot.run_live_engine()
+                    telegram.assert_not_called()
+                    self.assertNotIn("send_telegram", bot.__dict__)
                 return output.getvalue(), pd.read_csv(f"ms_signalen_{bot.today_str()}.csv")
             finally:
                 os.chdir(old_cwd)
 
-    def test_live_writes_candidates_and_truthful_telegram_status(self):
+    def test_live_writes_candidates_with_telegram_disabled(self):
         output, csv = self.run_offline(candidate=True)
         self.assertEqual(csv["ticker"].tolist(), ["EU.PA"])
-        self.assertIn("Telegram niet verstuurd", output)
+        self.assertIn("Telegram uitgeschakeld", output)
         self.assertIn("1 beoordeeld", output)
         self.assertIn("1 zonder koersdata", output)
 

@@ -20,7 +20,7 @@ from common import (
     today_str, safe_float, yahoo_link, esc,
     download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
     compute_atr_series,
-    send_telegram, send_email,
+    send_email,
     bereken_positie, trade_cost,
     SLIPPAGE_PCT, RISICO_PCT_DEFAULT, TRADE_COST_FIXED, TRADE_COST_PCT
 )
@@ -455,9 +455,8 @@ def run_live_engine():
 
         bericht = format_bericht(ex_name, signalen, portfolio_waarde)
         if bericht:
-            delivered = send_telegram(bericht, parse_mode="Markdown")
             email_delen.append(bericht)
-            print("  → Telegram verstuurd" if delivered else "  → [WARN] Telegram niet verstuurd; controleer secrets en verzendfouten")
+            print("  → Rapport toegevoegd aan e-mail; Telegram uitgeschakeld")
         else:
             print(f"  → Geen kandidaten voor bericht: {ex_name}")
 
