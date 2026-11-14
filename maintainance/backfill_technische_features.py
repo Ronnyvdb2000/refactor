@@ -74,6 +74,7 @@ H. EMA8, EMA20, pct_from_ema8, pct_from_ema20 en ema8_minus_ema20
    met de nieuwe kolommen (loopt over de dict).
 """
 
+import argparse
 import os
 import sys
 import math
@@ -88,7 +89,7 @@ import psycopg2.extras
 import yfinance as yf
 
 # Hergebruik de LIVE-berekening, zodat backfill en live identieke definities
-# hebben. Dit script moet in dezelfde map staan als bouw_generieke_technicals.py.
+# hebben. Start als module vanuit de repository-root; de live builder blijft daar staan.
 from bouw_generieke_technicals import (
     bereken_indicatoren,
     download_index_returns,
@@ -517,4 +518,5 @@ def main():
 
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(description=__doc__).parse_args()
     main()

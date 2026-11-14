@@ -84,7 +84,7 @@ jobs:
           python -c "import pandas;   print('pandas',   pandas.__version__)"
           python -c "import yfinance; print('yfinance', yfinance.__version__)"
           python -c "import psycopg2; print('psycopg2 OK')"
-          python -c "import bouw_generieke_technicals; print('live builder importeerbaar OK')"
+          python -c "import bouw_generieke_technicals; import maintainance.backfill_technische_features; print('live builder en backfill importeerbaar OK')"
 
       - name: Check secret
         run: |
@@ -106,8 +106,9 @@ jobs:
       - name: Run backfill
         id: backfill
         run: |
+          set -o pipefail
           mkdir -p results
-          python backfill_technische_features.py 2>&1 | tee results/backfill_log.txt
+          python -m maintainance.backfill_technische_features 2>&1 | tee results/backfill_log.txt
 
       - name: Controle output
         if: always()

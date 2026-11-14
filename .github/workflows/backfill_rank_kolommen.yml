@@ -26,14 +26,17 @@ jobs:
       - name: Installeer dependencies
         run: pip install psycopg2-binary
 
-      - name: Draai backfill_rank_kolommen.py
+      - name: Controleer module-import
+        run: python -c "import maintainance.backfill_rank_kolommen"
+
+      - name: Draai maintainance.backfill_rank_kolommen
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           if [ "${{ inputs.apply }}" = "true" ]; then
             echo "== APPLY-modus: wijzigingen worden effectief doorgevoerd =="
-            python backfill_rank_kolommen.py --apply
+            python -m maintainance.backfill_rank_kolommen --apply
           else
             echo "== DRY RUN: er wordt niets gewijzigd =="
-            python backfill_rank_kolommen.py
+            python -m maintainance.backfill_rank_kolommen
           fi

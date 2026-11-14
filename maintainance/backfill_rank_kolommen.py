@@ -23,9 +23,9 @@ Read-only dry-run by default; --apply om effectief te schrijven.
 Vereist: SUPABASE_DB_URL env var (zelfde secret als db_logger.py).
 
 Gebruik:
-    python backfill_rank_kolommen.py             # dry-run, toont wat er zou gebeuren
-    python backfill_rank_kolommen.py --apply      # voert de UPDATE's effectief uit
-    python backfill_rank_kolommen.py --apply --limiet-preview 50
+    python -m maintainance.backfill_rank_kolommen             # dry-run, toont wat er zou gebeuren
+    python -m maintainance.backfill_rank_kolommen --apply      # voert de UPDATE's effectief uit
+    python -m maintainance.backfill_rank_kolommen --apply --limiet-preview 50
 """
 
 import argparse
