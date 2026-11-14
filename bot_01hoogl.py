@@ -7,18 +7,20 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Bevat rate-limit-backoff en ondersteunt live/full modus.
 """
 
+import argparse
 import sys
 import math
 import time
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 
+import pandas as pd
 import yfinance as yf
 
 from common import (
     today_str, safe_float, yahoo_link,
     load_tickers_from_file, bouw_bestandslijst, label_voor,
-    send_telegram, send_email
+    send_email
 )
 
 try:
@@ -72,7 +74,7 @@ MODUS_CFG = {
 
 def is_rate_limit_fout(e: Exception) -> bool:
     tekst = str(e)
-    return "Too Many Requests" in tekst or "Rate limited" in tekst
+    return any(part in tekst.casefold() for part in ("too many requests", "rate limit", "429"))
 
 def _score_bar(score: int) -> str:
     return "█" * score + "░" * (6 - score) + f" {score}/6"
@@ -99,103 +101,131 @@ class HooglSignaal:
     groei_label:              str
     marktkap_label:           str
     analisten_label:          str
+    price_currency:           str = "Onbekend"
+    market_cap_usd:           float = float("nan")
+    quote_date:               str = "Onbekend"
+    data_notes:               str = ""
 
-def analyse_ticker(ticker: str, cfg: dict) -> Tuple[Optional[HooglSignaal], bool]:
+def finite(value):
+    value = safe_float(value)
+    return value if math.isfinite(value) else float("nan")
+
+
+def money_currency(currency):
+    return {"GBp": "GBP", "GBX": "GBP", "ZAc": "ZAR", "ILA": "ILS"}.get(currency, currency)
+
+
+def usd_rate(currency, cache):
+    if currency == "USD":
+        return 1.0
+    if currency not in cache:
+        cache[currency] = float("nan")
+        try:
+            hist = yf.Ticker(f"{currency}USD=X").history(period="1mo", auto_adjust=False)
+            if hist is not None and not hist.empty:
+                hist = hist.sort_index()
+                date = pd.Timestamp(hist.index[-1]).tz_localize(None).normalize()
+                value = finite(hist.Close.iloc[-1])
+                if 0 <= (pd.Timestamp(today_str()) - date).days <= 7 and value > 0:
+                    cache[currency] = value
+        except Exception as exc:
+            if is_rate_limit_fout(exc):
+                del cache[currency]
+                raise
+    return cache[currency]
+
+
+def analyse_ticker(ticker: str, cfg: dict, fx_cache=None) -> Tuple[Optional[HooglSignaal], bool]:
     try:
-        tk   = yf.Ticker(ticker)
-        info = tk.info or {}
-
-        price = safe_float(info.get("currentPrice") or info.get("regularMarketPrice"))
-        if math.isnan(price) or price <= 0:
+        info = yf.Ticker(ticker).info or {}
+        price = finite(info.get("currentPrice"))
+        if not price > 0:
+            price = finite(info.get("regularMarketPrice"))
+        if not price > 0:
             return None, False
-
-        boekwaarde   = safe_float(info.get("bookValue"))
-        winst_nu     = safe_float(info.get("trailingEps"))
-        winst_verw   = safe_float(info.get("forwardEps"))
-        roe          = safe_float(info.get("returnOnEquity"))
-        fwd_pe       = safe_float(info.get("forwardPE"))
-        div_yield    = safe_float(info.get("dividendYield"), 0.0)
-        market_cap   = safe_float(info.get("marketCap"))
-
-        score = 0
-
-        roe_pct = roe * 100 if not math.isnan(roe) else float("nan")
-        if not math.isnan(roe_pct) and roe_pct >= cfg["roe_min"]:
-            score += 1
-            roe_label = f"✓ {roe_pct:.1f}% (>= {cfg['roe_min']:.0f}%)"
+        currency = info.get("currency")
+        if not currency:
+            return None, False
+        notes = []
+        timestamp = finite(info.get("regularMarketTime"))
+        quote_date = "Onbekend"
+        if math.isfinite(timestamp):
+            moment = pd.to_datetime(timestamp, unit="s", utc=True, errors="coerce")
+            if pd.isna(moment):
+                return None, False
+            age = (pd.Timestamp(today_str()) - moment.tz_localize(None).normalize()).days
+            if not 0 <= age <= 7:
+                return None, False
+            quote_date = moment.date().isoformat()
         else:
-            roe_label = f"✗ {roe_pct:.1f}%" if not math.isnan(roe_pct) else "✗ onbekend"
+            notes.append("koersdatum ontbreekt; versheid niet controleerbaar")
 
-        if not math.isnan(boekwaarde) and not math.isnan(winst_nu) and winst_nu > 0:
-            terug_te_verdienen = price - boekwaarde
-            terugverdienperiode = terug_te_verdienen / winst_nu
-            if terugverdienperiode <= cfg["terugverdien_max_jaar"]:
-                score += 1
-                terugverdien_label = f"✓ {terugverdienperiode:.1f} jaar"
+        book = finite(info.get("bookValue"))
+        eps = finite(info.get("trailingEps"))
+        forward_eps = finite(info.get("forwardEps"))
+        roe_pct = finite(finite(info.get("returnOnEquity")) * 100)
+        fwd_pe = finite(info.get("forwardPE"))
+        market_cap = finite(info.get("marketCap"))
+        analyst = finite(info.get("numberOfAnalystOpinions"))
+        if not (math.isfinite(analyst) and analyst >= 0 and analyst.is_integer()):
+            analyst = float("nan")
+        # EPS/bookValue are only compared when reporting and quote base currency match.
+        comparable = (info.get("financialCurrency") == currency
+                      and currency not in ("GBp", "GBX", "ZAc", "ILA"))
+        payback = growth = float("nan")
+        if comparable:
+            if math.isfinite(book) and math.isfinite(eps) and eps > 0:
+                payback = finite(max(0.0, price - book) / eps)
+        else:
+            notes.append("koers-/verslageenheden verschillen of zijn onbekend; terugverdientijd niet vergelijkbaar")
+        # Relative EPS growth does not combine the price with accounting units.
+        if math.isfinite(eps) and math.isfinite(forward_eps) and eps > 0:
+            growth = finite((forward_eps / eps - 1) * 100)
+        cap_usd = float("nan")
+        if math.isfinite(market_cap) and market_cap > 0:
+            cap_usd = finite(market_cap * usd_rate(money_currency(currency), fx_cache if fx_cache is not None else {}))
+        if not cap_usd > 0:
+            notes.append("marktkapitalisatie in USD onbekend (waarde of recente FX ontbreekt)")
+        checks = [
+            (roe_pct, roe_pct >= cfg["roe_min"], "RoE", "%"),
+            (payback, payback <= cfg["terugverdien_max_jaar"], "terugverdientijd", " jaar"),
+            (fwd_pe, 0 < fwd_pe <= cfg["fwd_pe_max"], "forward P/E", "x"),
+            (growth, growth > 0, "EPS-groei", "%"),
+            (cap_usd, 0 < cap_usd <= cfg["marktkap_max"], "marktkapitalisatie USD", ""),
+            (analyst, analyst <= cfg["analisten_max"], "analistencoverage", ""),
+        ]
+        score, labels = 0, []
+        for value, passed, name, suffix in checks:
+            if not math.isfinite(value):
+                labels.append("✗ onbekend")
+                notes.append(f"{name} onbekend; geen scorepunt")
             else:
-                terugverdien_label = f"✗ {terugverdienperiode:.1f} jaar"
-        else:
-            terugverdienperiode = float("nan")
-            terugverdien_label = "✗ onbekend (geen winst/boekwaarde)"
-
-        if not math.isnan(fwd_pe) and 0 < fwd_pe <= cfg["fwd_pe_max"]:
-            score += 1
-            fwd_pe_label = f"✓ {fwd_pe:.1f}x (<= {cfg['fwd_pe_max']:.0f}x)"
-        else:
-            fwd_pe_label = f"✗ {fwd_pe:.1f}x" if not math.isnan(fwd_pe) else "✗ onbekend"
-
-        if not math.isnan(winst_nu) and not math.isnan(winst_verw) and winst_nu > 0:
-            verwachte_groei_pct = (winst_verw - winst_nu) / winst_nu * 100
-            if verwachte_groei_pct > 0:
-                score += 1
-                groei_label = f"✓ {verwachte_groei_pct:+.1f}%"
-            else:
-                groei_label = f"✗ {verwachte_groei_pct:+.1f}%"
-        else:
-            verwachte_groei_pct = float("nan")
-            groei_label = "✗ onbekend"
-
-        if not math.isnan(market_cap) and market_cap > 0 and market_cap <= cfg["marktkap_max"]:
-            score += 1
-            marktkap_label = f"✓ {market_cap/1e9:.2f}B (<= {cfg['marktkap_max']/1e9:.0f}B)"
-        else:
-            marktkap_label = f"✗ {market_cap/1e9:.2f}B" if not math.isnan(market_cap) else "✗ onbekend"
-
-        analisten_raw = safe_float(info.get("numberOfAnalystOpinions"))
-        if not math.isnan(analisten_raw):
-            analisten_count = analisten_raw
-            if analisten_count <= cfg["analisten_max"]:
-                score += 1
-                analisten_label = f"✓ {analisten_count:.0f} analisten (<= {cfg['analisten_max']})"
-            else:
-                analisten_label = f"✗ {analisten_count:.0f} analisten"
-        else:
-            analisten_count = float("nan")
-            analisten_label = "✗ coverage onbekend"
-
-        signaal = HooglSignaal(
-            ticker=ticker, price=round(price, 2), score=score,
-            roe_pct=round(roe_pct, 1) if not math.isnan(roe_pct) else 0.0,
-            terugverdienperiode=round(terugverdienperiode, 1) if not math.isnan(terugverdienperiode) else 0.0,
-            forward_pe=round(fwd_pe, 1) if not math.isnan(fwd_pe) else 0.0,
-            verwachte_winstgroei_pct=round(verwachte_groei_pct, 1) if not math.isnan(verwachte_groei_pct) else 0.0,
-            div_yield=round(div_yield, 2) if not math.isnan(div_yield) else 0.0,
-            market_cap=round(market_cap, 0) if not math.isnan(market_cap) else 0.0,
-            analisten_count=round(analisten_count, 0) if not math.isnan(analisten_count) else -1.0,
-            roe_label=roe_label, terugverdien_label=terugverdien_label,
-            fwd_pe_label=fwd_pe_label, groei_label=groei_label,
-            marktkap_label=marktkap_label, analisten_label=analisten_label,
-        )
-        return signaal, False
-    except Exception as e:
-        if is_rate_limit_fout(e):
+                score += int(passed)
+                shown = f"USD {value/1e9:.3f}B" if name == "marktkapitalisatie USD" else f"{value:.2f}{suffix}"
+                labels.append(("✓ " if passed else "✗ ") + shown)
+        return HooglSignaal(ticker=ticker, price=price, score=score, roe_pct=roe_pct,
+            terugverdienperiode=payback, forward_pe=fwd_pe, verwachte_winstgroei_pct=growth,
+            div_yield=finite(info.get("dividendYield")), market_cap=market_cap,
+            analisten_count=analyst, roe_label=labels[0], terugverdien_label=labels[1],
+            fwd_pe_label=labels[2], groei_label=labels[3], marktkap_label=labels[4],
+            analisten_label=labels[5], price_currency=currency, market_cap_usd=cap_usd,
+            quote_date=quote_date, data_notes="; ".join(notes)), False
+    except Exception as exc:
+        if is_rate_limit_fout(exc):
             return None, True
-        print(f"[WARN] {ticker}: fout — {e}")
-        return None, False
+        raise
+
+
+def ranking(sig):
+    return (-sig.score, sig.terugverdienperiode if math.isfinite(sig.terugverdienperiode) else float("inf"), sig.ticker)
 
 # ============================================================
 # OUTPUT
 # ============================================================
+
+def fmt_value(value, digits=1):
+    return f"{value:.{digits}f}" if math.isfinite(value) else "onbekend"
+
 
 def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[HooglSignaal], cfg: dict) -> Optional[str]:
     if not alle:
@@ -203,21 +233,21 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
 
     nu        = today_str()
     top_n     = cfg["top_n"]
-    top_tonen = sorted(alle, key=lambda s: (s.score, -s.terugverdienperiode), reverse=True)[:top_n]
+    top_tonen = sorted(alle, key=ranking)[:top_n]
     max_sc    = max((s.score for s in signalen), default=0) if signalen else 0
     lbl       = {6: "⭐ PERFECTE SCORE (6/6)", 5: "🟡 STERK (5/6)", 4: "🟠 GOED (4/6)"}.get(max_sc, "📊")
 
     def sig_regel(s: HooglSignaal, detail: bool = False) -> str:
-        r = f"• `{s.ticker}` {_score_bar(s.score)} | EUR{s.price:.2f} | RoE:{s.roe_pct:.1f}% | Terugverdien:{s.terugverdienperiode:.1f}j | {yahoo_link(s.ticker)}"
+        r = f"• `{s.ticker}` {_score_bar(s.score)} | {s.price_currency} {s.price:.4f} (koersdatum {s.quote_date}) | RoE:{fmt_value(s.roe_pct)}% | Terugverdien:{fmt_value(s.terugverdienperiode)}j | {yahoo_link(s.ticker)}"
         if detail:
             r += f"\n  {s.roe_label} | {s.terugverdien_label}\n  Fwd P/E: {s.fwd_pe_label} | Verw. winstgroei: {s.groei_label}\n  Marktkap: {s.marktkap_label} | Coverage: {s.analisten_label}"
         return r
 
     delen = [
         f"📈 *{cfg['label']} — {exchange_name}*",
-        f"_{nu} | {len(alle)} geanalyseerd | {len(signalen)} kandidaten (score>={cfg['min_score']})_",
+        f"_{nu} | {len(alle)} geanalyseerd | {sum(s.score >= cfg['min_score'] for s in alle)} kandidaten, {len(signalen)} topselecties (score>={cfg['min_score']})_",
         "─────────────────────────────",
-        f"🏆 *TOP {top_n} HOOGSTE SCORE:*",
+        f"🏆 *TOP {min(top_n, len(alle))} HOOGSTE SCORE (kan onder selectiedrempel liggen):*",
         "\n\n".join(sig_regel(s, detail=True) for s in top_tonen),
     ]
 
@@ -227,7 +257,8 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
         for s in overige:
             delen.append(sig_regel(s))
 
-    delen.append(f"⚙️ _RoE>={cfg['roe_min']:.0f}% | terugverdienperiode<={cfg['terugverdien_max_jaar']:.0f}j | forward P/E<={cfg['fwd_pe_max']:.0f}x | verwachte winstgroei>0% | marktkap<={cfg['marktkap_max']/1e9:.0f}B | analisten<={cfg['analisten_max']}_")
+    delen.append("Eigen GARP-heuristiek; geen orders of gevalideerde rendementsclaim. Terugverdientijd = max(0, koers - boekwaarde) / trailing EPS bij constante winst; forward EPS is een onzekere analistenraming. Yahoo-snapshot, geen afstemming van historische boekjaren.")
+    delen.append(f"⚙️ _RoE>={cfg['roe_min']:.0f}% | terugverdienperiode<={cfg['terugverdien_max_jaar']:.0f}j | forward P/E<={cfg['fwd_pe_max']:.0f}x | verwachte winstgroei>0% | marktkap<=USD {cfg['marktkap_max']/1e9:.0f}B | analisten<={cfg['analisten_max']}_")
     return "\n\n".join(delen)
 
 # ============================================================
@@ -236,112 +267,99 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
 
 def run_engine(modus: str):
     cfg = MODUS_CFG[modus]
-    print(f"{'='*60}\n{cfg['label']}  {today_str()}  [suffix: {cfg['bestand_suffix']}]\n{'='*60}")
-
-    exchange_tickers: Dict[str, List[str]] = {}
-    for f_name in bouw_bestandslijst(cfg["bestand_suffix"]):
-        tlist = load_tickers_from_file(f_name)
-        if not tlist:
-            print(f"Bestand {f_name} niet gevonden of leeg, overslaan.")
-            continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        print(f"  {ex_name}: {len(tlist)} tickers")
-
-    if not exchange_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
-        return
-
-    email_delen: List[str] = []
-
-    opeenvolgende_rate_limits = 0
-    aantal_pauzes = 0
-    huidige_throttle = cfg["throttle_sec"]
-    totaal_rate_limit_fouten = 0
-    vroegtijdig_gestopt = False
-
-    for ex_name, tlist in exchange_tickers.items():
-        if vroegtijdig_gestopt:
-            break
-
-        print(f"\nAnalyseren: {ex_name} ({len(tlist)} tickers)...")
-
-        alle: List[HooglSignaal] = []
-        for ticker in tlist:
-            sig, was_rate_limited = analyse_ticker(ticker, cfg)
-
-            if was_rate_limited:
-                opeenvolgende_rate_limits += 1
-                totaal_rate_limit_fouten += 1
-            else:
-                opeenvolgende_rate_limits = 0
-
-            if sig is not None:
-                alle.append(sig)
-                if sig.score >= cfg["min_score"]:
-                    print(f"  ✓ {ticker}: score {sig.score}/6 | RoE={sig.roe_pct:.1f}%")
-
-            if opeenvolgende_rate_limits >= RATE_LIMIT_CONSECUTIVE_DREMPEL:
-                if aantal_pauzes >= RATE_LIMIT_MAX_PAUZES:
-                    print(f"[RATE LIMIT] Pauzebudget uitgeput na {totaal_rate_limit_fouten} fouten -- run stopt.")
-                    vroegtijdig_gestopt = True
-                    break
-                aantal_pauzes += 1
-                huidige_throttle += RATE_LIMIT_THROTTLE_VERHOGING
-                print(f"[RATE LIMIT] Pauze {RATE_LIMIT_PAUZE_SEC}s ({aantal_pauzes}/{RATE_LIMIT_MAX_PAUZES})")
-                time.sleep(RATE_LIMIT_PAUZE_SEC)
-                opeenvolgende_rate_limits = 0
-
-            time.sleep(huidige_throttle)
-
-        kandidaten = [s for s in alle if s.score >= cfg["min_score"]]
-        kandidaten.sort(key=lambda s: (s.score, -s.terugverdienperiode), reverse=True)
-        signalen = kandidaten[:cfg["top_n"]]
-
-        print(f"  → top {len(signalen)} van {len(kandidaten)} kandidaten (score >= {cfg['min_score']}) uit {len(alle)} geanalyseerd")
-
-        for rank, s in enumerate(signalen, start=1):
-            log_selectie(
-                ticker=s.ticker, datum=today_str(), strategie=cfg["strategie"], beurs=ex_name, koers=s.price,
-                parameters={
-                    "score": s.score, "rank": rank, "roe_pct": s.roe_pct,
-                    "terugverdienperiode": s.terugverdienperiode, "forward_pe": s.forward_pe,
-                    "verwachte_winstgroei_pct": s.verwachte_winstgroei_pct, "div_yield": s.div_yield,
-                    "market_cap": s.market_cap, "analisten_count": s.analisten_count,
-                    "grafiek": yahoo_link(s.ticker),
-                },
-            )
-
-        bericht = format_bericht(ex_name, signalen, alle, cfg)
-        if bericht:
-            send_telegram(bericht, parse_mode="Markdown")
-            email_delen.append(bericht)
-            print(f"  → Telegram verstuurd")
+    reports, issues, errors = [], [], []
+    exchanges = {}
+    for filename in bouw_bestandslijst(cfg["bestand_suffix"]):
+        tickers = sorted(set(load_tickers_from_file(filename)))
+        if tickers:
+            exchanges[label_voor(filename)] = tickers
         else:
-            print(f"  → Overgeslagen: {ex_name}")
+            issues.append(f"{filename}: ontbrekende of lege tickerlijst")
+    cache, rates = {}, {}
+    consecutive = pauses = rate_errors = 0
+    stopped = False
+    stored = selected = 0
+    throttle = cfg["throttle_sec"]
+    for exchange, tickers in exchanges.items():
+        for ticker in tickers:
+            if ticker in cache or stopped:
+                continue
+            try:
+                sig, limited = analyse_ticker(ticker, cfg, fx_cache=rates)
+                if limited:
+                    rate_errors += 1
+                    consecutive += 1
+                    issues.append(f"{ticker}: rate limiting; niet geanalyseerd")
+                else:
+                    consecutive = 0
+                    if sig is None:
+                        issues.append(f"{ticker}: onbruikbare koers/valuta of verouderde koersdatum")
+                cache[ticker] = sig
+                if sig is not None and sig.data_notes:
+                    issues.append(f"{ticker}: {sig.data_notes}")
+            except Exception as exc:
+                cache[ticker] = None
+                errors.append(f"{ticker}: analyse mislukt ({type(exc).__name__}: {exc})")
+            if consecutive >= RATE_LIMIT_CONSECUTIVE_DREMPEL:
+                if pauses >= RATE_LIMIT_MAX_PAUZES:
+                    stopped = True
+                    errors.append(f"Run gestopt: rate-limitpauzebudget uitgeput ({rate_errors} fouten)")
+                else:
+                    pauses += 1
+                    throttle += RATE_LIMIT_THROTTLE_VERHOGING
+                    print(f"Rate-limitpauze {pauses}/{RATE_LIMIT_MAX_PAUZES}", flush=True)
+                    remaining = RATE_LIMIT_PAUZE_SEC
+                    while remaining > 0:
+                        time.sleep(min(60, remaining))
+                        remaining -= min(60, remaining)
+                    consecutive = 0
+            time.sleep(throttle)
+        all_signals = [cache[t] for t in tickers if cache.get(t) is not None]
+        candidates = sorted((s for s in all_signals if s.score >= cfg["min_score"]), key=ranking)
+        signals = candidates[:cfg["top_n"]]
+        selected += len(signals)
+        for rank, sig in enumerate(signals, 1):
+            try:
+                ok = log_selectie(ticker=sig.ticker, datum=today_str(), strategie=cfg["strategie"],
+                    beurs=exchange, koers=sig.price,
+                    parameters={"score": sig.score, "rank": rank, "roe_pct": sig.roe_pct,
+                        "terugverdienperiode": sig.terugverdienperiode, "forward_pe": sig.forward_pe,
+                        "verwachte_winstgroei_pct": sig.verwachte_winstgroei_pct,
+                        "dividend_yield_provider_raw": sig.div_yield,
+                        "market_cap": sig.market_cap, "market_cap_usd": sig.market_cap_usd,
+                        "analisten_count": sig.analisten_count, "price_currency": sig.price_currency,
+                        "quote_date": sig.quote_date, "data_notes": sig.data_notes,
+                        "grafiek": yahoo_link(sig.ticker)})
+                if not ok:
+                    raise RuntimeError("geen opslagbevestiging")
+                stored += 1
+            except Exception as exc:
+                errors.append(f"{sig.ticker}: database mislukt ({exc})")
+        report = (f"{exchange}: {len(all_signals)}/{len(tickers)} geanalyseerd, "
+                  f"{len(candidates)} kandidaten, {len(signals)} topselecties.\n" +
+                  (format_bericht(exchange, signals, all_signals, cfg) or "Geen bruikbare analyses."))
+        reports.append(report)
+        print(report, flush=True)
+    requested = {t for tickers in exchanges.values() for t in tickers}
+    skipped = sorted(requested - cache.keys())
+    if skipped:
+        issues.append("Niet verwerkt na stop: " + ", ".join(skipped))
+    analysed = sum(sig is not None for sig in cache.values())
+    if not analysed:
+        errors.append("Geen bruikbare analyses")
+    summary = (f"{analysed}/{len(requested)} unieke tickers geanalyseerd. "
+               f"Database: {stored}/{selected} selecties opgeslagen. Telegram uit.")
+    body = "\n\n".join([summary]+reports+["Databeperkingen:"]+issues+["Fouten:"]+errors)
+    print(body, flush=True)
+    subject = ("[ONVOLLEDIG] " if issues or errors else "") + cfg["label"] + " " + today_str()
+    if not send_email(subject, body):
+        errors.append("E-mail niet verzonden")
+    if errors:
+        raise RuntimeError("; ".join(errors))
+    print("Klaar — e-mail verzonden.", flush=True)
 
-    if vroegtijdig_gestopt:
-        waarschuwing = f"⚠️ Run vroegtijdig gestopt wegens rate limiting ({totaal_rate_limit_fouten} fouten)."
-        send_telegram(waarschuwing)
-        email_delen.append(waarschuwing)
-
-    if email_delen:
-        send_email(f"{cfg['label']} {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
-
-    print(f"\n{'='*60}\nKlaar.")
-
-def run_backtest():
-    print("Backtest wordt niet ondersteund voor bot_01hoogl.")
-
-# ============================================================
-# ENTRYPOINT
-# ============================================================
 
 if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
-    if mode == "backtest":
-        run_backtest()
-    elif mode == "full":
-        run_engine("full")
-    else:
-        run_engine("live")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("mode", nargs="?", choices=("live", "full"), default="live")
+    run_engine(parser.parse_args().mode)

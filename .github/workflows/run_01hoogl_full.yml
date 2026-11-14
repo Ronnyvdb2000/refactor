@@ -2,11 +2,13 @@ name: "Bot 01: FULL scanner (041-059) GARP onderwaardering (Hoogland) — wekeli
 
 on:
   schedule:
-    # Zaterdag 03:00 UTC — geen enkele beurs wereldwijd open (VS/Europa/Azië
-    # allemaal in het weekend gesloten), en buiten de populaire ronde
-    # cron-tijden waar GitHub Actions-jobs vaker in de wachtrij belanden.
+    # Vrijdag 23:00 UTC (zaterdag 00:00/01:00 in België).
     - cron: "0 23 * * 5"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   bot-01hoogl-full:
@@ -25,6 +27,7 @@ jobs:
       - run: pip install yfinance pandas numpy requests python-dotenv psycopg2-binary
       - name: Run bot_01hoogl (full scan, a-lijsten, strenger)
         env:
+          PYTHONUNBUFFERED: "1"
           # TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_USER:       ${{ secrets.EMAIL_USER }}
