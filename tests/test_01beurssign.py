@@ -213,6 +213,11 @@ class Tests(unittest.TestCase):
             job=next(iter(doc['jobs'].values()))
             step=job['steps'][-1];env=step['env']
             self.assertIn('EMAIL_PASS',env);self.assertIn('SUPABASE_DB_URL',env)
+            installs = [step.get('run', '') for step in job['steps'] if 'pip install' in step.get('run', '')]
+            self.assertTrue(any('scikit-learn' in command.split() for command in installs))
+            preflight = [step for step in job['steps'] if step.get('name') == 'Controleer Yahoo-repair dependency']
+            self.assertEqual(preflight[0]['run'], 'python -c "from sklearn.cluster import DBSCAN"')
+
             self.assertNotIn('TELEGRAM_TOKEN',env)
             self.assertEqual(step['run'],f'python bot_01beurssign.py {mode}')
             self.assertFalse(doc['concurrency']['cancel-in-progress'])

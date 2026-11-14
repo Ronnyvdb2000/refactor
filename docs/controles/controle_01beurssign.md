@@ -112,3 +112,35 @@ Yahoo-analyses: ASML.AS en AIR.PA kregen beide koersdag 2026-11-13 terug na hers
 Geen e-mail of database-insert bij die twee controles. Nieuwe workflowruns voor
 x- én a-lijsten zijn nodig om de volledige dekking na dit herstel te beoordelen.
 Een nog lopende run met de eerdere commit krijgt de fix niet automatisch mee.
+
+## Mislukte live x-hertest: repair-afhankelijkheid — 14 november
+
+De aangeleverde run op commit 1e3b0f0 (05:02–05:10 UTC) is mislukt met
+exitcode 1: Yahoo-repair probeerde sklearn.cluster.DBSCAN te importeren, terwijl
+de workflow scikit-learn niet installeerde. Dit is een ontbrekende dependency
+van de herstelroute, geen bewijs dat alle betrokken tickercodes ongeldig zijn.
+De eerdere lokale omgeving had die dependency al, zodat de twee lokale
+Yahoo-controles dit installatieprobleem niet blootlegden.
+
+445/1000 tickers werden geanalyseerd en 3/3 selecties opgeslagen (PLGO, CRH, DV).
+Dat valideert die inserts, maar niet de Europese dekking; de run blijft mislukt.
+De gegevenscontrole is niet versoepeld en de foutstatus wordt niet onderdrukt.
+
+Beide workflows (run_01beurssign.yml en run_01beurssignfull.yml) installeren nu
+expliciet scikit-learn via dezelfde Python-interpreter als de bot. Een aparte
+DBSCAN-importcontrole vindt plaats vóór de scan, zodat een ontbrekende of
+kapotte installatie direct zichtbaar wordt. De workflow-regressietest controleert
+deze dependency en importcontrole voor beide modi. Telegram blijft uit en de
+bestaande e-mail-/databasesecrets blijven behouden. Alleen deze twee workflows,
+hun bestaande test en dit verslag worden gewijzigd.
+
+32 offline regressietests geslaagd. Beide workflows opnieuw starten op de
+nieuwe main-commit om de volledige scan inclusief Europese dekking te valideren.
+Oude runs blijven de dependencyconfiguratie van hun eigen commit gebruiken.
+
+Aanvullende verificatie: in een nieuwe lokale Python 3.12-omgeving uitsluitend
+de workflowpakketten geïnstalleerd. pip check meldt geen conflicten. DBSCAN-import
+en een kleine clustering slagen (yfinance 1.8.0, scikit-learn 1.9.1). In diezelfde
+omgeving herstellen ASML.AS en AIR.PA met de echte Yahoo-route beide koersdag
+2026-11-13. Geen e-mail of database-insert bij deze controles. De Actions-workflows
+blijven Python 3.11 gebruiken; de volledige live hertest op de runner staat open.
