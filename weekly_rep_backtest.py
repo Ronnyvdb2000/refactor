@@ -48,8 +48,8 @@ bestaande trend detecteren):
   call per ticker die niet altijd data teruggeeft (vooral bij Europese
   small-caps); ontbrekende waarden tonen "n.v.t.".
 
-Vereist: yfinance, pandas, requests (met internettoegang naar Yahoo
-Finance). Dit is NIET beschikbaar in de Claude-sandbox — draai dit lokaal.
+Vereist: yfinance en pandas (met internettoegang naar Yahoo Finance).
+Telegram is uitgeschakeld; uitvoer verschijnt in het Actions-log.
 
 Gebruik:
   python weekly_rep_backtest.py                    # default: zoekvenster van 10 dagen
@@ -60,56 +60,15 @@ import argparse
 import json
 import math
 import os
-import time
 import warnings
 
 import pandas as pd
-import requests
 import yfinance as yf
-from dotenv import load_dotenv
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-load_dotenv()
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
+# Telegram is bewust uitgeschakeld; rapportage blijft in het Actions-log.
 TOPPERS_BESTAND = "laatste_toppers.json"
-
-
-def stuur_telegram(bericht):
-    if not TOKEN or not CHAT_ID:
-        print("Telegram configuratie ontbreekt.")
-        return
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": bericht, "parse_mode": "Markdown"}
-    try:
-        resp = requests.post(url, data=payload)
-        if resp.status_code != 200:
-            print(f"Telegram fout: HTTP {resp.status_code} — {resp.text[:300]}")
-    except Exception as e:
-        print(f"Telegram fout: {e}")
-
-
-def stuur_telegram_lang(volledige_tekst, limiet=4000):
-    """Zelfde chunking-logica als in weekly_report.py — nooit halverwege
-    een sectie opknippen als het bericht toch te lang wordt."""
-    if len(volledige_tekst) <= limiet:
-        stuur_telegram(volledige_tekst)
-        return
-
-    secties = volledige_tekst.split("\n\n")
-    huidig = ""
-    for sectie in secties:
-        kandidaat = (huidig + "\n\n" + sectie) if huidig else sectie
-        if len(kandidaat) > limiet:
-            if huidig:
-                stuur_telegram(huidig)
-            huidig = sectie
-        else:
-            huidig = kandidaat
-    if huidig:
-        stuur_telegram(huidig)
 
 
 def laad_toppers():
@@ -322,16 +281,13 @@ def main():
             f"Draai eerst weekly_report.py."
         )
         print(melding)
-        stuur_telegram(melding)
         return
 
     print(f"{'Beurs':<16}{'Ticker':<11}{'Weekperf':>9}  {'Trend':<6}{'VCP':<5}"
           f"{'%<high':>8}{'%>low':>8}{'Mom3m':>8}{'Mom12m':>8}{'RVOL':>7}{'Short%':>8}{'Float(M)':>10}  Analysedatum  Piekdag")
     print("-" * 150)
 
-    # Per-beurs groeperen i.p.v. één lange lijst, zodat elk beurs een eigen
-    # (kleiner) Telegram-bericht krijgt in plaats van één te lang bericht dat
-    # boven Telegram's 4096-tekenlimiet uitkomt en dan stil faalt.
+    # Groepeer de rapportage per tickerlijst voor het Actions-log.
     regels_per_beurs = {}
 
     for beurs, ticker, week_perf in toppers:
@@ -385,10 +341,9 @@ def main():
             "==================================\n\n"
         )
         bericht = kop + "\n".join(regels) + voet
-        stuur_telegram_lang(bericht)
-        time.sleep(1)  # voorkom Telegram rate-limit bij ~30 losse berichten
+        print(bericht)
 
-    print(f"\nBacktest-samenvatting verzonden naar Telegram ({len(regels_per_beurs)} berichten, 1 per beurs).")
+    print(f"\nBacktest-samenvatting in log ({len(regels_per_beurs)} lijsten). Telegram uitgeschakeld.")
 
 
 if __name__ == "__main__":
