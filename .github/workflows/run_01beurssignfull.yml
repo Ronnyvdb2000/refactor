@@ -5,6 +5,10 @@ on:
     - cron: "40 22 * * 5"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   bot-01beurssig-full:
     runs-on: ubuntu-latest
@@ -19,6 +23,7 @@ jobs:
       - run: pip install yfinance pandas numpy requests python-dotenv psycopg2-binary
       - name: Run bot_01beurssig (full scan)
         env:
+          PYTHONUNBUFFERED: "1"
           # Telegram bewust uit (token ongeldig). Weer aanzetten: de # weghalen
           # TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
