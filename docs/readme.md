@@ -24,3 +24,4 @@ Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigin
 | [controle_01cointegr.md](controles/controle_01cointegr.md) | Controle Pairs Trading — 14 november 2026 |
 | [controle_01hoogl.md](controles/controle_01hoogl.md) | Controle Hoogland GARP — 14 november 2026 |
 | [controle_01kasstr.md](controles/controle_01kasstr.md) | Controle Kasstroom Onderwaardering — 14 november 2026 |
+| [controle_01marktsent.md](controles/controle_01marktsent.md) | Controle Marktsentiment — 14 november 2026 |

@@ -1,23 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-bot_01marktsent.py — MARKTSENTIMENT ENGINE v2.0
+"""Marktsentiment: dagelijkse technische score plus optioneel Engels VADER-nieuws.
 
-Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
-Combineert technische indicatoren met VADER-nieuwssentiment.
-Let op: backtest test enkel de technische component (NewsAPI biedt geen
-historisch archief op de gratis tier).
+Live genereert adviezen, geen orders. Backtest simuleert uitsluitend de
+technische component per ticker in oorspronkelijke koerseenheden, zonder FX.
 """
-
+import argparse
 import os
-import sys
 import math
 import time
-import time
-import warnings
-import datetime as dt
-from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass, replace
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -26,36 +19,27 @@ import yfinance as yf
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from common import (
-    today_str, safe_float, yahoo_link,
-    download_history, load_tickers_from_file, bouw_bestandslijst, label_voor,
+    today_str, safe_float, yahoo_link, download_history,
+    load_tickers_from_file, bouw_bestandslijst, label_voor,
     compute_rsi_series, compute_macd_series, compute_atr_series,
-    send_telegram, send_email,
-    bereken_positie, trade_cost,
-    SLIPPAGE_PCT, TRADE_COST_FIXED, TRADE_COST_PCT, RISICO_PCT_DEFAULT
+    send_email, trade_cost, SLIPPAGE_PCT,
 )
-
 try:
     from db_logger import log_selectie
-except Exception as _e:
-    print(f"[WARN] db_logger niet beschikbaar ({_e}) — DB-logging wordt overgeslagen")
+except ImportError:
     def log_selectie(*args, **kwargs):
         return False
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-
-# ============================================================
-# CONFIG
-# ============================================================
-
-START_CAPITAL        = 50_000.0
-MAX_POSITIONS        = 10
-RISICO_PCT_PER_TRADE = 0.05
-TAX_RATE             = 0.10
-NEWSAPI_KEY          = os.getenv("NEWSAPI_KEY", "")
-NEWSAPI_DAILY_BUDGET = 95
-_newsapi_calls_used   = 0
+START_CAPITAL = 50_000.0
+RISICO_PCT_PER_TRADE = .05
+NEWSAPI_KEY = os.getenv("NEWSAPI_KEY", "")
+NEWSAPI_DAILY_BUDGET = 95  # Per procesrun, geen gedeeld dagquotum.
+_newsapi_calls_used = 0
 _newsapi_rate_limited = False
-
+_newsapi_blocked_reason = ""
+_news_status = {}
+_vader = SentimentIntensityAnalyzer()
+_company_name_cache = {}
 MS_CFG = {
     "rsi_period":         14,
     "rsi_oversold":       35.0,
@@ -77,79 +61,143 @@ MS_CFG = {
 BACKTEST_START = "2021-01-01"
 BACKTEST_END   = today_str()
 
-# ============================================================
-# SENTIMENT
-# ============================================================
 
-_vader = SentimentIntensityAnalyzer()
-_company_name_cache: Dict[str, str] = {}
+class DataUnavailable(ValueError):
+    """Expected provider-data limitation, reported separately from code errors."""
 
-def resolve_company_name(ticker: str) -> str:
-    if ticker in _company_name_cache:
-        return _company_name_cache[ticker]
-    naam = ticker.split(".")[0]
-    try:
-        info = yf.Ticker(ticker).get_info()
-        kandidaat = info.get("shortName") or info.get("longName")
-        if kandidaat:
-            naam = kandidaat
-    except Exception as e:
-        print(f"[WARN] Kon bedrijfsnaam voor {ticker} niet ophalen ({e}), val terug op '{naam}'")
-    _company_name_cache[ticker] = naam
-    return naam
 
-def fetch_news_sentiment(ticker: str, company_hint: str = "") -> Tuple[Optional[float], int]:
-    global _newsapi_calls_used, _newsapi_rate_limited
-    if not NEWSAPI_KEY or _newsapi_calls_used >= NEWSAPI_DAILY_BUDGET or _newsapi_rate_limited:
+def resolve_company_name(ticker):
+    if ticker not in _company_name_cache:
+        name = ticker.split('.')[0]
+        try:
+            info = yf.Ticker(ticker).get_info() or {}
+            name = info.get('shortName') or info.get('longName') or name
+        except Exception:
+            pass
+        _company_name_cache[ticker] = name
+    return _company_name_cache[ticker]
+
+
+def fetch_news_sentiment(ticker, company_hint='', asof=None):
+    global _newsapi_calls_used, _newsapi_rate_limited, _newsapi_blocked_reason
+    if not NEWSAPI_KEY:
+        _news_status[ticker] = 'NEWSAPI_KEY ontbreekt; alleen technisch'
         return None, 0
-
-    query   = company_hint or ticker
-    since   = (dt.date.today() - dt.timedelta(days=MS_CFG["sentiment_lookback_days"])).isoformat()
-    url     = "https://newsapi.org/v2/everything"
-    params  = {"q": query, "from": since, "sortBy": "publishedAt", "language": "en", "pageSize": 20, "apiKey": NEWSAPI_KEY}
+    if _newsapi_blocked_reason:
+        _news_status[ticker] = _newsapi_blocked_reason
+        return None, 0
+    if _newsapi_rate_limited:
+        _news_status[ticker] = 'NewsAPI geblokkeerd na 429'
+        return None, 0
+    if _newsapi_calls_used >= NEWSAPI_DAILY_BUDGET:
+        _news_status[ticker] = 'nieuwsbudget van deze run uitgeput'
+        return None, 0
+    now = pd.Timestamp.now(tz='UTC') if asof is None else pd.Timestamp(asof)
+    if now.tzinfo is None:
+        now = now.tz_localize('UTC')
+    else:
+        now = now.tz_convert('UTC')
+    since = now - pd.Timedelta(days=MS_CFG['sentiment_lookback_days'])
+    params = {'q': company_hint or ticker, 'from': since.isoformat(), 'to': now.isoformat(),
+              'sortBy':'publishedAt', 'language':'en', 'pageSize':20}
     try:
         _newsapi_calls_used += 1
-        resp = requests.get(url, params=params, timeout=10)
-        if resp.status_code == 429:
+        response = requests.get('https://newsapi.org/v2/everything', params=params,
+                                headers={'X-Api-Key':NEWSAPI_KEY}, timeout=10)
+        if response.status_code == 429:
             _newsapi_rate_limited = True
+        if response.status_code != 200:
+            if response.status_code in (401,403,426):
+                _newsapi_blocked_reason = f'NewsAPI HTTP {response.status_code}; verdere requests overgeslagen'
+            _news_status[ticker] = f'NewsAPI HTTP {response.status_code}; geen sentiment'
             return None, 0
-        if resp.status_code != 200:
+        payload = response.json()
+        if not isinstance(payload, dict) or payload.get('status') != 'ok' or not isinstance(payload.get('articles'), list):
+            _news_status[ticker] = 'ongeldig NewsAPI-antwoord'
             return None, 0
-        articles = resp.json().get("articles", [])
-    except Exception:
+    except (requests.RequestException, ValueError):
+        # Do not log raw request errors: they can contain credentials or URLs.
+        _news_status[ticker] = 'NewsAPI niet beschikbaar of antwoord onleesbaar'
         return None, 0
-
-    if len(articles) < MS_CFG["sentiment_min_articles"]:
-        return None, len(articles)
-
-    scores = []
-    for art in articles:
-        tekst = " ".join(filter(None, [art.get("title"), art.get("description")]))
-        if tekst.strip():
-            scores.append(_vader.polarity_scores(tekst)["compound"])
-
-    if not scores:
-        return None, 0
+    scores, seen_urls, seen_titles = [], set(), set()
+    for article in payload['articles']:
+        if not isinstance(article, dict):
+            continue
+        title, desc = article.get('title'), article.get('description')
+        title = title.strip() if isinstance(title,str) else ''
+        desc = desc.strip() if isinstance(desc,str) else ''
+        if title.casefold() == '[removed]' or desc.casefold() == '[removed]':
+            continue
+        text = ' '.join(x for x in (title,desc) if x)
+        date = pd.to_datetime(article.get('publishedAt'), errors='coerce', utc=True)
+        if not text or pd.isna(date) or not since <= date <= now:
+            continue
+        url = article.get('url')
+        url = url.strip() if isinstance(url,str) else ''
+        key = title.casefold() or text.casefold()
+        if key in seen_titles or (url and url in seen_urls):
+            continue
+        score = safe_float(_vader.polarity_scores(text).get('compound'))
+        if not math.isfinite(score) or not -1 <= score <= 1:
+            continue
+        seen_titles.add(key)
+        if url:
+            seen_urls.add(url)
+        scores.append(score)
+    if len(scores) < MS_CFG['sentiment_min_articles']:
+        _news_status[ticker] = f'onvoldoende bruikbare unieke artikelen ({len(scores)})'
+        return None, len(scores)
+    _news_status[ticker] = 'Engels VADER-nieuws beschikbaar'
     return float(np.mean(scores)), len(scores)
 
-def sentiment_bonus(score: Optional[float]) -> float:
-    if score is None:
+
+def sentiment_bonus(score):
+    if score is None or not math.isfinite(score):
         return 0.0
-    if score >= 0.15:
-        return min(1.0, score)
-    if score <= -0.15:
-        return max(-1.0, score)
+    if score >= .15:
+        return min(1.0,score)
+    if score <= -.15:
+        return max(-1.0,score)
     return 0.0
 
-# ============================================================
-# ANALYSE
-# ============================================================
+
+def prepare_history(raw, live=True):
+    required = ['Date','Open','High','Low','Close','Volume']
+    if raw is None or raw.empty or not set(required).issubset(raw.columns):
+        raise DataUnavailable('ontbrekende OHLCV-historie')
+    frame = raw.copy()
+    frame['Date'] = pd.to_datetime(frame.Date,errors='coerce')
+    if frame.Date.dt.tz is not None:
+        frame['Date'] = frame.Date.dt.tz_localize(None)
+    frame['Date'] = frame.Date.dt.normalize()
+    frame = frame.loc[frame.Date.notna() & (frame.Date < pd.Timestamp(today_str()))]
+    frame = frame.sort_values('Date').drop_duplicates('Date',keep='last')
+    for col in required[1:]:
+        frame[col] = pd.to_numeric(frame[col],errors='coerce')
+    price_cols = ['Open','High','Low','Close']
+    valid = (np.isfinite(frame[required[1:]]).all(axis=1) & (frame[price_cols]>0).all(axis=1)
+             & (frame.Volume>=0) & (frame.High>=frame[['Open','Close','Low']].max(axis=1))
+             & (frame.Low<=frame[['Open','Close','High']].min(axis=1)))
+    if frame.empty or (live and not valid.iloc[-1]):
+        raise DataUnavailable('ontbrekende/ongeldige laatste OHLCV-rij')
+    discarded = int((~valid).sum())
+    frame = frame.loc[valid].reset_index(drop=True)
+    if len(frame)<210:
+        raise DataUnavailable('minder dan 210 geldige afgeronde sessies')
+    if live:
+        if (pd.Timestamp(today_str())-frame.Date.iloc[-1]).days>7:
+            raise DataUnavailable('laatste koers ouder dan zeven dagen')
+        if frame.Volume.tail(20).sum()<=0:
+            raise DataUnavailable('geen recent handelsvolume')
+    frame.attrs['discarded_rows'] = discarded
+    return frame
+
 
 @dataclass
 class MSSignaal:
     ticker: str
     price: float
-    rsi_monthly: float
+    rsi_monthly: float  # Databasecompatibiliteit: werkelijk RSI op dagelijkse bars.
     macd_label: str
     tech_score: float
     sentiment_score: Optional[float]
@@ -157,283 +205,287 @@ class MSSignaal:
     score: float
     atr: float
     stop: float
+    signal_date: str = ''
+    news_status: str = 'nieuws niet gevraagd'
 
-def analyse_ticker(ticker: str, df_ticker: pd.DataFrame, met_sentiment: bool = False) -> Optional[MSSignaal]:
-    df = df_ticker.sort_values("Date").reset_index(drop=True)
-    if len(df) < 210:
+
+def add_sentiment(signal, asof=None):
+    if NEWSAPI_KEY and not _newsapi_rate_limited and not _newsapi_blocked_reason and _newsapi_calls_used < NEWSAPI_DAILY_BUDGET:
+        name = resolve_company_name(signal.ticker)
+    else:
+        name = ''
+    score, n = fetch_news_sentiment(signal.ticker, company_hint=name, asof=asof)
+    return replace(signal,sentiment_score=score,sentiment_n=n,
+                   score=signal.tech_score+sentiment_bonus(score),news_status=_news_status[signal.ticker])
+
+
+def analyse_ticker(ticker, df_ticker, met_sentiment=False):
+    # Callers validate once; the backtest supplies a chronological historical slice.
+    df = df_ticker.sort_values('Date').reset_index(drop=True)
+    if len(df)<210:
         return None
+    close, high, low = df.Close, df.High, df.Low
+    rsi_series = compute_rsi_series(close,MS_CFG['rsi_period'])
+    macd_line, signal_line, _ = compute_macd_series(close,MS_CFG['macd_fast'],MS_CFG['macd_slow'],MS_CFG['macd_signal'])
+    atr_series = compute_atr_series(high,low,close,MS_CFG['atr_period'])
+    rsi,macd,sig,atr,price = [safe_float(x.iloc[-1]) for x in (rsi_series,macd_line,signal_line,atr_series,close)]
+    sma = safe_float(close.tail(MS_CFG['sma_trend_period']).mean())
+    sma_short = safe_float(close.tail(MS_CFG['sma_short_period']).mean())
+    if not all(math.isfinite(x) for x in (rsi,macd,sig,atr,price,sma,sma_short)) or min(price,atr,sma,sma_short)<=0:
+        raise DataUnavailable('ongeldige technische indicatoren')
+    tech = float(rsi<=MS_CFG['rsi_oversold'] or MS_CFG['rsi_momentum_low']<=rsi<=MS_CFG['rsi_momentum_high'])
+    diff = (macd_line-signal_line).tail(MS_CFG['macd_cross_lookback']+1)
+    if not np.isfinite(diff).all():
+        raise DataUnavailable('ongeldige MACD-historie')
+    cross = bool(((diff.shift(1)<=0) & (diff>0)).any())
+    tech += float(cross)+float(price>sma)
+    # Original rule only caps extension above SMA50; a price below it can pass.
+    tech += float((price/sma_short-1)*100<=MS_CFG['max_pct_above_sma_short'])
+    stop = price-2*atr
+    if not 0<stop<price:
+        raise DataUnavailable('ongeldige ATR-stop')
+    out = MSSignaal(ticker,price,rsi,'Verse crossover' if cross else 'Bullish' if macd>sig else 'Bearish',
+                    tech,None,0,tech,atr,stop,pd.Timestamp(df.Date.iloc[-1]).date().isoformat())
+    return add_sentiment(out) if met_sentiment else out
 
-    close = df["Close"]
-    high  = df["High"] if "High" in df.columns else close
-    low   = df["Low"] if "Low" in df.columns else close
 
-    rsi_series = compute_rsi_series(close, MS_CFG["rsi_period"])
-    macd_line, signal_line, hist = compute_macd_series(close, MS_CFG["macd_fast"], MS_CFG["macd_slow"], MS_CFG["macd_signal"])
-    atr_series = compute_atr_series(high, low, close, MS_CFG["atr_period"])
-    sma_trend  = close.rolling(MS_CFG["sma_trend_period"], min_periods=MS_CFG["sma_trend_period"]).mean()
-    sma_short  = close.rolling(MS_CFG["sma_short_period"], min_periods=MS_CFG["sma_short_period"]).mean()
+def format_bericht(exchange,signals):
+    lines = [f'MARKTSENTIMENT — {exchange} ({today_str()})']
+    if not signals:
+        lines.append('Geen kandidaten boven de scoredrempel.')
+    for sig in signals:
+        news = f'{sig.sentiment_score:+.3f} ({sig.sentiment_n} artikelen)' if sig.sentiment_score is not None else f'onbekend ({sig.sentiment_n} artikelen)'
+        lines.append(f'• {sig.ticker}: score {sig.score:.3f} (technisch {sig.tech_score:.0f}/4) | RSI({MS_CFG["rsi_period"]}) dagdata {sig.rsi_monthly:.1f} | '
+                     f'MACD {sig.macd_label} | nieuws {news} | {sig.price:.4f} bronkoerseenheden | '
+                     f'koersdag {sig.signal_date} | referentiestop {sig.stop:.4f} | {sig.news_status} | {yahoo_link(sig.ticker)}')
+    lines.append('Eigen heuristiek, geen orders. Koersen kunnen subeenheden zoals pence zijn. '
+                 'VADER beoordeelt Engelse tekst, geen gecontroleerde relevantie of koersvoorspelling. '
+                 'Onbekend nieuws geeft bonus 0; nieuws is van het scanmoment, technische data van de vermelde koersdag.')
+    return '\n'.join(lines)
 
-    rsi    = safe_float(rsi_series.iloc[-1])
-    macd   = safe_float(macd_line.iloc[-1])
-    sig    = safe_float(signal_line.iloc[-1])
-    atr    = safe_float(atr_series.iloc[-1])
-    price  = safe_float(close.iloc[-1])
-    sma    = safe_float(sma_trend.iloc[-1])
-    sma50  = safe_float(sma_short.iloc[-1])
-
-    if math.isnan(rsi) or math.isnan(price) or math.isnan(atr):
-        return None
-
-    tech_score = 0.0
-
-    if rsi <= MS_CFG["rsi_oversold"] or (MS_CFG["rsi_momentum_low"] <= rsi <= MS_CFG["rsi_momentum_high"]):
-        tech_score += 1.0
-
-    diff = (macd_line - signal_line).tail(MS_CFG["macd_cross_lookback"] + 1)
-    diff_prev = diff.shift(1)
-    fresh_cross = bool(((diff_prev <= 0) & (diff > 0)).any())
-    if fresh_cross:
-        tech_score += 1.0
-    macd_label = "Verse crossover" if fresh_cross else ("Bullish" if macd > sig else "Bearish")
-
-    if not math.isnan(sma) and price > sma:
-        tech_score += 1.0
-
-    if not math.isnan(sma50) and sma50 > 0:
-        pct_above_sma50 = (price - sma50) / sma50 * 100.0
-        if pct_above_sma50 <= MS_CFG["max_pct_above_sma_short"]:
-            tech_score += 1.0
-
-    sent_score, sent_n = (None, 0)
-    if met_sentiment and NEWSAPI_KEY and not _newsapi_rate_limited:
-        naam = resolve_company_name(ticker)
-        sent_score, sent_n = fetch_news_sentiment(ticker, company_hint=naam)
-
-    eind_score = tech_score + sentiment_bonus(sent_score)
-    stop = price - 2.0 * atr
-
-    return MSSignaal(
-        ticker=ticker, price=price, rsi_monthly=rsi, macd_label=macd_label,
-        tech_score=tech_score, sentiment_score=sent_score, sentiment_n=sent_n,
-        score=eind_score, atr=atr, stop=stop,
-    )
-
-# ============================================================
-# OUTPUT
-# ============================================================
-
-def format_bericht(ex_name: str, signalen: List[MSSignaal]) -> str:
-    if not signalen:
-        return ""
-    regels = [f"*MARKTSENTIMENT — {ex_name}*  ({today_str()})\n"]
-    for s in signalen[:15]:
-        sent_txt = f"{s.sentiment_score:+.2f} ({s.sentiment_n}art.)" if s.sentiment_score is not None else f"n/a ({s.sentiment_n}art.)"
-        regels.append(f"• *{s.ticker}* — score {s.score:.1f} | RSI {s.rsi_monthly:.0f} | MACD {s.macd_label} | sentiment {sent_txt} | EUR{s.price:.2f}")
-    return "\n".join(regels)
-
-# ============================================================
-# LIVE ENGINE
-# ============================================================
 
 def run_live_engine():
-    print(f"{'='*60}\nMARKTSENTIMENT — LIVE  {today_str()}\n{'='*60}")
+    global _newsapi_calls_used,_newsapi_rate_limited,_newsapi_blocked_reason
+    _newsapi_calls_used = 0
+    _newsapi_rate_limited = False
+    _newsapi_blocked_reason = ""
+    _news_status.clear()
+    _company_name_cache.clear()
+    asof = pd.Timestamp.now(tz='UTC')
+    exchanges,issues,errors = {},[],[]
+    for filename in bouw_bestandslijst():
+        tickers = sorted(set(load_tickers_from_file(filename)))
+        if tickers:
+            exchanges[label_voor(filename)] = tickers
+        else:
+            issues.append(f'{filename}: ontbrekende of lege tickerlijst')
+    tickers = sorted({t for values in exchanges.values() for t in values})
+    raw = download_history(tickers,period='2y')
+    technical = {}
+    if not NEWSAPI_KEY:
+        issues.append('NEWSAPI_KEY ontbreekt: alleen technische selectie')
+    for ticker in tickers:
+        try:
+            group = raw.loc[raw.Ticker==ticker] if 'Ticker' in raw else pd.DataFrame()
+            history = prepare_history(group)
+            if history.attrs['discarded_rows']:
+                issues.append(f'{ticker}: {history.attrs["discarded_rows"]} ongeldige oudere OHLCV-rijen verwijderd')
+            signal = analyse_ticker(ticker,history)
+            if signal is None:
+                raise DataUnavailable('geen berekenbare technische score')
+            technical[ticker] = signal
+        except DataUnavailable as exc:
+            issues.append(f'{ticker}: {exc}')
+        except Exception as exc:
+            errors.append(f'{ticker}: technische analyse mislukt ({type(exc).__name__})')
+    # Scores below min_score - maximum bonus cannot qualify; don't spend requests.
+    possible = [sig for sig in technical.values() if sig.tech_score>=MS_CFG['min_score']-1]
+    possible.sort(key=lambda sig:(sig.tech_score>=MS_CFG['min_score'], -sig.tech_score,sig.ticker))
+    enriched = {}
+    for sig in possible:
+        try:
+            updated = add_sentiment(sig,asof=asof)
+            enriched[sig.ticker] = updated
+            if updated.sentiment_score is None:
+                issues.append(f'{sig.ticker}: {updated.news_status}')
+        except Exception as exc:
+            errors.append(f'{sig.ticker}: nieuwsanalyse mislukt ({type(exc).__name__})')
+    reports = []
+    selected = stored = 0
+    for exchange,universe in exchanges.items():
+        candidates = sorted((enriched[t] for t in universe if t in enriched and enriched[t].score>=MS_CFG['min_score']),
+                            key=lambda sig:(-sig.score,sig.ticker))
+        signals = candidates[:15]
+        selected += len(signals)
+        dates = sorted(technical[t].signal_date for t in universe if t in technical)
+        coverage = (f'{exchange}: {sum(t in technical for t in universe)}/{len(universe)} geanalyseerd, '
+                    f'{len(candidates)} kandidaten, {len(signals)} topselecties; '
+                    f'gebruikte koersdagen {dates[0]}..{dates[-1]}.' if dates else f'{exchange}: geen bruikbare analyses.')
+        reports.append(coverage+'\n'+format_bericht(exchange,signals))
+        print(coverage,flush=True)
+        for rank,sig in enumerate(signals,1):
+            try:
+                ok = log_selectie(ticker=sig.ticker,datum=sig.signal_date,strategie='bot_01marktsent',beurs=exchange,koers=sig.price,
+                    parameters={'score':sig.score,'tech_score':sig.tech_score,'rank':rank,
+                        'rsi_monthly':sig.rsi_monthly,'rsi_daily':sig.rsi_monthly,'macd_label':sig.macd_label,
+                        'stop':sig.stop,'atr':sig.atr,'sentiment_score':sig.sentiment_score,
+                        'sentiment_n':sig.sentiment_n,'news_status':sig.news_status,'signal_date':sig.signal_date,
+                        'news_asof_utc':asof.isoformat(),'grafiek':yahoo_link(sig.ticker)})
+                if not ok:
+                    raise RuntimeError('geen opslagbevestiging')
+                stored += 1
+            except Exception as exc:
+                errors.append(f'{sig.ticker}: database mislukt ({type(exc).__name__}: {exc})')
+    if not technical:
+        errors.append('Geen bruikbare technische analyses')
+    summary = (f'Datadekking {len(technical)}/{len(tickers)} unieke tickers. '
+               f'NewsAPI {_newsapi_calls_used}/{NEWSAPI_DAILY_BUDGET} calls in deze run. '
+               f'Database {stored}/{selected} selecties opgeslagen. Telegram uit.')
+    body = '\n\n'.join([summary]+reports+['Databeperkingen:']+issues+['Fouten:']+errors)
+    print(body,flush=True)
+    subject = ('[ONVOLLEDIG] ' if issues or errors else '')+'Marktsentiment rapport '+today_str()
+    if not send_email(subject,body):
+        errors.append('E-mail niet verzonden')
+    if errors:
+        raise RuntimeError('; '.join(errors))
+    print('Klaar — e-mail verzonden.',flush=True)
 
-    exchange_tickers: Dict[str, List[str]] = {}
-    all_tickers: List[str] = []
 
-    for f_name in bouw_bestandslijst():
-        tlist = load_tickers_from_file(f_name)
-        if not tlist:
+def position_size(cash,entry,stop):
+    """Cash and model stop loss inclusive of entry/exit fees; gaps can exceed it."""
+    stop_exit = stop*(1-SLIPPAGE_PCT)
+    if not all(math.isfinite(v) and v>0 for v in (cash,entry,stop_exit)) or stop_exit>=entry:
+        return 0
+    left,right = 0,int(cash/entry)
+    while left<right:
+        n = (left+right+1)//2
+        entry_fees,exit_fees = trade_cost(n*entry),trade_cost(n*stop_exit)
+        cost = n*entry+entry_fees
+        risk = n*(entry-stop_exit)+entry_fees+exit_fees
+        if cost<=cash and risk<=cash*RISICO_PCT_PER_TRADE:
+            left = n
+        else:
+            right = n-1
+    return left
+
+
+def backtest_ticker(ticker,history,start,end):
+    """Independent account. Monthly closing signals, next-opening entries.
+
+    Stops checked each bar, including entry day. A time exit after 60 complete
+    observed sessions is executed on the following available opening.
+    """
+    start,end = pd.Timestamp(start),pd.Timestamp(end)
+    history = history.loc[history.Date<=end].reset_index(drop=True)
+    if int((history.Date<start).sum())<210:
+        raise DataUnavailable('minder dan 210 geldige opwarmsessies vóór startdatum')
+    cash,position,pending = START_CAPITAL,None,None
+    trades,equity = [],[{'ticker':ticker,'date':(start-pd.Timedelta(days=1)).date().isoformat(),'value':START_CAPITAL}]
+    last_month = None
+    def close_position(reference,date,index,reason):
+        nonlocal cash,position
+        exit_price = reference*(1-SLIPPAGE_PCT)
+        exit_fee = trade_cost(exit_price*position['size'])
+        proceeds = exit_price*position['size']-exit_fee
+        pnl = proceeds-(position['entry_price']*position['size']+position['entry_fee'])
+        cash += proceeds
+        trades.append({'ticker':ticker,'entry_date':position['entry_date'],
+            'exit_date':date.date().isoformat(),'entry_price':position['entry_price'],'exit_price':exit_price,
+            'size':position['size'],'entry_fee':position['entry_fee'],'exit_fee':exit_fee,
+            'pnl':pnl,'sessions_held':index-position['entry_index']+1,'reason':reason})
+        position = None
+    for i,row in history.iterrows():
+        date = row.Date
+        if date<start:
             continue
-        ex_name = label_voor(f_name)
-        exchange_tickers[ex_name] = tlist
-        all_tickers.extend(tlist)
-        print(f"  {ex_name}: {len(tlist)} tickers")
+        if position is not None and position['time_exit']:
+            close_position(float(row.Open),date,i,'Time: 60 afgeronde sessies, volgende opening')
+        if position is None and pending is not None:
+            if 0<(date-pd.Timestamp(pending.signal_date)).days<=7 and row.Open>pending.stop:
+                entry = float(row.Open)*(1+SLIPPAGE_PCT)
+                n = position_size(cash,entry,pending.stop)
+                if n:
+                    fee = trade_cost(entry*n)
+                    cash -= entry*n+fee
+                    position = {'entry_date':date.date().isoformat(),'entry_index':i,
+                                'entry_price':entry,'entry_fee':fee,'size':n,'stop':pending.stop,'time_exit':False}
+            pending = None
+        if position is not None:
+            if row.Open<=position['stop']:
+                close_position(float(row.Open),date,i,'Gap onder stop')
+            elif row.Low<=position['stop']:
+                close_position(position['stop'],date,i,'Stop intraday')
+            elif i-position['entry_index']+1>=60:
+                position['time_exit'] = True
+        month = (date.year,date.month)
+        if month!=last_month:
+            last_month = month
+            if position is None:
+                signal = analyse_ticker(ticker,history.iloc[:i+1],met_sentiment=False)
+                if signal is not None and signal.tech_score>=MS_CFG['min_score']:
+                    pending = signal
+        value = cash+(position['size']*float(row.Close) if position is not None else 0)
+        equity.append({'ticker':ticker,'date':date.date().isoformat(),'value':value})
+    if len(equity)==1:
+        raise DataUnavailable('geen koerssessies binnen testperiode')
+    final = equity[-1]['value']
+    values = pd.Series([x['value'] for x in equity])
+    peak = values.cummax()
+    losses = sum(-t['pnl'] for t in trades if t['pnl']<0)
+    gains = sum(t['pnl'] for t in trades if t['pnl']>0)
+    summary = {'ticker':ticker,'start_value':START_CAPITAL,'final_value':final,
+               'return_pct':(final/START_CAPITAL-1)*100,'trades':len(trades),
+               'win_rate_pct':sum(t['pnl']>0 for t in trades)/len(trades)*100 if trades else float('nan'),
+               'profit_factor':gains/losses if losses else float('nan'),
+               'max_drawdown_pct':float(((peak-values)/peak).max()*100),
+               'last_quote_date':equity[-1]['date'],'open_positions':int(position is not None)}
+    if position is not None:
+        summary.update(open_entry_date=position['entry_date'],open_entry_price=position['entry_price'],
+                       open_size=position['size'],open_stop=position['stop'],
+                       open_entry_fee=position['entry_fee'])
+    return summary,trades,equity
 
-    all_tickers = sorted(set(all_tickers))
-    if not all_tickers:
-        print("[ERROR] Geen ticker bestanden gevonden.")
-        return
-
-    print(f"\nTotaal: {len(all_tickers)} unieke kwaliteitstickers")
-    print("Koersdata downloaden (2 jaar)...")
-    df = download_history(all_tickers, period="2y")
-    if df.empty:
-        print("[ERROR] Geen koersdata.")
-        return
-
-    email_delen: List[str] = []
-
-    globale_kandidaten: List[Tuple[str, MSSignaal]] = []
-    for ex_name, tlist in exchange_tickers.items():
-        df_ex = df[df["Ticker"].isin(tlist)].copy()
-        for ticker, group in df_ex.groupby("Ticker", sort=False):
-            sig = analyse_ticker(ticker, group, met_sentiment=False)
-            if sig is not None and sig.tech_score >= 2.0:
-                globale_kandidaten.append((ex_name, sig))
-
-    print(f"\nTechnische voorselectie klaar: {len(globale_kandidaten)} kandidaten over {len(exchange_tickers)} beurzen (tech_score >= 2.0).")
-
-    grensgevallen = [t for t in globale_kandidaten if t[1].tech_score < MS_CFG["min_score"]]
-    al_gekwalificeerd = [t for t in globale_kandidaten if t[1].tech_score >= MS_CFG["min_score"]]
-    al_gekwalificeerd.sort(key=lambda t: t[1].tech_score, reverse=True)
-    verwerkingsvolgorde = grensgevallen + al_gekwalificeerd
-
-    per_beurs: Dict[str, List[MSSignaal]] = {ex: [] for ex in exchange_tickers}
-    for ex_name, kand in verwerkingsvolgorde:
-        df_ex_ticker = df[(df["Ticker"] == kand.ticker) & (df["Ticker"].isin(exchange_tickers[ex_name]))]
-        sig = analyse_ticker(kand.ticker, df_ex_ticker, met_sentiment=True)
-        if sig is not None and sig.score >= MS_CFG["min_score"]:
-            per_beurs[ex_name].append(sig)
-
-    print(f"NewsAPI-calls gebruikt: {_newsapi_calls_used}/{NEWSAPI_DAILY_BUDGET} ({len(grensgevallen)} grensgevallen voorrang gegeven)\n")
-
-    for ex_name, tlist in exchange_tickers.items():
-        signalen = per_beurs[ex_name]
-        signalen.sort(key=lambda s: s.score, reverse=True)
-        if not signalen:
-            continue
-        print(f"Analyseren: {ex_name} ({len(tlist)} tickers)... → {len(signalen)} kandidaten (min_score {MS_CFG['min_score']})")
-        for s in signalen:
-            print(f"  ✓ {s.ticker}: score {s.score:.1f} | RSI={s.rsi_monthly:.1f} | sentiment={s.sentiment_score}")
-
-        for s in signalen:
-            log_selectie(
-                ticker=s.ticker, datum=today_str(), strategie="bot_01marktsent", beurs=ex_name, koers=s.price,
-                parameters={
-                    "score": s.score, "rsi_monthly": s.rsi_monthly, "macd_label": s.macd_label,
-                    "stop": s.stop, "atr": s.atr, "sentiment_score": s.sentiment_score,
-                    "sentiment_n": s.sentiment_n, "grafiek": yahoo_link(s.ticker),
-                },
-            )
-
-        bericht = format_bericht(ex_name, signalen)
-        if bericht:
-            send_telegram(bericht, parse_mode="Markdown")
-            email_delen.append(bericht)
-            print(f"  → Telegram verstuurd")
-
-    if email_delen:
-        send_email(f"Marktsentiment rapport {today_str()}", "\n\n" + ("=" * 40 + "\n\n").join(email_delen))
-    else:
-        print("\nGeen kandidaten vandaag, geen berichten verstuurd.")
-
-    print(f"{'='*60}\nKlaar.")
-
-# ============================================================
-# BACKTEST (technisch only)
-# ============================================================
 
 def run_backtest():
-    print(f"{'='*60}\nMARKTSENTIMENT BACKTEST (technisch, walk-forward)  {BACKTEST_START} -> {BACKTEST_END}\n{'='*60}")
-    print("LET OP: sentiment zit hier NIET in — geen historisch nieuwsarchief beschikbaar.")
-    
-    all_tickers: List[str] = []
-    for f_name in bouw_bestandslijst():
-        all_tickers.extend(load_tickers_from_file(f_name))
-    all_tickers = sorted(set(all_tickers))
+    start,end = pd.Timestamp(BACKTEST_START),pd.Timestamp(BACKTEST_END)
+    if end<start:
+        raise ValueError('Einddatum vóór startdatum')
+    tickers = sorted({t for filename in bouw_bestandslijst() for t in load_tickers_from_file(filename)})
+    raw = download_history(tickers,start=(start-pd.DateOffset(years=2)).date().isoformat(),
+                           end=(end+pd.Timedelta(days=1)).date().isoformat())
+    summaries,trades,equity,issues,errors = [],[],[],[],[]
+    for ticker in tickers:
+        try:
+            group = raw.loc[raw.Ticker==ticker] if 'Ticker' in raw else pd.DataFrame()
+            clean = prepare_history(group,live=False)
+            if clean.attrs['discarded_rows']:
+                issues.append(f'{ticker}: {clean.attrs["discarded_rows"]} ongeldige koersrijen verwijderd')
+            summary,ts,curve = backtest_ticker(ticker,clean,start,end)
+            summaries.append(summary);trades.extend(ts);equity.extend(curve)
+        except DataUnavailable as exc:
+            issues.append(f'{ticker}: {exc}')
+        except Exception as exc:
+            errors.append(f'{ticker}: {type(exc).__name__}: {exc}')
+    os.makedirs('backtest_results',exist_ok=True)
+    pd.DataFrame(summaries,columns=['ticker','start_value','final_value','return_pct','trades','win_rate_pct',
+        'profit_factor','max_drawdown_pct','last_quote_date','open_positions','open_entry_date',
+        'open_entry_price','open_size','open_stop','open_entry_fee']).to_csv('backtest_results/marktsent_summary_per_ticker.csv',index=False)
+    pd.DataFrame(trades,columns=['ticker','entry_date','exit_date','entry_price','exit_price','size',
+        'entry_fee','exit_fee','pnl','sessions_held','reason']).to_csv('backtest_results/marktsent_trades.csv',index=False)
+    pd.DataFrame(equity,columns=['ticker','date','value']).to_csv('backtest_results/marktsent_equity.csv',index=False)
+    print('TECHNISCHE BACKTEST — onafhankelijke accounts in oorspronkelijke koerseenheden; geen EUR-portefeuille, geen sentiment, geen belastingmodel.')
+    print(f'{len(summaries)}/{len(tickers)} tickers gesimuleerd; {len(trades)} gesloten trades.')
+    print('\n'.join(issues+errors))
+    if errors or not summaries:
+        raise RuntimeError('; '.join(errors) or 'Geen simuleerbare tickers')
+    return summaries
 
-    if not all_tickers:
-        print("[ERROR] Geen tickers gevonden.")
-        return
 
-    print(f"Tickers: {len(all_tickers)} | Data downloaden (5y)...")
-    df = download_history(all_tickers, period="5y")
-    if df.empty:
-        print("[ERROR] Geen data.")
-        return
-
-    all_dates = sorted(df["Date"].dt.date.unique())
-    cash      = START_CAPITAL
-    positions: Dict[str, Dict] = {}
-    trades:    List[Dict]      = []
-
-    scan_dates = []
-    prev_month = None
-    for d in all_dates:
-        if d.month != prev_month:
-            scan_dates.append(d)
-            prev_month = d.month
-    print(f"Scanmomenten: {len(scan_dates)} (maandelijks)")
-
-    for scan_date in scan_dates:
-        df_hist = df[df["Date"] <= pd.Timestamp(scan_date)].copy()
-
-        for ticker, group in df_hist.groupby("Ticker", sort=False):
-            if ticker in positions or len(positions) >= MAX_POSITIONS:
-                continue
-            sig = analyse_ticker(ticker, group, met_sentiment=False)
-            if not sig or sig.tech_score < MS_CFG["min_score"]:
-                continue
-            entry = sig.price * (1 + SLIPPAGE_PCT)
-            risico_eur   = cash * RISICO_PCT_PER_TRADE
-            stop_afstand = 2.0 * sig.atr
-            if math.isnan(stop_afstand) or stop_afstand <= 0:
-                continue
-            aandelen    = max(1, int(risico_eur / stop_afstand))
-            investering = entry * aandelen + trade_cost(entry * aandelen)
-            if investering > cash:
-                continue
-            cash -= investering
-            positions[ticker] = {
-                "entry_date": scan_date, "entry_price": round(entry, 4),
-                "size": aandelen, "stop": sig.stop, "days": 0,
-                "cost": trade_cost(investering), "score": sig.tech_score,
-            }
-
-        day_df = df[df["Date"] == pd.Timestamp(scan_date)].copy()
-        price_map: Dict[str, float] = {}
-        for _, row in day_df.iterrows():
-            t = row.get("Ticker")
-            c = safe_float(row.get("Close"))
-            if t and not math.isnan(c):
-                price_map[t] = c
-
-        for ticker, pos in list(positions.items()):
-            pos["days"] += 1
-            if ticker not in price_map:
-                continue
-            close  = price_map[ticker]
-            reason = None
-            if close <= pos["stop"]:
-                reason = f"SL ({pos['stop']:.2f})"
-            elif pos["days"] >= 60:
-                reason = "Time (60d)"
-
-            if reason:
-                exit_slip = close * (1 - SLIPPAGE_PCT)
-                gross     = exit_slip * pos["size"]
-                cost      = trade_cost(gross)
-                pnl       = gross - cost - (pos["entry_price"] * pos["size"] + pos["cost"])
-                tax       = pnl * TAX_RATE if pnl > 0 else 0.0
-                cash     += gross - cost - tax
-                trades.append({
-                    "entry_date": pos["entry_date"].isoformat(), "exit_date": scan_date.isoformat(),
-                    "ticker": ticker, "score": pos["score"], "entry_price": pos["entry_price"],
-                    "exit_price": round(exit_slip, 4), "size": pos["size"], "pnl": round(pnl, 2),
-                    "tax": round(tax, 2), "net": round(pnl - tax, 2), "reason": reason, "days": pos["days"],
-                })
-                del positions[ticker]
-
-    if trades:
-        tdf   = pd.DataFrame(trades)
-        n     = len(tdf)
-        nwin  = (tdf["net"] > 0).sum()
-        pf    = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
-        final = cash + sum(price_map.get(t, p["entry_price"]) * p["size"] for t, p in positions.items())
-        print(f"\n{'='*60}\nStartkapitaal : EUR{START_CAPITAL:>12,.2f}\nEindkapitaal  : EUR{final:>12,.2f}\nRendement     : {(final-START_CAPITAL)/START_CAPITAL*100:>+.1f}%")
-        print(f"Trades        : {n} | Winnaars: {nwin} ({nwin/n*100:.1f}%)\nProfit Factor : {pf:.2f}\nBelasting     : EUR{tdf['tax'].sum():,.2f}")
-        print(f"Gem. houdduur : {tdf['days'].mean():.1f} dagen\n{'='*60}\n(Dit is de technische score zonder sentiment — zie docstring.)")
-    else:
-        print("Geen trades gegenereerd.")
-
-# ============================================================
-# ENTRYPOINT
-# ============================================================
-
-if __name__ == "__main__":
-    mode = sys.argv[1].lower() if len(sys.argv) > 1 else "live"
-    if mode == "backtest":
+if __name__=='__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('mode',nargs='?',choices=('live','backtest'),default='live')
+    args = parser.parse_args()
+    if args.mode=='backtest':
         run_backtest()
     else:
         run_live_engine()
