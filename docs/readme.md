@@ -10,6 +10,7 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 ## Uitvoering
 
 - [Scantempo en wachttijden](scantempo.md)
+- [Opslagintegriteit en herstarts](opslag_integriteit.md)
 
 ## Controlerapporten
 

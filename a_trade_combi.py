@@ -9,6 +9,8 @@ Dynamische gewichten op basis van Sharpe (uit forward_returns).
 
 import os
 import time
+import math
+import pandas as pd
 from typing import Dict, List, Set, Tuple
 
 import psycopg2
@@ -222,18 +224,34 @@ def herbereken_gewichten() -> Dict[str, float]:
 # SELECTIES
 # ============================================================
 
-def compute_atr_pct(exchange_tickers, all_tickers) -> Dict[str, float]:
+def compute_atr_pct(exchange_tickers, all_tickers, quotes=None) -> Dict[str, float]:
     print("[atr] Koersdata (3y) via bot_00kr's ATR-berekening...")
     df = download_history(all_tickers, period="3y")
     if df.empty:
         return {}
     atr_pct: Dict[str, float] = {}
+    quotes = quotes if quotes is not None else {}
     for ex_name, tlist in exchange_tickers.items():
         df_ex = df[df["Ticker"].isin(tlist)]
         for ticker, group in df_ex.groupby("Ticker", sort=False):
+            group = group.copy()
+            dates = pd.to_datetime(group["Date"], errors="coerce")
+            if dates.dt.tz is not None:
+                dates = dates.dt.tz_localize(None)
+            group["Date"] = dates
+            group = group.loc[dates.notna() & (dates.dt.normalize() < pd.Timestamp(today_str()))]
+            group = group.sort_values("Date").drop_duplicates("Date", keep="last")
+            if group.empty:
+                continue
+            latest = group.iloc[-1]
+            price = float(latest["Close"])
+            quote_date = pd.Timestamp(latest["Date"]).normalize()
+            if not math.isfinite(price) or price <= 0 or (pd.Timestamp(today_str())-quote_date).days > 7:
+                continue
             sig = kr.analyse_ticker(ticker, group)
             if sig is not None and sig.price and sig.price > 0:
                 atr_pct[ticker] = round(sig.atr / sig.price * 100, 2)
+                quotes[ticker] = (price, quote_date.date().isoformat())
     return atr_pct
 
 def selecties_repititief(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
@@ -344,7 +362,9 @@ def run_live_engine():
     print(f"Totaal universum: {len(all_tickers)} unieke tickers over {len(exchange_tickers)} beurzen\n")
 
     warm_up_yfinance()
-    atr_pct = compute_atr_pct(exchange_tickers, all_tickers)
+    quotes = {}
+    atr_pct = compute_atr_pct(exchange_tickers, all_tickers, quotes=quotes)
+    storage_errors = []
 
     per_strategie: Dict[str, Dict[str, Set[str]]] = {}
     per_strategie["repititief"] = selecties_repititief(exchange_tickers, all_tickers)
@@ -388,16 +408,21 @@ def run_live_engine():
         print(f"\n{ex_name}: {len(gewogen_score)} tickers met >=1 selectie, {len(kandidaten)} na volatiliteitsfilter, top {len(top)} gerapporteerd")
 
         for ticker, score, atr, strategieen in top:
-            db_logger.log_selectie(
-                ticker=ticker, datum=today_str(), strategie="bot_combi_volatiel",
-                beurs=ex_name, koers=None,
+            price, quote_date = quotes[ticker]
+            stored = db_logger.log_selectie(
+                ticker=ticker, datum=quote_date, strategie="bot_combi_volatiel",
+                beurs=ex_name, koers=price,
                 parameters={
+                    "signal_date": quote_date,
+                    "price_basis": "yahoo_auto_adjusted_close",
                     "gewogen_score": round(score, 2),
                     "strategieen": ", ".join(sorted(strategieen)),
                     "atr_pct": atr,
                     "grafiek": _yahoo_link(ticker),
                 },
             )
+            if not stored:
+                storage_errors.append(f"{ticker}/{ex_name}: databaseopslag mislukt")
 
         if not top:
             continue
@@ -422,6 +447,8 @@ def run_live_engine():
             body="\n\n" + ("=" * 40 + "\n\n").join(email_delen),
         )
 
+    if storage_errors:
+        raise RuntimeError("; ".join(storage_errors))
     print(f"\n{'='*60}\nKlaar.")
 
 if __name__ == "__main__":

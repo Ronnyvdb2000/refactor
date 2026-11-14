@@ -25,14 +25,12 @@ Vereist:
   runners hebben geen IPv6, en de Direct Connection-hostname is enkel
   over IPv6 bereikbaar.
 
-Gedrag bij fouten:
-- Als de DSN zelf ongeldig is (bv. plak-fout, ontbrekende '=', verkeerd
-  wachtwoord) faalt de EERSTE aanroep, wordt dat 1x duidelijk gelogd,
-  en wordt DB-logging voor de rest van deze procesrun automatisch
-  uitgeschakeld -- zo blijft de bot draaien en spamt hij niet 20-30x
-  dezelfde fout in de Actions-log.
-- Andere fouten (bv. een tijdelijke netwerkhik) worden wel per insert
-  gelogd, want die kunnen de volgende keer wel slagen.
+Herstarts en gelijktijdige runs:
+- Dezelfde ticker/datum/strategie/beurs/horizon wordt niet opnieuw ingevoegd.
+- Een transactiegebonden advisory lock serialiseert schrijvers die deze helper gebruiken.
+- Bestaande geldige snapshots blijven behouden; een ontbrekende koers kan worden aangevuld.
+- Dit vervangt geen database-UNIQUE-constraint voor andere, rechtstreekse schrijvers.
+- Tijdelijke verbindingsfouten blokkeren niet langer alle volgende aanroepen.
 
 2026-08-17: _KOLOM_WHITELIST uitgebreid met de weekdag/maand/kwartaal-
 kolommen van bot_01repititief.py (seizoenseffecten-bot). Vereist dat de
@@ -80,6 +78,7 @@ import logging
 from datetime import date, datetime
 
 import psycopg2
+from psycopg2 import sql
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +176,7 @@ def _get_connection():
             f"met 'postgresql://' of 'postgres://'. Controleer op een per "
             f"ongeluk meegekopieerde spatie, aanhalingsteken of regeleinde."
         )
-    return psycopg2.connect(db_url)
+    return psycopg2.connect(db_url, connect_timeout=15)
 
 
 def _bouw_insert(parameters: dict):
@@ -194,114 +193,156 @@ def _bouw_insert(parameters: dict):
     return kolommen, waarden
 
 
-def log_selectie(
-    ticker: str,
-    datum,
-    strategie: str,
-    beurs: str = None,
-    koers: float = None,
-    parameters: dict = None,
-) -> bool:
-    """
-    Schrijft één selectie weg naar de `selecties`-tabel in Supabase.
-
-    - datum: str (bv. "2026-08-04") of een date/datetime object.
-    - parameters: gewone dict. Wordt zowel als JSON in de `parameters`-kolom
-      geschreven, als (voor de bekende keys uit _KOLOM_WHITELIST) in hun
-      eigen losse kolom.
-
-    Geeft True terug bij succes, False bij een fout (fout wordt gelogd,
-    niet opgegooid -- zo blijft de bot draaien ook als de DB-insert faalt).
-    """
-    global _dsn_invalid
-
-    if _dsn_invalid:
-        # We hebben al vastgesteld dat de DSN/config niet werkt deze run.
-        # Niet opnieuw proberen -- dat levert enkel identieke ruis op.
-        return False
-
-    if isinstance(datum, (date, datetime)):
+def _prepare_row(row):
+    row = dict(row)
+    datum = row.get("datum")
+    if isinstance(datum, datetime):
+        datum = datum.date()
+    if isinstance(datum, date):
         datum = datum.isoformat()
+    # The natural key uses a calendar date, never a run timestamp.
+    date.fromisoformat(datum)
+    for key in ("ticker", "strategie"):
+        if not isinstance(row.get(key), str) or not row[key].strip():
+            raise ValueError(f"{key} ontbreekt")
+    row["datum"] = datum
+    row["parameters"] = _sanitize(row.get("parameters"))
+    if row["parameters"] is not None and not isinstance(row["parameters"], dict):
+        raise ValueError("parameters moet een dict zijn")
+    row["koers"] = _sanitize(row.get("koers"))
+    if row["koers"] is not None:
+        row["koers"] = float(row["koers"])
+        if not math.isfinite(row["koers"]) or row["koers"] <= 0:
+            raise ValueError("koers moet positief en eindig zijn")
+    return row
 
-    koers = _sanitize(koers)
-    parameters = _sanitize(parameters)
-    params_json = json.dumps(parameters) if parameters is not None else None
-    extra_kolommen, extra_waarden = _bouw_insert(parameters)
 
+def _selectie_key(row):
+    parameters = row["parameters"] or {}
+    # ->> in PostgreSQL returns strings for JSON scalar values too.
+    def json_text(key):
+        value = parameters.get(key)
+        if value is None:
+            return None
+        return value if isinstance(value, str) else json.dumps(value, separators=(",", ":"))
+    horizon, horizon_days = json_text("horizon"), json_text("horizon_days")
+    return [row["ticker"], row["datum"], row["strategie"], row.get("beurs"), horizon, horizon_days]
+
+
+def _write_selectie(cur, row):
+    """Insert once per ticker/date/strategy/exchange/horizon, under a key lock.
+
+    Returns True for an insert or missing-price repair, False for an already
+    stored selection. Existing valid snapshots are never replaced on a rerun.
+    All writers must use this protocol; it is not a database unique constraint.
+    """
+    row = _prepare_row(row)
+    key = _selectie_key(row)
+    # Separate statements are essential: under READ COMMITTED the SELECT
+    # after waiting for a competing writer observes its newly committed row.
+    cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                (json.dumps(key, ensure_ascii=True, separators=(",", ":")),))
+    cur.execute("""
+        SELECT id, koers FROM selecties
+        WHERE ticker = %s AND datum = %s AND strategie = %s
+          AND beurs IS NOT DISTINCT FROM %s
+          AND parameters->>'horizon' IS NOT DISTINCT FROM %s
+          AND parameters->>'horizon_days' IS NOT DISTINCT FROM %s
+        ORDER BY (koers > 0 AND koers < 'Infinity'::real) DESC NULLS LAST,
+                 created_at ASC NULLS LAST, id ASC
+        LIMIT 1
+    """, tuple(key))
+    existing = cur.fetchone()
+    if existing:
+        old_price = existing[1]
+        if row["koers"] is not None and (old_price is None or not math.isfinite(float(old_price)) or old_price <= 0):
+            cur.execute("UPDATE selecties SET koers = %s WHERE id = %s", (row["koers"], existing[0]))
+            return True
+        return False
+    extras, extra_values = _bouw_insert(row["parameters"])
+    columns = ["ticker", "datum", "strategie", "beurs", "koers", "parameters"] + extras
+    values = [row["ticker"], row["datum"], row["strategie"], row.get("beurs"), row["koers"],
+              json.dumps(row["parameters"], allow_nan=False) if row["parameters"] is not None else None] + extra_values
+    cur.execute(sql.SQL("INSERT INTO selecties ({}) VALUES ({})").format(
+        sql.SQL(", ").join(map(sql.Identifier, columns)),
+        sql.SQL(", ").join(sql.Placeholder() for _ in values)), values)
+    return True
+
+
+def log_selectie(ticker: str, datum, strategie: str, beurs: str = None,
+                 koers: float = None, parameters: dict = None) -> bool:
+    """True means persisted or already present; reruns preserve valid snapshots."""
+    global _dsn_invalid
+    if _dsn_invalid:
+        return False
+    try:
+        row = _prepare_row(dict(ticker=ticker, datum=datum, strategie=strategie,
+                                beurs=beurs, koers=koers, parameters=parameters))
+    except (ValueError, TypeError) as exc:
+        logger.error("db_logger: ongeldige selectie %s: %s", ticker, exc)
+        return False
     try:
         conn = _get_connection()
     except Exception as exc:
-        logger.error("db_logger: kon geen DB-connectie opzetten, DB-logging uitgeschakeld voor deze run: %s", exc)
-        _dsn_invalid = True
+        logger.error("db_logger: kon geen DB-connectie opzetten: %s", exc)
         return False
-
     try:
-        kolommen = ["ticker", "datum", "strategie", "beurs", "koers", "parameters"] + extra_kolommen
-        waarden  = [ticker, datum, strategie, beurs, koers, params_json] + extra_waarden
-        placeholders = ", ".join(["%s"] * len(waarden))
-        kolom_lijst  = ", ".join(kolommen)
         with conn.cursor() as cur:
-            cur.execute(
-                f"INSERT INTO selecties ({kolom_lijst}) VALUES ({placeholders})",
-                waarden,
-            )
+            cur.execute("SET LOCAL lock_timeout = '15s'")
+            _write_selectie(cur, row)
         conn.commit()
         return True
     except Exception as exc:
-        logger.error("db_logger: insert voor %s (%s) mislukt: %s", ticker, strategie, exc)
+        conn.rollback()
+        logger.error("db_logger: opslag voor %s (%s) mislukt: %s", ticker, strategie, exc)
         return False
     finally:
         conn.close()
 
 
-def log_selecties_bulk(rows: list) -> int:
-    """
-    Schrijft meerdere selecties in één connectie/transactie weg.
-    rows: lijst van dicts met keys ticker, datum, strategie, beurs, koers, parameters.
-    Geeft het aantal succesvol weggeschreven rijen terug.
-    """
-    global _dsn_invalid
+def log_selecties_bulk(rows: list, connection=None) -> int:
+    """Returns inserted/repaired count; existing valid selections count as zero.
 
+    Optional connection is committed/rolled back here, but never closed here.
+    Savepoints isolate row failures; counts are returned only after commit.
+    Sort keys to keep advisory lock acquisition deterministic across batches.
+    """
     if not rows or _dsn_invalid:
         return 0
-
+    own_connection = connection is None
     try:
-        conn = _get_connection()
+        conn = _get_connection() if own_connection else connection
     except Exception as exc:
-        logger.error("db_logger: kon geen DB-connectie opzetten, DB-logging uitgeschakeld voor deze run: %s", exc)
-        _dsn_invalid = True
+        logger.error("db_logger: kon geen DB-connectie opzetten: %s", exc)
         return 0
-
-    aantal_ok = 0
+    count = 0
     try:
+        prepared = []
+        for row in rows:
+            try:
+                prepared.append(_prepare_row(row))
+            except (ValueError, TypeError) as exc:
+                logger.error("db_logger: ongeldige rij (%s): %s", row.get("ticker"), exc)
+        def order(row):
+            return json.dumps(_selectie_key(row), ensure_ascii=True, separators=(",", ":"))
         with conn.cursor() as cur:
-            for row in rows:
-                datum = row.get("datum")
-                if isinstance(datum, (date, datetime)):
-                    datum = datum.isoformat()
-                koers_val = _sanitize(row.get("koers"))
-                parameters = _sanitize(row.get("parameters"))
-                params_json = json.dumps(parameters) if parameters is not None else None
-                extra_kolommen, extra_waarden = _bouw_insert(parameters)
+            cur.execute("SET LOCAL lock_timeout = '15s'")
+            for row in sorted(prepared, key=order):
+                cur.execute("SAVEPOINT selectie_row")
                 try:
-                    kolommen = ["ticker", "datum", "strategie", "beurs", "koers", "parameters"] + extra_kolommen
-                    waarden = [
-                        row.get("ticker"), datum, row.get("strategie"),
-                        row.get("beurs"), koers_val, params_json,
-                    ] + extra_waarden
-                    placeholders = ", ".join(["%s"] * len(waarden))
-                    kolom_lijst  = ", ".join(kolommen)
-                    cur.execute(
-                        f"INSERT INTO selecties ({kolom_lijst}) VALUES ({placeholders})",
-                        waarden,
-                    )
-                    aantal_ok += 1
+                    changed = _write_selectie(cur, row)
+                    cur.execute("RELEASE SAVEPOINT selectie_row")
+                    count += int(changed)
                 except Exception as exc:
-                    logger.error(
-                        "db_logger: rij overgeslagen (%s): %s", row.get("ticker"), exc
-                    )
+                    cur.execute("ROLLBACK TO SAVEPOINT selectie_row")
+                    cur.execute("RELEASE SAVEPOINT selectie_row")
+                    logger.error("db_logger: rij overgeslagen (%s): %s", row["ticker"], exc)
         conn.commit()
+        return count
+    except Exception as exc:
+        conn.rollback()
+        logger.error("db_logger: bulkopslag mislukt: %s", exc)
+        return 0
     finally:
-        conn.close()
-
-    return aantal_ok
+        if own_connection:
+            conn.close()

@@ -7,7 +7,9 @@ Gebruikt common/ voor gedeelde bouwstenen.
 Bevat split-correctie, eenheidsbreuk-detectie en dubbele-selectie logging.
 
 v2.1: Een onvolledige nieuwe berekening wist nooit eerder opgeslagen
-forward closes/returns. Alleen niet-NULL waarden mogen bestaande labels
+forward closes/returns. Een afwijkende instapkoers blokkeert een update,
+zodat bestaande labels niet ongemerkt een andere basis krijgen.
+Alleen niet-NULL waarden mogen bestaande labels
 vervangen. Dit voorkomt verlies van historische trainingslabels.
 """
 
@@ -127,7 +129,10 @@ def bouw_upsert_query() -> str:
         INSERT INTO forward_returns ({kolom_lijst})
         VALUES ({placeholders})
         ON CONFLICT (ticker, datum, strategie)
-        DO UPDATE SET {update_lijst};
+        DO UPDATE SET {update_lijst}
+        WHERE forward_returns.entry_koers IS NULL
+           OR abs(forward_returns.entry_koers - EXCLUDED.entry_koers)
+              <= GREATEST(0.000001, abs(forward_returns.entry_koers) * 0.000001);
     """
 
 
@@ -139,12 +144,16 @@ def upsert_labels(conn, rijen: List[dict]) -> int:
         kolommen.extend([f"fwd_close_{h}d", f"fwd_ret_{h}d"])
 
     query = bouw_upsert_query()
+    changed = 0
     with conn.cursor() as cur:
         for rij in rijen:
             volledige_rij = {k: rij.get(k) for k in kolommen}
             cur.execute(query, volledige_rij)
+            changed += cur.rowcount
+            if not cur.rowcount:
+                waarschuw(f"{rij['ticker']} {rij['datum']}/{rij['strategie']}: andere instapkoers; bestaande labels behouden")
     conn.commit()
-    return len(rijen)
+    return changed
 
 
 def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:

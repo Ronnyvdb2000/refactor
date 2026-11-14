@@ -58,6 +58,8 @@ import os
 import sys
 import argparse
 import html
+import math
+import db_logger
 
 import numpy as np
 import pandas as pd
@@ -233,8 +235,9 @@ def get_data(conn) -> pd.DataFrame:
         SELECT koers
         FROM selecties s
         WHERE s.ticker = t.ticker
-          AND s.datum <= t.datum
-        ORDER BY s.datum DESC
+          AND s.datum = t.datum
+          AND s.koers > 0 AND s.koers < 'Infinity'::real
+        ORDER BY s.created_at ASC NULLS LAST, s.id ASC
         LIMIT 1
     ) sel ON TRUE;
     """
@@ -444,54 +447,25 @@ def bouw_telegram_bericht(
 # ============================================================
 
 def schrijf_naar_selecties(conn, picks_per_horizon, score_datum):
-    insert = """
-        INSERT INTO selecties (ticker, datum, strategie, beurs, koers, parameters)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT DO NOTHING;
-    """
-
-    rijen = []
+    rows = []
     for horizon, picks in picks_per_horizon.items():
         if picks is None or picks.empty:
             continue
         for _, r in picks.iterrows():
-            params = {
-                "score": float(r["score"]),
-                "model": MODEL_VERSIE,
-                "horizon": horizon,
-                "grafiek": f"https://finance.yahoo.com/quote/{r['ticker']}",
-            }
-            koers_val = r.get("koers") if "koers" in picks.columns else None
             try:
-                if koers_val is not None and not pd.isna(koers_val):
-                    koers_val = float(koers_val)
-                else:
-                    koers_val = None
-            except Exception:
-                koers_val = None
-
-            rijen.append((
-                r["ticker"],
-                score_datum.strftime("%Y-%m-%d"),
-                MODEL_VERSIE,
-                None,
-                koers_val,
-                psycopg2.extras.Json(params),
-            ))
-
-    if not rijen:
-        return 0
-
-    try:
-        with conn.cursor() as cur:
-            psycopg2.extras.execute_batch(cur, insert, rijen, page_size=200)
-        conn.commit()
-        print(f"[DB] {len(rijen)} picks geschreven naar selecties.")
-        return len(rijen)
-    except Exception as e:
-        conn.rollback()
-        print(f"[DB] Schrijven naar selecties mislukt: {e}")
-        return 0
+                price = float(r.get("koers"))
+                if not math.isfinite(price) or price <= 0:
+                    raise ValueError("geen positieve eindige koers")
+            except (TypeError, ValueError):
+                print(f"[DB] {r['ticker']} ({horizon}) niet opgeslagen: koers op scoredatum ontbreekt.")
+                continue
+            rows.append(dict(ticker=r["ticker"], datum=score_datum.strftime("%Y-%m-%d"),
+                strategie=MODEL_VERSIE, beurs=None, koers=price,
+                parameters={"score": float(r["score"]), "model": MODEL_VERSIE,
+                    "horizon": horizon, "grafiek": f"https://finance.yahoo.com/quote/{r['ticker']}"}))
+    count = db_logger.log_selecties_bulk(rows, connection=conn)
+    print(f"[DB] {count} picks nieuw opgeslagen of aangevuld; bestaande picks behouden.")
+    return count
 
 
 def schrijf_model_metrics(
