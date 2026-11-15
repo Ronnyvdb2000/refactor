@@ -25,7 +25,7 @@ on:
       top_n:
         description: "Max aantal picks om te analyseren"
         required: false
-        default: "10"
+        default: "5"
         type: string
       channel:
         description: "Waar het resultaat naartoe"
@@ -42,13 +42,14 @@ on:
         default: ""
         type: string
       groq_model:
-        description: "Groq-model (llama-3.3-70b-versatile is stopgezet)"
+        description: "Groq-model voor de analyse"
         required: false
-        default: "openai/gpt-oss-120b"
+        default: "openai/gpt-oss-20b"
         type: choice
         options:
+          - openai/gpt-oss-20b
           - openai/gpt-oss-120b
-          - qwen/qwen3.6-27b
+          - qwen/qwen3.8-27b
 
   schedule:
     # Dagelijks om 23:00 UTC (na de daily run van a_par_model om 05:00)
@@ -57,10 +58,12 @@ on:
   push:
     paths:
       - "tradingagents_bridge.py"
+      - "requirements-tradingagents.txt"
       - ".github/workflows/tradingagentsbridge.yml"
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: workflow-tradingagentsbridge-${{ github.ref }}
@@ -71,6 +74,14 @@ jobs:
   run-bridge:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      PYTHONUNBUFFERED: "1"
+      SOURCE: ${{ inputs.source || 'par' }}
+      HORIZON: ${{ inputs.horizon || '10d' }}
+      TOP_N: ${{ inputs.top_n || '5' }}
+      CHANNEL: ${{ inputs.channel || 'telegram' }}
+      DATE_ARG: ${{ inputs.trade_date || '' }}
+      GROQ_MODEL: ${{ inputs.groq_model || 'openai/gpt-oss-20b' }}
 
     steps:
       - name: Checkout repository
@@ -81,18 +92,24 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: requirements-tradingagents.txt
+
+      - name: Valideer invoer
+        run: |
+          python - <<'PYTHON'
+          import datetime, os
+          assert os.environ['SOURCE'] in ('par', 'vcp'), 'Ongeldige bron'
+          assert os.environ['HORIZON'] in ('5d','10d','20d','30d','60d'), 'Ongeldige horizon'
+          assert os.environ['CHANNEL'] in ('telegram','email','both'), 'Ongeldig kanaal'
+          assert 1 <= int(os.environ['TOP_N']) <= 10, 'top_n moet tussen 1 en 10 liggen'
+          if os.environ['DATE_ARG']:
+              datum = datetime.date.fromisoformat(os.environ['DATE_ARG'])
+              assert datum.isoformat() == os.environ['DATE_ARG'], 'Gebruik YYYY-MM-DD'
+              assert datum <= datetime.date.today(), 'Datum ligt in de toekomst'
+          PYTHON
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install \
-            numpy==1.26.4 \
-            pandas==2.2.3 \
-            scipy==1.14.1 \
-            psycopg2-binary==2.9.10 \
-            requests==2.32.3
-          # TradingAgents staat niet op PyPI, maar op GitHub:
-          pip install git+https://github.com/TauricResearch/TradingAgents.git
+        run: python -m pip install -r requirements-tradingagents.txt
 
       - name: Verify installaties
         run: |
@@ -114,51 +131,60 @@ jobs:
             echo "FOUT: GROQ_API_KEY secret ontbreekt (verplicht voor TradingAgents)"
             exit 1
           fi
-          if [ -z "$SUPABASE_DB_URL" ]; then
+          if [ "$SOURCE" = "par" ] && [ -z "$SUPABASE_DB_URL" ]; then
             echo "FOUT: SUPABASE_DB_URL secret ontbreekt"
             exit 1
           fi
-          echo "GROQ_API_KEY gezet (lengte: ${#GROQ_API_KEY})"
-          echo "SUPABASE_DB_URL gezet (lengte: ${#SUPABASE_DB_URL})"
+          echo "Vereiste secrets aanwezig."
 
       - name: Run a_par_model (indien source=par)
-        if: ${{ github.event.inputs.source == 'par' || github.event_name == 'schedule' }}
+        if: env.SOURCE == 'par'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          set -o pipefail
           echo "a_par_model draaien (zonder Telegram, alleen CSV-output)..."
           mkdir -p results
           
-          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
-          TOP_N="${{ github.event.inputs.top_n || '10' }}"
-          
+          DATE_ARGS=()
+          if [ -n "$DATE_ARG" ]; then DATE_ARGS=(--datum "$DATE_ARG"); fi
+
           python a_par_model.py \
             --horizons "$HORIZON" \
             --top-n "$TOP_N" \
+            "${DATE_ARGS[@]}" \
             --geen-db-write \
             --geen-notify \
             2>&1 | tee a_par_model_run.log
 
-      - name: Controleer of picks bestaan
+      - name: Haal VCP-signalen uit de laatste geslaagde bronrun
+        if: env.SOURCE == 'vcp'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
+          RUN_ID=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow run_00vcp.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+            echo "::error::Geen geslaagde VCP-bronrun beschikbaar."
+            exit 1
+          fi
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name vcp-signals --dir .
+          test -s vcp_signals.json
+
+      - name: Controleer par-picks
+        if: env.SOURCE == 'par'
+        run: |
           PAD="results/a_par_model_${HORIZON}_picks.csv"
-          if [ -f "$PAD" ]; then
-            echo "=== $PAD ==="
-            cat "$PAD"
-          else
-            echo "::warning::$PAD niet gevonden. a_par_model heeft mogelijk geen picks gegenereerd."
-            ls -la results/ || true
+          if [ ! -s "$PAD" ]; then
+            echo "::error::$PAD ontbreekt; TradingAgents kan geen par-picks analyseren."
+            exit 1
           fi
 
       - name: Run TradingAgents bridge
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          # Bij schedule/push zijn de inputs leeg -> fallback op het standaardmodel
-          GROQ_MODEL: ${{ github.event.inputs.groq_model || 'openai/gpt-oss-120b' }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
@@ -167,16 +193,8 @@ jobs:
         run: |
           set -o pipefail
 
-          SOURCE="${{ github.event.inputs.source || 'par' }}"
-          HORIZON="${{ github.event.inputs.horizon || '10d' }}"
-          TOP_N="${{ github.event.inputs.top_n || '10' }}"
-          CHANNEL="${{ github.event.inputs.channel || 'telegram' }}"
-          DATE_ARG="${{ github.event.inputs.trade_date }}"
-
-          ARGS="--source $SOURCE --horizon $HORIZON --top-n $TOP_N --channel $CHANNEL"
-          if [ -n "$DATE_ARG" ]; then
-            ARGS="$ARGS --date $DATE_ARG"
-          fi
+          ARGS=(--source "$SOURCE" --horizon "$HORIZON" --top-n "$TOP_N" --channel "$CHANNEL")
+          if [ -n "$DATE_ARG" ]; then ARGS+=(--date "$DATE_ARG"); fi
 
           echo "============================================================"
           echo "TradingAgents bridge start"
@@ -185,10 +203,11 @@ jobs:
           echo "  top_n   = $TOP_N"
           echo "  channel = $CHANNEL"
           echo "  model   = $GROQ_MODEL"
-          echo "  args    = $ARGS"
+          printf "  args    = %q " "${ARGS[@]}"
+          echo
           echo "============================================================"
 
-          python -u tradingagents_bridge.py $ARGS 2>&1 | tee tradingagents_output.log
+          python -u tradingagents_bridge.py "${ARGS[@]}" 2>&1 | tee tradingagents_output.log
 
       - name: Bewaar log + picks als artifact
         if: always()
@@ -207,8 +226,8 @@ jobs:
         if: always()
         run: |
           if [ -f tradingagents_output.log ]; then
-            echo "## TradingAgents resultaat" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 50 tradingagents_output.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "## TradingAgents resultaat" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            tail -n 50 tradingagents_output.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
           fi

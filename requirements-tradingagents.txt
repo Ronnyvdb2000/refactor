@@ -1,0 +1,7 @@
+# Gezamenlijk oplossen: TradingAgents vereist pandas>=3.0.6 en requests>=2.32.4.
+numpy>=1.26,<3
+pandas>=3.0.6,<4
+scipy>=1.14,<2
+psycopg2-binary>=2.9,<3
+requests>=2.32.4,<3
+tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@9fa1196fffbcfd9de5146d2dd2869df84ab99838

@@ -14,10 +14,10 @@ Werking:
   2. Dit script leest de tickers, laat TradingAgents per ticker een besluit
      genereren, en stuurt het resultaat naar Telegram en/of Gmail.
 
-Gratis gehouden door:
-  - Groq als LLM-provider (gratis rate-limited tier, geen lokale GPU nodig)
-  - max_debate_rounds=1 om binnen de gratis Groq rate limits te blijven
-  - online_tools=False om prompts klein te houden
+Groq-gebruik begrenzen:
+  - Groq als LLM-provider, geen lokale GPU nodig
+  - max_debate_rounds=1 om het aantal calls te beperken
+  - begrensde toolrondes en nieuwsaantallen om prompts kleiner te houden
   - Slimme retry-logica die Groq's TPM/TPD-foutmeldingen parseert en
     respecteert, zodat we de gratis limieten niet onnodig verbruiken
   - 413 (Request too large) wordt direct overgeslagen: geen retry zinloos
@@ -32,6 +32,7 @@ Optioneel:
 """
 
 import os
+from copy import deepcopy
 import sys
 import re
 import csv
@@ -52,22 +53,14 @@ from tradingagents.default_config import DEFAULT_CONFIG
 # CONFIG
 # ============================================================
 
-# Standaard Groq-model.
-#   llama-3.1-8b-instant     : 6k TPM, 500k TPD   <- gekozen om TPD-plafond
-#   openai/gpt-oss-120b      : 8k TPM, 200k TPD   (snel TPD uitgeput)
-# Let op: TPM is bij 8b-instant iets lager, daarom een langere slaap
-# tussen tickers (zie --sleep). Overschrijven via GROQ_MODEL env var.
-DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
-
-# Maximum tokens dat een enkel model-antwoord mag teruggeven. Dit verkleint
-# de totale request-grootte (input + gereserveerde output) en helpt de TPM-
-# limiet te respecteren.
-DEFAULT_MAX_TOKENS = 2000
+# Zelfde actuele standaard als de workflow; expliciet overschrijfbaar via GROQ_MODEL.
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b"
+DEFAULT_MAX_TOKENS = 1024
 
 
 def build_config():
-    """Gratis configuratie: Groq-inference i.p.v. betaalde OpenAI/Anthropic calls."""
-    config = DEFAULT_CONFIG.copy()
+    """Groq-configuratie met beperkte context; beschikbaar budget blijft vereist."""
+    config = deepcopy(DEFAULT_CONFIG)
     config["llm_provider"] = "groq"
     config["backend_url"] = "https://api.groq.com/openai/v1"
 
@@ -75,12 +68,17 @@ def build_config():
     config["deep_think_llm"] = model
     config["quick_think_llm"] = model
 
-    # Kleinere debat-diepte = minder calls = ruim binnen gratis rate limits
+    # Kleinere debat-diepte beperkt calls, maar garandeert geen resterend budget.
     config["max_debate_rounds"] = 1
     config["max_risk_discuss_rounds"] = 1
-    # Uitgezet: online_tools haalt live nieuws/social data op en maakt de
-    # prompt vaak 10-60k tokens groot -> 413-fouten op de gratis tier.
-    config["online_tools"] = False
+    # online_tools wordt door de huidige TradingAgents-versie niet gebruikt.
+    # Begrens de ondersteunde tool-/nieuwsinstellingen; dit garandeert geen
+    # beschikbaar Groq-budget en schakelt online brondata niet uit.
+    config["max_tool_rounds"] = 1
+    config["news_article_limit"] = 3
+    config["global_news_article_limit"] = 2
+    config["global_news_lookback_days"] = 3
+    config["llm_max_retries"] = 0  # Geen verborgen SDK-retries bovenop de bridge.
 
     # Begrens de output-grootte per model-call (helpt tegen 429 TPM,
     # niet tegen 413: dat is een input-grootte probleem).
@@ -327,6 +325,9 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.top_n < 1 or args.max_tickers < 0 or args.max_retries < 1 or args.sleep < 0:
+        parser.error('top-n en max-retries moeten positief zijn; max-tickers en sleep niet negatief')
+
     trade_date = args.date or datetime.date.today().isoformat()
 
     # Bepaal bron
@@ -342,6 +343,8 @@ def main():
         if not tickers:
             print(f"Geen par-picks beschikbaar ({bron_label}) — TradingAgents wordt overgeslagen.")
             return
+
+    tickers = tickers[:args.top_n]  # Dezelfde limiet voor par én VCP.
 
     # Harde bovengrens om TPD-uitputting te beperken
     if args.max_tickers and len(tickers) > args.max_tickers:
