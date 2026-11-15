@@ -121,9 +121,12 @@ def meld(tekst):
     """Telegram behouden; fout wordt zichtbaar in het Actions-log."""
     print(tekst)
     # Zonder parse_mode kunnen namen/tickers de berichtopmaak niet breken.
-    for i in range(0, len(tekst), 3900):
-        if not send_telegram(tekst[i:i+3900], parse_mode=None):
-            print('[WARN] Telegram niet verzonden; controleer configuratie/verzendlog.')
+    delen = [tekst[i:i+3900] for i in range(0, len(tekst), 3900)]
+    for nummer, deel in enumerate(delen, 1):
+        if send_telegram(deel, parse_mode=None):
+            print(f'[weekly] Telegram deel {nummer}/{len(delen)} geaccepteerd door Telegram.')
+        else:
+            print(f'::warning::Telegram deel {nummer}/{len(delen)} niet verzonden; controleer configuratie/verzendlog.')
 
 
 def normaliseer_lijstticker(naam, ticker):
@@ -256,6 +259,6 @@ def maak_rapport(suffix='a'):
     tijdelijk = pad.with_suffix('.tmp')
     tijdelijk.write_text(json.dumps(toppers, ensure_ascii=False, indent=2), encoding='utf-8')
     tijdelijk.replace(pad)
-    meld(diagnose or tekst)
+    meld(tekst)
     status = ' gedeeltelijk' if onvolledig else ''
     send_email(f'Weekrapport {suffix}{status} {vrijdag}', tekst)

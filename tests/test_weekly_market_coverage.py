@@ -67,7 +67,8 @@ def test_partial_report_publishes_only_sufficient_markets(monkeypatch, tmp_path,
     assert 'GEDEELTELIJK' in messages[0] and 'geen nieuwe toppers' not in messages[0]
     assert 'Wenen: 1/1' in messages[0] and 'Ljubljana: 0/1' in messages[0]
     assert 'Bratislava (broncode): 0/1' in messages[0]
-    assert 'GOOD: +10.00%' not in messages[0]
+    assert 'GOOD: +10.00%' in messages[0]
+    assert 'BG.VI: +10.00%' in messages[0]
     assert 'GOOD: +10.00%' in (tmp_path / f'weekly_rapport_{suffix}.txt').read_text()
     assert (tmp_path / f'weekly_marktdekking_{suffix}.csv').exists()
 
@@ -101,3 +102,20 @@ def test_failed_market_is_not_ranked_even_with_extreme_winner():
         dict(ticker='A.VI', perf=1000), dict(ticker='KRKG.LJ', perf=1)]})
     assert [(g['label'], g['voldoende']) for g in groepen] == [
         ('059 Wenen', False), ('059 Ljubljana', True)]
+
+
+def test_report_telegram_parts_include_entire_text_and_log_delivery(monkeypatch, capsys):
+    sent = []
+    monkeypatch.setattr(w, 'send_telegram', lambda text, **kw: sent.append((text, kw)) or True)
+    tekst = 'GEDEELTELIJK WEEKRAPPORT\n' + 'Stijgers en dalers\n' * 600
+    w.meld(tekst)
+    assert ''.join(text for text, _ in sent) == tekst
+    assert len(sent) > 1
+    assert all(len(text) <= 3900 and kw['parse_mode'] is None for text, kw in sent)
+    assert f'Telegram deel {len(sent)}/{len(sent)} geaccepteerd' in capsys.readouterr().out
+
+
+def test_telegram_failure_is_visible_as_workflow_warning(monkeypatch, capsys):
+    monkeypatch.setattr(w, 'send_telegram', lambda *args, **kwargs: False)
+    w.meld('Weekrapport')
+    assert '::warning::Telegram deel 1/1 niet verzonden' in capsys.readouterr().out
