@@ -1,6 +1,7 @@
 from datetime import date
 
 import pandas as pd
+import json
 import pytest
 
 from weekly import shared as w
@@ -39,8 +40,9 @@ def test_aborted_market_is_unknown_instead_of_zero_coverage(monkeypatch, tmp_pat
     assert set(summary.status) == {'niet_volledig_onderzocht'}
 
 
-def test_incomplete_report_sends_diagnosis_and_keeps_snapshot(monkeypatch, tmp_path):
-    naam = 'tickers_059a.txt'
+@pytest.mark.parametrize("suffix", ["a", "x"])
+def test_partial_report_publishes_only_sufficient_markets(monkeypatch, tmp_path, suffix):
+    naam = f'tickers_059{suffix}.txt'
     lijsten = {'tickers_01.txt': ['GOOD'], naam: ['BG.VI', 'KRKG.LJ', '1TAT01DE']}
     entry = lambda t: dict(ticker=t, perf=10., basisdatum='2026-11-06', einddatum='2026-11-13')
     monkeypatch.setattr(w, 'ROOT', tmp_path)
@@ -51,18 +53,23 @@ def test_incomplete_report_sends_diagnosis_and_keeps_snapshot(monkeypatch, tmp_p
     messages, emails = [], []
     monkeypatch.setattr(w, 'meld', messages.append)
     monkeypatch.setattr(w, 'send_email', lambda *args: emails.append(args))
-    snapshot = tmp_path / 'laatste_toppers.json'
+    snapshot = tmp_path / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
     snapshot.write_text('oude snapshot')
-    with pytest.raises(RuntimeError, match='80%'):
-        w.maak_rapport()
-    assert snapshot.read_text() == 'oude snapshot'
+    w.maak_rapport(suffix)
+    rows = json.loads(snapshot.read_text())
+    assert {r['ticker'] for r in rows} == {'GOOD', 'BG.VI'}
+    vienna = next(r for r in rows if r['ticker'] == 'BG.VI')
+    assert vienna['beurs'] == '059 Wenen'
+    assert vienna['aantal_universum'] == vienna['aantal_bruikbaar'] == 1
+    assert {r['rapport_status'] for r in rows} == {'gedeeltelijk'}
     assert len(messages) == len(emails) == 1
-    assert '1/2 lijsten voldoende' in messages[0]
+    assert '2/4 beurs-/themagroepen voldoende' in messages[0]
+    assert 'GEDEELTELIJK' in messages[0] and 'geen nieuwe toppers' not in messages[0]
     assert 'Wenen: 1/1' in messages[0] and 'Ljubljana: 0/1' in messages[0]
     assert 'Bratislava (broncode): 0/1' in messages[0]
     assert 'GOOD: +10.00%' not in messages[0]
-    assert 'GOOD: +10.00%' in (tmp_path / 'weekly_rapport_a.txt').read_text()
-    assert (tmp_path / 'weekly_marktdekking_a.csv').exists()
+    assert 'GOOD: +10.00%' in (tmp_path / f'weekly_rapport_{suffix}.txt').read_text()
+    assert (tmp_path / f'weekly_marktdekking_{suffix}.csv').exists()
 
 
 def test_market_summary_does_not_treat_unrequested_data_as_failure():
@@ -70,3 +77,27 @@ def test_market_summary_does_not_treat_unrequested_data_as_failure():
                           dict(lijst='x', deelmarkt='markt', bruikbaar=None)])
     assert result[0]['dekking'] is None
     assert result[0]['onbekend'] == 1
+
+
+def test_opvolg_exports_only_sufficient_markets(monkeypatch):
+    from weekly import weekly_report_opvolg as o
+    naam = 'tickers_059a.txt'
+    monkeypatch.setattr(o, 'laad_lijsten', lambda *_: {naam: ['BG.VI', 'KRKG.LJ', '1TAT01DE']})
+    monkeypatch.setattr(o.WeekKoersen, 'laad', lambda *_: None)
+    monkeypatch.setattr(o.WeekKoersen, 'performance', lambda *_: [dict(ticker='BG.VI', perf=10.)])
+    monkeypatch.setattr(o, 'schrijf_dekking', lambda *_: None)
+    messages, exports = [], []
+    monkeypatch.setattr(o, 'meld', messages.append)
+    monkeypatch.setattr(o, 'verwerk_weekly_db_export', lambda rows, *_: exports.extend(rows))
+    o.main()
+    assert len(exports) == 1
+    assert exports[0]['ticker'] == 'BG.VI' and exports[0]['beurs'] == '059 Wenen'
+    assert any('Ljubljana: 0/1' in m and 'geen ranglijst' in m for m in messages)
+
+
+def test_failed_market_is_not_ranked_even_with_extreme_winner():
+    lijsten = {'tickers_059a.txt': ['A.VI', 'B.VI', 'C.VI', 'D.VI', 'KRKG.LJ']}
+    groepen = w.publicatiegroepen(lijsten, {'tickers_059a.txt': [
+        dict(ticker='A.VI', perf=1000), dict(ticker='KRKG.LJ', perf=1)]})
+    assert [(g['label'], g['voldoende']) for g in groepen] == [
+        ('059 Wenen', False), ('059 Ljubljana', True)]

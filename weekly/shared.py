@@ -165,21 +165,34 @@ def schrijf_dekking(suffix, lijsten, resultaten, *, koersen=None):
     ]).to_csv(ROOT / f'weekly_marktdekking_{suffix}.csv', index=False)
 
 
-def dekkingsmelding(lijsten, resultaten, onvolledig):
-    """Compacte Telegram-diagnose; ranglijsten blijven in het rapportartifact."""
-    regels = ['ONVOLLEDIG WEEKRAPPORT — geen nieuwe toppers gepubliceerd.',
-              f'{len(lijsten)-len(onvolledig)}/{len(lijsten)} lijsten voldoende.']
-    for naam in onvolledig:
-        tickers = lijsten[naam]
-        goed = {r['ticker'] for r in resultaten.get(naam, [])}
-        regels.append(f'{label_voor(naam)}: {len(goed)}/{len(tickers)} '
-                      f'({len(goed)/len(tickers):.1%}); geen ranglijst.')
-        rows = [dict(lijst=naam, deelmarkt=deelmarkt(naam, t), bruikbaar=t in goed)
-                for t in tickers]
-        for rij in marktdekking(rows):
-            if rij['deelmarkt'] != 'Gehele lijst':
-                regels.append(f"  {rij['deelmarkt']}: {rij['bruikbaar']}/{rij['aantal']} "
-                              f"({rij['dekking']:.1%}); {rij['status']}.")
+def publicatiegroepen(lijsten, resultaten):
+    """Beoordeel 059 per beurs; bronlijsten en volledige diagnose blijven intact."""
+    groepen = []
+    for naam, tickers in lijsten.items():
+        markten = {}
+        for ticker in tickers:
+            markten.setdefault(deelmarkt(naam, ticker), []).append(ticker)
+        for markt, selectie in markten.items():
+            symbols = set(selectie)
+            data = [r for r in resultaten.get(naam, []) if r['ticker'] in symbols]
+            label = label_voor(naam) if markt == 'Gehele lijst' else f'059 {markt}'
+            groepen.append(dict(lijst=naam, label=label, tickers=selectie, data=data,
+                                voldoende=voldoende(len(selectie), len(data))))
+    return groepen
+
+
+def publicatiemelding(groepen):
+    goed = [g for g in groepen if g['voldoende'] and g['data']]
+    titel = ('GEDEELTELIJK WEEKRAPPORT — voldoende gedekte beurzen gepubliceerd.' if goed else
+             'ONVOLLEDIG WEEKRAPPORT — geen nieuwe toppers gepubliceerd.')
+    regels = [titel, f'{len(goed)}/{len(groepen)} beurs-/themagroepen voldoende.']
+    for groep in groepen:
+        aantal, bruikbaar = len(groep['tickers']), len(groep['data'])
+        status = 'gepubliceerd' if groep['voldoende'] else 'overgeslagen; geen ranglijst'
+        # Bij gedeeltelijke publicatie ook de geslaagde deelbeurzen expliciet tonen.
+        if not groep['voldoende'] or groep['label'].startswith('059 '):
+            regels.append(f"{groep['label']}: {bruikbaar}/{aantal} "
+                          f"({bruikbaar/aantal:.1%}); {status}.")
     regels.append('Volledig rapport en ontbrekende tickers: zie workflow-artifacts.')
     return '\n'.join(regels)
 
@@ -203,46 +216,46 @@ def maak_rapport(suffix='a'):
         raise
     regels = [f'Weekrapport {suffix}: {maandag} t/m {vrijdag}',
               'Rendement: laatste slot vóór maandag tot laatste slot van de week (aangepaste koersen).']
+    resultaten = {naam: koersen.performance(tickers) for naam, tickers in lijsten.items()}
+    groepen = publicatiegroepen(lijsten, resultaten)
     toppers = []
     bruikbaar = 0
-    onvolledig = []
-    resultaten = {}
-    for naam, tickers in lijsten.items():
-        data = koersen.performance(tickers)
-        resultaten[naam] = data
-        if not controleer_dekking(naam, tickers, data):
-            onvolledig.append(naam)
-            regels.append(f'\n{label_voor(naam)}: ONVOLLEDIG ({len(data)}/{len(tickers)}); geen ranglijst.')
+    onvolledig = [g for g in groepen if not g['voldoende']]
+    for groep in groepen:
+        tickers, data = groep['tickers'], groep['data']
+        label = groep['label']
+        controleer_dekking(label, tickers, data)
+        if not groep['voldoende']:
+            regels.append(f'\n{label}: OVERGESLAGEN ({len(data)}/{len(tickers)}); geen ranglijst.')
             continue
         if not data:
             continue
         bruikbaar += len(data)
         top, bottom, _ = selecteer(data)
-        regels.append(f'\n{label_voor(naam)} — {len(data)}/{len(tickers)} bruikbaar')
+        regels.append(f'\n{label} — {len(data)}/{len(tickers)} bruikbaar')
         for titel, selectie in [('Stijgers', top), ('Dalers', bottom)]:
             regels.append(titel+':')
             for r in selectie.itertuples():
                 regels.append(f'{r.ticker}: {r.perf:+.2f}%')
                 if titel == 'Stijgers':
-                    toppers.append(dict(beurs=label_voor(naam), ticker=r.ticker, week_perf=round(r.perf, 2),
+                    toppers.append(dict(beurs=label, ticker=r.ticker, week_perf=round(r.perf, 2),
                                         week_startdatum=str(maandag), week_einddatum=str(vrijdag),
-                                        basisdatum=r.basisdatum, einddatum=r.einddatum, data_version=3, aantal_bruikbaar=len(data), aantal_universum=len(tickers)))
+                                        basisdatum=r.basisdatum, einddatum=r.einddatum, data_version=3,
+                                        aantal_bruikbaar=len(data), aantal_universum=len(tickers),
+                                        rapport_status='gedeeltelijk' if onvolledig else 'volledig'))
     schrijf_dekking(suffix, lijsten, resultaten)
-    if onvolledig:
-        diagnose = dekkingsmelding(lijsten, resultaten, onvolledig)
-        tekst = diagnose + '\n\n' + '\n'.join(regels)
-        (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
+    diagnose = publicatiemelding(groepen) if onvolledig or not bruikbaar else ''
+    tekst = (diagnose + '\n\n' if diagnose else '') + '\n'.join(regels)
+    (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
+    if not bruikbaar:
         meld(diagnose)
         send_email(f'Weekrapport {suffix} onvolledig {vrijdag}', tekst)
-        raise RuntimeError('Onvoldoende weekdata (80%-norm, bij kleine lijsten max. één ontbrekend): '+', '.join(onvolledig))
-    # Altijd vervangen: een lege scan mag geen oude winnaars laten staan.
+        raise RuntimeError('Onvoldoende weekdata: geen beurs haalt de 80%-norm')
+    # Voldoende data zonder stijgers schrijft []; oude winnaars verdwijnen ook dan.
     pad = ROOT / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
     tijdelijk = pad.with_suffix('.tmp')
     tijdelijk.write_text(json.dumps(toppers, ensure_ascii=False, indent=2), encoding='utf-8')
     tijdelijk.replace(pad)
-    tekst = '\n'.join(regels)
-    (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
-    meld(tekst)
-    send_email(f'Weekrapport {suffix} {vrijdag}', tekst)
-    if not bruikbaar:
-        raise RuntimeError('Geen koersdata; weekrapport mislukt')
+    meld(diagnose or tekst)
+    status = ' gedeeltelijk' if onvolledig else ''
+    send_email(f'Weekrapport {suffix}{status} {vrijdag}', tekst)
