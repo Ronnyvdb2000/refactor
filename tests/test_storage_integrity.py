@@ -10,7 +10,7 @@ import pandas as pd
 import psycopg2
 import pytest
 import db_logger as db
-import a_par_model as parameter
+from meta_models import a_par_model as parameter
 from combiners import a_trade_combi as combi
 import bouw_forward_returns as forward
 

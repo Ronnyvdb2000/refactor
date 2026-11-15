@@ -1,9 +1,10 @@
 # Meta-modellen
 
-Deze map groepeert de Ridge-meta-modellen, meta-labelclassifiers en vergelijkingen van meta- en parameterscores. Start vanuit de hoofdmap van de repository met `python -m meta_models.<module>`; zo blijven gedeelde imports uit `common`, `features`, `horizon_utils` en `model_inputs` bereikbaar.
+Deze map groepeert het parametermodel, de Ridge-meta-modellen, meta-labelclassifiers en vergelijkingen van meta- en parameterscores. Start vanuit de hoofdmap van de repository met `python -m meta_models.<module>`; zo blijven gedeelde imports uit `common`, `features`, `horizon_utils` en `model_inputs` bereikbaar.
 
 | Module | Functie | Workflow |
 | --- | --- | --- |
+| `a_par_model` | Rolling IC-parametermodel; CSV-picks, gewichten en optionele opslag/melding | `a__parameter_model_production.yml` |
 | `a_meta_model` | Ridge walk-forwardevaluatie | `a_meta_model.yml` |
 | `a_meta_model_train` | Ridge trainen en model bewaren | `a__meta_model_production.yml` |
 | `a_meta_model_score` | Scoren met opgeslagen Ridge-model | `a__meta_model_production.yml` |
@@ -16,13 +17,14 @@ Deze map groepeert de Ridge-meta-modellen, meta-labelclassifiers en vergelijking
 Bijvoorbeeld:
 
 ```bash
+python -m meta_models.a_par_model --help
 python -m meta_models.a_meta_model_score --help
 python -m meta_models.a_meta_model_train --help
 ```
 
 De workflows blijven onder `.github/workflows/`; hun namen, schema's, secrets, Telegraminstellingen en log-/artifactpaden zijn behouden. Resultaten blijven onder `results/` vanaf de hoofdmap staan. De eerdere losse scripts in de hoofdmap zijn verplaatst; vervang eigen oude aanroepen `python a_meta_....py` door de moduleaanroep hierboven.
 
-`a_par_model.py`, de XGBoost-modellen en de gedeelde hulpmiddelen blijven in de hoofdmap omdat ze ook buiten deze groep worden gebruikt. De weekly-bots vallen buiten deze herindeling. De twee classifiervarianten zijn afzonderlijk behouden; de verhuizing voegt hun gedrag niet samen.
+Het parametermodel start via `python -m meta_models.a_par_model`. De parameterworkflow en de 10d-vergelijking gebruiken dit nieuwe pad. De TradingAgents-workflow wordt in een andere herstelronde beheerd en is hier niet gewijzigd. Op het oude pad `a_par_model.py` staat tijdelijk alleen een startwrapper naar de nieuwe module, zodat bestaande externe aanroepen blijven werken. CSV-picks en gewichten blijven onder `results/a_par_model_*` staan zodat de TradingAgents-consument ze blijft vinden. De XGBoost-modellen en gedeelde hulpmiddelen blijven in de hoofdmap omdat ze ook buiten deze groep worden gebruikt. De weekly-bots vallen buiten deze herindeling. De twee classifiervarianten zijn afzonderlijk behouden; de verhuizing voegt hun gedrag niet samen.
 
 Zie ook [invoercontrole en publicatievoorwaarden](../docs/model_inputs.md).
 

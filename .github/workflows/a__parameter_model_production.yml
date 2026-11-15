@@ -45,12 +45,12 @@ on:
         type: boolean
 
   schedule:
-    # Wekelijks op zondag 05:00 UTC
+    # Dagelijks 05:00 UTC
     - cron: "0 5 * * *"
 
   push:
     paths:
-      - "a_par_model.py"
+      - "meta_models/a_par_model.py"
       - ".github/workflows/a__parameter_model_production.yml"
 
 permissions:
@@ -146,8 +146,8 @@ jobs:
             ARGS="$ARGS --geen-notify"
           fi
 
-          echo "Command: python a_par_model.py $ARGS"
-          python a_par_model.py $ARGS
+          echo "Command: python -m meta_models.a_par_model $ARGS"
+          python -m meta_models.a_par_model $ARGS
 
       - name: Controle output
         if: always()

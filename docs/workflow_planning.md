@@ -6,7 +6,7 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | Workflow | Cron (UTC) | Python-entrypoints | Joblimiet (min) | Run-groep | Yahoo-jobgroep | Scope |
 | --- | --- | --- | --- | --- | --- | --- |
 | [a__meta_model_production.yml](../.github/workflows/a__meta_model_production.yml) | `0 23 * * 1-5`<br>`0 22 * * 0` | `meta_models/a_meta_model_train.py`, `meta_models/a_meta_model_score.py` | 20 | meta-model-production | Niet toegewezen | repo-planning |
-| [a__parameter_model_production.yml](../.github/workflows/a__parameter_model_production.yml) | `0 5 * * *` | `a_par_model.py` | 30 | workflow-a__parameter_model_production-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [a__parameter_model_production.yml](../.github/workflows/a__parameter_model_production.yml) | `0 5 * * *` | `meta_models/a_par_model.py` | 30 | workflow-a__parameter_model_production-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [a_meta_labeling_classifier.yml](../.github/workflows/a_meta_labeling_classifier.yml) | `0 5 * * 0` | `meta_models/a_meta_label_classifier.py` | 30 | meta-label-classifier | Niet toegewezen | repo-planning |
 | [a_meta_model.yml](../.github/workflows/a_meta_model.yml) | `30 22 * * 1-5` | `meta_models/a_meta_model.py` | 20 | meta-model | Niet toegewezen | repo-planning |
 | [a_trade.yml](../.github/workflows/a_trade.yml) | `15 19 * * *` | `combiners/a_trade.py` | 30 | ${{ github.workflow }}-${{ github.ref }} | Niet toegewezen | repo-planning |
