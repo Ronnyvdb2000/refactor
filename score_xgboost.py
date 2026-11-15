@@ -48,10 +48,10 @@ Datum-aanpassing:
 Wijzigingen v1.1 (2026-10-04):
 - haal_bestaande_scores_op: xgboost_scores.datum wordt nu ook
   naar timestamptz gecast (fout: text >= timestamp).
-- haal_nieuwe_selecties_op: technische snapshot op exact de selectiedatum,
+- haal_nieuwe_selecties_op: technische snapshot op de selectiedatum (weekend: vrijdag),
   met expliciete invoerdekking voordat er nieuwe scores worden opgeslagen.
   Historische as-of-fallback is verwijderd; oudere features worden niet
-  gescoord wanneer de rij voor de selectiedatum ontbreekt.
+  gescoord buiten deze beperkte weekendregel.
 
 Wijzigingen v1.2 (2026-10-06):
 - sla_scores_op: 'rang' en 'n_gescoord' zijn NOT NULL in de
@@ -89,7 +89,7 @@ import psycopg2.extras
 import requests
 import xgboost
 import numpy as np
-from model_inputs import InputUnavailable, scoring_inputs
+from model_inputs import InputUnavailable, scoring_inputs, technical_day_sql
 
 
 warnings.filterwarnings(
@@ -860,7 +860,7 @@ def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
                t.datum AS technische_datum, {columns}
         FROM public.selecties s
         LEFT JOIN public.generieke_technicals t
-          ON t.ticker = s.ticker AND t.datum::date = s.datum::date
+          ON t.ticker = s.ticker AND t.datum::date = {technical_day_sql()}
         WHERE s.datum::timestamptz >= %s
         ORDER BY s.datum::timestamptz DESC, s.ticker, s.created_at ASC NULLS LAST, s.id
     """
@@ -1145,6 +1145,8 @@ def score_selecties(
 
                     "datum":
                         selectie_datum_ts.to_pydatetime(),
+
+                    "technische_datum": rij.get("technische_datum"),
 
                     "model_versie":
                         MODEL_VERSIE,
@@ -1650,6 +1652,11 @@ def bouw_telegram_bericht(
         )
 
         regels.append(regel)
+
+        selection_day = normaliseer_datum(rij.get("datum"))
+        feature_day = normaliseer_datum(rij.get("technische_datum"))
+        if selection_day is not None and feature_day is not None:
+            regels.append(f"   Selectiedatum: {selection_day:%Y-%m-%d}; koersdatum: {feature_day:%Y-%m-%d}")
 
         if beurs:
             regels.append(f"   Beurs: {html.escape(beurs)}")

@@ -217,3 +217,64 @@ def test_unknown_binary_class_mapping_is_not_guessed(classes):
     model=SimpleNamespace(classes_=classes,predict_proba=lambda x:np.array([[.3,.7]]))
     with pytest.raises(InputUnavailable,match='binaire klassen'):
         xgb.positieve_score(model,pd.DataFrame({'x':[1.]}))
+
+
+@pytest.mark.parametrize('day', ['2026-11-14', '2026-11-15'])
+def test_weekend_accepts_only_preceding_friday_and_reports_both_dates(day):
+    raw = inputs(day=day)
+    raw['technische_datum'] = '2026-11-13'
+    ready, report = prepare(raw)
+    assert len(ready) == 20
+    assert ready.datum.eq(pd.Timestamp(day)).all()  # no relabelled selection
+    assert report[0]['technische_datum'] == '2026-11-13'
+    assert report[0]['weekend'] is True
+    for bad in ['2026-11-12', day, '2026-11-16']:
+        raw['technische_datum'] = bad
+        with pytest.raises(InputUnavailable):
+            prepare(raw)
+
+
+def test_weekend_does_not_reduce_required_coverage():
+    raw = inputs(day='2026-11-14'); raw['technische_datum'] = '2026-11-13'
+    raw.loc[:4, 'x'] = np.nan
+    with pytest.raises(InputUnavailable, match='15/20'):
+        prepare(raw)
+
+
+def test_monday_does_not_silently_use_friday():
+    raw = inputs(day='2026-11-16'); raw['technische_datum'] = '2026-11-13'
+    with pytest.raises(InputUnavailable, match='0/20'):
+        scoring_inputs(raw, ['x', 'y'], date_column='datum', today='2026-11-16')
+
+
+def test_weekend_technical_snapshot_must_also_be_fresh():
+    raw = inputs(day='2026-11-14'); raw['technische_datum'] = '2026-11-13'
+    with pytest.raises(InputUnavailable, match='0/20'):
+        scoring_inputs(raw, ['x', 'y'], date_column='datum', today='2026-11-21')
+
+
+def test_meta_weekend_query_requests_specific_friday_not_unbounded_asof():
+    conn = MagicMock()
+    meta.haal_selecties(conn, meta.MODEL_FEATURES, '2026-11-14')
+    query = conn.cursor.return_value.__enter__.return_value.execute.call_args.args[0]
+    assert 'WHEN 6 THEN 1 WHEN 7 THEN 2 ELSE 0 END' in query
+    assert 'LEFT JOIN generieke_technicals' in query
+    assert 'LATERAL' not in query
+
+
+def test_xgboost_weekend_keeps_dates_through_prediction_to_notification():
+    from model_inputs import technical_day_sql
+    raw = inputs(day='2026-11-14').rename(columns={'datum': 'selectie_datum'})
+    raw['technische_datum'] = '2026-11-13'
+    raw['selectie_koers'] = 100.; raw['beurs'] = 'test'
+    for feature in xgb.VERWACHTE_FEATURES: raw[feature] = 1.
+    original = xgb.scoring_inputs
+    with patch.object(xgb.pd, 'read_sql_query', return_value=raw) as read, \
+         patch.object(xgb, 'scoring_inputs', side_effect=lambda *a, **k: original(*a, **k, today=TODAY)):
+        ready = xgb.haal_nieuwe_selecties_op(MagicMock())
+    assert technical_day_sql() in read.call_args.args[0]
+    model = SimpleNamespace(classes_=np.array([0, 1]), predict_proba=lambda x: np.array([[.3, .7]]))
+    results = xgb.score_selecties(ready.iloc[:1], {'10d': model}, set())
+    assert results[0]['technische_datum'] == pd.Timestamp('2026-11-13')
+    message = xgb.bouw_telegram_bericht(xgb.bepaal_top_resultaten(results))
+    assert 'Selectiedatum: 2026-11-14; koersdatum: 2026-11-13' in message

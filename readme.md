@@ -170,7 +170,7 @@ Voorbeelden van de huidige YAML-configuratie:
 
 Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
 
-Ridge-meta- en productie-XGBoost-scoring controleren [datum en invoerdekking vóór publicatie](docs/model_inputs.md). Oudere technische snapshots worden niet als features van een nieuwere selectiedatum gebruikt.
+Ridge-meta- en productie-XGBoost-scoring controleren [datum en invoerdekking vóór publicatie](docs/model_inputs.md). Voor weekendselecties wordt uitsluitend de voorafgaande vrijdag als koersdatum gebruikt; beide datums worden vermeld. Op werkdagen blijft dezelfde datum vereist.
 
 Cron-tijden zijn UTC; de Belgische lokale tijd verschilt met zomer- en wintertijd. Losse tijdschema's garanderen geen afhankelijkheidsvolgorde: controleer voltooiing van de benodigde databouw vóór een modelrun.
 

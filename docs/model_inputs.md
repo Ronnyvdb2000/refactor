@@ -2,6 +2,14 @@
 
 Scope van deze ronde: Ridge-meta-evaluatie, Ridge-training/-scoring en productie-XGBoost-scoring in `Ronnyvdb2000/refactor`. Geen wijzigingen aan weekly-bots, tickerlijsten of `refactor-lab`. Geen live training of scoring gestart en geen bestaande databasegegevens aangepast.
 
+## Weekendversoepeling — 15 november 2026
+
+De aanvankelijke eis van exact dezelfde kalenderdatum voor scoring was te streng voor scans in het weekend. Ridge- en XGBoost-scoring gebruiken nu voor zaterdag- en zondagselecties uitsluitend de voorafgaande vrijdag als technische koersdatum. Op werkdagen blijft dezelfde datum vereist. Dit is een beperkte kalenderregel voor de aandelenuniversa, geen algemene terugval naar een willekeurige oudere snapshot en geen beurskalender voor feestdagen.
+
+De selectiedatum en bestaande sleutels blijven behouden; er worden geen oude selecties of forward-returnlabels verschoven. Beide datums verschijnen in de scoremeldingen en in de dekkingslog. De noemer, 80%-grens, minimale rijenaantallen en numerieke controles blijven behouden. Ook de technische snapshot zelf moet bij automatische scoring binnen de maximale leeftijd vallen. Ontbreekt vrijdag, dan wordt niet alsnog donderdag gebruikt.
+
+Alleen-lezen controle van de zaterdagselecties: 1.484 canonieke invoerrijen, waarvan 1.436 een vrijdag-snapshot hebben en 1.271 alle Ridge-features (85,6%, vóór de aanvullende Python-controle op eindige waarden). Dit is geen geslaagde live scoringsrun; die is hier niet gestart. De datumregel identificeert de bedoelde koersdag op basis van de weekendkalender, maar bewijst niet achteraf dat elk oorspronkelijk botsignaal op precies dezelfde slotkoers is berekend. Oudere bots bewaren nog geen afzonderlijke bronkoersdatum. Historische reconstructie en aanpassing van hun opslag blijven een apart werkpunt. Training/evaluatie en hun exacte labeljoins zijn niet gewijzigd.
+
 ## Gevonden fouten
 
 De Ridge-scorer gebruikte de meest recente technische rij **vóór of op** de selectiedatum, zonder maximumleeftijd. De training gebruikte juist een exacte datumjoin. Een rij kon daardoor een nieuwe scoredatum krijgen terwijl de modelinvoer van een andere dag was. XGBoost stond eveneens een technische terugval tot zeven dagen toe. De inner join in die query verwijderde selecties zonder technische data vóórdat de invoerdekking werd geteld.
@@ -18,7 +26,7 @@ Momentopname in het actieve Supabase-project `fantasie`; de GitHub-secretverbind
 | 2026-11-13 | 1.812 | 1.754 | 1.453 |
 | 2026-11-12 | 381 | 95 | 65 |
 
-De nul op 14 november bewijst niet dat alle aandelen ongeldig zijn: de selectiedatum is zaterdag, terwijl de technische snapshots een handelsdatum gebruiken. Zo'n historische selectie mag niet stilzwijgend worden verschoven. Een wijziging van de opgeslagen datum of koersbasis vereist een afzonderlijke reconstructie van de bron. Bij de nieuwe scorer blijft deze datum zichtbaar in de noemer en blokkeert zij nieuwe publicatie wanneer zij de laatste gevraagde datum is.
+De nul op 14 november bewijst niet dat alle aandelen ongeldig zijn: de selectiedatum is zaterdag, terwijl de technische snapshots een handelsdatum gebruiken. Zo'n historische selectie mag niet stilzwijgend worden verschoven. Een wijziging van de opgeslagen datum of koersbasis vereist een afzonderlijke reconstructie van de bron. De eerste herstelversie blokkeerde daarom deze datum. De hierboven beschreven weekendversoepeling gebruikt nu expliciet vrijdagfeatures bij deze zaterdagselecties, zonder selecties te herdateren.
 
 De oorspronkelijke Ridge-trainjoin gaf 36.485 rijen. Binnen het 20d-rijpheidsvenster waren 2.914 herhaalde ticker/datum/strategie-sleutels zichtbaar; 140 daarvan hadden verschillende invoerwaarden. Dit zijn geen aantallen te verwijderen databasegegevens. Na toepassing van de hieronder beschreven vaste bronkeuze en koersbasiscontrole levert de werkelijk gegenereerde trainquery 33.195 kandidaatrijen op, met nul dubbele invoersleutels. Dit aantal is vóór de Python-controle op eindige features en gerijpte labels en bewijst op zichzelf geen trainbaarheid.
 
@@ -26,9 +34,9 @@ De oorspronkelijke Ridge-trainjoin gaf 36.485 rijen. Binnen het 20d-rijpheidsven
 
 ### Gelijke datum en zichtbare noemer
 
-- Beide scorers koppelen uitsluitend technische data van exact de selectiedatum. De featuredatum komt expliciet mee in de invoer. Een left join houdt ook ontbrekende snapshots zichtbaar voor de dekkingscontrole.
+- Beide scorers koppelen technische data van de selectiedatum, met uitsluitend de hierboven beschreven vrijdagregel in het weekend. De featuredatum komt expliciet mee in de invoer. Een left join houdt ook ontbrekende snapshots zichtbaar voor de dekkingscontrole.
 - `model_inputs.py` controleert kalenderdatums zonder lokale middernacht naar de vorige UTC-dag te verschuiven. Toekomstige datums worden geweigerd. Automatische scoring accepteert standaard maximaal zeven kalenderdagen oude selectiedatums; het rapport vermeldt de echte datum.
-- Per datum moet standaard minstens 80% van de gekozen invoerrijen complete, eindige features van diezelfde dag hebben. `MODEL_MIN_FEATURE_COVERAGE` kan een andere positieve grens tot en met 1 instellen. `MODEL_MAX_INPUT_AGE_DAYS` stelt de toegestane kalenderleeftijd in.
+- Per datum moet standaard minstens 80% van de gekozen invoerrijen complete, eindige features van de vereiste koersdag hebben. `MODEL_MIN_FEATURE_COVERAGE` kan een andere positieve grens tot en met 1 instellen. `MODEL_MAX_INPUT_AGE_DAYS` stelt de toegestane kalenderleeftijd in.
 - Ridge vereist bovendien minimaal tien complete rijen omdat zijn cross-sectionele rangen van het cohort afhangen. Dit was eerder alleen een waarschuwing. XGBoost kan één complete ticker scoren en krijgt daarom geen kunstmatig minimum van tien tickers.
 - Is de nieuwste selectiedatum onvoldoende gedekt, dan stopt scoring vóór nieuwe scoreopslag. Binnen het bestaande XGBoost-lookbackvenster kan een oudere onvoldoende gedekte datum worden overgeslagen; dat wordt per datum gelogd. Een volledige nieuwere datum blijft dan wel bruikbaar. Een onvolledige **nieuwste** datum wordt niet stil vervangen door gisteren.
 - Een geaccepteerde 80%-snapshot is geen claim van 100% volledigheid. Het Ridge-bericht toont complete versus onderzochte rijen en de datum; XGBoost logt deze dekking eveneens.
@@ -49,7 +57,7 @@ Exact herhaalde modelinvoer geeft geen extra gewicht of hogere dekking. Tegenstr
 - Een lege of onbruikbare hertraining retourneert nu een foutcode. De workflow start dan geen aansluitende scoring alsof hertraining geslaagd was. Het eerdere model blijft bewaard.
 - De trainingsstap krijgt dezelfde Telegram-secrets voor een `ONVOLLEDIG`-melding. Bestaande scoremeldingen blijven behouden. XGBoost heeft nu ook een statusmelding voor onvolledige invoer, in plaats van alleen een bericht bij geslaagde TOP-resultaten.
 - Mislukt een van de nieuwe XGBoost-voorspellingen of is een klassekans ongeldig, dan stopt de verzameling vóór `sla_scores_op`. De reeds berekende deelresultaten worden niet als een volledige nieuwe run gepubliceerd. Bestaande opgeslagen scores blijven staan.
-- Expliciete historische Ridge-scoring met `--datum` behoudt de mogelijkheid een oude datum te onderzoeken. Het bericht zegt nu dat scoring met het geselecteerde model geen causale walk-forwardbacktest is. De featuredatum moet ook dan exact overeenkomen en toekomstige datums blijven verboden.
+- Expliciete historische Ridge-scoring met `--datum` behoudt de mogelijkheid een oude datum te onderzoeken. Het bericht zegt nu dat scoring met het geselecteerde model geen causale walk-forwardbacktest is. De featuredatum moet ook dan voldoen aan dezelfde beperkte weekendregel; toekomstige selectiedatums blijven verboden.
 
 ## Wat hiermee niet is bewezen
 
@@ -64,3 +72,7 @@ Het parametermodel gebruikt al exacte datumjoins en een afzonderlijk beleid voor
 De volledige offline suite: **722 tests en 17 deeltests geslaagd**, twaalf optionele tests overgeslagen. De nieuwe tests controleren gelijke datums, ontbrekende technische data, 80%-dekking, NaN/oneindig vóór rangvorming, behoud van het oorspronkelijke rangcohort, lokale middernacht, verse/toekomstige/historische datums, identieke en tegenstrijdige snapshots, gerijpte trainingsdata, lege hertraining, geldige modelopslag, ongeldige klassekansen en afbreken vóór scorepublicatie.
 
 De gegenereerde SQL voor beide scorers en training is daarnaast als alleen-lezen subquery op de bestaande database uitgevoerd. Canonieke Ridge-scoring voor 14 november geeft 1.484 invoerrijen en nul same-day technicals; de ontbrekende data blijft dus in de noemer. De oorspronkelijke XGBoost-lookbackquery met de nieuwe left join gaf 3.477 kandidaatrijen. Er zijn in deze controle geen scorings-/trainingsprogramma's live gestart en geen databasewrites of echte testnotificaties uitgevoerd.
+
+De weekendcorrectie voegt regressiecontroles toe voor zaterdag/zondag met vrijdagfeatures, ontbrekende vrijdag, te oude vrijdag, onveranderde 80%-dekking, geen maandag-terugval, de gegenereerde SQL en beide datums door XGBoost-voorspelling tot Telegramopmaak. Er zijn geen echte testberichten verzonden.
+
+Verificatie na weekendcorrectie: **742 tests en 17 deeltests geslaagd**, negen optionele tests overgeslagen. Beide werkelijk gegenereerde scorequeries zijn alleen-lezen uitgevoerd: Ridge koppelt 1.436 van 1.484 zaterdagselecties aan 13 november; XGBoost koppelt 1.606 van 1.665 ruwe zaterdagselecties aan 13 november. Dit zijn join-aantallen vóór volledige featurevalidatie, geen gepubliceerde scores.

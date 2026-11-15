@@ -31,6 +31,24 @@ def local_day(value):
         return pd.NaT
 
 
+def technical_day(value):
+    """Weekday selection: same date; Saturday/Sunday run: preceding Friday.
+
+    This deliberately is not a generic as-of search or holiday calendar.
+    """
+    day = local_day(value)
+    if pd.isna(day):
+        return pd.NaT
+    return day - pd.Timedelta(days=max(0, day.weekday() - 4))
+
+
+def technical_day_sql(selection="s.datum"):
+    # Internal SQL expression, shared so retrieval and validation use one policy.
+    day = f"({selection})::date"
+    return (f"({day} - CASE EXTRACT(ISODOW FROM {day})::int "
+            "WHEN 6 THEN 1 WHEN 7 THEN 2 ELSE 0 END)")
+
+
 def dates(values):
     return pd.to_datetime(values.map(local_day))
 
@@ -83,7 +101,11 @@ def scoring_inputs(frame, features, *, date_column, min_rows=1, min_coverage=.8,
     out = unique_snapshots(out, keys, list(features) + ['technische_datum'])
     latest = out[date_column].max()
     score_date(latest, today=today, max_age=max_age, historical=historical)
-    valid = out[features].notna().all(axis=1) & out['technische_datum'].eq(out[date_column])
+    expected = dates(out[date_column].map(technical_day))
+    valid = out[features].notna().all(axis=1) & out['technische_datum'].eq(expected)
+    if not historical:
+        now = local_day(today if today is not None else pd.Timestamp.now(tz='Europe/Brussels'))
+        valid &= (now - out['technische_datum']).dt.days.between(0, max_age)
     ranked = out.copy()
     if rank_features:
         for name in features:
@@ -92,9 +114,12 @@ def scoring_inputs(frame, features, *, date_column, min_rows=1, min_coverage=.8,
     for day, group in out.groupby(date_column, sort=True):
         usable = group.loc[valid.loc[group.index]]
         ratio = len(usable) / len(group)
-        coverage.append(dict(datum=day.date().isoformat(), total=len(group), usable=len(usable), ratio=ratio))
+        feature_day = technical_day(day).date().isoformat()
+        coverage.append(dict(datum=day.date().isoformat(), technische_datum=feature_day,
+                             total=len(group), usable=len(usable), ratio=ratio,
+                             weekend=day.weekday() >= 5))
         if len(usable) < min_rows or ratio < min_coverage:
-            message = f'{day.date()}: {len(usable)}/{len(group)} complete snapshots op dezelfde datum ({ratio:.1%}); vereist {min_coverage:.0%} en {min_rows} rij(en)'
+            message = f'{day.date()}: {len(usable)}/{len(group)} complete snapshots voor koersdatum {feature_day} ({ratio:.1%}); vereist {min_coverage:.0%} en {min_rows} rij(en)'
             if day == latest:
                 raise InputUnavailable(message)
             print('[invoer] oudere datum overgeslagen: ' + message, flush=True)

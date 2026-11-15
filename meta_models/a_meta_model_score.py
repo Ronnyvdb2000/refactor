@@ -23,7 +23,7 @@ from common import (
 )
 
 from features import MODEL_HORIZON, MODEL_FEATURES
-from model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs
+from model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs, technical_day_sql
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
@@ -127,9 +127,9 @@ def haal_selecties(conn, features, datum=None):
     if g:
         select_delen.append("g.datum AS technische_datum")
         select_lijst = ",\n            ".join(select_delen)
-        lateral = """
+        lateral = f"""
         LEFT JOIN generieke_technicals g
-          ON g.ticker = s.ticker AND g.datum::date = s.datum::date
+          ON g.ticker = s.ticker AND g.datum::date = {technical_day_sql()}
         """
     else:
         select_lijst += ", s.datum AS technische_datum"
@@ -234,7 +234,8 @@ def main():
         bericht = bouw_telegram_bericht(df, datum, versie)
         summary = coverage[-1]
         bericht = (f"Invoerdekking: {summary['usable']}/{summary['total']} complete snapshots "
-                   f"op {summary['datum']}; overige rijen overgeslagen.\n\n") + bericht
+                   f"voor selectiedatum {summary['datum']}, koersdatum {summary['technische_datum']}; "
+                   f"overige rijen overgeslagen.\n\n") + bericht
 
         if args.datum:
             bericht = "Historische scoring met het geselecteerde model; geen walk-forward backtest.\n\n" + bericht
