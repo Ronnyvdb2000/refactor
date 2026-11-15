@@ -134,40 +134,75 @@ def walk_forward(df: pd.DataFrame, features: List[str],
 # RAPPORTAGE
 # ============================================================
 
+def rapport_kern(res: pd.DataFrame) -> list[str]:
+    """Shared facts for the log and Telegram, with explicit benchmark/units."""
+    if res.empty:
+        return ["Geen testdatum voldeed aan de voorwaarden; geen evaluatieresultaat."]
+    ordered = res.sort_values("datum")
+    first = pd.Timestamp(ordered["datum"].iloc[0]).strftime("%Y-%m-%d")
+    last = pd.Timestamp(ordered["datum"].iloc[-1]).strftime("%Y-%m-%d")
+    wins = int((ordered["excess_top"] > 0).sum())
+    recent = ordered.tail(5)
+    return [
+        f"Testperiode: {first} t/m {last}",
+        f"Testdatums (folds): {len(ordered)}; testwaarnemingen: {int(ordered['n_test'].sum())}",
+        f"Gemiddelde IC: {ordered['ic'].mean():+.4f}",
+        f"Top 10% beter dan selectiegemiddelde: {wins}/{len(ordered)} ({wins / len(ordered):.1%})",
+        f"Gem. rendement top 10%: {ordered['top_decile_ret'].mean():+.2f}%; "
+        f"selectiegemiddelde: {ordered['markt_ret'].mean():+.2f}%",
+        f"Gem. verschil: {ordered['excess_top'].mean():+.2f} procentpunt",
+        f"Laatste {len(recent)} testdatums: IC {recent['ic'].mean():+.4f}; "
+        f"verschil {recent['excess_top'].mean():+.2f} procentpunt",
+        "Gemiddelden wegen iedere testdatum even zwaar; geen portefeuillerendement.",
+        "Historische evaluatie; geen bewijs van een stabiel voordeel.",
+    ]
+
+
 def print_rapport(res: pd.DataFrame, features: List[str]) -> str:
     if res.empty:
-        return "Geen enkele fold produceerde een voorspelling."
+        tekst = rapport_kern(res)[0]
+        print(tekst)
+        return tekst
 
+    res = res.sort_values("datum")
     ics = res["ic"].values
     gem_ic = ics.mean()
     std_ic = ics.std(ddof=1) if len(ics) > 1 else np.nan
-    ir = gem_ic / std_ic if std_ic and std_ic > 0 else np.nan
-    t_stat = gem_ic / (std_ic / np.sqrt(len(ics))) if std_ic and std_ic > 0 else np.nan
-    hit = (res["excess_top"] > 0).mean()
+    ir = gem_ic / std_ic if np.isfinite(std_ic) and std_ic > 0 else np.nan
+    t_stat = ir * np.sqrt(len(ics)) if np.isfinite(ir) else np.nan
 
     regels = [
-        f"\n{'=' * 90}",
+        f"\n{'=' * 110}",
         f"META-MODEL — walk-forward evaluatie op {MODEL_TARGET}",
-        "=" * 90,
+        "=" * 110,
         f"Features ({len(features)}): {', '.join(features)}",
-        f"Aantal folds: {len(res)}",
+        f"Horizon: {MODEL_HORIZON} handelsdagen; trainingsbuffer: {calendar_embargo(MODEL_HORIZON)} kalenderdagen",
+        *rapport_kern(res),
     ]
-    if not np.isnan(std_ic):
-        regels.append(f"Gemiddelde IC: {gem_ic:+.4f}  (std {std_ic:.4f})")
-        regels.append(f"IR (IC/std): {ir:.3f}")
-        regels.append(f"t-stat: {t_stat:.2f}")
-    else:
-        regels.append(f"Gemiddelde IC: {gem_ic:+.4f}")
-    regels.append(f"Hit rate top-decile > markt: {hit:.1%}")
-    regels.append("")
-    regels.append("Per fold:")
-    regels.append(f"{'datum':<12}{'n_train':>8}{'n_test':>8}{'IC':>10}{'top-decile':>12}{'markt':>10}{'excess':>10}")
+    if np.isfinite(std_ic):
+        regels.append(f"Spreiding IC: {std_ic:.4f}; IR (IC/std): {ir:.3f}")
+    if np.isfinite(t_stat):
+        regels.append(f"Naïeve t-stat: {t_stat:.2f} (niet gecorrigeerd voor overlappende rendementshorizonten)")
+    regels += [
+        "", "Toelichting:",
+        "- IC: rangcorrelatie tussen voorspelde score en later rendement; positief is de gewenste richting.",
+        "- Referentie: gemiddelde van alle bruikbare selecties op dezelfde testdatum, geen beursindex.",
+        "- Waarnemingen zijn ticker/datum/strategie-rijen; dezelfde ticker kan bij meerdere strategieën voorkomen.",
+        "- Top 10% = max(1, afgerond naar beneden 10% van n_test); * markeert minder dan vijf toprijen.",
+        "", "Per testdatum (rendementen in %, verschil in procentpunten):",
+        f"{'datum':<12}{'n_train':>9}{'n_test':>8}{'n_top':>7}{'IC':>10}{'top 10%':>11}{'referentie':>12}{'verschil':>11}",
+    ]
     for _, r in res.iterrows():
-        regels.append(f"{r['datum']:<12}{int(r['n_train']):>8}{int(r['n_test']):>8}{r['ic']:>+10.4f}{r['top_decile_ret']:>+12.4f}{r['markt_ret']:>+10.4f}{r['excess_top']:>+10.4f}")
+        datum = pd.Timestamp(r["datum"]).strftime("%Y-%m-%d")
+        n_top = max(1, int(r["n_test"] * 0.10))
+        marker = " *" if n_top < 5 else ""
+        regels.append(f"{datum:<12}{int(r['n_train']):>9}{int(r['n_test']):>8}{n_top:>7}"
+                      f"{r['ic']:>+10.4f}{r['top_decile_ret']:>+11.4f}"
+                      f"{r['markt_ret']:>+12.4f}{r['excess_top']:>+11.4f}{marker}")
 
     coef_df = pd.DataFrame([r["coefs"] for _, r in res.iterrows()])
-    gem_coefs = coef_df.mean().sort_values(key=lambda s: s.abs(), ascending=False)
-    regels.append("\nGemiddelde coëfficiënten (belang features):")
+    gem_coefs = coef_df.mean().sort_values(key=lambda values: values.abs(), ascending=False)
+    regels.append("\nGemiddelde coëfficiënten op geschaalde features (geen causale invloed):")
     for naam, c in gem_coefs.items():
         regels.append(f"  {naam:<24} {c:+.4f}")
 
@@ -213,16 +248,13 @@ def main():
         tekst = print_rapport(res, features)
 
         if not res.empty:
-            gem_ic = res["ic"].mean()
-            hit = (res["excess_top"] > 0).mean()
-            samenvatting = (
-                f"Meta-model {MODEL_TARGET}\n"
-                f"Features: {len(features)}\n"
-                f"Folds: {len(res)}\n"
-                f"Gem. IC: {gem_ic:+.4f}\n"
-                f"Hit rate top-decile: {hit:.1%}"
-            )
-            send_telegram(samenvatting)
+            samenvatting = "\n".join([
+                f"Meta-model — historische evaluatie {MODEL_TARGET}",
+                *rapport_kern(res),
+                "IC/t-stat zijn beschrijvend; opeenvolgende rendementshorizonten overlappen.",
+                "Volledig rapport: GitHub-runlog en artifact meta-model-output.",
+            ])
+            send_telegram(samenvatting, parse_mode=None)
     finally:
         conn.close()
 

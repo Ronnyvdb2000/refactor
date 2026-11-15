@@ -25,3 +25,9 @@ De workflows blijven onder `.github/workflows/`; hun namen, schema's, secrets, T
 `a_par_model.py`, de XGBoost-modellen en de gedeelde hulpmiddelen blijven in de hoofdmap omdat ze ook buiten deze groep worden gebruikt. De weekly-bots vallen buiten deze herindeling. De twee classifiervarianten zijn afzonderlijk behouden; de verhuizing voegt hun gedrag niet samen.
 
 Zie ook [invoercontrole en publicatievoorwaarden](../docs/model_inputs.md).
+
+## Walk-forwardrapport
+
+De workflow `a_meta_model.yml` toont het rapport in het GitHub-runoverzicht en bewaart de volledige log als artifact. Telegram krijgt dezelfde kerncijfers: testperiode, aantal testdatums en waarnemingen, gemiddelde IC, top-10%-rendement tegenover het selectiegemiddelde en de laatste vijf testdatums.
+
+De referentie is het gemiddelde van de onderzochte selecties, geen beursindex. Rendementen zijn procenten; verschillen zijn procentpunten. Gemiddelden wegen testdatums gelijk en vormen geen samengesteld portefeuillerendement. Kleine topgroepen worden gemarkeerd. De t-stat is beschrijvend en niet gecorrigeerd voor overlappende rendementshorizonten. De rapportwijziging verandert geen training, voorspellingen, selecties of scores.

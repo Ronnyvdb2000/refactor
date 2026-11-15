@@ -46,6 +46,16 @@ jobs:
             --min-train-datums "${{ github.event.inputs.min_train_datums || '10' }}" \
             2>&1 | tee meta_model_output.log
 
+      - name: Rapport in runoverzicht
+        if: always()
+        run: |
+          if [ -f meta_model_output.log ]; then
+            echo '## Meta-model — historische walk-forwardevaluatie' >> "$GITHUB_STEP_SUMMARY"
+            echo '```text' >> "$GITHUB_STEP_SUMMARY"
+            cat meta_model_output.log >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Log bewaren
         if: always()
         uses: actions/upload-artifact@v4

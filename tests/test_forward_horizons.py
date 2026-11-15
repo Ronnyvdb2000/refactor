@@ -197,3 +197,27 @@ def test_filling_60d_does_not_relabel_existing_shorter_horizons():
     conn.execute(query, dict(initial, entry_koers=200., fwd_ret_60d=999.))
     assert conn.execute('SELECT entry_koers,fwd_ret_5d,fwd_ret_60d FROM forward_returns').fetchone() == (100.,5.,60.)
     conn.close()
+
+
+@pytest.mark.parametrize('day', [pd.Timestamp('2026-10-30'), np.datetime64('2026-10-30'), '2026-10-30'])
+def test_meta_report_formats_iso_dates_and_explains_reference(day, capsys):
+    res = pd.DataFrame([dict(datum=day, n_train=200, n_test=27, ic=.1,
+        top_decile_ret=2., markt_ret=1., excess_top=1., coefs={'x': .2})])
+    text = meta.print_rapport(res, ['x'])
+    assert '2026-10-30' in text and '<12' not in text
+    assert 'geen beursindex' in text and 'procentpunten' in text
+    assert 'minder dan vijf toprijen' in text
+    assert ' *' in text and 'Naïeve t-stat' not in text
+    assert text in capsys.readouterr().out
+
+
+def test_meta_report_recent_summary_uses_last_dates_and_fold_equal_weights():
+    res = pd.DataFrame([dict(datum=day, n_train=200, n_test=100 if i==0 else 20,
+        ic=float(i), top_decile_ret=float(i+1), markt_ret=1., excess_top=float(i),
+        coefs={'x': .2}) for i,day in enumerate(pd.bdate_range('2026-10-01', periods=6))])
+    core = '\n'.join(meta.rapport_kern(res.iloc[::-1]))
+    assert '2026-10-01 t/m 2026-10-08' in core
+    assert 'testwaarnemingen: 200' in core
+    assert 'Gemiddelde IC: +2.5000' in core
+    assert 'Laatste 5 testdatums: IC +3.0000; verschil +3.00 procentpunt' in core
+    assert 'iedere testdatum even zwaar' in core
