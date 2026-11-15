@@ -37,7 +37,11 @@ jobs:
         with:
           path: .weekly-cache
           key: ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-${{ hashFiles('weekly/*.py', 'weekly/symbols.csv', 'tickers*.txt') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-${{ hashFiles('weekly/*.py', 'weekly/symbols.csv', 'tickers*.txt') }}-
+          # Koersbestanden valideren ticker en periode zelf; gewijzigde aliassen
+          # mogen de bruikbare reeksen van dezelfde week hergebruiken.
+          restore-keys: |
+            ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-${{ hashFiles('weekly/*.py', 'weekly/symbols.csv', 'tickers*.txt') }}-
+            ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-
       - name: Run Report X
         timeout-minutes: 75
         env:

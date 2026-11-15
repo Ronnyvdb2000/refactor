@@ -1,0 +1,199 @@
+ticker,symbool,naam,isin,segment,bron_url,peildatum
+AALLON.HE,AALLON,Aallon Group Oyj,FI4000369608,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+ACG1V.HE,ACG1V,Aspocomp Group Oyj,FI0009008080,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ADMCM.HE,ADMCM,Admicom Oyj,FI4000251830,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+ADMIN.HE,ADMIN,Administer Oyj,FI4000513411,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+AFAGR.HE,AFAGR,Afarak Group,FI0009800098,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+AIFORIA.HE,AIFORIA,Aiforia Technologies Oyj,FI4000507934,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+AKTIA.HE,AKTIA,Aktia Pankki,FI4000058870,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ALBAV.HE,ALBAV,Ålandsbanken Abp A,FI0009000103,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ALBBV.HE,ALBBV,Ålandsbanken Abp B,FI0009001127,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ALEX.HE,ALEX,Alexandria Group Oyj,FI4000153465,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+ALISA.HE,ALISA,Alisa Pankki Oyj,FI4000170915,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ALMA.HE,ALMA,Alma Media Oyj,FI0009013114,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ANORA.HE,ANORA,Anora Group Oyj,FI4000292438,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+APETIT.HE,APETIT,Apetit Oyj,FI0009003503,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ARVOSK.HE,ARVOSK,Arvo Sijoitusosuuskunta,FI4000532320,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+ASPO.HE,ASPO,Aspo Oyj,FI0009008072,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ASUNTO.HE,ASUNTO,Asuntosalkku Oyj,FI4000517602,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+ATRAV.HE,ATRAV,Atria Oyj A,FI0009006548,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+AUROORA.HE,AUROORA,Auroora Group,FI4000586409,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+BEER.HE,BEER,Nokian Panimo Oyj,FI4000038054,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+BETOLAR.HE,BETOLAR,Betolar Oyj,FI4000512587,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+BIOBV.HE,BIOBV,Biohit Oyj B,FI0009005482,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+BITTI.HE,BITTI,Bittium Oyj,FI0009007264,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+BOREO.HE,BOREO,Boreo Oyj,FI0009900724,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+BRETEC.HE,BRETEC,Bioretec Oy,FI4000480454,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+CANATU.HE,CANATU,Canatu Oyj A,FI4000512496,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+CAPMAN.HE,CAPMAN,CapMan Oyj,FI0009009377,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+CITYVA.HE,CITYVA,Cityvarasto Oyj,FI4000176557,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+CONSTI.HE,CONSTI,Consti Oyj,FI4000178256,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+CTH1V.HE,CTH1V,Componenta Oyj,FI4000476783,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+CTY1S.HE,CTY1S,Citycon Oyj,FI4000369947,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+DETEC.HE,DETEC,Detection Technology Oyj,FI4000115464,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+DIGIA.HE,DIGIA,Digia Oyj,FI0009007983,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+DIGIGR.HE,DIGIGR,Digitalist Group Oyj,FI4000591698,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+DOV1V.HE,DOV1V,Dovre Group Oyj,FI0009008098,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+DUELL.HE,DUELL,Duell Oyj,FI4000582143,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+DWF.HE,DWF,Digital Workforce Services Oyj,FI4000513015,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+EAGLE.HE,EAGLE,Eagle Filters Group Oyj,FI4000092523,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+EASOR.HE,EASOR,Easor Oyj,FI4000598156,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ECOUP.HE,ECOUP,EcoUp Oyj,FI4000511563,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+EEZY.HE,EEZY,Eezy Oyj,FI4000322326,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ELEAV.HE,ELEAV,Elecster Oyj A,FI0009900658,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ELISA.HE,ELISA,Elisa Oyj,FI0009007884,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+ENENTO.HE,ENENTO,Enento Group Oyj,FI4000123195,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+EQV1V.HE,EQV1V,eQ Oyj,FI0009009617,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ESENSE.HE,ESENSE,Enersense International Oyj,FI4000301585,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ETTE.HE,ETTE,Etteplan Oyj,FI0009008650,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+EVLI.HE,EVLI,Evli Oyj,FI4000513437,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+EXEL.HE,EXEL,Exel Composites Oyj,FI4000602172,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+FARON.HE,FARON,Faron Pharmaceuticals Oy,FI4000153309,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+FIA1S.HE,FIA1S,Finnair Oyj,FI4000567029,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+FOAMIT.HE,FOAMIT,Foamit Oyj,FI0009009559,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+FODELIA.HE,FODELIA,Fodelia Oyj,FI4000400262,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+FONDIA.HE,FONDIA,Fondia Oyj,FI4000232913,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+FORTUM.HE,FORTUM,Fortum Oyj,FI0009007132,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+FRAMERY.HE,FRAMERY,Framery Group,FI4000595756,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+FSECURE.HE,FSECURE,F-Secure Oyj,FI4000519236,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+FSKRS.HE,FSKRS,Fiskars Oyj Abp,FI0009000400,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+GLA1V.HE,GLA1V,Glaston Oyj Abp,FI4000587340,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+GOFORE.HE,GOFORE,Gofore Oyj,FI4000283130,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+GRK.HE,GRK,GRK Infra Oyj,FI4000517966,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+HARVIA.HE,HARVIA,Harvia Oyj,FI4000306873,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+HEALTH.HE,HEALTH,Nightingale Health Oyj B,FI4000490875,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+HIAB.HE,HIAB,Hiab Oyj,FI4000571013,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+HKFOODS.HE,HKFOODS,HKFoods Oyj A,FI0009006308,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+HONBS.HE,HONBS,Honkarakenne Oyj B,FI0009900104,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+HRTIS.HE,HRTIS,Herantis Pharma Oyj,FI4000087861,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+HUH1V.HE,HUH1V,Huhtamäki Oyj,FI0009000459,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+ICP1V.HE,ICP1V,Incap Oyj,FI0009006407,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ILKKA.HE,ILKKA,Ilkka Oyj,FI0009800205,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+INDERES.HE,INDERES,Inderes Oyj,FI4000348651,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+INVEST.HE,INVEST,Investors House Oyj,FI0009900559,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+IQMX.HE,IQMX,IQM Quantum Computers Oyj,FI4000602354,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KALMAR.HE,KALMAR,Kalmar Oyj B,FI4000571054,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KAMUX.HE,KAMUX,Kamux Oyj,FI4000206750,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+KCR.HE,KCR,Konecranes Oyj,FI0009005870,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KELAS.HE,KELAS,Kesla Oyj A,FI0009900237,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+KEMIRA.HE,KEMIRA,Kemira Oyj,FI0009004824,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KEMPOWR.HE,KEMPOWR,Kempower Oyj,FI4000513593,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+KESKOA.HE,KESKOA,Kesko Oyj A,FI0009007900,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KESKOB.HE,KESKOB,Kesko Oyj B,FI0009000202,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KESKOBN0126.HE,KESKOBN0126,Kesko Uudet 2026,FI4000625488,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KHG.HE,KHG,KH Group Oyj,FI0009008924,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+KNEBV.HE,KNEBV,KONE Oyj,FI0009013403,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+KOSKI.HE,KOSKI,Koskisen Oyj,FI4000533005,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+KPYOSK.HE,KPYOSK,KPY osk,FI0009014708,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+KREATE.HE,KREATE,Kreate Group Oyj,FI4000476866,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+KSL.HE,KSL,Keskisuomalainen Oyj,FI0009007546,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+LAMOR.HE,LAMOR,Lamor Corporation Oyj,FI4000512488,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+LAPWALL.HE,LAPWALL,LapWall Oyj,FI4000511597,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+LASTIK.HE,LASTIK,Lassila & Tikanoja,FI4000592472,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+LEADD.HE,LEADD,LeadDesk Oyj,FI4000364120,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+LEHTO.HE,LEHTO,Lehto Group Oyj,FI4000081138,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+LEMON.HE,LEMON,Lemonsoft Oyj,FI4000512678,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+LINDEX.HE,LINDEX,Lindex Group Oyj,FI0009000251,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+LOIHDE.HE,LOIHDE,Loihde Oyj,FI4000014238,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+LUMO.HE,LUMO,Lumo Kodit Oyj,FI4000312251,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+LUOTEA.HE,LUOTEA,Luotea Plc,FI4000592464,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+MANTA.HE,MANTA,Mandatum,FI4000552526,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+MARAS.HE,MARAS,Martela Oyj,FI0009900385,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+MEKKO.HE,MEKKO,Marimekko Oyj,FI0009007660,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+MERUS.HE,MERUS,Merus Power Oyj,FI4000506902,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+METSA.HE,METSA,Metsä Board Oyj A,FI0009000640,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+METSB.HE,METSB,Metsä Board Oyj B,FI0009000665,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+METSO.HE,METSO,Metso Oyj,FI0009014575,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+MODU.HE,MODU,Modulight Oyj,FI4000511506,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+MUSTI.HE,MUSTI,Musti Group Oyj,FI4000410758,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+NANOFH.HE,NANOFH,Nanoform Finland Oyj,FI4000330972,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+NDA-FI.HE,NDA FI,Nordea Bank Abp,FI4000297767,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+NESTE.HE,NESTE,Neste Oyj,FI0009013296,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+NETUM.HE,NETUM,Netum Group Oyj,FI4000390943,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+NLG1V.HE,NLG1V,Nurminen Logistics Oyj,FI0009900187,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+NOHO.HE,NOHO,NoHo Partners Oyj,FI4000064332,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+NOKIA.HE,NOKIA,Nokia Oyj,FI0009000681,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+NORRH.HE,NORRH,Norrhydro Group Oyj,FI4000251954,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+NXTMH.HE,NXTMH,Nexstim Oyj,FI4000506811,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+OLVAS.HE,OLVAS,Olvi Oyj A,FI0009900401,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+OMASP.HE,OMASP,Oma Säästöpankki Oyj,FI4000306733,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+OPTOMED.HE,OPTOMED,Optomed Oyj,FI4000410881,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+ORIOLA.HE,ORIOLA,Oriola Oyj,FI0009014351,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ORNAV.HE,ORNAV,Orion Oyj A,FI0009014369,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+ORNBV.HE,ORNBV,Orion Oyj B,FI0009014377,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+ORTHEX.HE,ORTHEX,Orthex Oyj,FI4000480504,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+OUT1V.HE,OUT1V,Outokumpu Oyj,FI0009002422,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+OVARO.HE,OVARO,Ovaro Kiinteistösijoitus Oyj,FI4000349113,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+PALLAS.HE,PALLAS,Pallas Air Oyj,FI4000575048,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+PAMPALO.HE,PAMPALO,Endomines Finland Oyj,FI4000508023,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+PIHLIS.HE,PIHLIS,Pihlajalinna Oyj,FI4000092556,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+PNA1V.HE,PNA1V,Panostaja Oyj,FI0009800379,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+PON1V.HE,PON1V,Ponsse Oyj 1,FI0009005078,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+POSTI.HE,POSTI,Posti Group,FI4000592159,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+PUUILO.HE,PUUILO,Puuilo Oyj,FI4000507124,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+QPR1V.HE,QPR1V,QPR Software Oyj,FI0009008668,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+QTCOM.HE,QTCOM,Qt Group Oyj,FI4000198031,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+RAIVV.HE,RAIVV,Raisio Oyj Vaihto-osake,FI0009002943,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+RAP1V.HE,RAP1V,Rapala VMC Oyj,FI0009007355,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+RAUTE.HE,RAUTE,Raute Oyj,FI0009004741,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+REAKTOR.HE,REAKTOR,Reaktor Group Oyj,FI4000603105,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+REBL.HE,REBL,Rebl Group Oyj,FI0009900468,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+REG1V.HE,REG1V,Revenio Group Oyj,FI0009010912,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+REKA.HE,REKA,Reka Industrial Oyj,FI0009800296,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+RELAIS.HE,RELAIS,Relais Group Oyj,FI4000391487,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+REMEDY.HE,REMEDY,Remedy Entertainment Oyj,FI4000251897,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+ROBIT.HE,ROBIT,Robit Oyj,FI4000150016,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SAGCV.HE,SAGCV,Saga Furs Oyj C,FI0009800551,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SAMPO.HE,SAMPO,Sampo Oyj A,FI4000552500,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SANOMA.HE,SANOMA,Sanoma Oyj,FI0009007694,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SAVOX.HE,SAVOX,Savox Communications Oyj,FI4000602958,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+SBI.HE,SBI,Sunborn International Oyj,FI4000348909,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SCANFL.HE,SCANFL,Scanfil Oyj,FI4000029905,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+SENSO.HE,SENSO,Sensofusion Oyj,FI4000609672,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SFOODS.HE,SFOODS,Solar Foods Oyj,FI4000577192,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SIILI.HE,SIILI,Siili Solutions Oyj,FI4000043435,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SITOWS.HE,SITOWS,Sitowise Group Oyj,FI4000480215,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SOLTEQ.HE,SOLTEQ,Solteq Oyj,FI0009007991,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SOLWERS.HE,SOLWERS,Solwers Oyj,FI4000452545,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SOSI1.HE,SOSI1,Sotkamo Silver AB,SE0001057910,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SPINN.HE,SPINN,Spinnova Oyj,FI4000507595,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SPRING.HE,SPRING,Springvest Oyj,FI4000369442,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SRV1V.HE,SRV1V,SRV Yhtiöt Oyj,FI4000523675,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+SSABAH.HE,SSABAH,SSAB A,SE0000171100,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SSABBH.HE,SSABBH,SSAB B,SE0000120669,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SSH1V.HE,SSH1V,SSH Communications Security,FI0009008270,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+STEADY.HE,STEADY,Steady Energy Oyj,FI4000609714,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+STEAV.HE,STEAV,Stora Enso Oyj A,FI0009005953,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+STERV.HE,STERV,Stora Enso Oyj R,FI0009005961,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+SUMMA.HE,SUMMA,Summa Defence Oyj,FI4000592282,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+SUY1V.HE,SUY1V,Suominen Oyj,FI0009010862,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TAALA.HE,TAALA,Taaleri Oyj,FI4000062195,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+TALLINK.HE,TALLINK,AS Tallink Grupp FDR,FI4000349378,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+TAMTRON.HE,TAMTRON,Tamtron Group Oyj,FI4000541313,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+TEKOVA.HE,TEKOVA,Tekova Oyj,FI4000581756,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+TELIA1.HE,TELIA1,Telia Company,SE0000667925,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+TEM1V.HE,TEM1V,Tecnotree Oyj,FI4000570890,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TIETO.HE,TIETO,Tieto Oyj,FI0009000277,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+TITAN.HE,TITAN,Titanium Oyj,FI4000270350,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+TLT1V.HE,TLT1V,Teleste Oyj,FI0009007728,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TNOM.HE,TNOM,Talenom Oyj,FI4000598149,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+TOIVO.HE,TOIVO,Toivo Group Oyj,FI4000496716,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TOKMAN.HE,TOKMAN,Tokmanni Group Oyj,FI4000197934,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+TRH1V.HE,TRH1V,Trainers´ House Oyj,FI4000519202,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TTALO.HE,TTALO,Terveystalo Oyj,FI4000252127,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+TULAV.HE,TULAV,Tulikivi Oyj A,FI0009900583,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+TYRES.HE,TYRES,Nokian Renkaat Oyj,FI0009005318,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+UNITED.HE,UNITED,United Bankers Oyj,FI4000081427,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+UPM.HE,UPM,UPM-Kymmene Oyj,FI4000603337,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+VAIAS.HE,VAIAS,Vaisala Oyj A,FI0009900682,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+VALMT.HE,VALMT,Valmet Oyj,FI4000074984,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+VERK.HE,VERK,Verkkokauppa.com Oyj,FI4000049812,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+VIAFIN.HE,VIAFIN,Viafin Service Oyj,FI4000349212,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+VIK1V.HE,VIK1V,Viking Line Abp,FI0009005250,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+VINCIT.HE,VINCIT,Vincit Oyj,FI4000185533,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+WETTERI.HE,WETTERI,Wetteri Oyj,FI0009012793,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+WISA.HE,WISA,WISA Group Oyj,FI4000603345,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15
+WITTED.HE,WITTED,Witted Megacorp Oyj,FI4000517461,FN,https://api.nasdaq.com/api/nordic/screener/shares?category=FIRST_NORTH&market=HEL&tableonly=false,2026-11-15
+WRT1V.HE,WRT1V,Wärtsilä Oyj Abp,FI0009003727,LARGE_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=LARGE_CAP&tableonly=false,2026-11-15
+WUF1V.HE,WUF1V,Wulff-Yhtiöt Oyj,FI0009008452,SMALL_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=SMALL_CAP&tableonly=false,2026-11-15
+YIT.HE,YIT,YIT Oyj,FI0009800643,MID_CAP,https://api.nasdaq.com/api/nordic/screener/shares?category=MAIN_MARKET&market=HEL&segment=MID_CAP&tableonly=false,2026-11-15

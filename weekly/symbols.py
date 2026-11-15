@@ -7,8 +7,8 @@ with Path(__file__).with_suffix('.csv').open(encoding='utf-8', newline='') as be
     GEVERIFIEERD = {(rij['lijstcode'], rij['bron']): rij['doel']
                    for rij in csv.DictReader(bestand)}
 
-LIJSTCODES = {'tickers_051a.txt': '051', 'tickers_051x.txt': '051',
-             'tickers_054a.txt': '054', 'tickers_054x.txt': '054'}
+LIJSTCODES = {f'tickers_{code}{variant}.txt': code
+             for code in ('041', '051', '054', '059') for variant in ('a', 'x')}
 
 
 def beurscode(naam, ticker):
