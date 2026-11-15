@@ -5,8 +5,14 @@ on:
     - cron: "10 22 * * 5"
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_00greenblatt-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bot-00greenblatt:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: read

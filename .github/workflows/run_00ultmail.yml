@@ -5,8 +5,14 @@ on:
   schedule:
     - cron: '45 19 * * 1-5'
 
+concurrency:
+  group: workflow-run_00ultmail-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   run_trading_bot:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: write

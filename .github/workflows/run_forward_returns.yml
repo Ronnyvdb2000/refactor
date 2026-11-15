@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
+  queue: max
   group: forward-returns-${{ github.ref }}
   cancel-in-progress: false
 

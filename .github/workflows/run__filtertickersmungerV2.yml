@@ -5,8 +5,14 @@ on:
     - cron: '0 2 * * 0'   
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run__filtertickersmungerv2-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   filter_tickers:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -38,6 +44,5 @@ jobs:
             echo "Geen wijzigingen gevonden."
           else
             git commit -m "Filter update $(date +%Y-%m-%d)"
-            git pull --rebase=false -X ours origin main
-            git push
+            python -m maintainance.push_generated_commit
           fi

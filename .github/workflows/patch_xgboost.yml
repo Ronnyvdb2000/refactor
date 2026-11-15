@@ -4,8 +4,14 @@ name: XGBoost V3 patch voorbereiden
 on:
   workflow_dispatch:
 
+concurrency:
+  group: workflow-patch_xgboost-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   patch:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       contents: read

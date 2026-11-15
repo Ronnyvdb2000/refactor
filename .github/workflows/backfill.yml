@@ -32,6 +32,7 @@ permissions:
 
 # Nooit twee backfills tegelijk (ze zouden dezelfde rijen bijwerken).
 concurrency:
+  queue: max
   group: backfill-technische-features
   cancel-in-progress: false
 

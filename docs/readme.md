@@ -16,6 +16,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Combineerders: structuur en inhoudelijke controle](combiners.md)
 
 - [Scantempo en wachttijden](scantempo.md)
+- [Volledig workflowoverzicht](workflow_planning.md)
+- [Controle workflowplanning en gelijktijdige publicatie](controles/controle_workflow_planning_20261115.md)
 - [Opslagintegriteit en herstarts](opslag_integriteit.md)
 - [Forward returns, modelhorizons en 60d-controle](controles/controle_forward_modellen_20261115.md)
 

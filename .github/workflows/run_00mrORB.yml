@@ -10,11 +10,13 @@ permissions:
   contents: read
 
 concurrency:
+  queue: max
   group: mr-orb-scan
   cancel-in-progress: false
 
 jobs:
   bot-00mr-orb:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

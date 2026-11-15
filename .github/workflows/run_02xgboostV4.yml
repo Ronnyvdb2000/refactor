@@ -17,10 +17,15 @@ on:
   push:
     paths:
       - "xgboostV4.py"
-      - ".github/workflows/xgboostv4.yml"
+      - ".github/workflows/run_02xgboostV4.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: workflow-run_02xgboostv4-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   train-xgboostv4:

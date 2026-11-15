@@ -7,6 +7,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-vergelijk_meta_par_horizons_diagnose-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   vergelijk:
     runs-on: ubuntu-latest

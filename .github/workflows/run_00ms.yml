@@ -5,8 +5,14 @@ on:
     - cron: "50 19 * * 1-5"
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_00ms-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bot-00ms:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -33,7 +39,6 @@ jobs:
           git add -f ms_signalen_*.csv 2>/dev/null || true
           if ! git diff --cached --quiet; then
             git commit -m "bot_00ms $(date '+%Y-%m-%d')"
-            git pull --rebase origin main
-            git push
+            python -m maintainance.push_generated_commit
           fi
 

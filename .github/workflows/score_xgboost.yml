@@ -6,6 +6,11 @@ on:
 
   workflow_dispatch:
 
+concurrency:
+  group: workflow-score_xgboost-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   score-selecties:
 

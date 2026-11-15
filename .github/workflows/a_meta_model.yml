@@ -11,6 +11,7 @@ on:
         default: "10"
 
 concurrency:
+  queue: max
   group: meta-model
   cancel-in-progress: false
 

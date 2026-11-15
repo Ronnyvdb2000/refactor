@@ -6,6 +6,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-xgboostv3_gecontroleerd-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   proefrun:
     runs-on: ubuntu-latest

@@ -8,6 +8,11 @@ on:
   # schedule:
   #   - cron: "0 2 * * 0"
 
+concurrency:
+  group: workflow-run_02xlightgbm-v2-trading-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   run-lightgbm:
     name: LightGBM V2 Training

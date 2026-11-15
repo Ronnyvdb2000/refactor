@@ -48,6 +48,7 @@ on:
           - 'true'
 
 concurrency:
+  queue: max
   group: meta-label-classifier
   cancel-in-progress: false
 

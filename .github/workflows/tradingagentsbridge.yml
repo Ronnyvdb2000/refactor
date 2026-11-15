@@ -57,10 +57,15 @@ on:
   push:
     paths:
       - "tradingagents_bridge.py"
-      - ".github/workflows/tradingagents_bridge.yml"
+      - ".github/workflows/tradingagentsbridge.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: workflow-tradingagentsbridge-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   run-bridge:

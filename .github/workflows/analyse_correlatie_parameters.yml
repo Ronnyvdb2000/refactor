@@ -27,6 +27,7 @@ on:
         default: "false"
 
 concurrency:
+  queue: max
   group: analyse-parameter-correlatie
   cancel-in-progress: false
 

@@ -5,8 +5,14 @@ on:
     - cron: '0 2 * * 0' # Draait elke zondag om 02:00 uur 's nachts
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_02xgboostv2-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   train-and-update:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -39,7 +45,7 @@ jobs:
         if [ -f xgboostV2_model.pkl ]; then
           git add xgboostV2_model.pkl
           git commit -m "Auto-update: xgboostV2 model hertraind op actuele data" || echo "Geen wijzigingen om te committeren"
-          git push
+          python -m maintainance.push_generated_commit
         else
           echo "Geen model getraind dit run (onvoldoende data) — niets te committen."
         fi

@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-analyse_parameter_ic-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   analyse-ic:
     name: analyse-ic

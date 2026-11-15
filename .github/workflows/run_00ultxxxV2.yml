@@ -10,9 +10,11 @@ permissions:
 
 jobs:
   run_global:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
 
     concurrency:
+      queue: max
       group: scanner-triplex-run
       cancel-in-progress: false
 

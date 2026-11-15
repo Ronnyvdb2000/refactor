@@ -12,6 +12,7 @@ on:
         default: "false"
 
 concurrency:
+  queue: max
   group: meta-model-production
   cancel-in-progress: false
 

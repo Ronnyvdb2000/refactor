@@ -9,11 +9,13 @@ permissions:
   contents: read
 
 concurrency:
+  queue: max
   group: mr-eod-scan
   cancel-in-progress: false
 
 jobs:
   bot-00mr-eod:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

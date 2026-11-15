@@ -153,6 +153,8 @@ De vereiste variabelen en extra providerconfiguratie verschillen per workflow. B
 
 ## GitHub Actions
 
+Zie het [volledige workflowoverzicht](docs/workflow_planning.md) en de [controle van runbeveiliging, planning en Git-publicatie](docs/controles/controle_workflow_planning_20261115.md).
+
 De repository bevat zowel geplande als handmatig startbare workflows. De YAML-bestanden beschrijven de triggers; de feitelijke ingeschakelde status en recente uitkomsten controleer je op de [Actions-pagina](https://github.com/Ronnyvdb2000/refactor/actions).
 
 Voorbeelden van de huidige YAML-configuratie:

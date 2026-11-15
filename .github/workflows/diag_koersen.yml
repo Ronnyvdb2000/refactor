@@ -1,8 +1,14 @@
 name: Diag koersen
 on:
   workflow_dispatch:
+concurrency:
+  group: workflow-diag_koersen-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   diag:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -5,8 +5,14 @@ on:
     - cron: "0 20 * * 1-5"
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_00graham-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bot-01graham:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: read

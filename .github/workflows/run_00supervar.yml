@@ -9,9 +9,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-run_00supervar-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bot-00super-eu:
     if: github.event.schedule == '30 6 * * 1-5' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,6 +38,7 @@ jobs:
 
   bot-00super-na:
     if: github.event.schedule == '15 13 * * 1-5' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

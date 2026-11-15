@@ -27,8 +27,14 @@ on:
           - train
           - backtest
 
+concurrency:
+  group: workflow-run_02xgboostmeta-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bepaal-modus:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       mode: ${{ steps.kies.outputs.mode }}
@@ -106,8 +112,7 @@ jobs:
             echo "Geen wijzigingen aan het model."
           else
             git commit -m "Hertraining bot_01xgboostMeta $(date +%Y-%m-%d)"
-            git pull --rebase=false -X ours origin main
-            git push
+            python -m maintainance.push_generated_commit
           fi
 
   # Handmatige backtest-run (workflow_dispatch met mode=backtest) -- resultaten

@@ -6,6 +6,11 @@ on:
     - cron: "0 21 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_generieke_technicals-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bouw-generieke-technicals:
     runs-on: ubuntu-latest

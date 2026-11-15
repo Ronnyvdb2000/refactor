@@ -51,10 +51,15 @@ on:
   push:
     paths:
       - "a_par_model.py"
-      - ".github/workflows/a_par_model.yml"
+      - ".github/workflows/a__parameter_model_production.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: workflow-a__parameter_model_production-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   run-par-model:

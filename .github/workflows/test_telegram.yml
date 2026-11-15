@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-test_telegram-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   telegram-test:
     runs-on: ubuntu-latest

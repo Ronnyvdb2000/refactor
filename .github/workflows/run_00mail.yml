@@ -4,8 +4,14 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 19 * * 1-5'
+concurrency:
+  group: workflow-run_00mail-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   run_trading_bot:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
 
     steps:

@@ -5,8 +5,14 @@ on:
     - cron: "05 20 * * 1-5"
   workflow_dispatch:
 
+concurrency:
+  group: workflow-run_00vcp-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   bot-00vcp:
+    timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,6 +55,7 @@ jobs:
   # Verwijder "if: false" hieronder om de job weer te activeren.
   tradingagents-analyse:
     needs: bot-00vcp
+    timeout-minutes: 90
     runs-on: ubuntu-latest
     if: false
     steps:

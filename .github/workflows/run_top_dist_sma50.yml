@@ -14,8 +14,14 @@ on:
         required: false
         default: "10"
 
+concurrency:
+  group: workflow-run_top_dist_sma50-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   top-dist-sma50:
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
