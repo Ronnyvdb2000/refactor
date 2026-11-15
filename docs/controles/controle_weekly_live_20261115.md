@@ -81,3 +81,20 @@ De lokale omgeving en GitHub-runner zijn verschillende uitvoeromgevingen; het ee
 ## Offlineverificatie
 
 `python -m pytest -q tests/`: **615 tests geslaagd**, 9 overgeslagen sockettests en 17 geslaagde subtests. De vier aanvullende tests controleren cachebehoud en onbekende statussen bij een providerstop, geen nieuwe diagnose-downloads of export, behoud van onbekende symbolen in de dekkingsnoemer, samenvoegen van dezelfde notering en een bronregister zonder conflicten of aliasketens. RUFF (`F401,F821`) en `git diff --check` geslaagd. Bronbestanden, YAML-notificaties en refactor-lab zijn niet gewijzigd.
+
+
+## Nieuwe Actions-run 43681699013 en hervatbare downloads
+
+Het aangeleverde [Actions-log van run 43681699013](https://github.com/Ronnyvdb2000/refactor/actions/runs/43681699013) gebruikt main `2c43dd543975e1ae62f872d13ca50fc829265717`. De scan startte om 05:35:18 UTC (06:35:18 Belgische tijd). Na 28 volledig afgehandelde batches van honderd werd batch 2801–2900 beperkt. Poging 1 gaf 82/100 reeksen en poging 2 27/100, beide met `rate_limit=True`. Om 05:39:03 UTC stopte de scan. Het betreft koershistorie-aantallen, geen volledige weekdekkingsmeting.
+
+De providerstop, ONVOLLEDIG-melding, geblokkeerde JSON-publicatie en upload van rapport plus dekkings-CSV werkten. Het artifact was 50510 bytes. De Node-waarschuwingen betreffen Actions, niet de oorzaak van de Yahoo-stop. Het importcommando is een importcontrole; het log toont één echte rapportscan.
+
+De downloadbelasting was nog te hoog: een yfinance-batch van honderd omvat afzonderlijke verzoeken voor de tickers. De aanvullende correctie gebruikt maximaal twintig tickers, twee workers en twee seconden pauze vóór elke batch. Er blijft maximaal één batchretry, met dezelfde ene herstelpauze van vijftien seconden bij throttling. Bij blijvende beperking stopt het rapport nog steeds.
+
+A/x bewaren nu na iedere afgeronde batch uitsluitend koersreeksen met een geldig weekrendement. De optionele hervatcache gebruikt CSV, atomair vervangen bestanden en gescheiden mappen per start-/einddatum. Bestandsnamen zijn tickerhashes; de inhoud wordt gecontroleerd op ticker en geldig datumbereik en opnieuw genormaliseerd. Ontbrekende, onleesbare en onvolledige reeksen worden bij een volgende uitvoering opnieuw geprobeerd. Een onderbroken batch wordt niet bewaard als afgerond.
+
+Beide rapportworkflows herstellen de laatste cache voor dezelfde week en dezelfde invoer/code en slaan voortgang ook na een providerstop op. De scanstap is begrensd op 75 minuten binnen het bestaande jobbudget van 90 minuten. Dit laat tijd voor het bewaren van voortgang/artifacts. Een harde runneruitval of verwijderde Actions-cache kan alsnog voortgang kosten. De cache bevat geen gepubliceerde selecties; de 80%-norm, Telegram en blokkering van publicatie blijven actief. Er is geen automatische herstartlus. De 2800 eerder afgeronde tickers uit de aangeleverde run zijn niet achteraf als koerscache beschikbaar gemaakt; die run had deze opslag nog niet.
+
+Verificatie: `python -m pytest -q tests/` gaf **616 geslaagde tests**, 12 overgeslagen tests en 17 geslaagde subtests in deze omgeving. Vier nieuwe tests controleren hervatten na providerstop, opnieuw proberen van ontbrekende/verouderde weekdata, isolatie van week/historie/ticker en foutieve CSV, plus opt-in zonder ongewenste cachebestanden. De bestaande dekkingsproef is aangepast aan de kleinere batchgrens. YAML-structuur, cacheherstel-/opslagvoorwaarden, behoud van Telegram, RUFF (`F401,F821`) en `git diff --check` zijn gecontroleerd.
+
+Een volledige live-run met deze aanvullende correctie is nog niet uitgevoerd. De wijziging verlaagt de verzoekdruk en voorkomt onnodig herhalen van eerder gevalideerde downloads; zij garandeert geen Yahoo-toegang of geslaagde scandekking. Refactor-lab en de bestaande toppers-snapshots zijn niet gewijzigd.

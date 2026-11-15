@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 90
     env:
       PYTHONUNBUFFERED: "1"
+      WEEKLY_CHECKPOINT_DIR: .weekly-cache
     permissions:
       contents: write
     steps:
@@ -27,7 +28,18 @@ jobs:
         run: pip install yfinance pandas numpy requests python-dotenv
       - name: Verify weekly import
         run: python -c "import weekly.weekly_report_x"
+      - name: Bepaal cacheweek
+        id: cacheweek
+        run: python -c "import os; from weekly.shared import weekgrenzen; print('vrijdag='+str(weekgrenzen()[1]), file=open(os.environ['GITHUB_OUTPUT'], 'a'))"
+      - name: Herstel bewaarde weekkoersen
+        id: herstel
+        uses: actions/cache/restore@v4
+        with:
+          path: .weekly-cache
+          key: ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-${{ hashFiles('weekly/*.py', 'weekly/symbols.csv', 'tickers*.txt') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ runner.os }}-weekly-x-v1-${{ steps.cacheweek.outputs.vrijdag }}-${{ hashFiles('weekly/*.py', 'weekly/symbols.csv', 'tickers*.txt') }}-
       - name: Run Report X
+        timeout-minutes: 75
         env:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
@@ -51,6 +63,12 @@ jobs:
             done
             exit 1
           fi
+      - name: Bewaar voortgang ook bij providerstop
+        if: always() && steps.herstel.outcome == 'success' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: .weekly-cache
+          key: ${{ steps.herstel.outputs.cache-primary-key }}
       - name: Bewaar weekrapport
         if: always()
         uses: actions/upload-artifact@v4

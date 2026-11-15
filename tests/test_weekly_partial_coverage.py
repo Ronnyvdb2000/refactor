@@ -38,9 +38,9 @@ def test_interrupted_report_preserves_completed_data_and_unknown_status(monkeypa
     assert len(coverage) == 201
     assert coverage.loc['A000', 'status'] == 'bruikbaar'
     assert coverage.loc['A001', 'status'] == 'geen_bruikbare_weekdata'
-    assert coverage.loc['A100', 'status'] == 'download_afgebroken'
+    assert coverage.loc['A020', 'status'] == 'download_afgebroken'
     assert coverage.loc['A200', 'status'] == 'niet_opgevraagd'
-    assert coverage.loc[['A100', 'A200'], 'bruikbaar'].isna().all()
+    assert coverage.loc[['A020', 'A200'], 'bruikbaar'].isna().all()
     assert coverage.loc['A000', 'bruikbaar'] == True
     assert coverage.loc['A001', 'bruikbaar'] == False
 

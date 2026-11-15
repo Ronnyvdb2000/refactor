@@ -41,7 +41,7 @@ def provider_log():
 
 
 def batch_download(tickers, *, start, end, **_):
-    """Maximaal twee batchrequests, vier workers; één herstelpauze bij throttling."""
+    """Maximaal twee batchrequests, twee workers; één herstelpauze bij throttling."""
     tickers = sorted(set(tickers))
     if not tickers:
         return pd.DataFrame()
@@ -51,7 +51,7 @@ def batch_download(tickers, *, start, end, **_):
         with provider_log() as log:
             try:
                 data = yf.download(tickers=missing, start=start, end=end, auto_adjust=True,
-                                   group_by='ticker', progress=False, threads=4, timeout=15)
+                                   group_by='ticker', progress=False, threads=2, timeout=15)
             except Exception as exc:
                 tekst = str(exc).lower()
                 if any(t in tekst for t in ('rate limit', 'too many requests', '429')):

@@ -3,3 +3,4 @@ analyse_output.log
 meta_model_output.log
 __pycache__/
 *.pyc
+.weekly-cache/

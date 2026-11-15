@@ -11,6 +11,7 @@ from common.io import BEURS_NAMEN, load_tickers_from_file
 from common.notify import send_email, send_telegram
 from .download import batch_download as download_history, DownloadOnderbroken
 from .symbols import beurscode
+from .checkpoint import KoersCheckpoint
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTOREN = {'01': 'Hoogland', '02': 'Macrotrends', '03': 'Beursbrink',
@@ -44,7 +45,7 @@ def label_voor(naam):
 
 
 class WeekKoersen:
-    """Download elke unieke ticker eenmaal per proces, in batches van 100 met maximaal vier workers."""
+    """Download unieke tickers in kleine batches; hervat uit optionele weekcache."""
     def __init__(self, maandag, vrijdag, historie=False):
         self.maandag, self.vrijdag = maandag, vrijdag
         self.historie = historie
@@ -52,13 +53,20 @@ class WeekKoersen:
         self.aangevraagd = set()
 
     def laad(self, tickers):
-        ontbrekend = sorted(set(tickers) - self.frames.keys())
+        tickers = set(tickers)
         start = self.maandag - timedelta(days=400 if self.historie else 14)
-        for i in range(0, len(ontbrekend), 100):
-            batch = ontbrekend[i:i+100]
+        checkpoint = KoersCheckpoint(start, self.vrijdag)
+        hersteld = checkpoint.laad(tickers - self.frames.keys())
+        self.frames.update(hersteld)
+        if hersteld:
+            print(f'[weekly] Hervat met {len(hersteld)} bewaarde koersreeksen.', flush=True)
+        ontbrekend = sorted(tickers - self.frames.keys())
+        for i in range(0, len(ontbrekend), 20):
+            batch = ontbrekend[i:i+20]
             print(f'[weekly] Download {i+1}..{i+len(batch)}/{len(ontbrekend)}', flush=True)
-            if i:
-                time.sleep(0.5)
+            # Ook tussen opeenvolgende laad()-calls pauzeren: een batch is
+            # bij Yahoo een reeks tickerrequests, geen enkel HTTP-verzoek.
+            time.sleep(2)
             self.aangevraagd.update(batch)
             data = download_history(batch, start=str(start), end=str(self.vrijdag+timedelta(days=1)),
                                     auto_adjust=True, request_timeout=15)
@@ -69,6 +77,8 @@ class WeekKoersen:
                     frame.index = pd.to_datetime(frame.index).tz_localize(None).normalize()
                     frame = frame.loc[frame.index <= pd.Timestamp(self.vrijdag)]
                 self.frames[ticker] = frame
+            geldig = {r['ticker'] for r in self.beschikbare_performance(batch)}
+            checkpoint.bewaar({t: self.frames[t] for t in geldig})
 
     def performance(self, tickers):
         self.laad(tickers)

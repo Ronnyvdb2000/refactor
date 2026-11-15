@@ -19,7 +19,15 @@ De a-rapportage en opvolg starten vrijdag 23:00 UTC; de x-rapportage om 23:15 UT
 
 Weekprestatie loopt van de laatste beschikbare slotkoers vóór maandag tot het laatste beschikbare slot van de week, met aangepaste koersen. Vijf slotkoersen van maandag tot vrijdag zouden alleen vier dagrendementen meten. De basis mag maximaal zeven kalenderdagen vóór maandag liggen; de eindkoers maximaal drie dagen vóór vrijdag. Ontbrekende of oudere koersen worden uitgesloten en aantallen verschijnen per lijst. Positieve stijgers en negatieve dalers worden apart gerangschikt; de grootste daler krijgt rang 1. De neutrale steekproef blijft per lijst/week reproduceerbaar.
 
-Elke unieke ticker wordt per proces gecachet. Downloads gebruiken batches van maximaal 100, vier workers en een timeout van 15 seconden. Ontbrekende data krijgt maximaal één batchretry; er volgen geen individuele retries. Bij een rate-limit volgt één herstelpauze van 15 seconden en bij herhaling stopt de scan. Tussen normale batches zit 0,5 seconde. De opvolgbot scant het gehele universum met korte historie en haalt lange historie alleen voor geselecteerde tickers op. Verschillende runners hebben een eigen cache en kunnen samen nog steeds providerlimieten raken.
+Elke unieke ticker wordt per proces gecachet. Downloads gebruiken batches van maximaal 20, twee workers en een timeout van 15 seconden. Ontbrekende data krijgt maximaal één batchretry; er volgen geen individuele retries. Bij een rate-limit volgt één herstelpauze van 15 seconden en bij herhaling stopt de scan. Vóór elke batch zit twee seconden pauze, ook tussen opeenvolgende laadacties. De opvolgbot scant het gehele universum met korte historie en haalt lange historie alleen voor geselecteerde tickers op. Verschillende runners kunnen samen nog steeds providerlimieten raken.
+
+## Hervatten na een providerstop
+
+De a/x-rapportworkflows zetten `WEEKLY_CHECKPOINT_DIR=.weekly-cache` en herstellen de laatst bewaarde voortgang voor dezelfde week en dezelfde invoer/code. Na elke volledig afgehandelde batch worden alleen de reeksen met een bruikbaar weekrendement atomair als CSV bewaard. Een volgende uitvoering downloadt die reeksen niet opnieuw. Ontbrekende en verouderde weekdata worden opnieuw geprobeerd; een onderbroken batch telt niet als afgerond. De hervatcache is optioneel en staat los van de gepubliceerde toppers-JSON.
+
+De cache is gescheiden per historieperiode en eindweek, met controle op ticker, koerskolommen en datumbereik. Onleesbare bestanden worden opnieuw opgehaald. De workflows bewaren de cache ook na een providerstop. De scanstap heeft een limiet van 75 minuten binnen het jobbudget van 90 minuten, zodat er ruimte blijft voor cache- en artifactopslag. Bij een harde runneruitval kan de laatste voortgang alsnog verloren gaan; Actions-cache kan bovendien ontbreken of verwijderd zijn. Een nieuwe week begint met nieuwe koersdata.
+
+Dit verlaagt de verzoekdruk en voorkomt bij een gewone providerstop herhaald downloaden van eerder gevalideerde data. Het garandeert geen Yahoo-toegang en verandert de 80%-controle niet. Een mislukte run blijft rood en publiceert geen nieuwe toppers. Er is geen automatische herstartlus.
 
 ## Telegram, e-mail en workflow
 

@@ -20,7 +20,7 @@ def test_missing_batch_has_only_one_batch_retry(monkeypatch):
     monkeypatch.setattr(d.yf,'download',lambda **kw:calls.append(kw) or pd.DataFrame())
     assert d.batch_download(['BAD1','BAD2'],start='2026-10-26',end='2026-11-14').empty
     assert len(calls)==2
-    assert all(c['tickers']==['BAD1','BAD2'] and c['threads']==4 for c in calls)
+    assert all(c['tickers']==['BAD1','BAD2'] and c['threads']==2 for c in calls)
 
 
 def test_rate_limit_stops_after_one_cooldown(monkeypatch):
