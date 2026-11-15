@@ -70,6 +70,8 @@ Belangrijke vervolgstappen in de pipeline:
 
 De meta-modellen en hun vergelijkingsscripts staan in [meta_models/](meta_models/README.md). Start ze vanuit de hoofdmap met `python -m meta_models.<scriptnaam>`; de workflows gebruiken deze moduleaanroep.
 
+De handmatige technische opzoektool [A Top tickers](analyses/a_top_dist_sma50.py) staat in [analyses/](analyses/README.md). De workflow `run_top_dist_sma50.yml` start deze met `python -m analyses.a_top_dist_sma50`.
+
 ### Feature-stores
 
 - [bouw_generieke_technicals.py](bouw_generieke_technicals.py): technische features in `generieke_technicals`.
