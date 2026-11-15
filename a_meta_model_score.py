@@ -22,7 +22,8 @@ from common import (
     send_telegram, send_email
 )
 
-from features import MODEL_HORIZON
+from features import MODEL_HORIZON, MODEL_FEATURES
+from model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
@@ -32,6 +33,8 @@ GENERIEKE_TECHNICALS = [
 ]
 
 MIN_COMPLETE_RIJEN = 10
+MIN_FEATURE_COVERAGE = float(os.getenv("MODEL_MIN_FEATURE_COVERAGE", "0.8"))
+MAX_INPUT_AGE_DAYS = int(os.getenv("MODEL_MAX_INPUT_AGE_DAYS", "7"))
 
 # ============================================================
 # TELEGRAM
@@ -122,19 +125,14 @@ def haal_selecties(conn, features, datum=None):
     select_lijst = ",\n            ".join(select_delen)
 
     if g:
-        g_select = ",\n                ".join(f"gt.{k}" for k in g)
-        lateral = f"""
-        LEFT JOIN LATERAL (
-            SELECT
-                {g_select}
-            FROM generieke_technicals gt
-            WHERE gt.ticker = s.ticker
-              AND gt.datum::timestamptz <= s.datum::timestamptz
-            ORDER BY gt.datum::timestamptz DESC
-            LIMIT 1
-        ) g ON TRUE
+        select_delen.append("g.datum AS technische_datum")
+        select_lijst = ",\n            ".join(select_delen)
+        lateral = """
+        LEFT JOIN generieke_technicals g
+          ON g.ticker = s.ticker AND g.datum::date = s.datum::date
         """
     else:
+        select_lijst += ", s.datum AS technische_datum"
         lateral = ""
 
     if datum is None:
@@ -143,10 +141,10 @@ def haal_selecties(conn, features, datum=None):
             datum = cur.fetchone()[0]
     print(f"Scoren voor datum: {datum}")
 
-    query = f"""
+    query = canonical_selecties_sql() + f"""
         SELECT
             {select_lijst}
-        FROM selecties s
+        FROM s
         {lateral}
         WHERE s.datum = %s;
     """
@@ -177,10 +175,15 @@ def main():
 
         versie = model_row["versie"]
         features = list(model_row["features"])
+        if features != list(MODEL_FEATURES):
+            raise InputUnavailable("Opgeslagen model heeft niet de huidige featurevolgorde")
         coefs = np.array(model_row["coefs"], dtype=float)
         mean = np.array(model_row["scaler_mean"], dtype=float)
         std = np.array(model_row["scaler_std"], dtype=float)
-        std = np.where(std == 0, 1.0, std)
+        if (any(array.shape != (len(features),) for array in (coefs, mean, std))
+                or not all(np.isfinite(array).all() for array in (coefs, mean, std))
+                or (std <= 0).any()):
+            raise InputUnavailable("Modelcoëfficiënten/scaler zijn ongeldig")
 
         print(f"Model: {versie}")
         print(f"Horizon: {model_row['horizon_dagen']}d, features: {len(features)}")
@@ -193,34 +196,19 @@ def main():
             send_telegram(f"📊 <b>Meta-model scores</b>\n\nDatum: <b>{datum}</b>\n<i>Geen selecties voor deze datum.</i>")
             return
 
-        voor_dropna = df.copy()
-        for k in features:
-            df[k] = df[k].rank(pct=True)
-
-        df = df.dropna(subset=features)
-        gedropt = voor_dropna.loc[~voor_dropna.index.isin(df.index), "strategie"]
-        if len(gedropt) > 0:
-            print("Niet gescoord (feature ontbreekt), per strategie:")
-            for strat, n in gedropt.value_counts().items():
-                print(f"  {strat:<24} {n}")
-
-        n_totaal = len(voor_dropna)
+        n_totaal = len(df)
+        df, coverage = scoring_inputs(
+            df, features, date_column="datum", min_rows=MIN_COMPLETE_RIJEN,
+            min_coverage=MIN_FEATURE_COVERAGE, max_age=MAX_INPUT_AGE_DAYS,
+            historical=args.datum is not None, rank_features=True,
+        )
+        print(f"[invoer] {coverage}")
         n_gescoord = len(df)
-        print(f"{n_gescoord} rijen met complete features.")
-
-        if n_gescoord == 0:
-            print("Geen complete rijen — alleen waarschuwing sturen.")
-            send_telegram(
-                f"⚠️ <b>Meta-model scores — geen complete data</b>\n\n"
-                f"Datum: <b>{datum}</b>\n"
-                f"Alle <b>{n_totaal}</b> selecties missen minstens één feature.\n"
-                f"<i>Waarschijnlijk ontbreekt technische data voor deze datum.</i>"
-            )
-            return
-
         # Scores berekenen
         X = (df[features].values - mean) / std
         scores = X @ coefs
+        if not np.isfinite(scores).all():
+            raise InputUnavailable("Model gaf niet-eindige scores; niets opgeslagen")
         df["score"] = scores
 
         insert = """
@@ -244,14 +232,15 @@ def main():
         print(top.to_string(index=False))
 
         bericht = bouw_telegram_bericht(df, datum, versie)
-        if n_gescoord < MIN_COMPLETE_RIJEN:
-            waarschuwing = (
-                f"⚠️ <i>Slechts {n_gescoord} van de {n_totaal} "
-                f"selecties hadden complete features voor deze datum.</i>\n\n"
-            )
-            bericht = waarschuwing + bericht
+        summary = coverage[-1]
+        bericht = (f"Invoerdekking: {summary['usable']}/{summary['total']} complete snapshots "
+                   f"op {summary['datum']}; overige rijen overgeslagen.\n\n") + bericht
 
-        send_telegram(bericht, parse_mode="HTML")
+        if args.datum:
+            bericht = "Historische scoring met het geselecteerde model; geen walk-forward backtest.\n\n" + bericht
+        ok = send_telegram(bericht, parse_mode="HTML")
+        if os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID") and not ok:
+            raise RuntimeError("Telegram-rapport niet verzonden")
 
     except Exception as e:
         import traceback

@@ -28,6 +28,8 @@ from common import (
 )
 
 from features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
+from model_inputs import canonical_selecties_sql, InputUnavailable, numeric_features, dates, unique_snapshots
+from horizon_utils import calendar_embargo
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
@@ -46,15 +48,19 @@ def haal_training_data(conn, features):
     s_lijst = ", ".join(f"s.{k}" for k in s)
     g_lijst = ("," + ", ".join(f"g.{k}" for k in g)) if g else ""
 
-    query = f"""
-        SELECT s.datum, {s_lijst}{g_lijst},
+    query = canonical_selecties_sql() + f"""
+        SELECT s.ticker, s.datum, s.strategie, {s_lijst}{g_lijst},
                f.{MODEL_TARGET} AS target
-        FROM selecties s
+        FROM s
         JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
         LEFT JOIN generieke_technicals g
           ON s.ticker = g.ticker AND s.datum = g.datum
-        WHERE f.{MODEL_TARGET} IS NOT NULL;
+        WHERE f.{MODEL_TARGET} IS NOT NULL
+          AND s.koers > 0 AND s.koers < 'Infinity'::real
+          AND f.entry_koers > 0 AND f.entry_koers < 'Infinity'::float8
+          AND abs(s.koers - f.entry_koers)
+              <= GREATEST(0.000001, abs(f.entry_koers) * 0.000001);
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(query)
@@ -69,6 +75,21 @@ def cross_sectionele_rank(df, kolommen):
 # ============================================================
 # MAIN
 # ============================================================
+
+def prepare_training(df, features, *, today=None):
+    if df.empty:
+        raise InputUnavailable("Geen trainingdata; bestaand model behouden")
+    out = numeric_features(df, [*features, "target"])
+    out["datum"] = dates(out["datum"])
+    now = pd.Timestamp(today) if today is not None else pd.Timestamp(today_str())
+    cutoff = now.normalize() - pd.Timedelta(days=calendar_embargo(MODEL_HORIZON))
+    out = out.loc[out.datum.notna() & (out.datum < cutoff)].copy()
+    out = unique_snapshots(out, ["ticker", "datum", "strategie"], [*features, "target"])
+    out = cross_sectionele_rank(out, features).dropna(subset=[*features, "target"])
+    if len(out) < 200 or out.datum.nunique() < 10:
+        raise InputUnavailable(f"Onvoldoende gerijpte trainingdata: {len(out)} rijen / {out.datum.nunique()} datums; minimaal 200/10")
+    return out
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -87,11 +108,9 @@ def main():
     try:
         df = haal_training_data(conn, features)
         print(f"{len(df)} rijen opgehaald.")
-        if df.empty:
-            print("Geen training-data.")
-            return
-
-        df = cross_sectionele_rank(df, features).dropna(subset=features + ["target"])
+        if not np.isfinite(args.alpha) or args.alpha <= 0:
+            raise ValueError("Ridge alpha moet positief en eindig zijn")
+        df = prepare_training(df, features)
         print(f"{len(df)} rijen na dropna, {df['datum'].nunique()} unieke datums.")
 
         X = df[features].values
@@ -105,6 +124,9 @@ def main():
 
         versie = f"ridge_a{args.alpha}_h{MODEL_HORIZON}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:6]}"
 
+        if not (np.isfinite(model.coef_).all() and np.isfinite(model.intercept_).all() and np.isfinite(scaler.mean_).all()
+                and np.isfinite(scaler.scale_).all() and (scaler.scale_ > 0).all()):
+            raise InputUnavailable("Training gaf ongeldige modelwaarden; bestaand model behouden")
         coefs = [float(c) for c in model.coef_]
         mean = [float(m) for m in scaler.mean_]
         std = [float(s) for s in scaler.scale_]
@@ -129,8 +151,13 @@ def main():
         for f, c in zip(features, coefs):
             print(f"  {f:<24} {c:+.4f}")
         print(f"Intercept: {model.intercept_:+.4f}")
+        return 0
+    except Exception as exc:
+        print(f"Meta-training ONVOLLEDIG: {exc}", file=sys.stderr)
+        send_telegram(f"Meta-training ONVOLLEDIG: {str(exc)[:600]}\nBestaand model behouden.", parse_mode=None)
+        return 1
     finally:
         conn.close()
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -8,6 +8,7 @@ Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
 from horizon_utils import calendar_embargo
+from model_inputs import canonical_selecties_sql, numeric_features, unique_snapshots, dates
 
 import os
 import sys
@@ -47,15 +48,19 @@ def haal_data(conn, features: List[str]) -> pd.DataFrame:
     s_lijst = ", ".join(f"s.{k}" for k in s_feats)
     g_lijst = ("," + ", ".join(f"g.{k}" for k in g_feats)) if g_feats else ""
 
-    query = f"""
+    query = canonical_selecties_sql() + f"""
         SELECT s.ticker, s.datum, s.strategie, {s_lijst}{g_lijst},
                f.{MODEL_TARGET} AS target
-        FROM selecties s
+        FROM s
         JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
         LEFT JOIN generieke_technicals g
           ON s.ticker = g.ticker AND s.datum = g.datum
-        WHERE f.{MODEL_TARGET} IS NOT NULL;
+        WHERE f.{MODEL_TARGET} IS NOT NULL
+          AND s.koers > 0 AND s.koers < 'Infinity'::real
+          AND f.entry_koers > 0 AND f.entry_koers < 'Infinity'::float8
+          AND abs(s.koers - f.entry_koers)
+              <= GREATEST(0.000001, abs(f.entry_koers) * 0.000001);
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(query)
@@ -195,6 +200,9 @@ def main():
             print("Geen data.")
             return
 
+        df = numeric_features(df, [*features, "target"])
+        df["datum"] = dates(df["datum"])
+        df = unique_snapshots(df, ["ticker", "datum", "strategie"], [*features, "target"])
         df = cross_sectionele_rank(df, features)
 
         res = walk_forward(df, features,

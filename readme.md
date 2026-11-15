@@ -168,6 +168,8 @@ Voorbeelden van de huidige YAML-configuratie:
 
 Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
 
+Ridge-meta- en productie-XGBoost-scoring controleren [datum en invoerdekking vóór publicatie](docs/model_inputs.md). Oudere technische snapshots worden niet als features van een nieuwere selectiedatum gebruikt.
+
 Cron-tijden zijn UTC; de Belgische lokale tijd verschilt met zomer- en wintertijd. Losse tijdschema's garanderen geen afhankelijkheidsvolgorde: controleer voltooiing van de benodigde databouw vóór een modelrun.
 
 Sommige workflows schrijven CSV-bestanden terug naar GitHub en hebben daarom `contents: write`; andere gebruiken alleen leestoegang. Vermijd gelijktijdige runs die dezelfde bestanden of databasegegevens wijzigen.

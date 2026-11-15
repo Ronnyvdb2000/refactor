@@ -48,9 +48,10 @@ Datum-aanpassing:
 Wijzigingen v1.1 (2026-10-04):
 - haal_bestaande_scores_op: xgboost_scores.datum wordt nu ook
   naar timestamptz gecast (fout: text >= timestamp).
-- haal_nieuwe_selecties_op: leeftijdsgrens van 7 dagen op de
-  gekoppelde technische rij, zodat nooit met verouderde features
-  gescoord wordt wanneer de rij voor de selectiedatum ontbreekt.
+- haal_nieuwe_selecties_op: technische snapshot op exact de selectiedatum,
+  met expliciete invoerdekking voordat er nieuwe scores worden opgeslagen.
+  Historische as-of-fallback is verwijderd; oudere features worden niet
+  gescoord wanneer de rij voor de selectiedatum ontbreekt.
 
 Wijzigingen v1.2 (2026-10-06):
 - sla_scores_op: 'rang' en 'n_gescoord' zijn NOT NULL in de
@@ -87,6 +88,8 @@ import psycopg2
 import psycopg2.extras
 import requests
 import xgboost
+import numpy as np
+from model_inputs import InputUnavailable, scoring_inputs
 
 
 warnings.filterwarnings(
@@ -847,230 +850,39 @@ def laad_modellen() -> Dict[str, object]:
 # NIEUWE SELECTIES OPHALEN
 # ============================================================
 
-def haal_nieuwe_selecties_op(
-    conn,
-) -> pd.DataFrame:
-
-    print_header(
-        "NIEUWE SELECTIES OPHALEN"
-    )
-
-    grensdatum = (
-        dt.datetime.now(
-            dt.timezone.utc
-        )
-        - dt.timedelta(
-            days=LOOKBACK_DAGEN
-        )
-    )
-
-    print(
-        f"Vanaf datum/tijd : "
-        f"{grensdatum.isoformat()}"
-    )
-
-    technische_features = ",\n".join(
-        f't.{sql_ident(feature)}'
-        for feature in VERWACHTE_FEATURES
-    )
-
+def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
+    print_header("NIEUWE SELECTIES OPHALEN")
+    grensdatum = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=LOOKBACK_DAGEN)
+    columns = ", ".join(f't.{sql_ident(name)}' for name in VERWACHTE_FEATURES)
     query = f"""
-        SELECT
-            s."ticker" AS ticker,
-            s."datum" AS selectie_datum,
-            s."strategie" AS strategie,
-            s."koers" AS selectie_koers,
-            s."beurs" AS beurs,
-            t."datum" AS technische_datum,
-            {technische_features}
-        FROM public."selecties" s
-
-        JOIN LATERAL (
-
-            SELECT
-                t."datum",
-                {
-                    ", ".join(
-                        f't.{sql_ident(feature)}'
-                        for feature in VERWACHTE_FEATURES
-                    )
-                }
-
-            FROM public."generieke_technicals" t
-
-            WHERE
-                t."ticker" = s."ticker"
-                AND t."datum"::timestamptz
-                    <= s."datum"::timestamptz
-                AND t."datum"::timestamptz
-                    >= s."datum"::timestamptz - interval '7 days'
-
-            ORDER BY
-                t."datum"::timestamptz DESC
-
-            LIMIT 1
-
-        ) t ON TRUE
-
-        WHERE
-            s."datum"::timestamptz >= %s
-
-        ORDER BY
-            s."datum"::timestamptz DESC,
-            s."ticker" ASC
+        SELECT s.ticker, s.datum AS selectie_datum, s.strategie,
+               s.koers AS selectie_koers, s.beurs,
+               t.datum AS technische_datum, {columns}
+        FROM public.selecties s
+        LEFT JOIN public.generieke_technicals t
+          ON t.ticker = s.ticker AND t.datum::date = s.datum::date
+        WHERE s.datum::timestamptz >= %s
+        ORDER BY s.datum::timestamptz DESC, s.ticker, s.created_at ASC NULLS LAST, s.id
     """
-
     try:
-
-        df = pd.read_sql_query(
-            query,
-            conn,
-            params=(grensdatum,),
-        )
-
+        raw = pd.read_sql_query(query, conn, params=(grensdatum,))
     except Exception as exc:
-
-        try:
-            conn.rollback()
-        except Exception:
-            pass
-
-        raise RuntimeError(
-            "Ophalen van nieuwe selecties "
-            f"mislukt: {exc}"
-        ) from exc
-
-    if df.empty:
-
-        print(
-            "⚠️ Geen selecties gevonden "
-            "binnen LOOKBACK_DAGEN."
-        )
-
-        return df
-
-    print(
-        f"Ruwe selectie-rijen : "
-        f"{len(df)}"
+        conn.rollback()
+        raise RuntimeError("Ophalen van nieuwe selecties mislukt") from exc
+    if raw.empty:
+        return raw
+    ready, coverage = scoring_inputs(
+        raw, VERWACHTE_FEATURES, date_column="selectie_datum",
+        min_coverage=float(os.getenv("MODEL_MIN_FEATURE_COVERAGE", "0.8")),
+        max_age=int(os.getenv("MODEL_MAX_INPUT_AGE_DAYS", "7")),
     )
-
-    df["ticker"] = (
-        df["ticker"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-    )
-
-    df["strategie"] = (
-        df["strategie"]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-    )
-
-    df = df[
-        df["ticker"] != ""
-    ].copy()
-
-    for feature in VERWACHTE_FEATURES:
-
-        df[feature] = pd.to_numeric(
-            df[feature],
-            errors="coerce",
-        )
-
-    before = len(df)
-
-    df = df.dropna(
-        subset=VERWACHTE_FEATURES
-    ).copy()
-
-    dropped = (
-        before - len(df)
-    )
-
-    if dropped:
-
-        print(
-            f"⚠️ {dropped} selectie(s) "
-            "verwijderd wegens ontbrekende "
-            "features."
-        )
-
-    if df.empty:
-
-        print(
-            "⚠️ Geen bruikbare selecties "
-            "na featurecontrole."
-        )
-
-        return df
-
-    df["selectie_datum"] = pd.to_datetime(
-        df["selectie_datum"],
-        errors="coerce",
-    )
-
-    df = df.dropna(
-        subset=["selectie_datum"]
-    ).copy()
-
+    print(f"[invoer] {coverage}", flush=True)
     def combine_strategies(series):
+        return "; ".join(sorted({str(value).strip() for value in series if pd.notna(value) and str(value).strip()}))
+    aggregation = dict(strategie=combine_strategies, selectie_koers="first", beurs="first", technische_datum="first")
+    aggregation.update({name:"first" for name in VERWACHTE_FEATURES})
+    return ready.groupby(["ticker", "selectie_datum"], as_index=False).agg(aggregation)
 
-        waarden = sorted(
-            {
-                str(value).strip()
-                for value in series
-                if str(value).strip()
-            }
-        )
-
-        return "; ".join(
-            waarden
-        )
-
-    aggregaties = {
-
-        "strategie":
-            combine_strategies,
-
-        "selectie_koers":
-            "first",
-
-        "beurs":
-            "first",
-
-        "technische_datum":
-            "max",
-    }
-
-    for feature in VERWACHTE_FEATURES:
-
-        aggregaties[feature] = "first"
-
-    df = (
-        df
-        .groupby(
-            [
-                "ticker",
-                "selectie_datum",
-            ],
-            as_index=False,
-        )
-        .agg(aggregaties)
-    )
-
-    print(
-        f"Bruikbare unieke selecties: "
-        f"{len(df)}"
-    )
-
-    return df
-
-
-# ============================================================
-# BESTAANDE SCORES OPHALEN
-# ============================================================
 
 def haal_bestaande_scores_op(
     conn,
@@ -1199,31 +1011,18 @@ def positieve_score(
         getattr(
             model,
             "classes_",
-            range(
-                probabilities.shape[1]
-            ),
+            [],
         )
     )
 
-    if 1 in classes:
+    if len(classes) != 2 or set(classes) != {0, 1}:
+        raise InputUnavailable("Model heeft geen expliciete binaire klassen 0 en 1")
+    index = classes.index(1)
 
-        index = classes.index(1)
-
-    else:
-
-        index = (
-            probabilities.shape[1] - 1
-        )
-
-        print(
-            "[MODEL] Klasse 1 niet expliciet "
-            "gevonden; laatste probability "
-            "wordt gebruikt."
-        )
-
-    return float(
-        probabilities[0, index]
-    )
+    value = float(probabilities[0, index])
+    if not np.isfinite(value) or not 0 <= value <= 1:
+        raise InputUnavailable("Model gaf geen geldige klassekans")
+    return value
 
 
 # ============================================================
@@ -1241,6 +1040,7 @@ def score_selecties(
     )
 
     resultaten = []
+    prediction_errors = []
 
     if df_selecties.empty:
 
@@ -1397,7 +1197,7 @@ def score_selecties(
                 )
 
             except Exception as exc:
-
+                prediction_errors.append(f"{ticker}/{horizon}: {type(exc).__name__}")
                 print(
                     f"   ❌ {horizon}: "
                     f"{type(exc).__name__}: "
@@ -1410,6 +1210,8 @@ def score_selecties(
         f"{len(resultaten)}"
     )
 
+    if prediction_errors:
+        raise InputUnavailable("Scoring onvolledig; geen nieuwe scores gepubliceerd: " + "; ".join(prediction_errors[:5]))
     return resultaten
 
 
@@ -1869,6 +1671,22 @@ def bouw_telegram_bericht(
 # TELEGRAM — VERSTUREN
 # ============================================================
 
+def meld_input_status(message):
+    if not (TELEGRAM_TOKEN and TELEGRAM_CHAT_ID):
+        return False
+    try:
+        response = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": message}, timeout=20,
+        )
+        ok = response.status_code == 200 and bool(response.json().get("ok"))
+        print(f"[Telegram] Statusmelding: {'verzonden' if ok else 'niet verzonden'}", flush=True)
+        return ok
+    except Exception:
+        print("[Telegram] Statusmelding niet verzonden", flush=True)
+        return False
+
+
 def stuur_telegram(
     df_top: pd.DataFrame,
 ) -> bool:
@@ -2227,6 +2045,7 @@ def main() -> int:
                 modellen=modellen,
             )
 
+            meld_input_status("XGBoost scoring: geen nieuwe selecties binnen het ingestelde venster.")
             return 0
 
         bestaande = (
@@ -2371,6 +2190,8 @@ def main() -> int:
         )
 
         traceback.print_exc()
+        reason = str(exc)[:600] if isinstance(exc, InputUnavailable) else type(exc).__name__
+        meld_input_status("XGBoost scoring ONVOLLEDIG: " + reason)
 
         if conn is not None:
 

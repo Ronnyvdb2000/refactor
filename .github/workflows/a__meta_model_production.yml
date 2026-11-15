@@ -40,6 +40,8 @@ jobs:
         if: github.event.inputs.retrain == 'true' || github.event.schedule == '0 22 * * 0'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
           python a_meta_model_train.py --alpha 1.0 --notities "auto-train" \
