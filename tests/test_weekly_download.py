@@ -11,7 +11,7 @@ def test_market_context_not_us_fallback():
     assert w.normaliseer_lijstticker('tickers_043x.txt','SAP.DE')=='SAP.DE'
     assert w.normaliseer_lijstticker('tickers_048a.txt','AMD')=='AMD'
     assert w.normaliseer_lijstticker('tickers_041a.txt','RYA.I')=='RYA.IR'
-    assert w.normaliseer_lijstticker('tickers_051a.txt','CDPROJEKT.WA')=='CDPROJEKT.WA'
+    assert w.normaliseer_lijstticker('tickers_051a.txt','CDPROJEKT.WA')=='CDR.WA'
 
 
 def test_missing_batch_has_only_one_batch_retry(monkeypatch):

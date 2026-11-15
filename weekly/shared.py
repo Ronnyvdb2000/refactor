@@ -10,6 +10,7 @@ import pandas as pd
 from common.io import BEURS_NAMEN, load_tickers_from_file
 from common.notify import send_email, send_telegram
 from .download import batch_download as download_history, DownloadOnderbroken
+from .symbols import beurscode
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTOREN = {'01': 'Hoogland', '02': 'Macrotrends', '03': 'Beursbrink',
@@ -48,6 +49,7 @@ class WeekKoersen:
         self.maandag, self.vrijdag = maandag, vrijdag
         self.historie = historie
         self.frames = {}
+        self.aangevraagd = set()
 
     def laad(self, tickers):
         ontbrekend = sorted(set(tickers) - self.frames.keys())
@@ -57,6 +59,7 @@ class WeekKoersen:
             print(f'[weekly] Download {i+1}..{i+len(batch)}/{len(ontbrekend)}', flush=True)
             if i:
                 time.sleep(0.5)
+            self.aangevraagd.update(batch)
             data = download_history(batch, start=str(start), end=str(self.vrijdag+timedelta(days=1)),
                                     auto_adjust=True, request_timeout=15)
             for ticker in batch:
@@ -69,10 +72,14 @@ class WeekKoersen:
 
     def performance(self, tickers):
         self.laad(tickers)
+        return self.beschikbare_performance(tickers)
+
+    def beschikbare_performance(self, tickers):
+        """Beoordeel uitsluitend de cache, ook na een afgebroken download."""
         resultaten = []
         for ticker in sorted(set(tickers)):
-            df = self.frames[ticker]
-            if df.empty:
+            df = self.frames.get(ticker)
+            if df is None or df.empty:
                 continue
             basis = df.loc[df.index < pd.Timestamp(self.maandag)]
             week = df.loc[df.index >= pd.Timestamp(self.maandag)]
@@ -114,7 +121,7 @@ def normaliseer_lijstticker(naam, ticker):
         return ticker + '.DE'
     if naam in ('tickers_041a.txt', 'tickers_041x.txt') and ticker.endswith('.I'):
         return ticker[:-2]+'.IR'
-    return ticker
+    return beurscode(naam, ticker)
 
 
 def laad_lijsten(suffix='a'):
@@ -131,13 +138,24 @@ def controleer_dekking(naam, tickers, data):
     return bool(data) and len(tickers)-len(data) <= toegelaten_uitval
 
 
-def schrijf_dekking(suffix, lijsten, resultaten):
+def schrijf_dekking(suffix, lijsten, resultaten, *, koersen=None):
     rows = []
     for naam, tickers in lijsten.items():
         goed = {r['ticker'] for r in resultaten.get(naam, [])}
         for ticker in tickers:
-            rows.append(dict(lijst=naam, ticker=ticker, bruikbaar=ticker in goed))
-    pd.DataFrame(rows).to_csv(ROOT / f'weekly_dekking_{suffix}.csv', index=False)
+            bruikbaar = ticker in goed
+            status = 'bruikbaar' if bruikbaar else 'geen_bruikbare_weekdata'
+            if koersen is not None and ticker not in koersen.frames:
+                bruikbaar = None  # Niet gemeten is geen bewezen onbruikbaar symbool.
+                status = 'download_afgebroken' if ticker in koersen.aangevraagd else 'niet_opgevraagd'
+            rows.append(dict(lijst=naam, ticker=ticker, bruikbaar=bruikbaar, status=status))
+    pd.DataFrame(rows, columns=['lijst', 'ticker', 'bruikbaar', 'status']).to_csv(
+        ROOT / f'weekly_dekking_{suffix}.csv', index=False)
+
+
+def schrijf_afgebroken_dekking(suffix, lijsten, koersen):
+    resultaten = {naam: koersen.beschikbare_performance(tickers) for naam, tickers in lijsten.items()}
+    schrijf_dekking(suffix, lijsten, resultaten, koersen=koersen)
 
 
 def maak_rapport(suffix='a'):
@@ -147,6 +165,7 @@ def maak_rapport(suffix='a'):
     try:
         koersen.laad([t for ts in lijsten.values() for t in ts])
     except DownloadOnderbroken as exc:
+        schrijf_afgebroken_dekking(suffix, lijsten, koersen)
         tekst = f'Weekrapport {suffix} ONVOLLEDIG: {exc}. Geen nieuwe toppers gepubliceerd.'
         (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
         meld(tekst)

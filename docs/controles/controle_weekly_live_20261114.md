@@ -29,3 +29,7 @@ Kleine livecontrole van AMD.DE, SAP.DE en SIE.DE geslaagd: drie koersreeksen, ba
 ## Tweede log: Weekly Report X
 
 Run 43637968492 liep van 20:31:54 tot 20:33:37 UTC (circa 1m43s), zonder rate-limitmeldingen of procesfout. JSON-commit e62f6aa en artifact geslaagd. Geen Telegram/e-mailwaarschuwingen. Warschau 29/29, Helsinki 12/12 en Frankfurt 36/37. Oslo 3/4; Stockholm, Zurich, CSE en Oostenrijk/Slovenië/Slowakije hebben lege x-lijsten (0/0), wat geen downloadfout is. Deze observatie is expliciet opgenomen in de volledigheidstests.
+
+## Vervolg op 15 november
+
+De volledige a-run met herstelcommit ef50239 is inmiddels gecontroleerd. Run 43678418052 op main 2dac9d9 stopte bij de zeventiende batch wegens aanhoudende Yahoo-beperking; publicatie is geblokkeerd en de backtest is overgeslagen. Het actuele brononderzoek en de aanvullende correcties staan in [controle_weekly_live_20261115.md](controle_weekly_live_20261115.md). De hierboven beschreven beperking dat een providerstop geen dekkings-CSV oplevert, is in dat vervolg hersteld.

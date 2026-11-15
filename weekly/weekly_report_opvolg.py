@@ -8,7 +8,10 @@ import random
 import hashlib
 
 from . import weekly_db_opvolg as weekly_db
-from .shared import WeekKoersen, weekgrenzen, laad_lijsten, label_voor, selecteer, meld, controleer_dekking, schrijf_dekking
+from .shared import (
+    WeekKoersen, weekgrenzen, laad_lijsten, label_voor, selecteer, meld,
+    controleer_dekking, schrijf_dekking, schrijf_afgebroken_dekking,
+)
 from .download import DownloadOnderbroken
 
 NEUTRAAL_STEEKPROEF_GROOTTE = 10
@@ -150,6 +153,7 @@ def main():
     try:
         koersen.laad([t for ts in lijsten.values() for t in ts])
     except DownloadOnderbroken as exc:
+        schrijf_afgebroken_dekking('opvolg', lijsten, koersen)
         meld(f'Weekly opvolg ONVOLLEDIG: {exc}. Geen database-export.')
         raise
     entries = []
