@@ -36,3 +36,25 @@ De definitieve lijst is lokaal volledig gecontroleerd voor de week 9–13 novemb
 Dit bevestigt de nieuwe Helsinki-bronlijst en haar huidige dekkingsscore. Het is geen volledige nieuwe a-productierun en garandeert niet dat Yahoo een volgende run onbeperkt bedient. Lijst 059 blijft afzonderlijk onvoldoende.
 
 `python -m pytest -q tests/`: **674 tests geslaagd**, 12 overgeslagen en 17 geslaagde subtests. RUFF (F401,F821), YAML-cacheherstel en `git diff --check` geslaagd. Er zijn geen echte notificaties of database-updates gedaan tijdens deze lokale controles.
+
+
+## Productielog en verdere verbetering
+
+Het aangeleverde log van [run 43697627590](https://github.com/Ronnyvdb2000/refactor/actions/runs/43697627590) gebruikt 915a641. De job liep van 09:06:35 tot 09:10:44 UTC: ongeveer vier minuten. Cacheherstel leverde 13325 koersreeksen; de overige 846 werden opnieuw geprobeerd. Geen `rate_limit=True` of `cache_lock=True` in dit log. Benelux/Ierland haalde 156/194 (80,4%) en Helsinki 196/198 (99,0%). Alleen lijst 059 faalde nog met 61/95 (64,2%). Dit bevestigt de eerder lokaal geteste broncorrecties in een echte productierun. Cache en artifacts zijn bewaard; nieuwe JSON-publicatie is terecht geblokkeerd.
+
+Bij de aanvullende controle zijn OBER.VI → OBS.VI en STEYR.VI/STYRMOT.VI → 4X0.VI toegevoegd. De [Wiener Börse-kaart voor Oberbank](https://www.wienerborse.at/en/stock-standard-market/oberbank-ag-AT0000625108/) bevestigt OBS en ISIN AT0000625108. De [issuerinformatie](https://www.oberbank.at/oberbank-aktie) bevestigt dat alle huidige aandelen gewone aandelen onder dit ISIN zijn. De [Steyr Motors-kaart](https://www.wienerborse.at/en/stock-direct-market-plus/steyr-motors-ag-AT0000A3FW25/) bevestigt handelscode 4X0 en ISIN AT0000A3FW25. Beide vervangende Yahoo-reeksen leveren bruikbare weekdata met basisdatum 6 november en einddatum 13 november. De eerste kleine download meldde een cache-lock, die bij de ene retry herstelde. Geen echte notificatie of database-export tijdens deze controle.
+
+Combinatie van die twee metingen met de laatste volledige productiescan geeft:
+
+| Deelmarkt | Bruikbaar | Dekking |
+| --- | --- | --- |
+| Wenen | 63/68 | 92,6% |
+| Ljubljana | 0/17 | 0,0% |
+| Bratislava (broncode) | 0/9 | 0,0% |
+| Hele lijst 059 | 63/94 | 67,0% |
+
+De noemer daalt van 95 naar 94 doordat STEYR/STYRMOT dezelfde actuele notering betreffen; er zijn geen ontbrekende buitenlandse markten weggelaten. De [CSV](weekly_059_marktdekking_20261115.csv) noemt expliciet dat dit een combinatie van run 43697627590 en gerichte controles is. Het is geen nieuwe volledige a-run. De onduidelijke HUT-, BIOGENA- en Gurktaler-invoer wordt niet op basis van een geraden aandelenklasse samengevoegd of vervangen.
+
+De rapportage toont voortaan deze uitsplitsing automatisch in een nieuw marktdekkings-artifact. Onbekende en niet-opgevraagde uitkomsten blijven afzonderlijk zichtbaar. De diagnostische aantallen veranderen de publicatiebeslissing voor de gehele lijst niet. De Telegram-melding bij een onvolledige a/x-run is ingekort tot de diagnose; het volledige onvolledige rapport blijft als artifact/e-mail beschikbaar. Een onvolledige scan bereikt de nieuwe toppers-JSON nog steeds niet.
+
+Verificatie: 678 tests geslaagd, 12 overgeslagen en 17 geslaagde subtests. Vier nieuwe tests controleren behoud van alle markten en onbekende invoer in de noemer, onbekende dekking bij een providerstop, een korte diagnose met behoud van rapport/snapshot en correcte marktstatus bij niet-opgevraagde data. YAML-artifactpaden en Telegram-secrets voor a/x/opvolg, RUFF (F401,F821) en git diff --check zijn gecontroleerd.

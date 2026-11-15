@@ -12,6 +12,7 @@ from common.notify import send_email, send_telegram
 from .download import batch_download as download_history, DownloadOnderbroken
 from .symbols import beurscode
 from .checkpoint import KoersCheckpoint
+from .coverage import deelmarkt, marktdekking, voldoende
 
 ROOT = Path(__file__).resolve().parents[1]
 SECTOREN = {'01': 'Hoogland', '02': 'Macrotrends', '03': 'Beursbrink',
@@ -142,10 +143,7 @@ def laad_lijsten(suffix='a'):
 def controleer_dekking(naam, tickers, data):
     verhouding = len(data)/len(tickers) if tickers else 0
     print(f'{naam}: {len(data)}/{len(tickers)} tickers met bruikbare weekdata ({verhouding:.1%})')
-    if not tickers:
-        return True  # Een lege kwaliteitslijst is geen mislukte download.
-    toegelaten_uitval = max(1, len(tickers)//5)
-    return bool(data) and len(tickers)-len(data) <= toegelaten_uitval
+    return voldoende(len(tickers), len(data))
 
 
 def schrijf_dekking(suffix, lijsten, resultaten, *, koersen=None):
@@ -158,9 +156,32 @@ def schrijf_dekking(suffix, lijsten, resultaten, *, koersen=None):
             if koersen is not None and ticker not in koersen.frames:
                 bruikbaar = None  # Niet gemeten is geen bewezen onbruikbaar symbool.
                 status = 'download_afgebroken' if ticker in koersen.aangevraagd else 'niet_opgevraagd'
-            rows.append(dict(lijst=naam, ticker=ticker, bruikbaar=bruikbaar, status=status))
-    pd.DataFrame(rows, columns=['lijst', 'ticker', 'bruikbaar', 'status']).to_csv(
+            rows.append(dict(lijst=naam, ticker=ticker, bruikbaar=bruikbaar, status=status,
+                             deelmarkt=deelmarkt(naam, ticker)))
+    pd.DataFrame(rows, columns=['lijst', 'ticker', 'bruikbaar', 'status', 'deelmarkt']).to_csv(
         ROOT / f'weekly_dekking_{suffix}.csv', index=False)
+    pd.DataFrame(marktdekking(rows), columns=[
+        'lijst', 'deelmarkt', 'aantal', 'bruikbaar', 'onbekend', 'dekking', 'status',
+    ]).to_csv(ROOT / f'weekly_marktdekking_{suffix}.csv', index=False)
+
+
+def dekkingsmelding(lijsten, resultaten, onvolledig):
+    """Compacte Telegram-diagnose; ranglijsten blijven in het rapportartifact."""
+    regels = ['ONVOLLEDIG WEEKRAPPORT — geen nieuwe toppers gepubliceerd.',
+              f'{len(lijsten)-len(onvolledig)}/{len(lijsten)} lijsten voldoende.']
+    for naam in onvolledig:
+        tickers = lijsten[naam]
+        goed = {r['ticker'] for r in resultaten.get(naam, [])}
+        regels.append(f'{label_voor(naam)}: {len(goed)}/{len(tickers)} '
+                      f'({len(goed)/len(tickers):.1%}); geen ranglijst.')
+        rows = [dict(lijst=naam, deelmarkt=deelmarkt(naam, t), bruikbaar=t in goed)
+                for t in tickers]
+        for rij in marktdekking(rows):
+            if rij['deelmarkt'] != 'Gehele lijst':
+                regels.append(f"  {rij['deelmarkt']}: {rij['bruikbaar']}/{rij['aantal']} "
+                              f"({rij['dekking']:.1%}); {rij['status']}.")
+    regels.append('Volledig rapport en ontbrekende tickers: zie workflow-artifacts.')
+    return '\n'.join(regels)
 
 
 def schrijf_afgebroken_dekking(suffix, lijsten, koersen):
@@ -208,9 +229,10 @@ def maak_rapport(suffix='a'):
                                         basisdatum=r.basisdatum, einddatum=r.einddatum, data_version=3, aantal_bruikbaar=len(data), aantal_universum=len(tickers)))
     schrijf_dekking(suffix, lijsten, resultaten)
     if onvolledig:
-        tekst = 'ONVOLLEDIG WEEKRAPPORT — geen nieuwe toppers gepubliceerd.\n' + '\n'.join(regels)
+        diagnose = dekkingsmelding(lijsten, resultaten, onvolledig)
+        tekst = diagnose + '\n\n' + '\n'.join(regels)
         (ROOT / f'weekly_rapport_{suffix}.txt').write_text(tekst, encoding='utf-8')
-        meld(tekst)
+        meld(diagnose)
         send_email(f'Weekrapport {suffix} onvolledig {vrijdag}', tekst)
         raise RuntimeError('Onvoldoende weekdata (80%-norm, bij kleine lijsten max. één ontbrekend): '+', '.join(onvolledig))
     # Altijd vervangen: een lege scan mag geen oude winnaars laten staan.

@@ -39,5 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: weekly-opvolg-dekking-${{ github.run_id }}
-          path: weekly_dekking_opvolg.csv
+          path: |
+            weekly_dekking_opvolg.csv
+            weekly_marktdekking_opvolg.csv
           if-no-files-found: warn

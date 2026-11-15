@@ -73,3 +73,12 @@ Op expliciet verzoek is de gedeelde `tickers_054a.txt` vervangen door de volledi
 Dit is een actuele bronlijst, geen historisch universum voor een rendementstest. De bronwijziging geldt voor alle bots die `tickers_054a.txt` inlezen. De bestaande 80%-norm en publicatieblokkering zijn ongewijzigd. Lijst 059 bevat nog Sloveense en Slowaakse invoer zonder bruikbare Yahoo-weekdata; die is niet verwijderd en kan de a-run blijven afkeuren. Telegram blijft behouden.
 
 Een volledige lokale controle van de nieuwe Helsinki-lijst voor 9–13 november leverde **195/198 bruikbare weekrendementen (98,5%)**. Zie [de bron- en dekkingscontrole](controles/controle_weekly_dekking_20261115.md). Dit is geen nieuwe volledige a-productierun; lijst 059 kan het rapport nog steeds afkeuren.
+
+
+## Deelmarkt-diagnose en korte onvolledigmelding
+
+De 80%-norm is ongewijzigd en geldt voor de hele bronlijst. De aanvullende uitsplitsing van lijst 059 naar Wenen, Ljubljana en Bratislava is een diagnose; een voldoende Weense deelmarkt heft een tekort in de hele lijst niet op. De negen bekende Slowaakse broncodes worden als `Bratislava (broncode)` aangeduid, zonder daarmee hun Yahoo-identiteit te bevestigen. Niet-herkende invoer staat onder `Onbekende markt` en blijft meetellen.
+
+`weekly_dekking_<variant>.csv` heeft daarnaast een kolom `deelmarkt`. Het nieuwe artifact `weekly_marktdekking_<variant>.csv` geeft aantallen, bruikbare reeksen, onbekende uitkomsten, dekkingsverhouding (0–1) en status per lijst/deelmarkt. Bij een providerstop blijft de dekkingsverhouding leeg zolang uitkomsten onbekend zijn; dat is geen gemeten 0% dekking. A/x en opvolg bewaren dit artifact ook na een fout. Deze diagnose doet geen nieuwe koersrequests.
+
+Bij een afgekeurd a/x-rapport bevat Telegram een korte melding met het aantal voldoende lijsten en de tekortschietende lijst(en), inclusief deelmarkt-aantallen. Volledige indicatieve ranglijsten blijven in het als onvolledig gemarkeerde tekst-/e-mailrapport. Geen nieuwe toppers-JSON bij lage dekking. De eerste regels van het rapport bevatten dezelfde diagnose. De actuele dekkingsfunctie en de per-markt-diagnose gebruiken dezelfde norm.

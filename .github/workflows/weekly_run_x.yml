@@ -81,4 +81,5 @@ jobs:
           path: |
             weekly_rapport_*.txt
             weekly_dekking_*.csv
+            weekly_marktdekking_*.csv
           if-no-files-found: warn
