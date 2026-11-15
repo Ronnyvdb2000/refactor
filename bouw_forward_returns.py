@@ -6,11 +6,12 @@ bouw_forward_returns.py — FEATURE STORE v2.1
 Gebruikt common/ voor gedeelde bouwstenen.
 Bevat split-correctie, eenheidsbreuk-detectie en dubbele-selectie logging.
 
-v2.1: Een onvolledige nieuwe berekening wist nooit eerder opgeslagen
+v2.2: Bestaande horizonlabels blijven behouden; alleen ontbrekende waarden
+worden aangevuld. Een onvolledige nieuwe berekening wist nooit eerder opgeslagen
 forward closes/returns. Een afwijkende instapkoers blokkeert een update,
 zodat bestaande labels niet ongemerkt een andere basis krijgen.
-Alleen niet-NULL waarden mogen bestaande labels
-vervangen. Dit voorkomt verlies van historische trainingslabels.
+Niet-NULL waarden worden niet opnieuw gelabeld. Dit voorkomt verlies of
+onbedoelde herberekening van historische trainingslabels.
 """
 
 import os
@@ -27,10 +28,11 @@ import yfinance as yf
 import pandas as pd
 
 from common import today_str, esc, send_telegram, send_email
+from horizon_utils import calendar_embargo, horizon_days
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 MAX_TICKERS_PER_RUN = int(os.environ.get("MAX_TICKERS_PER_RUN", "400"))
-HORIZONS = sorted(int(h) for h in os.environ.get("HORIZONS", "5,10,20,30,60").split(","))
+HORIZONS = sorted(horizon_days(h) for h in os.environ.get("HORIZONS", "5,10,20,30,60").split(","))
 
 EENHEID_RATIO_MIN = 70.0
 EENHEID_RATIO_MAX = 150.0
@@ -77,7 +79,7 @@ def haal_openstaande_rijen(conn) -> List[dict]:
     for h in HORIZONS:
         kolom = f"fwd_ret_{h}d"
         param_naam = f"cutoff_{h}"
-        params[param_naam] = (nu - timedelta(days=int(h * 1.6) + 3)).strftime("%Y-%m-%d")
+        params[param_naam] = (nu - timedelta(days=calendar_embargo(h))).strftime("%Y-%m-%d")
         voorwaarden.append(f"(s.datum <= %({param_naam})s AND (f.ticker IS NULL OR f.{kolom} IS NULL))")
     horizon_filter = " OR ".join(voorwaarden)
 
@@ -109,7 +111,7 @@ def haal_openstaande_rijen(conn) -> List[dict]:
 
 
 def bouw_upsert_query() -> str:
-    """Behoud bestaande waarden wanneer EXCLUDED een NULL bevat."""
+    """Vul ontbrekende velden aan; herlabel bestaande waarden nooit impliciet."""
     kolommen = ["ticker", "datum", "strategie", "beurs", "entry_koers"]
     for h in HORIZONS:
         kolommen.extend([f"fwd_close_{h}d", f"fwd_ret_{h}d"])
@@ -120,7 +122,7 @@ def bouw_upsert_query() -> str:
     for kolom in kolommen:
         if kolom not in ("ticker", "datum", "strategie"):
             updates.append(
-                f"{kolom} = COALESCE(EXCLUDED.{kolom}, forward_returns.{kolom})"
+                f"{kolom} = COALESCE(forward_returns.{kolom}, EXCLUDED.{kolom})"
             )
     updates.append("bijgewerkt_op = now()")
     update_lijst = ", ".join(updates)
@@ -159,7 +161,9 @@ def upsert_labels(conn, rijen: List[dict]) -> int:
 def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
     vroegste = min(r["datum"] for r in rijen)
     try:
-        hist = yf.Ticker(ticker).history(start=vroegste, auto_adjust=False)
+        hist = yf.Ticker(ticker).history(
+            start=vroegste, end=today_str(), auto_adjust=False, timeout=15
+        )
     except Exception as e:
         waarschuw(f"{ticker}: download mislukt ({e})")
         return []
@@ -168,8 +172,14 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
         waarschuw(f"{ticker}: geen koersdata")
         return []
 
-    closes = hist["Close"]
-    closes.index = pd.to_datetime(closes.index).tz_localize(None)
+    hist = hist.copy()
+    hist.index = pd.to_datetime(hist.index).tz_localize(None).normalize()
+    if hist.index.hasnans or hist.index.has_duplicates:
+        waarschuw(f"{ticker}: ongeldige of dubbele koersdatums; geen labels")
+        return []
+    hist = hist.sort_index()
+    hist = hist.loc[hist.index < pd.Timestamp(today_str())]
+    closes = pd.to_numeric(hist["Close"], errors="coerce")
     datums = closes.index
 
     splits = None
@@ -185,7 +195,8 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
         try:
             doel = pd.Timestamp(r["datum"])
             pos_kandidaten = datums.searchsorted(doel)
-            if pos_kandidaten >= len(datums):
+            if pos_kandidaten >= len(datums) or datums[pos_kandidaten] != doel:
+                waarschuw(f"{ticker} {r['datum']}: geen koers op selectiedatum; geen verschoven label")
                 continue
             entry_koers = float(r["koers"])
             if not math.isfinite(entry_koers) or entry_koers <= 0:
@@ -209,6 +220,14 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
             for h in HORIZONS:
                 idx = pos_kandidaten + h
                 if idx < len(closes):
+                    window = closes.iloc[pos_kandidaten : idx + 1]
+                    gaps = window.index.to_series().diff().dt.days
+                    if (not window.map(lambda v: math.isfinite(v) and v > 0).all()
+                            or gaps.gt(7).any()):
+                        waarschuw(f"{ticker} {r['datum']}/{h}d: ongeldige koersen of historiegat")
+                        rij[f"fwd_close_{h}d"] = None
+                        rij[f"fwd_ret_{h}d"] = None
+                        continue
                     fwd_close = float(closes.iloc[idx])
                     if not math.isfinite(fwd_close) or fwd_close <= 0:
                         rij[f"fwd_close_{h}d"] = None
@@ -222,7 +241,8 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
                 else:
                     rij[f"fwd_close_{h}d"] = None
                     rij[f"fwd_ret_{h}d"] = None
-            resultaten.append(rij)
+            if any(rij.get(f"fwd_ret_{h}d") is not None for h in HORIZONS):
+                resultaten.append(rij)
         except Exception as e:
             waarschuw(f"{ticker} {r['datum']}/{r['strategie']}: {e}")
             continue
@@ -240,7 +260,8 @@ def run_build():
         print("FOUT: SUPABASE_DB_URL ontbreekt.", file=sys.stderr)
         sys.exit(1)
 
-    conn = psycopg2.connect(SUPABASE_DB_URL)
+    WAARSCHUWINGEN.clear()
+    conn = psycopg2.connect(SUPABASE_DB_URL, connect_timeout=15)
     try:
         open_rijen = haal_openstaande_rijen(conn)
         print(f"{len(open_rijen)} (ticker, datum, strategie)-rijen wachten op een (bijgewerkt) label.")
@@ -265,19 +286,21 @@ def run_build():
             aantal = upsert_labels(conn, labels)
             totaal_bijgewerkt += aantal
             totaal_compleet += sum(
-                1 for l in labels if l.get(f"fwd_ret_{HORIZONS[-1]}d") is not None
+                1 for l in labels if all(l.get(f"fwd_ret_{h}d") is not None for h in HORIZONS)
             )
             if i % 25 == 0 or i == len(tickers):
                 print(f"  {i}/{len(tickers)} tickers verwerkt...")
             time.sleep(0.1)
 
-        nog_wachtend = len(open_rijen) - totaal_bijgewerkt
+        # An updated row can still lack a longer horizon. Count actual open rows.
+        nog_wachtend = len(haal_openstaande_rijen(conn))
+        opgelost = max(0, len(open_rijen) - nog_wachtend)
         lijnen = [f"📊 <b>Forward-Returns Feature Store — {today_str()}</b>", ""]
         if not open_rijen:
             lijnen.append("✅ Niets te doen: geen openstaande rijen om te labelen.")
         else:
             lijnen.append(f"🔄 <b>{totaal_bijgewerkt}</b> rijen bijgewerkt in forward_returns")
-            lijnen.append(f"🏁 {totaal_compleet} daarvan nu volledig")
+            lijnen.append(f"🏁 {opgelost} openstaande rijen afgerond; {totaal_compleet} berekeningen bevatten alle aangevraagde horizons")
             lijnen.append(f"📥 {len(open_rijen)} rijen waren openstaand, {nog_wachtend} blijven nog wachten")
             lijnen.append(f"🧾 {len(tickers)} unieke tickers verwerkt dit run")
 

@@ -49,6 +49,8 @@ Env:
   EMAIL_USER/EMAIL_PASS/EMAIL_RECEIVER (optioneel).
 """
 
+from horizon_utils import calendar_embargo
+
 import os
 import sys
 import argparse
@@ -507,7 +509,7 @@ def main():
             sys.exit(1)
 
     strategieen = [s.strip() for s in args.strategieen.split(",") if s.strip()]
-    embargo = args.horizon + args.embargo_extra
+    embargo = max(calendar_embargo(args.horizon), args.horizon + args.embargo_extra)
     oos_tag = f"_oos{train_tot.strftime('%Y%m%d')}" if train_tot is not None else ""
     versie = f"meta_label_{args.model}_h{args.horizon}_t{args.threshold}{oos_tag}_" \
              f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:6]}"

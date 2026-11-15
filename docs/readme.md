@@ -17,6 +17,7 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 - [Scantempo en wachttijden](scantempo.md)
 - [Opslagintegriteit en herstarts](opslag_integriteit.md)
+- [Forward returns, modelhorizons en 60d-controle](controles/controle_forward_modellen_20261115.md)
 
 ## Controlerapporten
 

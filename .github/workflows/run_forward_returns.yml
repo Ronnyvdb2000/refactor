@@ -5,6 +5,13 @@ on:
     - cron: "0 22 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: forward-returns-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: "1"
+
 jobs:
   bouw-forward-returns:
     runs-on: ubuntu-latest

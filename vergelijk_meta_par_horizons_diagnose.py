@@ -5,6 +5,8 @@ No DB writes. Each horizon trains only on mature, embargoed outcomes.
 """
 import argparse
 import json
+from horizon_utils import calendar_embargo
+
 import os
 from pathlib import Path
 
@@ -170,14 +172,14 @@ def run_horizon(df, horizon, args):
     dates = sorted(df['datum'].unique())
     summary = {'horizon': f'{horizon}d', 'status': 'insufficient_data',
                'observaties': len(df), 'datums': len(dates),
-               'embargo_calendar_days': max(25, horizon + 5),
+               'embargo_calendar_days': calendar_embargo(horizon, minimum=25),
                'folds': 0, 'results': []}
     if len(dates) < args.min_train_dates + 4:
         summary['reden'] = 'Te weinig datums met ingevulde forward returns'
         return summary, [], [], {'strategies': [], 'factors': [], 'universe': [], 'skipped': []}
     cutoff = pd.Timestamp(dates[int(len(dates) * .7)])
     summary['cutoff_70pct'] = cutoff.date().isoformat()
-    embargo = max(25, horizon + 5)
+    embargo = calendar_embargo(horizon, minimum=25)
     rows, picks = [], []
     diagnostics = {'strategies': [], 'factors': [], 'universe': [], 'skipped': []}
     for day in dates:
@@ -295,7 +297,7 @@ def main():
     report = {'status': 'ok' if any(s['status']=='ok' for s in summaries) else 'insufficient_data',
               'notes': 'Read-only onderzoeksvergelijking; geen productievoorspellingen. '
                        'Meta = historische strategie-excess; parameter = historische factor-IC; '
-                       'MA50 = eenvoudige referentie. Embargo >= max(25, horizon+5) kalenderdagen.',
+                       'MA50 = eenvoudige referentie. Embargo >= max(25, ceil(horizon*7/5)+2) kalenderdagen.',
               'horizons': summaries}
     (OUT / 'samenvatting.json').write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding='utf-8')
     if rows:

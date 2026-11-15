@@ -72,7 +72,7 @@ Belangrijke vervolgstappen in de pipeline:
 
 - [bouw_generieke_technicals.py](bouw_generieke_technicals.py): technische features in `generieke_technicals`.
 - [bouw_generieke_fundamentals.py](bouw_generieke_fundamentals.py): fundamentele gegevens in `generieke_fundamentals`.
-- [bouw_forward_returns.py](bouw_forward_returns.py): labels in `forward_returns`; de workflow vraagt horizons 5, 10, 20, 30 en 60 aan.
+- [bouw_forward_returns.py](bouw_forward_returns.py): labels in `forward_returns`; de workflow vraagt horizons 5, 10, 20, 30 en 60 handelsdagen aan. Alleen afgeronde koersdagen tellen mee; bestaande labels worden bij aanvulling behouden. Zie de [controle van forward returns en modelhorizons](docs/controles/controle_forward_modellen_20261115.md).
 
 Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is. Veel tickers op weinig datums vervangen geen langere historie. Controleer ook dat koersaanpassingen, peildatums en rendementseenheden overeenkomen tussen builders en modellen.
 

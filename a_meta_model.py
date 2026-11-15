@@ -7,6 +7,8 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
+from horizon_utils import calendar_embargo
+
 import os
 import sys
 import argparse
@@ -74,15 +76,18 @@ def walk_forward(df: pd.DataFrame, features: List[str],
                  min_train_datums: int = 10,
                  min_train_rijen: int = 200,
                  min_test_rijen: int = 20) -> pd.DataFrame:
-    df = df.sort_values("datum").reset_index(drop=True)
+    df = df.copy()
+    df["datum"] = pd.to_datetime(df["datum"], errors="coerce", utc=True).dt.tz_localize(None).dt.normalize()
+    df = df.dropna(subset=["datum"]).sort_values("datum").reset_index(drop=True)
     datums = sorted(df["datum"].unique())
 
     resultaten = []
     for i in range(min_train_datums, len(datums)):
         test_datum = datums[i]
-        train_datums = datums[:i]
-
-        train = df[df["datum"].isin(train_datums)].dropna(subset=features + ["target"])
+        cutoff = test_datum - pd.Timedelta(days=calendar_embargo(MODEL_HORIZON))
+        train = df[df["datum"] < cutoff].dropna(subset=features + ["target"])
+        if train["datum"].nunique() < min_train_datums:
+            continue
         test = df[df["datum"] == test_datum].dropna(subset=features + ["target"])
 
         if len(train) < min_train_rijen or len(test) < min_test_rijen:

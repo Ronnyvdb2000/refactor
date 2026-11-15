@@ -25,6 +25,9 @@ Env:
   TELEGRAM_CHAT_ID         optioneel
 
 WIJZIGINGEN:
+  v1.5 (2026-11-15):
+    - Kalenderembargo met handelsdagconversie: max(EMBARGO, ceil(horizon*7/5)+2).
+    - Training begrensd vanaf de echte scoredatum; targets worden niet tweemaal teruggeschoven.
   v1.1 (2026-10-11):
     - Koers meegenomen per pick (uit selecties via LATERAL JOIN).
     - Telegram toont koers + klikbare Yahoo-grafiek-link.
@@ -53,6 +56,8 @@ WIJZIGINGEN:
       Telegram-waarschuwing i.p.v. picks op oude data te sturen. Niet van
       toepassing bij een expliciete --datum (backtest). 0 = uitgeschakeld.
 """
+
+from horizon_utils import calendar_embargo
 
 import os
 import sys
@@ -608,7 +613,7 @@ def main():
     print(f"Rolling window  : {args.rolling_dagen}d "
           f"(fallback {args.fallback_dagen}d, extended {EXTRA_FALLBACK_STAPPEN})")
     print(f"Embargo         : {args.embargo_dagen}d "
-          f"(horizon-afhankelijk: max(embargo, horizon+5))")
+          f"(horizon in handelsdagen; kalenderembargo met buffer)")
     print(f"Winsorize       : ±{args.ic_max_abs}")
     print(f"Min datums IC   : {args.min_datums_ic}")
     print(f"Max data-leeftijd: "
@@ -671,13 +676,13 @@ def main():
                 continue
             laatste_target_datum = target_series["datum"].max()
 
-            effectieve_score = min(score_datum, laatste_target_datum)
+            effectieve_score = score_datum
 
             horizon_dagen = _horizon_naar_dagen(horizon)
-            effectieve_embargo = max(args.embargo_dagen, horizon_dagen + 5)
+            effectieve_embargo = calendar_embargo(horizon_dagen, minimum=args.embargo_dagen)
 
             print(f"[{horizon}] laatste target-datum : {laatste_target_datum.date()}")
-            print(f"[{horizon}] effectieve score     : {effectieve_score.date()}")
+            print(f"[{horizon}] scorebasis embargo   : {effectieve_score.date()}")
             print(f"[{horizon}] embargo (effectief)  : {effectieve_embargo}d")
 
             gewichten, window, train_start, train_einde = ic_met_fallback(

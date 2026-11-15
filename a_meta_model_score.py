@@ -101,11 +101,12 @@ def haal_laatste_model(conn):
     query = """
         SELECT versie, horizon_dagen, features, coefs, scaler_mean, scaler_std, ridge_alpha
         FROM meta_model_models
-        ORDER BY getraind_op DESC
+        WHERE horizon_dagen = %s
+        ORDER BY getraind_op DESC, versie DESC
         LIMIT 1;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(query, (MODEL_HORIZON,))
         row = cur.fetchone()
     return row
 

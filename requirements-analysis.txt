@@ -4,3 +4,6 @@ numpy>=1.26
 scipy>=1.11
 scikit-learn>=1.4
 requests>=2.31
+
+# common.io is imported by the meta-model entrypoints.
+yfinance>=0.2.40
