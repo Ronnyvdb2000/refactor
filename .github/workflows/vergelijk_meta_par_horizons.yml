@@ -28,7 +28,7 @@ jobs:
       - name: Vergelijk alle horizons (alleen lezen)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python vergelijk_meta_par_horizons.py
+        run: python -m meta_models.vergelijk_meta_par_horizons
       - name: Telegram samenvatting
         if: always()
         continue-on-error: true

@@ -2,7 +2,7 @@
 """Read-only 10d walk-forward comparison of existing a_par_model and meta-label approach.
 
 No database writes, notifications, or production model updates. Requires the
-repository's a_par_model.py and features.py in the same working directory.
+repository root as working directory (shared a_par_model.py and features.py).
 """
 import argparse
 import json

@@ -21,6 +21,7 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Controle workflowplanning en gelijktijdige publicatie](controles/controle_workflow_planning_20261115.md)
 - [Opslagintegriteit en herstarts](opslag_integriteit.md)
 - [Forward returns, modelhorizons en 60d-controle](controles/controle_forward_modellen_20261115.md)
+- [Meta-modellen: mapindeling en workflowaanroepen](../meta_models/README.md)
 - [Modelinvoer: datum, dekking en veilige publicatie](model_inputs.md)
 
 ## Controlerapporten

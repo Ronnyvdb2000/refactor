@@ -44,7 +44,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
-          python a_meta_model_train.py --alpha 1.0 --notities "auto-train" \
+          python -m meta_models.a_meta_model_train --alpha 1.0 --notities "auto-train" \
             2>&1 | tee meta_model_train.log
 
       - name: Scoren
@@ -54,7 +54,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
-          python a_meta_model_score.py 2>&1 | tee meta_model_score.log
+          python -m meta_models.a_meta_model_score 2>&1 | tee meta_model_score.log
 
       - name: Logs bewaren
         if: always()

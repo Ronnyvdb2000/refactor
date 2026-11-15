@@ -5,10 +5,10 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 
 | Workflow | Cron (UTC) | Python-entrypoints | Joblimiet (min) | Run-groep | Yahoo-jobgroep | Scope |
 | --- | --- | --- | --- | --- | --- | --- |
-| [a__meta_model_production.yml](../.github/workflows/a__meta_model_production.yml) | `0 23 * * 1-5`<br>`0 22 * * 0` | `a_meta_model_train.py`, `a_meta_model_score.py` | 20 | meta-model-production | Niet toegewezen | repo-planning |
+| [a__meta_model_production.yml](../.github/workflows/a__meta_model_production.yml) | `0 23 * * 1-5`<br>`0 22 * * 0` | `meta_models/a_meta_model_train.py`, `meta_models/a_meta_model_score.py` | 20 | meta-model-production | Niet toegewezen | repo-planning |
 | [a__parameter_model_production.yml](../.github/workflows/a__parameter_model_production.yml) | `0 5 * * *` | `a_par_model.py` | 30 | workflow-a__parameter_model_production-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [a_meta_labeling_classifier.yml](../.github/workflows/a_meta_labeling_classifier.yml) | `0 5 * * 0` | `a_meta_label_classifier.py` | 30 | meta-label-classifier | Niet toegewezen | repo-planning |
-| [a_meta_model.yml](../.github/workflows/a_meta_model.yml) | `30 22 * * 1-5` | `a_meta_model.py` | 20 | meta-model | Niet toegewezen | repo-planning |
+| [a_meta_labeling_classifier.yml](../.github/workflows/a_meta_labeling_classifier.yml) | `0 5 * * 0` | `meta_models/a_meta_label_classifier.py` | 30 | meta-label-classifier | Niet toegewezen | repo-planning |
+| [a_meta_model.yml](../.github/workflows/a_meta_model.yml) | `30 22 * * 1-5` | `meta_models/a_meta_model.py` | 20 | meta-model | Niet toegewezen | repo-planning |
 | [a_trade.yml](../.github/workflows/a_trade.yml) | `15 19 * * *` | `combiners/a_trade.py` | 30 | ${{ github.workflow }}-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [a_trade_combi.yml](../.github/workflows/a_trade_combi.yml) | `0 5 * * *` | `combiners/a_trade_combi.py` | 240 | ${{ github.workflow }}-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
 | [a_trade_q.yml](../.github/workflows/a_trade_q.yml) | `20 19 * * *` | `combiners/a_trade_q.py` | 30 | ${{ github.workflow }}-${{ github.ref }} | Niet toegewezen | repo-planning |
@@ -62,9 +62,9 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [score_xgboost.yml](../.github/workflows/score_xgboost.yml) | `30 21 * * 1-5` | `score_xgboost.py` | 30 | workflow-score_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [test_telegram.yml](../.github/workflows/test_telegram.yml) | Handmatig/event | `test_telegram.py`, `test_verbinding.py` | 5 | workflow-test_telegram-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [tradingagentsbridge.yml](../.github/workflows/tradingagentsbridge.yml) | `0 23 * * *` | `a_par_model.py`, `tradingagents_bridge.py` | 90 | workflow-tradingagentsbridge-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [vergelijk_meta_par_10d.yml](../.github/workflows/vergelijk_meta_par_10d.yml) | Handmatig/event | `vergelijk_meta_par_10d.py` | 40 | workflow-vergelijk_meta_par_10d-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [vergelijk_meta_par_horizons.yml](../.github/workflows/vergelijk_meta_par_horizons.yml) | Handmatig/event | `vergelijk_meta_par_horizons.py` | 45 | workflow-vergelijk_meta_par_horizons-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [vergelijk_meta_par_horizons_diagnose.yml](../.github/workflows/vergelijk_meta_par_horizons_diagnose.yml) | Handmatig/event | `vergelijk_meta_par_horizons_diagnose.py` | 45 | workflow-vergelijk_meta_par_horizons_diagnose-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [vergelijk_meta_par_10d.yml](../.github/workflows/vergelijk_meta_par_10d.yml) | Handmatig/event | `meta_models/vergelijk_meta_par_10d.py` | 40 | workflow-vergelijk_meta_par_10d-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [vergelijk_meta_par_horizons.yml](../.github/workflows/vergelijk_meta_par_horizons.yml) | Handmatig/event | `meta_models/vergelijk_meta_par_horizons.py` | 45 | workflow-vergelijk_meta_par_horizons-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [vergelijk_meta_par_horizons_diagnose.yml](../.github/workflows/vergelijk_meta_par_horizons_diagnose.yml) | Handmatig/event | `meta_models/vergelijk_meta_par_horizons_diagnose.py` | 45 | workflow-vergelijk_meta_par_horizons_diagnose-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [verwijdercsv.yml](../.github/workflows/verwijdercsv.yml) | Handmatig/event | `maintainance/push_generated_commit.py` | 15 | workflow-verwijdercsv-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [weekly_run.yml](../.github/workflows/weekly_run.yml) | `0 23 * * 5` | `weekly/weekly_report.py` | 90 | weekly-json-main | Niet toegewezen | weekly-apart |
 | [weekly_runV2.yml](../.github/workflows/weekly_runV2.yml) | Handmatig/event | `weekly/weekly_rep_backtest.py` | 90 | weekly-backtest | Niet toegewezen | weekly-apart |
@@ -98,4 +98,3 @@ Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart.
 ## Controlepunten
 
 - Alle workflows binnen scope hebben een runbeveiliging, meerdere wachtplaatsen en begrensde jobduur; hun gevonden entrypoints bestaan.
-

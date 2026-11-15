@@ -40,7 +40,7 @@ De gedeelde `horizon_utils.py` gebruikt nu `ceil(h * 7/5) + 2`: 9, 16, 30, 44 en
 ### Modellen: handelsdagen zijn geen kalenderdagen
 
 - Parametermodel, beide vergelijkingen over alle horizons en de beide meta-labelclassifiers gebruiken nu minimaal de kalenderbenadering hierboven. Een groter ingesteld embargo blijft behouden. Voor 60d is de minimumscheiding 86 in plaats van 65 kalenderdagen; voor 30d 44 in plaats van 35.
-- De Ridge-walk-forward in `a_meta_model.py` gebruikte alle eerdere selectiedatums, ook als hun 20d-uitkomst op de testdatum nog niet bekend kon zijn. Nu worden alleen datums vóór het horizonafhankelijke embargo toegelaten, met behoud van het minimumaantal trainingsdatums.
+- De Ridge-walk-forward in `meta_models/a_meta_model.py` gebruikte alle eerdere selectiedatums, ook als hun 20d-uitkomst op de testdatum nog niet bekend kon zijn. Nu worden alleen datums vóór het horizonafhankelijke embargo toegelaten, met behoud van het minimumaantal trainingsdatums.
 - Het parametermodel trok het embargo af vanaf `min(scoredatum, laatste targetdatum)`. De targetdatum lag al een horizon terug. De grens wordt nu eenmaal afgeleid van de echte scoredatum; ontbrekende targets blijven uitgesloten van de IC-berekening. Hiermee vervalt de onbedoelde tweede wachttijd.
 - De productie-scoreloader kiest uitsluitend een opgeslagen Ridge-model met `MODEL_HORIZON` (momenteel 20d). Een later opgeslagen model met een andere horizon kan daardoor niet als 20d-score worden weggeschreven.
 - `requirements-analysis.txt` bevat nu yfinance, vereist doordat de meta-entrypoints het gedeelde `common`-package importeren.

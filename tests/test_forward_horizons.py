@@ -7,8 +7,8 @@ import pandas as pd
 import pytest
 
 import bouw_forward_returns as forward
-import a_meta_model as meta
-import a_meta_model_score as scorer
+from meta_models import a_meta_model as meta
+from meta_models import a_meta_model_score as scorer
 import a_par_model as par
 from horizon_utils import calendar_embargo, horizon_days
 

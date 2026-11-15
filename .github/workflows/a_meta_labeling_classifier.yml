@@ -156,7 +156,7 @@ jobs:
           echo "  extra flags = $FLAGS"
           echo "============================================================"
 
-          python a_meta_label_classifier.py \
+          python -m meta_models.a_meta_label_classifier \
             --horizon "$HORIZON" \
             --threshold "$THRESHOLD" \
             --model "$MODEL" \

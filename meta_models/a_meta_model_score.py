@@ -169,7 +169,7 @@ def main():
     try:
         model_row = haal_laatste_model(conn)
         if model_row is None:
-            print("Geen model gevonden. Draai eerst a_meta_model_train.py.")
+            print("Geen model gevonden. Draai eerst python -m meta_models.a_meta_model_train.")
             send_telegram("⚠️ <b>Meta-model score</b>\n\nGeen model gevonden.")
             sys.exit(1)
 

@@ -62,11 +62,13 @@ Belangrijke vervolgstappen in de pipeline:
 | [bot_041mV2.py](bot_041mV2.py) | Tickerselectie V2 |
 | [a_trade.py](combiners/a_trade.py), [a_trade_q.py](combiners/a_trade_q.py), [a_trade_combi.py](combiners/a_trade_combi.py) | Combineren en rangschikken van signalen |
 | [a_par_model.py](a_par_model.py) | Parametermodel |
-| [a_meta_model.py](a_meta_model.py) | Evaluatie van het meta-model |
-| [a_meta_model_train.py](a_meta_model_train.py), [a_meta_model_score.py](a_meta_model_score.py) | Training en scoring van het meta-model |
+| [a_meta_model.py](meta_models/a_meta_model.py) | Evaluatie van het meta-model |
+| [a_meta_model_train.py](meta_models/a_meta_model_train.py), [a_meta_model_score.py](meta_models/a_meta_model_score.py) | Training en scoring van het meta-model |
 | [score_xgboost.py](score_xgboost.py) | XGBoost-scoring |
 | [xLightgbmV2.py](xLightgbmV2.py) | LightGBM V2-training |
-| [vergelijk_meta_par_horizons.py](vergelijk_meta_par_horizons.py) | Vergelijking over rendementshorizonten |
+| [vergelijk_meta_par_horizons.py](meta_models/vergelijk_meta_par_horizons.py) | Vergelijking over rendementshorizonten |
+
+De meta-modellen en hun vergelijkingsscripts staan in [meta_models/](meta_models/README.md). Start ze vanuit de hoofdmap met `python -m meta_models.<scriptnaam>`; de workflows gebruiken deze moduleaanroep.
 
 ### Feature-stores
 

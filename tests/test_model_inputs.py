@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import a_meta_model_score as meta
-import a_meta_model_train as train
+from meta_models import a_meta_model_score as meta
+from meta_models import a_meta_model_train as train
 import score_xgboost as xgb
 from model_inputs import InputUnavailable, scoring_inputs
 
