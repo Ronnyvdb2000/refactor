@@ -13,6 +13,10 @@ concurrency:
 
 jobs:
   bouw-generieke-technicals:
+    concurrency:
+      group: "refactor-yahoo-features"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:

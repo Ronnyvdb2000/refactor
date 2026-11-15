@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   filter_tickers:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:

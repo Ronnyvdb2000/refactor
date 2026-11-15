@@ -10,6 +10,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from .yahoo import download_workers, stop_on_throttle, YahooRateLimited
 
 BEURS_NAMEN = {
     "tickers_041x.txt": "041 Benelux Ierland",
@@ -110,11 +111,12 @@ def download_history(tickers: List[str], period: str = "2y",
     """Download OHLCV voor een lijst tickers. Valt terug op per-ticker
     downloads als de batch faalt. Retourneert een lange DataFrame met
     kolom 'Ticker'. request_timeout begrenst individuele providerrequests,
-    niet de totale downloadduur van een batch."""
+    niet de totale downloadduur van een batch. Maximaal vier downloadworkers;
+    een Yahoo-rate-limit breekt deze aanroep af vóór verdere tickerfallbacks."""
     if not tickers:
         return pd.DataFrame()
     kwargs = dict(tickers=tickers, auto_adjust=auto_adjust,
-                  group_by="ticker", progress=False, threads=True)
+                  group_by="ticker", progress=False, threads=download_workers())
     if request_timeout is not None:
         kwargs["timeout"] = request_timeout
     if start and end:
@@ -124,7 +126,10 @@ def download_history(tickers: List[str], period: str = "2y",
 
     frames = []
     try:
-        data = yf.download(**kwargs)
+        with stop_on_throttle():
+            data = yf.download(**kwargs)
+    except YahooRateLimited:
+        raise
     except Exception as e:
         print(f"[WARN] Batch mislukt ({e}), probeer 1-voor-1...")
         data = pd.DataFrame()
@@ -165,13 +170,16 @@ def download_history(tickers: List[str], period: str = "2y",
                     kw.update({"start": start, "end": end})
                 else:
                     kw["period"] = period
-                raw = yf.download(**kw)
+                with stop_on_throttle():
+                    raw = yf.download(**kw)
                 if raw is None or (isinstance(raw, pd.DataFrame) and raw.empty):
                     continue
                 norm = _normalise(raw, t)
                 if norm is not None:
                     frames.append(norm)
                 time.sleep(0.2)
+            except YahooRateLimited:
+                raise
             except Exception as e:
                 print(f"[WARN] {t}: mislukt ({e})")
 

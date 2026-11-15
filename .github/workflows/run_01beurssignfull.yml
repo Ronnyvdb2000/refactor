@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   bot-01beurssig-full:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 300
     permissions:

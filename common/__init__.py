@@ -14,6 +14,7 @@ from .io import (
     bouw_bestandslijst, label_voor, load_tickers_from_file, alle_tickers,
     download_history, BEURS_NAMEN,
 )
+from .yahoo import download_workers, YahooRateLimited
 from .notify import send_telegram, send_telegram_message, send_email
 from .sizing import (
     TRADE_COST_FIXED, TRADE_COST_PCT, SLIPPAGE_PCT, RISICO_PCT_DEFAULT,
@@ -21,6 +22,7 @@ from .sizing import (
 )
 
 __all__ = [
+    "download_workers", "YahooRateLimited",
     "today_str", "safe_float", "esc", "yahoo_link", "fmt_koers",
     "wilder_smooth", "compute_rsi_series", "compute_atr_series",
     "compute_adx_series", "compute_macd_series", "compute_bb",

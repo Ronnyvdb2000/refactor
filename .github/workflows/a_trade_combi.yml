@@ -15,6 +15,10 @@ env:
 
 jobs:
   bot-combi-volatiel:
+    concurrency:
+      group: "refactor-yahoo-daily"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 240
     permissions:

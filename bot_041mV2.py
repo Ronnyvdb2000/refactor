@@ -44,6 +44,7 @@ import requests
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from common import download_workers
 from datetime import date
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -345,7 +346,7 @@ def batch_download(tickers: list) -> dict:
         print(f"     Batch {i+1}/{len(batches)}...", end="", flush=True)
         try:
             raw = yf.download(batch, period="1y", progress=False,
-                              auto_adjust=True, multi_level_index=True)
+                              auto_adjust=True, multi_level_index=True, threads=download_workers())
             for t in batch:
                 try:
                     if len(batch) == 1:

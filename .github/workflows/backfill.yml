@@ -38,6 +38,10 @@ concurrency:
 
 jobs:
   backfill:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     name: backfill
     runs-on: ubuntu-24.04
     timeout-minutes: 180

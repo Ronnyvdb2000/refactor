@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   bot-00mr-orb:
+    concurrency:
+      group: "refactor-yahoo-timed"
+      queue: max
+      cancel-in-progress: false
     timeout-minutes: 300
     runs-on: ubuntu-latest
     steps:

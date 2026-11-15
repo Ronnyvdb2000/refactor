@@ -117,6 +117,9 @@ def audit(root):
             collisions.setdefault((hour, minute, tuple(sorted(names))), []).append(day)
     coincidences = [dict(days=[WEEKDAYS[d] for d in sorted(days)], utc=f'{hour:02}:{minute:02}', workflows=list(names))
                     for (hour, minute, names), days in sorted(collisions.items())]
+    if (root / 'maintainance/yahoo_lanes.py').is_file():
+        from .yahoo_lanes import check_budget
+        errors.extend(check_budget(root))
     return dict(workflows=workflows, simultaneous_starts=coincidences,
                 errors=sorted(set(errors)), warnings=sorted(set(warnings)))
 
@@ -124,16 +127,17 @@ def audit(root):
 def markdown(report):
     lines = ['# Workflowplanning refactor', '',
              'Alle tijden zijn UTC. Dit is broncode-inventarisatie; een cron bewijst geen ingeschakelde workflow of succesvolle live run.',
-             'Runbeveiliging geldt per groep; dit is geen gezamenlijk Yahoo-verzoekbudget. Weekly valt buiten deze herstelronde.', '',
-             '| Workflow | Cron (UTC) | Python-entrypoints | Joblimiet (min) | Run-groep | Scope |',
-             '| --- | --- | --- | --- | --- | --- |']
+             'Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dagelijkse, lange, feature- en tijdgebonden taken. Weekly valt buiten deze herstelronde.', '',
+             '| Workflow | Cron (UTC) | Python-entrypoints | Joblimiet (min) | Run-groep | Yahoo-jobgroep | Scope |',
+             '| --- | --- | --- | --- | --- | --- | --- |']
     for row in report['workflows']:
         lines.append('| ' + ' | '.join([
             f"[{row['file']}](../.github/workflows/{row['file'].replace(' ', '%20')})",
             '<br>'.join(f'`{c}`' for c in row['crons']) or 'Handmatig/event',
             ', '.join(f'`{s}`' for s in row['scripts']) or 'Shell/inline Python',
             ', '.join(str(j['timeout'] or 'ontbreekt') for j in row['jobs']),
-            str(row['group'] or ', '.join(j['group'] or 'ontbreekt' for j in row['jobs'])), row['scope']]) + ' |')
+            str(row['group'] or ', '.join(j['group'] or 'ontbreekt' for j in row['jobs'])),
+            ', '.join(j['group'] for j in row['jobs'] if j['group'] and 'refactor-yahoo-' in j['group']) or 'Niet toegewezen', row['scope']]) + ' |')
     lines += ['', '## Gelijke geplande startminuten', '',
               'Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart. Looptijden kunnen ook tussen verschillende startminuten overlappen.', '',
               '| Dagen | UTC | Workflows |', '| --- | --- | --- |']

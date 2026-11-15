@@ -13,6 +13,10 @@ concurrency:
 
 jobs:
   bot-01hoogl-full:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     # Ruime marge: ~15.300 tickers over 19 beurzen kan meerdere uren duren.
     # Voorkomt dat een hangende run stilzwijgend tot de GH-default van 360

@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   run_trading_bot:
+    concurrency:
+      group: "refactor-yahoo-daily"
+      queue: max
+      cancel-in-progress: false
     timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:

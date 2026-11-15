@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   forward-correlatie-analyse:
+    concurrency:
+      group: "refactor-yahoo-features"
+      queue: max
+      cancel-in-progress: false
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:

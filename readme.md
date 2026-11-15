@@ -166,6 +166,8 @@ Voorbeelden van de huidige YAML-configuratie:
 | Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python bot_00kr.py live` |
 | LightGBM V2 | Handmatig |
 
+Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
+
 Cron-tijden zijn UTC; de Belgische lokale tijd verschilt met zomer- en wintertijd. Losse tijdschema's garanderen geen afhankelijkheidsvolgorde: controleer voltooiing van de benodigde databouw vóór een modelrun.
 
 Sommige workflows schrijven CSV-bestanden terug naar GitHub en hebben daarom `contents: write`; andere gebruiken alleen leestoegang. Vermijd gelijktijdige runs die dezelfde bestanden of databasegegevens wijzigen.

@@ -70,6 +70,10 @@ jobs:
           fi
 
   bot-01xgboost-live:
+    concurrency:
+      group: "refactor-yahoo-daily"
+      queue: max
+      cancel-in-progress: false
     needs: bepaal-modus
     if: needs.bepaal-modus.outputs.mode == 'live'
     timeout-minutes: 300
@@ -96,6 +100,10 @@ jobs:
         run: python bot_01xgboost.py live
 
   bot-01xgboost-train:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     needs: bepaal-modus
     if: needs.bepaal-modus.outputs.mode == 'train'
     timeout-minutes: 300
@@ -129,6 +137,10 @@ jobs:
   # Handmatige backtest-run (workflow_dispatch met mode=backtest) â€” resultaten
   # verschijnen enkel in de Actions-log, er wordt niets gecommit of verstuurd.
   bot-01xgboost-backtest:
+    concurrency:
+      group: "refactor-yahoo-full"
+      queue: max
+      cancel-in-progress: false
     needs: bepaal-modus
     if: needs.bepaal-modus.outputs.mode == 'backtest'
     timeout-minutes: 300

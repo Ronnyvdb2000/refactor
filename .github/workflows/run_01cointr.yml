@@ -25,6 +25,10 @@ concurrency:
 
 jobs:
   run-bot:
+    concurrency:
+      group: "${{ github.event.inputs.mode == 'backtest' && 'refactor-yahoo-full' || 'refactor-yahoo-daily' }}"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:

@@ -61,3 +61,9 @@ De gedeelde `horizon_utils.py` gebruikt nu `ceil(h * 7/5) + 2`: 9, 16, 30, 44 en
 Offline regressies controleren exacte 5d/60d-posities, nog onrijpe horizons, onvoltooide dagbalken, weekenddatums, sortering, dubbele datums, ongeldige tussenkoersen, lange datagaten, de 86-daagse toelatingsgrens, werkelijke openstand, behoud van bestaande labels/instapkoers, causaliteit van de Ridge-folds, eenmalige wachttijd bij het parametermodel en horizongebonden modelkeuze.
 
 De gegenereerde UPSERT is tevens met conflicterende oudere labels uitgevoerd in een geïsoleerde SQLite-geheugendatabase; bestaande 5d bleef gelijk terwijl 60d werd aangevuld, en een afwijkende instapkoers werd geweigerd. De aanvullende PostgreSQL-regressies blijven beschikbaar voor een omgeving met pgserver/lokale sockets.
+
+## Live vervolgcontrole — 15 november 2026
+
+[Forward-returnrun 43685780913](https://github.com/Ronnyvdb2000/refactor/actions/runs/43685780913), met commit `ee79ee5`, is geslaagd en op 15 november om circa 08:02 Belgische tijd afgerond. De daaropvolgende alleen-lezen databasecontrole vond 41.892 forward-returnrijen en **6.573 ingevulde 60d-labels over tien selectiedatums (10–21 augustus 2026)**. De eerdere momentopname met nul 60d-labels is dus achterhaald voor de huidige stand; zij blijft hierboven staan als uitgangspunt van de reparatie.
+
+Dit bevestigt de live aanvulling, niet dat er al voldoende onafhankelijke historie is om een 60d-model verantwoord te trainen en valideren. Er is geen modeltraining geforceerd en er zijn tijdens deze vervolgcontrole geen databasewaarden gewijzigd.

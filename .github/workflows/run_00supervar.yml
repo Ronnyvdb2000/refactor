@@ -16,6 +16,10 @@ concurrency:
 
 jobs:
   bot-00super-eu:
+    concurrency:
+      group: "refactor-yahoo-timed"
+      queue: max
+      cancel-in-progress: false
     if: github.event.schedule == '30 6 * * 1-5' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 300
     runs-on: ubuntu-latest
@@ -37,6 +41,10 @@ jobs:
         run: python bot_00supervar.py europa
 
   bot-00super-na:
+    concurrency:
+      group: "refactor-yahoo-timed"
+      queue: max
+      cancel-in-progress: false
     if: github.event.schedule == '15 13 * * 1-5' || github.event_name == 'workflow_dispatch'
     timeout-minutes: 300
     runs-on: ubuntu-latest

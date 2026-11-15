@@ -12,6 +12,10 @@ concurrency:
 
 jobs:
   bot-01marktsent:
+    concurrency:
+      group: "refactor-yahoo-daily"
+      queue: max
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 180
     permissions:

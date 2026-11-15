@@ -8,16 +8,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: scanner-triplex-run
+  queue: max
+  cancel-in-progress: false
+
 jobs:
   run_global:
     timeout-minutes: 300
     runs-on: ubuntu-latest
 
     concurrency:
+      group: "refactor-yahoo-daily"
       queue: max
-      group: scanner-triplex-run
       cancel-in-progress: false
-
     steps:
       - name: Code ophalen
         uses: actions/checkout@v4

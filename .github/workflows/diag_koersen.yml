@@ -8,6 +8,10 @@ concurrency:
 
 jobs:
   diag:
+    concurrency:
+      group: "refactor-yahoo-features"
+      queue: max
+      cancel-in-progress: false
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
