@@ -56,14 +56,15 @@ def test_pre_week_snapshot_never_sees_winning_week(monkeypatch):
     assert row['dist_sma200_pct'] is not None
 
 
-def test_missing_history_keeps_selection_but_signals_retry(monkeypatch):
+def test_missing_history_keeps_selection_with_warning(monkeypatch,capsys):
     selected=[]
     monkeypatch.setattr(db,'log_report_toppers',lambda rows:selected.extend(rows))
     monkeypatch.setattr(w.WeekKoersen,'laad',lambda *_:None)
     monkeypatch.setattr(db,'log_weekly_topper_parameters',lambda rows:None)
-    with pytest.raises(RuntimeError,match='Onvoldoende historische parameters'):
-        store.bewaar_selecties([dict(ticker='A',beurs='X',type='stijger',week_perf=20)],MON,FRI)
+    missing = store.bewaar_selecties([dict(ticker='A',beurs='X',type='stijger',week_perf=20)],MON,FRI)
     assert selected[0]['ticker']=='A'
+    assert missing==['A']
+    assert '::warning::Historische parameters ontbreken voor: A' in capsys.readouterr().out
 
 
 def test_report_membership_and_parameters_sql_in_postgres(monkeypatch,tmp_path):
@@ -92,3 +93,42 @@ def test_retired_workflow_removed_and_both_reports_have_db_secret():
         text=(root/'.github/workflows'/name).read_text()
         assert 'SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}' in text
         assert 'psycopg2-binary' in text
+
+
+@pytest.mark.parametrize('suffix', ['a','x'])
+def test_partial_parameters_complete_report_and_keep_database_writes(monkeypatch,tmp_path,suffix):
+    monkeypatch.setattr(w,'ROOT',tmp_path)
+    monkeypatch.setattr(w,'weekgrenzen',lambda:(MON,FRI))
+    monkeypatch.setattr(w,'laad_lijsten',lambda *_:{'tickers_01.txt':['A','B']})
+    idx=pd.bdate_range(end='2026-11-06',periods=260)
+    close=pd.Series(range(100,360),index=idx,dtype=float)
+    hist=pd.DataFrame({'Close':close,'Open':close,'High':close+1,'Low':close-1,'Volume':100})
+    def load(self,tickers):
+        if self.historie:
+            self.frames={'A':hist,'B':pd.DataFrame()}
+    monkeypatch.setattr(w.WeekKoersen,'laad',load)
+    monkeypatch.setattr(w.WeekKoersen,'performance',lambda *_:[dict(ticker=t,perf=20,
+        basisdatum='2026-11-06',einddatum='2026-11-13') for t in ['A','B']])
+    selected,parameters,messages=[],[],[]
+    monkeypatch.setattr(db,'log_report_toppers',lambda rows:selected.extend(rows))
+    monkeypatch.setattr(db,'log_weekly_topper_parameters',lambda rows:parameters.extend(rows))
+    monkeypatch.setattr(db,'haal_laatste_rank_scores',lambda *_:{})
+    monkeypatch.setattr(w,'meld',messages.append)
+    monkeypatch.setattr(w,'send_email',lambda *_:None)
+    w.maak_rapport(suffix)
+    assert {r['ticker'] for r in selected}=={'A','B'}
+    assert [r['ticker'] for r in parameters]==['A']
+    assert all(r['bronselectie']==suffix for r in selected)
+    path=tmp_path/('laatste_toppers_x.json' if suffix=='x' else 'laatste_toppers.json')
+    assert {r['ticker'] for r in json.loads(path.read_text())}=={'A','B'}
+    assert 'beschikbare parameters opgeslagen' in messages[-1]
+    assert 'ontbreken voor: B' in messages[-1] and 'run is geslaagd' in messages[-1]
+    assert not any('opslag mislukt' in m for m in messages)
+
+
+def test_actual_database_failure_still_propagates(monkeypatch):
+    def fail(rows):
+        raise RuntimeError('database niet bereikbaar')
+    monkeypatch.setattr(db,'log_report_toppers',fail)
+    with pytest.raises(RuntimeError,match='database niet bereikbaar'):
+        store.bewaar_selecties([dict(ticker='A',beurs='X',type='stijger',week_perf=20)],MON,FRI)

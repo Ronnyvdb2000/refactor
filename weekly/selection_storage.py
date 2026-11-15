@@ -9,7 +9,7 @@ from .weekly_report_opvolg import haal_technische_parameters
 def bewaar_selecties(entries, maandag, vrijdag):
     if not entries:
         print('[weekly] Geen topvijf-stijgers boven 10%; geen extra historie/opslag.')
-        return
+        return []
     if any(e['week_perf'] <= 10 or e['type'] != 'stijger' for e in entries):
         raise ValueError('Alleen geselecteerde stijgers boven 10%')
     # Bewaar ook de selectie als de extra historie faalt. Een herhaalrun vult aan.
@@ -43,5 +43,8 @@ def bewaar_selecties(entries, maandag, vrijdag):
             row.update(ranks.get(row['ticker'], {}))
     db.log_weekly_topper_parameters(parameters)
     print(f'[weekly] {len(entries)} selecties >10%; {len(parameters)} snapshots vóór de week verwerkt.')
+    # Ontbrekende historie is een kwaliteitswaarschuwing, geen mislukte opslag.
+    # De selecties en alle bruikbare snapshots zijn hierboven gecommit.
     if ontbrekend:
-        raise RuntimeError('Onvoldoende historische parameters voor: '+', '.join(ontbrekend))
+        print('::warning::Historische parameters ontbreken voor: '+', '.join(ontbrekend))
+    return ontbrekend

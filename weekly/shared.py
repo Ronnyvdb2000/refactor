@@ -269,8 +269,12 @@ def maak_rapport(suffix='a'):
     send_email(f'Weekrapport {suffix}{status} {vrijdag}', tekst)
     from .selection_storage import bewaar_selecties
     try:
-        bewaar_selecties(database_selecties, maandag, vrijdag)
+        ontbrekend = bewaar_selecties(database_selecties, maandag, vrijdag)
     except Exception:
         meld(f'Weekrapport {suffix}: rapport verzonden, maar database/parameteropslag mislukt. '
              'Herhaal de run om ontbrekende opslag aan te vullen; zie Actions-log.')
         raise
+    if ontbrekend:
+        meld(f'Weekrapport {suffix}: selecties en beschikbare parameters opgeslagen. '
+             'Historische parameters ontbreken voor: '+', '.join(ontbrekend)+
+             '. De run is geslaagd; ontbrekende parameters kunnen bij een latere run worden aangevuld.')

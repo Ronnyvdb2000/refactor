@@ -87,7 +87,7 @@ Bij een gedeeltelijk a/x-rapport bevat Telegram de dekkingssamenvatting én het 
 
 ## Uitbreiding a en x — 15 november 2026
 
-Beide rapportbots bewaren per voldoende gedekte beurs/themagroep maximaal hun eigen vijf grootste stijgers, uitsluitend bij een onafgerond weekrendement strikt boven 10%. Rapport en JSON blijven alle gebruikelijke stijgers/dalers tonen; alleen de databaseverzameling heeft de 10%-filter. Geen dalers of neutrale steekproef meer. Na selectie wordt uitsluitend voor deze tickers lange historie opgehaald, afgekapt vóór maandag. Ontbrekende historische fundamentals blijven NULL. Een ontbrekende historische reeks is zichtbaar als opslagfout; het volledige Telegram-rapport wordt vóór deze extra fase verzonden.
+Beide rapportbots bewaren per voldoende gedekte beurs/themagroep maximaal hun eigen vijf grootste stijgers, uitsluitend bij een onafgerond weekrendement strikt boven 10%. Rapport en JSON blijven alle gebruikelijke stijgers/dalers tonen; alleen de databaseverzameling heeft de 10%-filter. Geen dalers of neutrale steekproef meer. Na selectie wordt uitsluitend voor deze tickers lange historie opgehaald, afgekapt vóór maandag. Ontbrekende historische fundamentals blijven NULL. Een ontbrekende historische reeks geeft een waarschuwing; de selectie en alle beschikbare snapshots worden opgeslagen en de workflow gaat door met het wegschrijven van de toppers-JSON. Het volledige Telegram-rapport wordt vóór deze extra fase verzonden. Echte verbindings-/schrijffouten blijven fataal.
 
 `bronselectie` is `a`, `x` of `a,x`. Een transactielock en een unieke gedeeltelijke index voorkomen nieuwe rapportdubbels per ticker/beurs/week. Bestaande snapshots blijven behouden; alleen bronlidmaatschap en ontbrekende parameters worden aangevuld. Historische opvolgrijen zonder bewezen bron blijven NULL; bestaande historische dubbels zijn niet verwijderd. De parameter-uniciteit omvat voortaan de doelweek, zodat een pre-week-vrijdag niet botst met een oudere dagwaarneming. Een herhaalrun herstelt ontbrekende opslag. Geen actuele kenmerken terugdateren.
 
@@ -95,3 +95,8 @@ Schemawijziging: `migrations/weekly_report_bronselectie.sql`. Beide workflows ge
 
 
 Validatie van deze uitbreiding: 60 weekly-tests geslaagd, inclusief uitvoering van de gegenereerde opslag-SQL in PostgreSQL (bronmerge, behoud van eerste snapshot en aanvullen van parameters). Volledige suite: 735 tests en 17 deeltests geslaagd; 9 verbindingstests overgeslagen. De migratie is toegepast en de twee unieke indexen zijn gecontroleerd in het actieve project `fantasie` (`fxdklbdykdnvhmzkyyma`). RLS blijft ingeschakeld. De waarde van het bestaande GitHub-secret is niet uitleesbaar; een nieuwe Actions-run moet de daadwerkelijke verbinding en opslag via dat secret nog bevestigen.
+
+
+## Ontbrekende parameters blokkeren het rapport niet — 15 november 2026
+
+Run 43749559756 verwerkte 89 selecties en 83 pre-week-snapshots, maar eindigde rood door zes ontbrekende historische parameterreeksen. Beide rapportbots behandelen dat nu als waarschuwing. Telegram bevestigt de geslaagde opslag van selecties en beschikbare parameters, met de ontbrekende tickers. Het proces eindigt normaal zodat de workflow de nieuwe toppers-JSON commit. Er worden geen parameters verzonnen of ongeldig bevonden koersreeksen toch gebruikt. Een volgende run kan ontbrekende parameters aanvullen. Echte databasefouten en onvoldoende dekking voor publicatie blijven fouten.
