@@ -7,7 +7,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 89,
+    "aantal_universum": 94,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "01 Hoogland",
@@ -17,7 +20,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 89,
+    "aantal_universum": 94,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "01 Hoogland",
@@ -27,7 +33,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 89,
+    "aantal_universum": 94,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "01 Hoogland",
@@ -37,7 +46,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 89,
+    "aantal_universum": 94,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "01 Hoogland",
@@ -47,7 +59,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 89,
+    "aantal_universum": 94,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "02 Macrotrends",
@@ -57,7 +72,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 19,
+    "aantal_universum": 21,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "02 Macrotrends",
@@ -67,7 +85,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 19,
+    "aantal_universum": 21,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "02 Macrotrends",
@@ -77,7 +98,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 19,
+    "aantal_universum": 21,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "02 Macrotrends",
@@ -87,7 +111,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 19,
+    "aantal_universum": 21,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "02 Macrotrends",
@@ -97,7 +124,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 19,
+    "aantal_universum": 21,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "03 Beursbrink",
@@ -107,7 +137,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 70,
+    "aantal_universum": 77,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "03 Beursbrink",
@@ -117,7 +150,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 70,
+    "aantal_universum": 77,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "03 Beursbrink",
@@ -127,7 +163,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 70,
+    "aantal_universum": 77,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "03 Beursbrink",
@@ -137,7 +176,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 70,
+    "aantal_universum": 77,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "03 Beursbrink",
@@ -147,7 +189,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 70,
+    "aantal_universum": 77,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "04 Benelux",
@@ -157,7 +202,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 30,
+    "aantal_universum": 32,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "04 Benelux",
@@ -167,7 +215,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 30,
+    "aantal_universum": 32,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "04 Benelux",
@@ -177,7 +228,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 30,
+    "aantal_universum": 32,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "04 Benelux",
@@ -187,7 +241,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 30,
+    "aantal_universum": 32,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "04 Benelux",
@@ -197,7 +254,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 30,
+    "aantal_universum": 32,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "05 Parijs",
@@ -207,7 +267,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 24,
+    "aantal_universum": 24,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "05 Parijs",
@@ -217,7 +280,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 24,
+    "aantal_universum": 24,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "05 Parijs",
@@ -227,7 +293,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 24,
+    "aantal_universum": 24,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "05 Parijs",
@@ -237,7 +306,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 24,
+    "aantal_universum": 24,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "05 Parijs",
@@ -247,7 +319,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 24,
+    "aantal_universum": 24,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "06 Power & AI",
@@ -257,7 +332,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 26,
+    "aantal_universum": 26,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "06 Power & AI",
@@ -267,7 +345,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 26,
+    "aantal_universum": 26,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "06 Power & AI",
@@ -277,7 +358,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 26,
+    "aantal_universum": 26,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "06 Power & AI",
@@ -287,7 +371,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 26,
+    "aantal_universum": 26,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "06 Power & AI",
@@ -297,7 +384,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 26,
+    "aantal_universum": 26,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "07 Metalen",
@@ -307,7 +397,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 27,
+    "aantal_universum": 27,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "07 Metalen",
@@ -317,7 +410,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 27,
+    "aantal_universum": 27,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "07 Metalen",
@@ -327,7 +423,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 27,
+    "aantal_universum": 27,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "07 Metalen",
@@ -337,7 +436,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 27,
+    "aantal_universum": 27,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "07 Metalen",
@@ -347,7 +449,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 27,
+    "aantal_universum": 27,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "08 Defensie",
@@ -357,7 +462,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 25,
+    "aantal_universum": 25,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "08 Defensie",
@@ -367,7 +475,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 25,
+    "aantal_universum": 25,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "08 Defensie",
@@ -377,7 +488,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 25,
+    "aantal_universum": 25,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "08 Defensie",
@@ -387,7 +501,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 25,
+    "aantal_universum": 25,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "08 Defensie",
@@ -397,7 +514,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 25,
+    "aantal_universum": 25,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "09 Varia",
@@ -407,7 +527,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 6,
+    "aantal_universum": 6,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "09 Varia",
@@ -417,7 +540,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 6,
+    "aantal_universum": 6,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "09 Varia",
@@ -427,7 +553,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 6,
+    "aantal_universum": 6,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "09 Varia",
@@ -437,7 +566,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 6,
+    "aantal_universum": 6,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "041 Benelux Ierland",
@@ -447,7 +579,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 156,
+    "aantal_universum": 194,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "041 Benelux Ierland",
@@ -457,7 +592,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 156,
+    "aantal_universum": 194,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "041 Benelux Ierland",
@@ -467,7 +605,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 156,
+    "aantal_universum": 194,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "041 Benelux Ierland",
@@ -477,7 +618,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 156,
+    "aantal_universum": 194,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "041 Benelux Ierland",
@@ -487,7 +631,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 156,
+    "aantal_universum": 194,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "042 Parijs",
@@ -497,7 +644,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 296,
+    "aantal_universum": 302,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "042 Parijs",
@@ -507,7 +657,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 296,
+    "aantal_universum": 302,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "042 Parijs",
@@ -517,7 +670,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 296,
+    "aantal_universum": 302,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "042 Parijs",
@@ -527,7 +683,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 296,
+    "aantal_universum": 302,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "042 Parijs",
@@ -537,57 +696,75 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 296,
+    "aantal_universum": 302,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "043 Frankfurt",
-    "ticker": "SND",
-    "week_perf": 33.24,
+    "ticker": "SNG.DE",
+    "week_perf": 118.36,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1358,
+    "aantal_universum": 1418,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "043 Frankfurt",
-    "ticker": "NVD",
-    "week_perf": 28.63,
+    "ticker": "WDL1.DE",
+    "week_perf": 44.54,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1358,
+    "aantal_universum": 1418,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "043 Frankfurt",
-    "ticker": "AMD",
-    "week_perf": 18.93,
+    "ticker": "AAO.DE",
+    "week_perf": 42.42,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1358,
+    "aantal_universum": 1418,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "043 Frankfurt",
-    "ticker": "VIA",
-    "week_perf": 14.08,
+    "ticker": "MS1.DE",
+    "week_perf": 41.79,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1358,
+    "aantal_universum": 1418,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "043 Frankfurt",
-    "ticker": "WDC",
-    "week_perf": 12.08,
+    "ticker": "H3V.DE",
+    "week_perf": 35.61,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1358,
+    "aantal_universum": 1418,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "044 Spanje/Portugal",
@@ -597,7 +774,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 237,
+    "aantal_universum": 263,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "044 Spanje/Portugal",
@@ -607,7 +787,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 237,
+    "aantal_universum": 263,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "044 Spanje/Portugal",
@@ -617,7 +800,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 237,
+    "aantal_universum": 263,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "044 Spanje/Portugal",
@@ -627,7 +813,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 237,
+    "aantal_universum": 263,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "044 Spanje/Portugal",
@@ -637,7 +826,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 237,
+    "aantal_universum": 263,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "045 Londen",
@@ -647,7 +839,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 610,
+    "aantal_universum": 639,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "045 Londen",
@@ -657,7 +852,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 610,
+    "aantal_universum": 639,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "045 Londen",
@@ -667,7 +865,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 610,
+    "aantal_universum": 639,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "045 Londen",
@@ -677,7 +878,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 610,
+    "aantal_universum": 639,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "045 Londen",
@@ -687,7 +891,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 610,
+    "aantal_universum": 639,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "046 Milaan",
@@ -697,7 +904,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 114,
+    "aantal_universum": 124,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "046 Milaan",
@@ -707,7 +917,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 114,
+    "aantal_universum": 124,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "046 Milaan",
@@ -717,7 +930,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 114,
+    "aantal_universum": 124,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "046 Milaan",
@@ -727,7 +943,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 114,
+    "aantal_universum": 124,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "046 Milaan",
@@ -737,7 +956,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 114,
+    "aantal_universum": 124,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "047 Toronto",
@@ -747,7 +969,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 2087,
+    "aantal_universum": 2257,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "047 Toronto",
@@ -757,7 +982,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 2087,
+    "aantal_universum": 2257,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "047 Toronto",
@@ -767,7 +995,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 2087,
+    "aantal_universum": 2257,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "047 Toronto",
@@ -777,7 +1008,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 2087,
+    "aantal_universum": 2257,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "047 Toronto",
@@ -787,7 +1021,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 2087,
+    "aantal_universum": 2257,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "048 Nasdaq/NYSE",
@@ -797,7 +1034,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 3139,
+    "aantal_universum": 3211,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "048 Nasdaq/NYSE",
@@ -807,7 +1047,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 3139,
+    "aantal_universum": 3211,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "048 Nasdaq/NYSE",
@@ -817,7 +1060,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 3139,
+    "aantal_universum": 3211,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "048 Nasdaq/NYSE",
@@ -827,7 +1073,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 3139,
+    "aantal_universum": 3211,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "048 Nasdaq/NYSE",
@@ -837,7 +1086,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 3139,
+    "aantal_universum": 3211,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "049 Stockholm",
@@ -847,7 +1099,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 351,
+    "aantal_universum": 399,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "049 Stockholm",
@@ -857,7 +1112,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 351,
+    "aantal_universum": 399,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "049 Stockholm",
@@ -867,7 +1125,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 351,
+    "aantal_universum": 399,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "049 Stockholm",
@@ -877,7 +1138,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 351,
+    "aantal_universum": 399,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "049 Stockholm",
@@ -887,7 +1151,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 351,
+    "aantal_universum": 399,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "050 Zurich",
@@ -897,7 +1164,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 204,
+    "aantal_universum": 205,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "050 Zurich",
@@ -907,7 +1177,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 204,
+    "aantal_universum": 205,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "050 Zurich",
@@ -917,7 +1190,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 204,
+    "aantal_universum": 205,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "050 Zurich",
@@ -927,7 +1203,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 204,
+    "aantal_universum": 205,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "050 Zurich",
@@ -937,7 +1216,23 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 204,
+    "aantal_universum": 205,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "051 Warschau",
+    "ticker": "MAB.WA",
+    "week_perf": 31.09,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 350,
+    "aantal_universum": 361,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "051 Warschau",
@@ -947,47 +1242,49 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 350,
+    "aantal_universum": 361,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "051 Warschau",
-    "ticker": "XTB.WA",
-    "week_perf": 4.95,
+    "ticker": "GIF.WA",
+    "week_perf": 18.83,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 350,
+    "aantal_universum": 361,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "051 Warschau",
-    "ticker": "MFO.WA",
-    "week_perf": 4.45,
+    "ticker": "DAT.WA",
+    "week_perf": 16.67,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 350,
+    "aantal_universum": 361,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "051 Warschau",
-    "ticker": "LPP.WA",
-    "week_perf": 4.44,
+    "ticker": "BRS.WA",
+    "week_perf": 16.23,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "051 Warschau",
-    "ticker": "ERG.WA",
-    "week_perf": 4.35,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 350,
+    "aantal_universum": 361,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "052 Oslo",
@@ -997,7 +1294,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 164,
+    "aantal_universum": 170,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "052 Oslo",
@@ -1007,7 +1307,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 164,
+    "aantal_universum": 170,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "052 Oslo",
@@ -1017,7 +1320,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 164,
+    "aantal_universum": 170,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "052 Oslo",
@@ -1027,7 +1333,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 164,
+    "aantal_universum": 170,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "052 Oslo",
@@ -1037,7 +1346,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 164,
+    "aantal_universum": 170,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "053 Kopenhagen",
@@ -1047,7 +1359,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 133,
+    "aantal_universum": 134,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "053 Kopenhagen",
@@ -1057,7 +1372,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 133,
+    "aantal_universum": 134,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "053 Kopenhagen",
@@ -1067,7 +1385,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 133,
+    "aantal_universum": 134,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "053 Kopenhagen",
@@ -1077,7 +1398,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 133,
+    "aantal_universum": 134,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "053 Kopenhagen",
@@ -1087,7 +1411,62 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 133,
+    "aantal_universum": 134,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "BRETEC.HE",
+    "week_perf": 16.04,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 196,
+    "aantal_universum": 198,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "FIA1S.HE",
+    "week_perf": 14.09,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 196,
+    "aantal_universum": 198,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "SENSO.HE",
+    "week_perf": 13.89,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 196,
+    "aantal_universum": 198,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "054 Helsinki",
+    "ticker": "HRTIS.HE",
+    "week_perf": 13.6,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 196,
+    "aantal_universum": 198,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "054 Helsinki",
@@ -1097,97 +1476,75 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 196,
+    "aantal_universum": 198,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "054 Helsinki",
-    "ticker": "INVEST.HE",
-    "week_perf": 7.81,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "054 Helsinki",
-    "ticker": "KAMUX.HE",
-    "week_perf": 7.75,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "054 Helsinki",
-    "ticker": "KREATE.HE",
-    "week_perf": 7.49,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "054 Helsinki",
-    "ticker": "BOREO.HE",
-    "week_perf": 6.27,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "055 CBoe",
+    "beurs": "055 CSE",
     "ticker": "DATT.CN",
     "week_perf": 100.0,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 625,
+    "aantal_universum": 668,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "055 CBoe",
+    "beurs": "055 CSE",
     "ticker": "NWI.CN",
     "week_perf": 100.0,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 625,
+    "aantal_universum": 668,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "055 CBoe",
+    "beurs": "055 CSE",
     "ticker": "SLZ.CN",
     "week_perf": 100.0,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 625,
+    "aantal_universum": 668,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "055 CBoe",
+    "beurs": "055 CSE",
     "ticker": "STIF.CN",
     "week_perf": 75.0,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 625,
+    "aantal_universum": 668,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "055 CBoe",
+    "beurs": "055 CSE",
     "ticker": "QREE.CN",
     "week_perf": 69.23,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 625,
+    "aantal_universum": 668,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "056 NYSE int",
@@ -1197,7 +1554,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 322,
+    "aantal_universum": 328,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "056 NYSE int",
@@ -1207,7 +1567,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 322,
+    "aantal_universum": 328,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "056 NYSE int",
@@ -1217,7 +1580,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 322,
+    "aantal_universum": 328,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "056 NYSE int",
@@ -1227,7 +1593,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 322,
+    "aantal_universum": 328,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "056 NYSE int",
@@ -1237,7 +1606,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 322,
+    "aantal_universum": 328,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "057 NYSE",
@@ -1247,7 +1619,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1563,
+    "aantal_universum": 1603,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "057 NYSE",
@@ -1257,7 +1632,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1563,
+    "aantal_universum": 1603,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "057 NYSE",
@@ -1267,7 +1645,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1563,
+    "aantal_universum": 1603,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "057 NYSE",
@@ -1277,7 +1658,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1563,
+    "aantal_universum": 1603,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "057 NYSE",
@@ -1287,7 +1671,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1563,
+    "aantal_universum": 1603,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "058 TSXV",
@@ -1297,7 +1684,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1277,
+    "aantal_universum": 1503,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "058 TSXV",
@@ -1307,7 +1697,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1277,
+    "aantal_universum": 1503,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "058 TSXV",
@@ -1317,7 +1710,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1277,
+    "aantal_universum": 1503,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "058 TSXV",
@@ -1327,7 +1723,10 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1277,
+    "aantal_universum": 1503,
+    "rapport_status": "gedeeltelijk"
   },
   {
     "beurs": "058 TSXV",
@@ -1337,56 +1736,74 @@
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 1277,
+    "aantal_universum": 1503,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "059 Oostenrijk Slovenie Slovakije",
+    "beurs": "059 Wenen",
     "ticker": "ATS.VI",
     "week_perf": 16.64,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 63,
+    "aantal_universum": 68,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "059 Oostenrijk Slovenie Slovakije",
+    "beurs": "059 Wenen",
     "ticker": "MMK.VI",
     "week_perf": 14.67,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 63,
+    "aantal_universum": 68,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "059 Oostenrijk Slovenie Slovakije",
+    "beurs": "059 Wenen",
     "ticker": "VIG.VI",
     "week_perf": 8.27,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 63,
+    "aantal_universum": 68,
+    "rapport_status": "gedeeltelijk"
   },
   {
-    "beurs": "059 Oostenrijk Slovenie Slovakije",
+    "beurs": "059 Wenen",
+    "ticker": "FQT.VI",
+    "week_perf": 7.47,
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "basisdatum": "2026-11-06",
+    "einddatum": "2026-11-13",
+    "data_version": 3,
+    "aantal_bruikbaar": 63,
+    "aantal_universum": 68,
+    "rapport_status": "gedeeltelijk"
+  },
+  {
+    "beurs": "059 Wenen",
     "ticker": "RBI.VI",
     "week_perf": 6.92,
     "week_startdatum": "2026-11-09",
     "week_einddatum": "2026-11-13",
     "basisdatum": "2026-11-06",
     "einddatum": "2026-11-13",
-    "data_version": 2
-  },
-  {
-    "beurs": "059 Oostenrijk Slovenie Slovakije",
-    "ticker": "UQA.VI",
-    "week_perf": 5.62,
-    "week_startdatum": "2026-11-09",
-    "week_einddatum": "2026-11-13",
-    "basisdatum": "2026-11-06",
-    "einddatum": "2026-11-13",
-    "data_version": 2
+    "data_version": 3,
+    "aantal_bruikbaar": 63,
+    "aantal_universum": 68,
+    "rapport_status": "gedeeltelijk"
   }
 ]
