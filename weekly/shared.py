@@ -222,6 +222,7 @@ def maak_rapport(suffix='a'):
     resultaten = {naam: koersen.performance(tickers) for naam, tickers in lijsten.items()}
     groepen = publicatiegroepen(lijsten, resultaten)
     toppers = []
+    database_selecties = []
     bruikbaar = 0
     onvolledig = [g for g in groepen if not g['voldoende']]
     for groep in groepen:
@@ -235,6 +236,10 @@ def maak_rapport(suffix='a'):
             continue
         bruikbaar += len(data)
         top, bottom, _ = selecteer(data)
+        for rang, r in enumerate(top.itertuples(), 1):
+            if r.perf > 10:
+                database_selecties.append(dict(lijst=groep['lijst'], ticker=r.ticker,
+                    beurs=label, type='stijger', rang=rang, week_perf=r.perf, bronselectie=suffix))
         regels.append(f'\n{label} — {len(data)}/{len(tickers)} bruikbaar')
         for titel, selectie in [('Stijgers', top), ('Dalers', bottom)]:
             regels.append(titel+':')
@@ -262,3 +267,10 @@ def maak_rapport(suffix='a'):
     meld(tekst)
     status = ' gedeeltelijk' if onvolledig else ''
     send_email(f'Weekrapport {suffix}{status} {vrijdag}', tekst)
+    from .selection_storage import bewaar_selecties
+    try:
+        bewaar_selecties(database_selecties, maandag, vrijdag)
+    except Exception:
+        meld(f'Weekrapport {suffix}: rapport verzonden, maar database/parameteropslag mislukt. '
+             'Herhaal de run om ontbrekende opslag aan te vullen; zie Actions-log.')
+        raise

@@ -81,16 +81,16 @@ def test_report_rate_limit_keeps_snapshot_and_notifies(monkeypatch,tmp_path):
     assert messages and 'ONVOLLEDIG' in messages[0]
 
 
-def test_opvolg_low_coverage_never_writes_database(monkeypatch):
-    from weekly import weekly_report_opvolg as o
-    monkeypatch.setattr(o,'laad_lijsten',lambda *_:{'tickers_051a.txt':['A','B','C','D']})
-    monkeypatch.setattr(o.WeekKoersen,'laad',lambda *_:None)
-    monkeypatch.setattr(o.WeekKoersen,'performance',lambda *_:[dict(ticker='A',perf=10)])
-    monkeypatch.setattr(o,'schrijf_dekking',lambda *_:None)
-    messages=[];monkeypatch.setattr(o,'meld',messages.append)
-    monkeypatch.setattr(o,'verwerk_weekly_db_export',lambda *_:pytest.fail('incomplete scan reached database export'))
-    with pytest.raises(RuntimeError,match='dekking'):o.main()
-    assert messages and 'Geen database-export' in messages[0]
+def test_report_low_coverage_never_writes_database(monkeypatch,tmp_path):
+    from weekly import selection_storage as storage
+    monkeypatch.setattr(w,'ROOT',tmp_path)
+    monkeypatch.setattr(w,'laad_lijsten',lambda *_:{'tickers_051a.txt':['A','B','C','D']})
+    monkeypatch.setattr(w.WeekKoersen,'laad',lambda *_:None)
+    monkeypatch.setattr(w.WeekKoersen,'performance',lambda *_:[dict(ticker='A',perf=20)])
+    monkeypatch.setattr(w,'meld',lambda *_:None)
+    monkeypatch.setattr(w,'send_email',lambda *_:None)
+    monkeypatch.setattr(storage,'bewaar_selecties',lambda *_:pytest.fail('incomplete scan reached database export'))
+    with pytest.raises(RuntimeError,match='weekdata'):w.maak_rapport()
 
 
 def test_long_history_only_selected_tickers(monkeypatch):

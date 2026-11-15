@@ -45,20 +45,8 @@ def test_interrupted_report_preserves_completed_data_and_unknown_status(monkeypa
     assert coverage.loc['A001', 'bruikbaar'] == False
 
 
-def test_interrupted_opvolg_writes_diagnostics_without_export(monkeypatch, tmp_path):
+def test_retired_opvolg_cannot_start_another_universe_scan(monkeypatch):
     from weekly import weekly_report_opvolg as o
-
-    def download(*args, **kwargs):
-        raise DownloadOnderbroken('providerstop')
-
-    monkeypatch.setattr(w, 'ROOT', tmp_path)
-    monkeypatch.setattr(o, 'laad_lijsten', lambda *_: {'tickers_054a.txt': ['A.HE']})
-    monkeypatch.setattr(w, 'download_history', download)
-    monkeypatch.setattr(o, 'meld', lambda *_: None)
-    monkeypatch.setattr(o, 'verwerk_weekly_db_export',
-                        lambda *_: pytest.fail('export na afgebroken scan'))
-    with pytest.raises(DownloadOnderbroken):
+    monkeypatch.setattr(o.WeekKoersen, 'laad', lambda *_: pytest.fail('Vervallen scan gestart'))
+    with pytest.raises(RuntimeError, match='losse opvolgscan is vervallen'):
         o.main()
-    coverage = pd.read_csv(tmp_path / 'weekly_dekking_opvolg.csv')
-    assert coverage.status.tolist() == ['download_afgebroken']
-    assert coverage.bruikbaar.isna().all()

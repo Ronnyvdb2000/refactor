@@ -1,13 +1,14 @@
 # Weekly bots
 
-Alle zes weekly scripts staan in `weekly/`. Start vanuit de repository-root als module; tickerbestanden en JSON-uitvoer blijven in de hoofdmap. `weekly/shared.py` bevat alleen weekgrenzen, rapportage en koerscache voor deze groep.
+De weekly scripts staan in `weekly/`. Start vanuit de repository-root als module; tickerbestanden en JSON-uitvoer blijven in de hoofdmap. `weekly/shared.py` bevat alleen weekgrenzen, rapportage en koerscache voor deze groep.
 
 | Script | Workflow | Functie |
 | --- | --- | --- |
 | `weekly/weekly_report.py` | `weekly_run.yml` | Rapport voor 01–09 en 041a–059a; `laatste_toppers.json` |
 | `weekly/weekly_report_x.py` | `weekly_run_x.yml` | Rapport voor 01–09 en 041x–059x; `laatste_toppers_x.json` |
-| `weekly/weekly_report_opvolg.py` | `weekly_run_opvolg.yml` | Weekselecties en historische dagparameters naar Supabase |
-| `weekly/weekly_db_opvolg.py` | Via opvolg en correlaties | Opslag en ranks op peildatum; geen zelfstandige workflow |
+| `weekly/selection_storage.py` | Via beide a/x-rapporten | Eigen topvijf >10% en parameters vóór de week naar Supabase |
+| `weekly/weekly_report_opvolg.py` | Geen; losse scan vervallen | Herbruikbare indicatorfuncties voor historische parameters |
+| `weekly/weekly_db_opvolg.py` | Via a/x-rapporten en correlaties | Opslag en ranks op peildatum; geen zelfstandige workflow |
 | `weekly/weekly_rep_backtest.py` | `weekly_runV2.yml` | Retrospectieve technische verkenning van weekwinnaars |
 | `weekly/analyseer_weekly_correlaties.py` | `analyse_correlaties_weeklytop.yml` | Handmatige beschrijvende correlaties; CSV en e-mail |
 
@@ -15,11 +16,11 @@ Voorbeeld: `python -m weekly.weekly_report`. Dit start de echte scan met notific
 
 ## Weekgrenzen en rendement
 
-De a-rapportage en opvolg starten vrijdag 23:00 UTC; de x-rapportage om 23:15 UTC. In België is dat zaterdag 00:00 in de winter en 01:00 in de zomer. Een handmatige run gebruikt de laatste volledige week; vóór vrijdag 23:00 UTC geldt nog de vorige week.
+De a-rapportage start vrijdag 23:00 UTC; de x-rapportage om 23:15 UTC. In België is dat zaterdag 00:00 in de winter en 01:00 in de zomer. Een handmatige run gebruikt de laatste volledige week; vóór vrijdag 23:00 UTC geldt nog de vorige week.
 
 Weekprestatie loopt van de laatste beschikbare slotkoers vóór maandag tot het laatste beschikbare slot van de week, met aangepaste koersen. Vijf slotkoersen van maandag tot vrijdag zouden alleen vier dagrendementen meten. De basis mag maximaal zeven kalenderdagen vóór maandag liggen; de eindkoers maximaal drie dagen vóór vrijdag. Ontbrekende of oudere koersen worden uitgesloten en aantallen verschijnen per lijst. Positieve stijgers en negatieve dalers worden apart gerangschikt; de grootste daler krijgt rang 1. De neutrale steekproef blijft per lijst/week reproduceerbaar.
 
-Elke unieke ticker wordt per proces gecachet. Downloads gebruiken batches van maximaal 20, twee workers en een timeout van 15 seconden. Ontbrekende data krijgt maximaal één batchretry; er volgen geen individuele retries. Bij een rate-limit volgt één herstelpauze van 15 seconden en bij herhaling stopt de scan. Vóór elke batch zit twee seconden pauze, ook tussen opeenvolgende laadacties. De opvolgbot scant het gehele universum met korte historie en haalt lange historie alleen voor geselecteerde tickers op. Verschillende runners kunnen samen nog steeds providerlimieten raken.
+Elke unieke ticker wordt per proces gecachet. Downloads gebruiken batches van maximaal 20, twee workers en een timeout van 15 seconden. Ontbrekende data krijgt maximaal één batchretry; er volgen geen individuele retries. Bij een rate-limit volgt één herstelpauze van 15 seconden en bij herhaling stopt de scan. Vóór elke batch zit twee seconden pauze, ook tussen opeenvolgende laadacties. De a/x-rapporten scannen hun eigen universum en halen lange historie alleen voor hun geselecteerde topvijf-stijgers boven 10% op. Er is geen aparte opvolgscan meer. Verschillende runners kunnen samen nog steeds providerlimieten raken.
 
 ## Hervatten na een providerstop
 
@@ -37,7 +38,7 @@ Beide JSON-schrijvende workflows delen een concurrency-groep en bewaren uitvoer 
 
 ## Historische betrouwbaarheid
 
-De opvolg bewaart technische parameters alleen op handelsdagen binnen de gekozen week. Ranks komen van dezelfde beurs, zijn maximaal 30 dagen oud en moeten op de peildatum al opgeslagen zijn geweest. Ontbrekende ranks blijven NULL. Actuele Yahoo-fundamentals en actuele short/float-data worden niet naar historische dagen gekopieerd. Ook Debt/Equity wordt niet meer onder de naam Debt/EBITDA opgeslagen.
+De a/x-rapporten bewaren één snapshot van de laatste geldige koersdag vóór de gekozen week (`dag_index=0`). Oudere opvolgdata met dag_index 1..5 blijft bewaard. Ranks komen van dezelfde beurs, zijn maximaal 30 dagen oud en moeten op de peildatum al opgeslagen zijn geweest. Ontbrekende ranks blijven NULL. Actuele Yahoo-fundamentals en actuele short/float-data worden niet naar historische dagen gekopieerd. Ook Debt/Equity wordt niet meer onder de naam Debt/EBITDA opgeslagen.
 
 Een herhaalrun behoudt de eerste selectie per ticker/beurs/week; een ander type veroorzaakt geen extra rij. Parameter-upserts vullen alleen NULL aan. Databasefouten worden doorgegeven, zodat een mislukte export geen groen succesrapport oplevert. Bestaande gegevens zijn tijdens deze refactor niet aangepast of verwijderd.
 
@@ -82,3 +83,15 @@ Op verzoek wordt nu per voldoende gedekte beurs gepubliceerd. De 80%-norm is ong
 `weekly_dekking_<variant>.csv` heeft daarnaast een kolom `deelmarkt`. Het nieuwe artifact `weekly_marktdekking_<variant>.csv` geeft aantallen, bruikbare reeksen, onbekende uitkomsten, dekkingsverhouding (0–1) en status per lijst/deelmarkt. Bij een providerstop blijft de dekkingsverhouding leeg zolang uitkomsten onbekend zijn; dat is geen gemeten 0% dekking. A/x en opvolg bewaren dit artifact ook na een fout. Deze diagnose doet geen nieuwe koersrequests.
 
 Bij een gedeeltelijk a/x-rapport bevat Telegram de dekkingssamenvatting én het volledige weekrapport met stijgers en dalers van alle gepubliceerde groepen. Lange rapporten worden in meerdere berichten verstuurd. Per berichtdeel vermeldt het Actions-log of Telegram het heeft geaccepteerd; een mislukking verschijnt als workflowwaarschuwing. Acceptatie door de Telegram-API bevestigt geen lees- of pushmelding op het toestel. Het tekst-/e-mailrapport bevat uitsluitend ranglijsten van voldoende gedekte groepen. De nieuwe toppers-JSON vervangt de oude snapshot en bevat uitsluitend actuele winnaars uit die groepen, met `rapport_status=gedeeltelijk` (anders `volledig`). Wenen krijgt het eigen beurslabel `059 Wenen` en eigen dekkingsaantallen; er wordt geen ranglijst voor de gecombineerde 059-lijst gemaakt. Opvolg gebruikt dezelfde groepsindeling en norm. De volledige invoer blijft in de dekkingsartifacts staan, ook onbekende codes. Brononderhoud blijft nodig; een groene gedeeltelijke run betekent geen volledige marktdekking.
+
+
+## Uitbreiding a en x — 15 november 2026
+
+Beide rapportbots bewaren per voldoende gedekte beurs/themagroep maximaal hun eigen vijf grootste stijgers, uitsluitend bij een onafgerond weekrendement strikt boven 10%. Rapport en JSON blijven alle gebruikelijke stijgers/dalers tonen; alleen de databaseverzameling heeft de 10%-filter. Geen dalers of neutrale steekproef meer. Na selectie wordt uitsluitend voor deze tickers lange historie opgehaald, afgekapt vóór maandag. Ontbrekende historische fundamentals blijven NULL. Een ontbrekende historische reeks is zichtbaar als opslagfout; het volledige Telegram-rapport wordt vóór deze extra fase verzonden.
+
+`bronselectie` is `a`, `x` of `a,x`. Een transactielock en een unieke gedeeltelijke index voorkomen nieuwe rapportdubbels per ticker/beurs/week. Bestaande snapshots blijven behouden; alleen bronlidmaatschap en ontbrekende parameters worden aangevuld. Historische opvolgrijen zonder bewezen bron blijven NULL; bestaande historische dubbels zijn niet verwijderd. De parameter-uniciteit omvat voortaan de doelweek, zodat een pre-week-vrijdag niet botst met een oudere dagwaarneming. Een herhaalrun herstelt ontbrekende opslag. Geen actuele kenmerken terugdateren.
+
+Schemawijziging: `migrations/weekly_report_bronselectie.sql`. Beide workflows geven `SUPABASE_DB_URL` door. De losse `weekly_run_opvolg.yml` is verwijderd; de oude module weigert een nieuwe universumscan. De bestaande correlatiebot voor dagontwikkelingen leest alleen weekdagen binnen de doelweek en vermengt de nieuwe pre-week-snapshots niet met die oude analysemethode.
+
+
+Validatie van deze uitbreiding: 60 weekly-tests geslaagd, inclusief uitvoering van de gegenereerde opslag-SQL in PostgreSQL (bronmerge, behoud van eerste snapshot en aanvullen van parameters). Volledige suite: 735 tests en 17 deeltests geslaagd; 9 verbindingstests overgeslagen. De migratie is toegepast en de twee unieke indexen zijn gecontroleerd in het actieve project `fantasie` (`fxdklbdykdnvhmzkyyma`). RLS blijft ingeschakeld. De waarde van het bestaande GitHub-secret is niet uitleesbaar; een nieuwe Actions-run moet de daadwerkelijke verbinding en opslag via dat secret nog bevestigen.

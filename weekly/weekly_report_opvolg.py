@@ -4,17 +4,9 @@ Actuele fundamentals worden niet als historische waarnemingen opgeslagen.
 
 import pandas as pd
 import math
-import random
-import hashlib
 
 from . import weekly_db_opvolg as weekly_db
-from .shared import (
-    WeekKoersen, weekgrenzen, laad_lijsten, selecteer, meld,
-    publicatiegroepen, publicatiemelding, schrijf_dekking, schrijf_afgebroken_dekking,
-)
-from .download import DownloadOnderbroken
-
-NEUTRAAL_STEEKPROEF_GROOTTE = 10
+from .shared import WeekKoersen
 
 def _veilig(x):
     """Zet een waarde om naar een echte Python-float, of None bij NaN/Inf/
@@ -147,50 +139,7 @@ def verwerk_weekly_db_export(alle_entries, maandag, vrijdag, koersen):
 
 
 def main():
-    maandag, vrijdag = weekgrenzen()
-    lijsten = laad_lijsten('a')
-    koersen = WeekKoersen(maandag, vrijdag)
-    try:
-        koersen.laad([t for ts in lijsten.values() for t in ts])
-    except DownloadOnderbroken as exc:
-        schrijf_afgebroken_dekking('opvolg', lijsten, koersen)
-        meld(f'Weekly opvolg ONVOLLEDIG: {exc}. Geen database-export.')
-        raise
-    entries = []
-    onvolledig = []
-    resultaten = {naam: koersen.performance(tickers) for naam, tickers in lijsten.items()}
-    groepen = publicatiegroepen(lijsten, resultaten)
-    for groep in groepen:
-        naam, data, label = groep['lijst'], groep['data'], groep['label']
-        if not groep['voldoende']:
-            onvolledig.append(label)
-            continue
-        if not data:
-            continue
-        top, bottom, rest = selecteer(data)
-        for soort, selectie in [('stijger', top), ('daler', bottom)]:
-            for rang, r in enumerate(selectie.itertuples(), 1):
-                entries.append(dict(lijst=naam, ticker=r.ticker, beurs=label,
-                                    type=soort, rang=rang, week_perf=r.perf))
-        seed = int(hashlib.sha256(f'{maandag}|{naam}'.encode()).hexdigest(), 16)
-        indices = random.Random(seed).sample(list(rest.index), min(NEUTRAAL_STEEKPROEF_GROOTTE, len(rest)))
-        for idx in indices:
-            r = rest.loc[idx]
-            entries.append(dict(lijst=naam, ticker=r['ticker'], beurs=label,
-                                type='neutraal', rang=None, week_perf=float(r['perf'])))
-    schrijf_dekking('opvolg', lijsten, resultaten)
-    if not entries:
-        meld('Weekly opvolg ONVOLLEDIG: geen voldoende gedekte beurs met selecties. Geen database-export.')
-        raise RuntimeError('Onvoldoende weekly-dekking')
-    try:
-        verwerk_weekly_db_export(entries, maandag, vrijdag, koersen)
-    except Exception:
-        meld('Weekly opvolg mislukt tijdens historie/opslag; controleer het Actions-log.')
-        raise
-    if onvolledig:
-        meld(publicatiemelding(groepen).replace('gepubliceerd', 'verwerkt'))
-    meld(f'Weekly opvolg {maandag} t/m {vrijdag}: {len(entries)} selecties verwerkt. '
-         'Historische technische parameters opgeslagen; actuele fundamentals niet teruggedateerd.')
+    raise RuntimeError('De losse opvolgscan is vervallen. Start weekly.weekly_report of weekly.weekly_report_x; beide bewaren hun eigen selectie en parameters.')
 
 
 if __name__ == '__main__':

@@ -86,7 +86,7 @@ def log_weekly_topper_parameters(rows: list) -> int:
                         for k in _PARAM_KOLOMMEN)
     query = f"""INSERT INTO weekly_topper_parameters ({','.join(kolommen)})
                 VALUES ({','.join(['%s']*len(kolommen))})
-                ON CONFLICT (ticker,beurs,datum) DO UPDATE SET {updates}
+                ON CONFLICT (ticker,beurs,week_startdatum,datum) DO UPDATE SET {updates}
                 WHERE weekly_topper_parameters.week_startdatum=EXCLUDED.week_startdatum"""
     conn = _get_connection()
     try:
@@ -131,3 +131,40 @@ def haal_laatste_rank_scores(tickers, peildatum, beurs):
     finally:
         conn.close()
     return resultaat
+
+
+def log_report_toppers(rows):
+    """Eerste snapshot behouden; a/x-lidmaatschap onder dezelfde transactielock samenvoegen."""
+    if not rows:
+        return 0
+    conn = _get_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                for r in sorted(rows, key=lambda r: (r['ticker'], r['beurs'], str(r['week_startdatum']))):
+                    if r.get('bronselectie') not in ('a', 'x') or not r.get('beurs'):
+                        raise ValueError('Ongeldige bronselectie/beurs')
+                    if not math.isfinite(r['week_perf']) or r['week_perf'] <= 10 or r['type'] != 'stijger':
+                        raise ValueError('Alleen stijgers boven 10% mogen worden opgeslagen')
+                    key = f"weekly|{r['ticker']}|{r['beurs']}|{r['week_startdatum']}"
+                    cur.execute('SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))', (key,))
+                    cur.execute("""
+                        UPDATE weekly_toppers SET bronselectie=CASE
+                          WHEN bronselectie IS NULL THEN %s
+                          WHEN bronselectie=%s THEN bronselectie ELSE 'a,x' END
+                        WHERE id=(SELECT id FROM weekly_toppers
+                          WHERE ticker=%s AND beurs=%s AND week_startdatum=%s
+                          ORDER BY (bronselectie IS NOT NULL) DESC, created_at, id LIMIT 1)
+                    """, (r['bronselectie'], r['bronselectie'], r['ticker'], r['beurs'], r['week_startdatum']))
+                    cur.execute("""
+                        INSERT INTO weekly_toppers
+                          (week_startdatum,lijst,ticker,beurs,type,rang,week_perf,bronselectie)
+                        SELECT %s,%s,%s,%s,%s,%s,%s,%s WHERE NOT EXISTS (
+                          SELECT 1 FROM weekly_toppers WHERE ticker=%s AND beurs=%s AND week_startdatum=%s)
+                        ON CONFLICT DO NOTHING
+                    """, (r['week_startdatum'],r['lijst'],r['ticker'],r['beurs'],r['type'],
+                          r.get('rang'),_sanitize(r['week_perf']),r['bronselectie'],
+                          r['ticker'],r['beurs'],r['week_startdatum']))
+        return len(rows)
+    finally:
+        conn.close()

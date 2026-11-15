@@ -121,7 +121,7 @@ def test_constant_and_infinite_data_not_significant():
 
 @pytest.mark.parametrize('filename,module',[
     ('weekly_run.yml','weekly_report'),('weekly_run_x.yml','weekly_report_x'),
-    ('weekly_run_opvolg.yml','weekly_report_opvolg'),('weekly_runV2.yml','weekly_rep_backtest'),
+    ('weekly_runV2.yml','weekly_rep_backtest'),
     ('analyse_correlaties_weeklytop.yml','analyseer_weekly_correlaties')])
 def test_workflows_import_and_run_module(filename,module):
     workflow=yaml.safe_load((ROOT/'.github/workflows'/filename).read_text())
@@ -150,6 +150,8 @@ def test_backtest_waits_for_success_and_json_writers_serialize():
 
 @pytest.mark.parametrize('suffix',['a','x'])
 def test_report_writes_dated_json_and_keeps_notifications(monkeypatch,tmp_path,suffix):
+    from weekly import selection_storage as storage
+    monkeypatch.setattr(storage,'bewaar_selecties',lambda *_:None)
     monkeypatch.setattr(w,'ROOT',tmp_path)
     monkeypatch.setattr(w,'weekgrenzen',lambda:(MON,FRI))
     monkeypatch.setattr(w,'laad_lijsten',lambda _: {'tickers_041'+suffix+'.txt':['ABC']})

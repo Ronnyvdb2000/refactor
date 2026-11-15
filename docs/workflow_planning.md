@@ -68,7 +68,6 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [verwijdercsv.yml](../.github/workflows/verwijdercsv.yml) | Handmatig/event | `maintainance/push_generated_commit.py` | 15 | workflow-verwijdercsv-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [weekly_run.yml](../.github/workflows/weekly_run.yml) | `0 23 * * 5` | `weekly/weekly_report.py` | 90 | weekly-json-main | Niet toegewezen | weekly-apart |
 | [weekly_runV2.yml](../.github/workflows/weekly_runV2.yml) | Handmatig/event | `weekly/weekly_rep_backtest.py` | 90 | weekly-backtest | Niet toegewezen | weekly-apart |
-| [weekly_run_opvolg.yml](../.github/workflows/weekly_run_opvolg.yml) | `0 23 * * 5` | `weekly/weekly_report_opvolg.py` | 90 | weekly-opvolg | Niet toegewezen | weekly-apart |
 | [weekly_run_x.yml](../.github/workflows/weekly_run_x.yml) | `15 23 * * 5` | `weekly/weekly_report_x.py` | 90 | weekly-json-main | Niet toegewezen | weekly-apart |
 | [xgboostV3_gecontroleerd.yml](../.github/workflows/xgboostV3_gecontroleerd.yml) | Handmatig/event | `xgboostV3_gecontroleerd.py` | 45 | workflow-xgboostv3_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
 
@@ -91,7 +90,7 @@ Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart.
 | zo | 22:00 | a__meta_model_production.yml, run_forward_returns.yml |
 | vr | 22:00 | analyse_correlatie_parameters.yml, run_00fisher.yml, run_forward_returns.yml |
 | ma, di, wo, do | 22:00 | analyse_correlatie_parameters.yml, run_forward_returns.yml |
-| vr | 23:00 | a__meta_model_production.yml, run_01hoogl_full.yml, run_02xgboostV3.yml, tradingagentsbridge.yml, weekly_run.yml, weekly_run_opvolg.yml |
+| vr | 23:00 | a__meta_model_production.yml, run_01hoogl_full.yml, run_02xgboostV3.yml, tradingagentsbridge.yml, weekly_run.yml |
 | ma, di, wo, do | 23:00 | a__meta_model_production.yml, run_02xgboostV3.yml, tradingagentsbridge.yml |
 | zo, za | 23:00 | run_02xgboostV3.yml, tradingagentsbridge.yml |
 

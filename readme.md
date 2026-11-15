@@ -28,7 +28,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | [combiners/](combiners/) | Combineerders van strategische signalen |
 | `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
-| [weekly/](weekly/) | Weekrapporten, opvolg-opslag, winnaarsanalyse en weekly-correlaties |
+| [weekly/](weekly/) | Weekrapporten a/x met gedeelde winnaaropslag, winnaarsanalyse en weekly-correlaties |
 | [maintainance/](maintainance/) | Handmatige backfills en onderhoud |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
@@ -49,7 +49,7 @@ Niet ieder script gebruikt uitsluitend deze package. Controleer bij aanpassingen
 
 De combineerders staan in [combiners/](combiners/) en starten als Python-modules vanuit de hoofdmap. Zie [de controle en uitvoerinstructies](docs/combiners.md).
 
-De weekly scripts starten eveneens als modules vanuit de hoofdmap. Zie [weekly: uitvoering en controle](docs/weekly.md). Telegram blijft aan voor weekly bots en wordt bij volgende botcontroles behouden.
+De weekly scripts starten eveneens als modules vanuit de hoofdmap. Zie [weekly: uitvoering en controle](docs/weekly.md). Beide rapporten bewaren hun eigen topvijf-stijgers boven 10% met historische parameters; overlap krijgt bronselectie `a,x`. De losse opvolgscan is vervallen. Telegram blijft behouden.
 
 ## Strategieën en modellen
 

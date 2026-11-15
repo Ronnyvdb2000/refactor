@@ -56,7 +56,7 @@ def test_upserts_and_asof_query_in_postgres(monkeypatch,tmp_path):
     queries=[rendered(q,p) for q,p in conn.calls]
     schema=[
         'CREATE TABLE weekly_toppers (week_startdatum date,lijst text,ticker text,beurs text,type text,rang smallint,week_perf numeric, UNIQUE(ticker,beurs,week_startdatum,type))',
-        'CREATE TABLE weekly_topper_parameters (week_startdatum date,ticker text,beurs text,datum date,dag_index smallint,'+','.join(k+' numeric' for k in db._PARAM_KOLOMMEN)+', UNIQUE(ticker,beurs,datum))',
+        'CREATE TABLE weekly_topper_parameters (week_startdatum date,ticker text,beurs text,datum date,dag_index smallint,'+','.join(k+' numeric' for k in db._PARAM_KOLOMMEN)+', UNIQUE(ticker,beurs,week_startdatum,datum))',
         'CREATE TABLE selecties (id integer,ticker text,beurs text,datum text,created_at timestamptz,'+','.join(k+' numeric' for k in db._RANK_KOLOMMEN)+')',
         "INSERT INTO selecties(id,ticker,beurs,datum,created_at,combined_rank) VALUES (1,'ABC','X','2026-11-10','2026-11-10',1),(2,'ABC','X','2026-11-20','2026-11-20',99),(3,'ABC','X','2026-11-15','2026-11-21',88),(4,'ABC','Y','2026-11-16','2026-11-16',77)",
         "INSERT INTO selecties(id,ticker,beurs,datum,created_at,roc_rank) VALUES (5,'ABC','X','2026-11-16','2026-11-16',5)"]

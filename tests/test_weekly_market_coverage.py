@@ -80,22 +80,6 @@ def test_market_summary_does_not_treat_unrequested_data_as_failure():
     assert result[0]['onbekend'] == 1
 
 
-def test_opvolg_exports_only_sufficient_markets(monkeypatch):
-    from weekly import weekly_report_opvolg as o
-    naam = 'tickers_059a.txt'
-    monkeypatch.setattr(o, 'laad_lijsten', lambda *_: {naam: ['BG.VI', 'KRKG.LJ', '1TAT01DE']})
-    monkeypatch.setattr(o.WeekKoersen, 'laad', lambda *_: None)
-    monkeypatch.setattr(o.WeekKoersen, 'performance', lambda *_: [dict(ticker='BG.VI', perf=10.)])
-    monkeypatch.setattr(o, 'schrijf_dekking', lambda *_: None)
-    messages, exports = [], []
-    monkeypatch.setattr(o, 'meld', messages.append)
-    monkeypatch.setattr(o, 'verwerk_weekly_db_export', lambda rows, *_: exports.extend(rows))
-    o.main()
-    assert len(exports) == 1
-    assert exports[0]['ticker'] == 'BG.VI' and exports[0]['beurs'] == '059 Wenen'
-    assert any('Ljubljana: 0/1' in m and 'geen ranglijst' in m for m in messages)
-
-
 def test_failed_market_is_not_ranked_even_with_extreme_winner():
     lijsten = {'tickers_059a.txt': ['A.VI', 'B.VI', 'C.VI', 'D.VI', 'KRKG.LJ']}
     groepen = w.publicatiegroepen(lijsten, {'tickers_059a.txt': [
