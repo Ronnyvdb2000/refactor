@@ -69,7 +69,18 @@ Een strategie met voldoende bruikbare historie en een niet-positief gemiddeld re
 
 ### Rapportage en workflows
 
-De eerste twee workflows installeerden onvoldoende dependencies voor het geïmporteerde `common`-package. Pandas, NumPy en yfinance zijn toegevoegd. Fouten bij geconfigureerde notificatiekanalen en databaseopslag geven geen onjuiste succesmelding meer. Ook een geldige scan zonder kandidaten krijgt een zichtbare rapportage. Datadekking van de ATR-fase staat in het combinatierapport; dit is geen garantie dat voor iedere ticker alle fundamentele data beschikbaar was.
+De eerste twee workflows installeerden onvoldoende dependencies voor het geïmporteerde `common`-package. Pandas, NumPy en yfinance zijn toegevoegd. Fouten bij geconfigureerde notificatiekanalen en databaseopslag geven geen onjuiste succesmelding meer.
+
+Herstel na de combi-run van 15 november 2026 (`2dac9d9`):
+
+- Een geldige combi-scan zonder kandidaten verstuurt nu ook een Telegram-bericht, naast e-mail. Voorheen werd Telegram bij een lege topselectie overgeslagen.
+- Yahoo kan 401/403/429-fouten alleen loggen en vervolgens onvolledige fundamentals teruggeven. De combi-bot bewaakt deze meldingen rondom de fundamentele analyses, ook wanneer een onderliggende strategie de fout opvangt. Toegangsweigering stopt de scan direct; rate limits blijven begrensd door de ingestelde retries. De bot publiceert bij zo'n bronfout geen nieuwe selecties.
+- Als een uitgevoerde fundamentele strategie voor geen enkele shortlijstticker een bruikbare analyse oplevert, is de scan onvolledig. Een geldige analyse met een te lage score blijft wel een normale afwijzing. Individuele ontbrekende data zonder providerfout blijft een overslag.
+- Bij een scan- of rapportagefout probeert de bot een `ONVOLLEDIG`-melding via Telegram en e-mail te sturen en blijft de uitvoering mislukt. Een fout bij het versturen verbergt de oorspronkelijke scanfout niet. De melding waarschuwt dat eventuele deelresultaten geen volledig rapport zijn.
+- Fundamentele strategieën met gewicht nul worden overgeslagen om onnodige Yahoo-aanvragen te voorkomen. De technische shortlist blijft VCP én seizoenseffecten gebruiken, ook bij gewicht nul.
+- De fix herstelt de foutafhandeling en rapportage; hij kan externe Yahoo-toegangsweigering niet opheffen. ATR-dekking blijft apart gerapporteerd en bewijst geen volledige fundamentele dekking.
+
+Offline regressies controleren onder meer gelogde en opgevangen 401/429-fouten, volledig ontbrekende fundamentals, stoppen vóór databasepublicatie, lege én gevulde Telegram-rapporten, gewichten nul en notificatiefouten. Er is geen live scan gestart en geen testbericht verstuurd.
 
 ## Verificatie
 

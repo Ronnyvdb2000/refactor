@@ -333,3 +333,142 @@ def test_xgb_snapshot_sql_in_standalone_postgresql(tmp_path, monkeypatch):
         timeout=30,
     )
     assert result.returncode == 0 and "ERROR:" not in result.stderr, result.stderr
+
+
+@pytest.mark.parametrize("swallowed", [False, True])
+def test_weighted_detects_logged_auth_failure_even_when_strategy_swallows_it(swallowed):
+    import logging
+
+    def broken():
+        logging.getLogger("yfinance").error('HTTP Error 401: Invalid Crumb')
+        if not swallowed:
+            raise weighted.kasstr.DataUnavailable("ongeldige koers")
+        return None
+
+    logger = logging.getLogger("yfinance")
+    original = list(logger.handlers)
+    with patch.object(weighted.time, "sleep") as sleep:
+        with pytest.raises(RuntimeError, match="Yahoo weigert"):
+            weighted.met_retry(broken, "A", "kasstr")
+        sleep.assert_not_called()
+    assert logger.handlers == original
+
+
+def test_weighted_detects_logged_rate_limit_swallowed_by_fisher():
+    import logging
+
+    def broken():
+        logging.getLogger("yfinance").error("HTTP Error 429: Too Many Requests")
+        return None
+
+    with (
+        patch.object(weighted, "RETRY_POGINGEN", 2),
+        patch.object(weighted.time, "sleep") as sleep,
+        pytest.raises(RuntimeError, match="Yahoo beperkt"),
+    ):
+        weighted.met_retry(broken, "A", "fisher")
+    sleep.assert_called_once()
+
+
+def test_weighted_does_not_confuse_individual_missing_data_with_provider_failure():
+    with patch.object(weighted.time, "sleep") as sleep:
+        assert weighted.met_retry(
+            MagicMock(side_effect=weighted.kasstr.DataUnavailable("geen jaarlijkse cashflow")),
+            "A", "kasstr"
+        ) is None
+    sleep.assert_not_called()
+
+
+@pytest.mark.parametrize("name", ["kasstr", "fisher", "hoogl"])
+def test_weighted_all_missing_fundamentals_is_incomplete(name):
+    module = getattr(weighted, name)
+    kwargs = {"return_value": (None, False) if name == "hoogl" else None}
+    if name == "kasstr":
+        kwargs = {"side_effect": weighted.kasstr.DataUnavailable("ongeldige koers")}
+    with (
+        patch.object(module, "analyse_ticker", **kwargs),
+        patch.object(weighted.time, "sleep"),
+        pytest.raises(RuntimeError, match="geen bruikbare fundamentele analyses"),
+    ):
+        getattr(weighted, "selecties_" + name)({"market": {"A", "B"}})
+
+
+@pytest.fixture
+def weighted_scan(monkeypatch):
+    monkeypatch.setenv("SUPABASE_DB_URL", "offline")
+    monkeypatch.setenv("TELEGRAM_TOKEN", "offline")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "offline")
+    monkeypatch.setattr(weighted, "herbereken_gewichten", lambda: {"kasstr": 1, "fisher": 0, "hoogl": 0, "vcp": 0, "repititief": 0})
+    monkeypatch.setattr(weighted, "bouw_exchange_tickers", lambda: ({"market": ["A"]}, ["A"]))
+    monkeypatch.setattr(weighted, "warm_up_yfinance", lambda: True)
+    monkeypatch.setattr(weighted, "download_universe", lambda *args: history())
+    monkeypatch.setattr(weighted, "selecties_repititief", lambda *args: {"market": set()})
+    monkeypatch.setattr(weighted, "selecties_vcp", lambda *args, **kwargs: {"market": {"A"}})
+    monkeypatch.setattr(weighted.time, "sleep", lambda *args: None)
+    with (
+        patch.object(weighted, "send_telegram", return_value=True) as telegram,
+        patch.object(weighted, "send_email", return_value=True) as email,
+        patch.object(weighted.db_logger, "log_selectie", return_value=True) as store,
+        patch.object(weighted, "selecties_fisher") as fisher,
+        patch.object(weighted, "selecties_hoogl") as hoogl,
+    ):
+        yield SimpleNamespace(telegram=telegram, email=email, store=store, fisher=fisher, hoogl=hoogl)
+
+
+def test_weighted_auth_failure_notifies_and_stops_before_publication(weighted_scan):
+    import logging
+
+    def broken(*args, **kwargs):
+        logging.getLogger("yfinance").error("HTTP Error 401: Invalid Crumb")
+        raise weighted.kasstr.DataUnavailable("ongeldige koers")
+
+    with patch.object(weighted.kasstr, "analyse_ticker", side_effect=broken) as analyse:
+        with pytest.raises(RuntimeError, match="Yahoo weigert"):
+            weighted.run_live_engine()
+    analyse.assert_called_once()
+    weighted_scan.store.assert_not_called()
+    weighted_scan.fisher.assert_not_called()
+    weighted_scan.hoogl.assert_not_called()
+    weighted_scan.telegram.assert_called_once()
+    assert "ONVOLLEDIG" in weighted_scan.telegram.call_args.args[0]
+    assert weighted_scan.telegram.call_args.kwargs["parse_mode"] is None
+    assert "ONVOLLEDIG" in weighted_scan.email.call_args.kwargs["subject"]
+
+
+def test_weighted_valid_empty_report_sends_telegram_and_skips_zero_weights(weighted_scan):
+    with patch.object(weighted.kasstr, "analyse_ticker", return_value=SimpleNamespace(score=-1)):
+        weighted.run_live_engine()
+    weighted_scan.store.assert_not_called()
+    weighted_scan.fisher.assert_not_called()
+    weighted_scan.hoogl.assert_not_called()
+    weighted_scan.telegram.assert_called_once()
+    assert "Geen kandidaten" in weighted_scan.telegram.call_args.args[0]
+
+
+def test_weighted_empty_report_delivery_failure_does_not_succeed(weighted_scan):
+    weighted_scan.telegram.return_value = False
+    with patch.object(weighted.kasstr, "analyse_ticker", return_value=SimpleNamespace(score=-1)):
+        with pytest.raises(RuntimeError, match="Telegram leeg rapport"):
+            weighted.run_live_engine()
+    assert "ONVOLLEDIG" in weighted_scan.telegram.call_args.args[0]
+
+
+def test_weighted_notification_exception_preserves_original_scan_failure():
+    with (
+        patch.object(weighted, "_run_live_engine", side_effect=RuntimeError("scan failed")),
+        patch.object(weighted, "send_telegram", side_effect=RuntimeError("delivery failed")),
+        patch.object(weighted, "send_email", return_value=True) as email,
+        pytest.raises(RuntimeError, match="scan failed"),
+    ):
+        weighted.run_live_engine()
+    email.assert_called_once()
+
+
+def test_weighted_successful_selection_retains_telegram_and_signal_date(weighted_scan):
+    with patch.object(weighted.kasstr, "analyse_ticker", return_value=SimpleNamespace(score=100)):
+        weighted.run_live_engine()
+    weighted_scan.store.assert_called_once()
+    assert weighted_scan.store.call_args.kwargs["datum"] == "2026-11-13"
+    weighted_scan.telegram.assert_called_once()
+    assert "`A`" in weighted_scan.telegram.call_args.args[0]
+    assert "ONVOLLEDIG" not in weighted_scan.telegram.call_args.args[0]

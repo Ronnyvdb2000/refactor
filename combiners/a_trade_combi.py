@@ -11,6 +11,8 @@ import os
 import argparse
 import time
 import math
+import logging
+import re
 import pandas as pd
 from typing import Dict, List, Set, Tuple
 
@@ -103,10 +105,53 @@ def _yahoo_link(ticker: str) -> str:
     return f"https://finance.yahoo.com/quote/{ticker}"
 
 
+class YahooSourceUnavailable(RuntimeError):
+    """Provider failure, including errors swallowed by a strategy or yfinance."""
+
+
+def _provider_failure(message):
+    text = str(message).casefold()
+    if "invalid crumb" in text or re.search(r"\b(401|403)\b", text):
+        return "Yahoo weigert toegang tot fundamentals (401/403/Invalid Crumb)"
+    if any(term in text for term in ("too many requests", "rate limit", "ratelimit")) or re.search(r"\b429\b", text):
+        return "Yahoo beperkt fundamentals-verzoeken (429/rate limit)"
+    return None
+
+
+class _YahooErrors(logging.Handler):
+    def __init__(self):
+        super().__init__(level=logging.ERROR)
+        self.failure = None
+
+    def emit(self, record):
+        self.failure = self.failure or _provider_failure(record.getMessage())
+
+
+def fundamental_call(fn):
+    # yfinance can log HTTP failures and return incomplete info instead of raising.
+    # Inspect these errors around the call, even if the strategy catches exceptions.
+    logger = logging.getLogger("yfinance")
+    handler = _YahooErrors()
+    logger.addHandler(handler)
+    try:
+        try:
+            result = fn()
+        except Exception as exc:
+            failure = handler.failure or _provider_failure(exc)
+            if failure:
+                raise YahooSourceUnavailable(failure) from exc
+            raise
+        if handler.failure:
+            raise YahooSourceUnavailable(handler.failure)
+        return result
+    finally:
+        logger.removeHandler(handler)
+
+
 def met_retry(fn, ticker: str, label: str):
     for poging in range(RETRY_POGINGEN):
         try:
-            return fn()
+            return fundamental_call(fn)
         except Exception as e:
             if isinstance(e, (kasstr.DataUnavailable, repititief.DataUnavailable)):
                 print(f"  [DATA] {label} {ticker}: {e}", flush=True)
@@ -408,6 +453,8 @@ def selecties_kasstr(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[
             if sig is not None and sig.score >= kasstr.FCF_CFG["min_score"]:
                 geselecteerd.add(ticker)
         result[ex_name] = geselecteerd
+    if cache and not any(sig is not None for sig in cache.values()):
+        raise RuntimeError("kasstr: geen bruikbare fundamentele analyses; scan onvolledig")
     return result
 
 
@@ -431,12 +478,16 @@ def selecties_fisher(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[
             if sig is not None and sig.score >= cfg["min_score"]:
                 geselecteerd.add(ticker)
         result[ex_name] = geselecteerd
+    if cache and not any(sig is not None for sig in cache.values()):
+        raise RuntimeError("fisher: geen bruikbare fundamentele analyses; scan onvolledig")
     return result
 
 
 def _hoogl_analyse_met_retry(ticker: str, cfg: dict, fx_cache=None):
     for poging in range(RETRY_POGINGEN):
-        sig, was_rate_limited = hoogl.analyse_ticker(ticker, cfg, fx_cache=fx_cache)
+        sig, was_rate_limited = fundamental_call(
+            lambda: hoogl.analyse_ticker(ticker, cfg, fx_cache=fx_cache)
+        )
         if not was_rate_limited:
             return sig
         if poging < RETRY_POGINGEN - 1:
@@ -467,6 +518,8 @@ def selecties_hoogl(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[s
             if sig is not None and sig.score >= cfg["min_score"]:
                 geselecteerd.add(ticker)
         result[ex_name] = geselecteerd
+    if cache and not any(sig is not None for sig in cache.values()):
+        raise RuntimeError("hoogl: geen bruikbare fundamentele analyses; scan onvolledig")
     return result
 
 
@@ -475,7 +528,7 @@ def selecties_hoogl(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[s
 # ============================================================
 
 
-def run_live_engine():
+def _run_live_engine():
     print(f"{'=' * 60}")
     print(f"COMBI-SELECTIE VOLATIEL v2.0 (dynamische gewichten)  {today_str()}")
     print(f"  ATR% tussen {MIN_ATR_PCT} en {MAX_ATR_PCT}")
@@ -533,9 +586,16 @@ def run_live_engine():
         f"\n[trechter] {totaal_shortlist} tickers op de shortlist (van {len(all_tickers)} in het volledige universum)\n"
     )
 
-    per_strategie["kasstr"] = selecties_kasstr(shortlist_per_beurs)
-    per_strategie["fisher"] = selecties_fisher(shortlist_per_beurs)
-    per_strategie["hoogl"] = selecties_hoogl(shortlist_per_beurs)
+    for key, selector in (
+        ("kasstr", selecties_kasstr),
+        ("fisher", selecties_fisher),
+        ("hoogl", selecties_hoogl),
+    ):
+        if gewichten.get(key, 0) > 0 and totaal_shortlist:
+            per_strategie[key] = selector(shortlist_per_beurs)
+        else:
+            print(f"[{key}] overgeslagen: gewicht nul of lege shortlist", flush=True)
+            per_strategie[key] = {}
 
     email_delen: List[str] = []
 
@@ -614,9 +674,17 @@ def run_live_engine():
         )
 
     if not email_delen:
-        email_delen.append(
-            f"Geen kandidaten na combinatiescore en ATR-filter; {len(atr_pct)}/{len(all_tickers)} tickers met bruikbare ATR."
+        empty_report = (
+            f"Combi-Selectie Volatiel — {today_str()}\n"
+            f"Geen kandidaten na combinatiescore en ATR-filter; "
+            f"{len(atr_pct)}/{len(all_tickers)} tickers met bruikbare ATR.\n"
+            f"Shortlist: {totaal_shortlist} ticker/beurs-combinaties."
         )
+        ok = send_telegram(empty_report, parse_mode=None)
+        print(f"  → Telegram {'verzonden' if ok else 'niet verzonden'}: geen kandidaten", flush=True)
+        if os.getenv("TELEGRAM_TOKEN") and os.getenv("TELEGRAM_CHAT_ID") and not ok:
+            storage_errors.append("Telegram leeg rapport niet verzonden")
+        email_delen.append(empty_report)
     if email_delen:
         email_ok = send_email(
             subject=f"Combi-Selectie Volatiel rapport {today_str()}",
@@ -631,6 +699,32 @@ def run_live_engine():
     if storage_errors:
         raise RuntimeError("; ".join(storage_errors))
     print(f"\n{'=' * 60}\nKlaar.")
+
+
+def run_live_engine():
+    try:
+        _run_live_engine()
+    except Exception as exc:
+        # Keep the run failed; notification failure must not hide the scan error.
+        bericht = (
+            f"Combi-Selectie Volatiel ONVOLLEDIG — {today_str()}\n"
+            "Scan of rapportage afgebroken; geen volledig rapport beschikbaar.\n"
+            "Eventuele deelresultaten niet als volledige selectie gebruiken.\n"
+            f"Reden: {str(exc)[:1000]}"
+        )
+        print(bericht, flush=True)
+        for channel, send in (
+            ("Telegram", lambda: send_telegram(bericht, parse_mode=None)),
+            ("E-mail", lambda: send_email(
+                subject=f"Combi-Selectie Volatiel ONVOLLEDIG {today_str()}", body=bericht
+            )),
+        ):
+            try:
+                ok = send()
+                print(f"[melding] {channel}: {'verzonden' if ok else 'niet verzonden'}", flush=True)
+            except Exception:
+                print(f"[melding] {channel}: verzenden mislukt", flush=True)
+        raise
 
 
 if __name__ == "__main__":
