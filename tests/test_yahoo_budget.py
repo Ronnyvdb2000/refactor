@@ -9,7 +9,7 @@ import yaml
 
 from common import io
 from common.yahoo import YahooRateLimited, download_workers
-from maintainance.yahoo_lanes import LANES, JOB_LANES, group_for, check_budget
+from maintenance.yahoo_lanes import LANES, JOB_LANES, group_for, check_budget
 
 ROOT = Path(__file__).resolve().parents[1]
 

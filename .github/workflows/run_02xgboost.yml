@@ -131,7 +131,7 @@ jobs:
             echo "Geen wijzigingen aan het model."
           else
             git commit -m "Hertraining bot_01xgboost $(date +%Y-%m-%d)"
-            python -m maintainance.push_generated_commit
+            python -m maintenance.push_generated_commit
           fi
 
   # Handmatige backtest-run (workflow_dispatch met mode=backtest) â€” resultaten

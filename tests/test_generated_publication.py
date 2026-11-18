@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from maintainance.push_generated_commit import publish
+from maintenance.push_generated_commit import publish
 
 
 def git(cwd, *args):

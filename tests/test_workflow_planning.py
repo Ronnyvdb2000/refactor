@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from maintainance.audit_workflows import audit, entrypoints, weekly_slots
+from maintenance.audit_workflows import audit, entrypoints, weekly_slots
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -20,10 +20,10 @@ def test_python_command_inventory_ignores_pip_and_inline_code():
     source = '''python -m pip install requests
 python -c "import bot"
 python -u one.py --mode live
-python -m maintainance.example \\
+python -m maintenance.example \\
   --dry-run
 '''
-    assert entrypoints(source) == ['one.py', 'maintainance/example.py']
+    assert entrypoints(source) == ['one.py', 'maintenance/example.py']
 
 
 def test_cron_expansion_preserves_weekdays_and_sunday_alias():

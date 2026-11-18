@@ -1,6 +1,6 @@
 # Gezamenlijke Yahoo-belasting — 15 november 2026
 
-Scope: `Ronnyvdb2000/refactor`, niet-weekly workflows. Er zijn 38 Yahoo-jobs in 35 workflows aan vier gedeelde GitHub Actions-jobgroepen toegewezen. De exacte toewijzing staat in [maintainance/yahoo_lanes.py](../maintainance/yahoo_lanes.py) en het gegenereerde [workflowoverzicht](workflow_planning.md).
+Scope: `Ronnyvdb2000/refactor`, niet-weekly workflows. Er zijn 38 Yahoo-jobs in 35 workflows aan vier gedeelde GitHub Actions-jobgroepen toegewezen. De exacte toewijzing staat in [maintenance/yahoo_lanes.py](../maintenance/yahoo_lanes.py) en het gegenereerde [workflowoverzicht](workflow_planning.md).
 
 ## Vier afzonderlijke wachtrijen
 
@@ -54,8 +54,8 @@ Een gelogde of opgegooide Yahoo-rate-limit wordt in de gedeelde koersdownloader 
 ## Herhaalbare controle
 
 ```bash
-python -m maintainance.audit_workflows --format json
-python -m maintainance.audit_workflows --format markdown > docs/workflow_planning.md
+python -m maintenance.audit_workflows --format json
+python -m maintenance.audit_workflows --format markdown > docs/workflow_planning.md
 python -m pytest tests/test_yahoo_budget.py -q
 ```
 

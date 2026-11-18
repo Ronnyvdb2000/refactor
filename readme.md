@@ -29,7 +29,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
 | [weekly/](weekly/) | Weekrapporten a/x met gedeelde winnaaropslag, winnaarsanalyse en weekly-correlaties |
-| [maintainance/](maintainance/) | Handmatige backfills en onderhoud |
+| [maintenance/](maintenance/) | Handmatige backfills en onderhoud |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
 | [EVALUATION.md](docs/EVALUATION.md) | Eerdere architectuurevaluatie; voortgangsclaims daarin opnieuw controleren |

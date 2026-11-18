@@ -43,6 +43,6 @@ jobs:
           git add -f ms_signalen_*.csv 2>/dev/null || true
           if ! git diff --cached --quiet; then
             git commit -m "bot_00ms $(date '+%Y-%m-%d')"
-            python -m maintainance.push_generated_commit
+            python -m maintenance.push_generated_commit
           fi
 

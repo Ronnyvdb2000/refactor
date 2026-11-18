@@ -12,7 +12,7 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Weekly bots: structuur, weekgrenzen en rapportage](weekly.md)
 - [TradingAgents: workflowcontrole, Groq-instellingen en beperkingen](tradingagents.md)
 
-- [Onderhoud en backfills](maintainance.md)
+- [Onderhoud en backfills](maintenance.md)
 
 - [Combineerders: structuur en inhoudelijke controle](combiners.md)
 

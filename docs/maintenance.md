@@ -1,11 +1,11 @@
-# Maintainance — handmatige backfills
+# Maintenance — handmatige backfills
 
-De twee backfills staan in `maintainance/` in `Ronnyvdb2000/refactor`. Start ze als Python-module vanuit de repository-root. De bestaande workflows blijven handmatig beschikbaar onder `.github/workflows/`.
+De twee backfills staan in `maintenance/` in `Ronnyvdb2000/refactor`. Start ze als Python-module vanuit de repository-root. De bestaande workflows blijven handmatig beschikbaar onder `.github/workflows/`.
 
 | Script | Workflow | Standaard |
 | --- | --- | --- |
-| [Technische features](../maintainance/backfill_technische_features.py) | [Backfill technische features](../.github/workflows/backfill.yml) | `dry_run=true`: alleen controle/rapportage |
-| [Rank-kolommen](../maintainance/backfill_rank_kolommen.py) | [Backfill rank-kolommen (eenmalig)](../.github/workflows/backfill_rank_kolommen.yml) | `apply=false`: alleen controle/rapportage |
+| [Technische features](../maintenance/backfill_technische_features.py) | [Backfill technische features](../.github/workflows/backfill.yml) | `dry_run=true`: alleen controle/rapportage |
+| [Rank-kolommen](../maintenance/backfill_rank_kolommen.py) | [Backfill rank-kolommen (eenmalig)](../.github/workflows/backfill_rank_kolommen.yml) | `apply=false`: alleen controle/rapportage |
 
 ## Starten in GitHub Actions
 
@@ -16,9 +16,9 @@ De technische workflow bewaart zijn log nog steeds onder `results/backfill_log.t
 ## Nieuwe commando's
 
 ```bash
-python -m maintainance.backfill_technische_features
-python -m maintainance.backfill_rank_kolommen
-python -m maintainance.backfill_rank_kolommen --apply
+python -m maintenance.backfill_technische_features
+python -m maintenance.backfill_rank_kolommen
+python -m maintenance.backfill_rank_kolommen --apply
 ```
 
 De technische backfill behoudt de bestaande `BACKFILL_DRY_RUN`, `BACKFILL_BATCH_SIZE`, `BACKFILL_TICKER_FILTER` en `BACKFILL_SLEEP`-variabelen. `SUPABASE_DB_URL` wordt nog steeds via de workflow doorgegeven. Het script importeert de berekening uit `bouw_generieke_technicals.py` in de hoofdmap; de module-uitvoering zorgt dat die import blijft werken.

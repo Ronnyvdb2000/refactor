@@ -1,6 +1,6 @@
 """Read-only workflow inventory and scheduling checks. Requires PyYAML.
 
-Run: python -m maintainance.audit_workflows --format markdown
+Run: python -m maintenance.audit_workflows --format markdown
 No GitHub calls, workflow dispatches, notifications or database access.
 """
 import argparse
@@ -117,7 +117,7 @@ def audit(root):
             collisions.setdefault((hour, minute, tuple(sorted(names))), []).append(day)
     coincidences = [dict(days=[WEEKDAYS[d] for d in sorted(days)], utc=f'{hour:02}:{minute:02}', workflows=list(names))
                     for (hour, minute, names), days in sorted(collisions.items())]
-    if (root / 'maintainance/yahoo_lanes.py').is_file():
+    if (root / 'maintenance/yahoo_lanes.py').is_file():
         from .yahoo_lanes import check_budget
         errors.extend(check_budget(root))
     return dict(workflows=workflows, simultaneous_starts=coincidences,

@@ -48,5 +48,5 @@ jobs:
             echo "Geen wijzigingen gevonden."
           else
             git commit -m "Filter update $(date +%Y-%m-%d)"
-            python -m maintainance.push_generated_commit
+            python -m maintenance.push_generated_commit
           fi

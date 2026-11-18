@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from maintainance import backfill_technische_features as b
+from maintenance import backfill_technische_features as b
 
 
 def history(n=300, constant=False):

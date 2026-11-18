@@ -316,7 +316,7 @@ jobs:
         echo "PUSH"
         echo "========================================"
 
-        python -m maintainance.push_generated_commit
+        python -m maintenance.push_generated_commit
 
         echo ""
         echo "========================================"

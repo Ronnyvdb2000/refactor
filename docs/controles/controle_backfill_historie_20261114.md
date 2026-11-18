@@ -16,4 +16,4 @@ Overige ontbrekende waarden blijven staan: ontbrekende brondata, onvoldoende his
 
 576 tests geslaagd, 9 tests overgeslagen wegens niet beschikbare lokale sockets; 17 subtests geslaagd. Acht nieuwe tests controleren korte historie, legitieme nulwaarden, causaliteit, ongeldige balken, koersgaten, dubbele datums en blokkering vóór een update. De bestaande tien workflowtests controleren modulepaden, dry-run/apply en foutcodes via tee. Algemene pytest-collectie vanuit de root stuit op het losse live verbindingsscript test_verbinding.py wegens ontbrekende dotenv; de volledige offline suite onder tests/ slaagt.
 
-De workflow blijft .github/workflows/backfill.yml en voert python -m maintainance.backfill_technische_features uit. Directe loguitvoer is aangezet; dry-run blijft standaard actief. Download- en verwerkingsfouten resulteren na de samenvatting in een foutcode.
+De workflow blijft .github/workflows/backfill.yml en voert python -m maintenance.backfill_technische_features uit. Directe loguitvoer is aangezet; dry-run blijft standaard actief. Download- en verwerkingsfouten resulteren na de samenvatting in een foutcode.

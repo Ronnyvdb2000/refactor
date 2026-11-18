@@ -42,5 +42,5 @@ jobs:
         else
           git commit -m "Automated: CSV bestanden opgeschoond door bot"
           # VERANDERD VAN master NAAR main:
-          python -m maintainance.push_generated_commit
+          python -m maintenance.push_generated_commit
         fi

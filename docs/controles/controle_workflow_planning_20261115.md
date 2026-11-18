@@ -21,7 +21,7 @@ Ontbrekende scan-/trainlimieten zijn conservatief op 300 minuten gezet, niet op 
 
 ## Git-publicatie
 
-`python -m maintainance.push_generated_commit` publiceert een reeds door de workflow gemaakte commit. Staging, bestandsselectie en commitberichten blijven bij de bestaande workflow. De helper:
+`python -m maintenance.push_generated_commit` publiceert een reeds door de workflow gemaakte commit. Staging, bestandsselectie en commitberichten blijven bij de bestaande workflow. De helper:
 
 - weigert resterende niet-gecommitteerde wijzigingen aan getrackte bestanden;
 - haalt `origin/main` opnieuw op en plaatst lokale commits daarop;
@@ -52,8 +52,8 @@ Een globale Yahoo-wachtrij is nog niet ingevoerd: zonder gemeten doorlooptijden 
 
 ```bash
 python -m pip install PyYAML
-python -m maintainance.audit_workflows --format json
-python -m maintainance.audit_workflows --format markdown > docs/workflow_planning.md
+python -m maintenance.audit_workflows --format json
+python -m maintenance.audit_workflows --format markdown > docs/workflow_planning.md
 ```
 
 De audit leest uitsluitend bestanden. Hij controleert binnen scope entrypoints, runbeveiliging, wachtplaatsen, joblimieten en niet-bestaande self-pathfilters. Hij wijzigt geen workflow, dispatcht geen job en benadert geen database. Cronuitbreiding ondersteunt een generieke week; schema's met een vaste maand/dag krijgen een expliciete waarschuwing. De inventarisatie bewijst geen ingeschakelde GitHub-workflow of live succes.
