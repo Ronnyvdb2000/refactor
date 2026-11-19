@@ -14,7 +14,7 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from bot_00mail import prepare_history, cached_history
+from strats.bot_00mail import prepare_history, cached_history
 
 from common import (
     today_str, safe_float, esc,

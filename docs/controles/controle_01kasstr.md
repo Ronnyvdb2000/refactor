@@ -1,7 +1,7 @@
 # Controle Kasstroom Onderwaardering — 14 november 2026
 
 Repository uitsluitend Ronnyvdb2000/refactor; refactor-lab apart.
-Script bot_01kasstr.py, workflow run_01kasstr.yml. De eerdere controleverslagen
+Script strats/bot_01kasstr.py, workflow run_01kasstr.yml. De eerdere controleverslagen
 van Hoogland en O'Shaughnessy zijn geraadpleegd voor valuta, verslagperioden,
 onbekende data en rapportage. Geen gedeelde helper of andere bot aangepast.
 
@@ -135,7 +135,7 @@ deduplicatie, gedeeltelijke/lege scans, database/e-mailfouten en workflow.
 
 ```
 python -m unittest discover -s tests -p 'test_01kasstr.py' -q
-python -m py_compile bot_01kasstr.py
+python -m py_compile strats/bot_01kasstr.py
 ```
 
 CLI-help en git diff --check slagen. Yahoo, e-mail en database zijn gemockt;
@@ -147,4 +147,4 @@ aantallen en ontvangen e-mail.
 Overige hertests blijven zoals eerder vastgelegd: BeursSignalen x/a opnieuw na
 25971a1; Hoogland live/full na e1aa334; cointegratie technisch live geslaagd met
 databeperkingen en nog geen echte insert getest; MR EOD en ORB open, ORB ook
-tijdens beursuren. Volgende bot in bestandsvolgorde: bot_01marktsent.py.
+tijdens beursuren. Volgende bot in bestandsvolgorde: strats/bot_01marktsent.py.

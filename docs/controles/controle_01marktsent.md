@@ -1,7 +1,7 @@
 # Controle Marktsentiment — 14 november 2026
 
 Repository uitsluitend Ronnyvdb2000/refactor; refactor-lab apart.
-Script bot_01marktsent.py, workflow run_01marktsent.yml. Eerdere controleverslagen
+Script strats/bot_01marktsent.py, workflow run_01marktsent.yml. Eerdere controleverslagen
 in docs/controles geraadpleegd. Geen gedeelde helper of andere bot aangepast.
 
 ## Live koersanalyse
@@ -154,7 +154,7 @@ begindrawdown, datumbereik en lege CSV's. Workflow is geparseerd en gecontroleer
 
 ```
 python -m unittest discover -s tests -p 'test_01marktsent.py' -q
-python -m py_compile bot_01marktsent.py
+python -m py_compile strats/bot_01marktsent.py
 ```
 
 In een nieuwe lokale Python 3.12-omgeving met uitsluitend de workflowpakketten
@@ -170,4 +170,4 @@ quota, datadekking, opgeslagen aantallen en ontvangen e-mail. 0/0 inserts bij
 geen signalen valideert geen echte databaseopslag.
 
 De lopende andere workflows zijn niet herstart of geannuleerd. Volgende bot in
-bestandsvolgorde: bot_01repititief.py.
+bestandsvolgorde: strats/bot_01repititief.py.

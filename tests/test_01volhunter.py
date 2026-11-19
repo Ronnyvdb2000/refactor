@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 import numpy as np
 import pandas as pd
-import bot_01volhunter as b
+from strats import bot_01volhunter as b
 
 
 def history(n=125,scale=1):

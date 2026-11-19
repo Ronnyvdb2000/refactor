@@ -1,7 +1,7 @@
 # Controle Hoogland GARP — 14 november 2026
 
 Repository uitsluitend Ronnyvdb2000/refactor; refactor-lab apart.
-Script bot_01hoogl.py, workflows run_01hoogl.yml en run_01hoogl_full.yml.
+Script strats/bot_01hoogl.py, workflows run_01hoogl.yml en run_01hoogl_full.yml.
 Dit is de GARP-bot, niet weekly_rep_backtest.py dat berichten met de lijstnaam
 '01 Hoogland' verstuurde. Die wekelijkse Telegram-verzending is eerder afzonderlijk
 uitgeschakeld in commit c79482e.
@@ -94,7 +94,7 @@ Geen echte notificaties of database-inserts bij deze Hoogland-tests.
 
 ```
 python -m unittest discover -s tests -p 'test_01hoogl.py' -q
-python -m py_compile bot_01hoogl.py
+python -m py_compile strats/bot_01hoogl.py
 ```
 
 Zie de hieronder vastgelegde aangeleverde live hertests. Tijdens de offline controle is geen live-run gestart.
@@ -104,7 +104,7 @@ gestart voor x- en a-lijsten; de eerder aangeleverde x-run was technisch geslaag
 met onvolledige Europese koersdata. Cointegratierun technisch live geslaagd met
 994/1000 tickers en e-mail; geen actieve selecties en daardoor geen echte
 database-insert getest. Zie [controle_01cointegr.md](controle_01cointegr.md) voor databeperkingen. MR EOD/ORB blijven open, ORB ook tijdens beursuren.
-Volgende bot in bestandsvolgorde: bot_01kasstr.py.
+Volgende bot in bestandsvolgorde: strats/bot_01kasstr.py.
 
 
 ## Aangeleverde hertests 14 november 2026

@@ -2,7 +2,7 @@
 
 Workflow: `.github/workflows/run_00ultxxxV2.yml`.
 Actions-naam: **Bot 00: FULL Scanner (041-059) xxx V2**.
-Script: `bot_00xxxV2.py`.
+Script: `strats/bot_00xxxV2.py`.
 
 ## Probleem en herstel
 

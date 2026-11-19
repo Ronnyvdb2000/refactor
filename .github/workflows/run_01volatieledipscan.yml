@@ -45,4 +45,4 @@ jobs:
           TOP_N: "3"
           BATCH_SIZE: "50"
           BATCH_PAUSE_SEC: "5"
-        run: python bot_01volhunter.py live
+        run: python -m strats.bot_01volhunter live

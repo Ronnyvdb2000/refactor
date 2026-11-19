@@ -7,7 +7,7 @@ Pairwise Engle-Granger-selectie met BH/FDR na correlatievoorfilter.
 Live adviesrapport met e-mail/database; Telegram uit.
 Backtest: synthetische genormaliseerde indexeenheden, geen EUR-portefeuille.
 
-Gebruik:  python bot_01cointegr.py live | backtest
+Gebruik:  python -m strats.bot_01cointegr live | backtest
 """
 
 import os

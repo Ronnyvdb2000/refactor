@@ -13,7 +13,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 for name in ('yfinance','requests','dotenv'):
     try: __import__(name)
     except ImportError: sys.modules[name]=MagicMock()
-import bot_00vcp as b
+from strats import bot_00vcp as b
 
 
 def history(n=340):

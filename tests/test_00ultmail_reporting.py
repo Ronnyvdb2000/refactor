@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pandas as pd
 from test_00kr_data_fix import history
 from test_00mail_reporting import recent_history
-import bot_00ultmail as bot
+from strats import bot_00ultmail as bot
 
 
 class ExecutionTests(unittest.TestCase):

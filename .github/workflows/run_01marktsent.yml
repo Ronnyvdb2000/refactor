@@ -36,4 +36,4 @@ jobs:
           EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
           NEWSAPI_KEY:      ${{ secrets.NEWSAPI_KEY }}
-        run: python bot_01marktsent.py live
+        run: python -m strats.bot_01marktsent live

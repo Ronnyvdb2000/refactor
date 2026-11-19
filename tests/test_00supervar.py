@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 for name in ('yfinance','requests','dotenv'):
     try: __import__(name)
     except ImportError: sys.modules[name] = MagicMock()
-import bot_00supervar as b
+from strats import bot_00supervar as b
 
 def history(ticker='A', n=280, growth=1):
     close = np.linspace(50, 50+growth*50, n)

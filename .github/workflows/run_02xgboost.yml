@@ -97,7 +97,7 @@ jobs:
           EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
-        run: python bot_01xgboost.py live
+        run: python -m strats.bot_01xgboost live
 
   bot-01xgboost-train:
     concurrency:
@@ -120,7 +120,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy requests psycopg2-binary xgboost scikit-learn
       - name: Run bot_01xgboost (train)
-        run: python bot_01xgboost.py train
+        run: python -m strats.bot_01xgboost train
       - name: Model committen
         if: always()
         run: |
@@ -157,4 +157,4 @@ jobs:
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy requests psycopg2-binary xgboost scikit-learn
       - name: Run bot_01xgboost (backtest)
-        run: python bot_01xgboost.py backtest
+        run: python -m strats.bot_01xgboost backtest

@@ -1,7 +1,7 @@
 # Controle MR EOD en ORB — 13 november 2026
 
 Scripts/workflows:
-- bot_00mr.py
+- strats/bot_00mr.py
 - .github/workflows/run_00mrEOD.yml
 - .github/workflows/run_00mrORB.yml
 

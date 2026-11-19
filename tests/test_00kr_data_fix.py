@@ -20,7 +20,7 @@ for name in ("requests", "yfinance"):
 
 import common.io as data_io
 import common.notify as notify
-import bot_00kr as bot
+from strats import bot_00kr as bot
 
 
 def history(n=800):

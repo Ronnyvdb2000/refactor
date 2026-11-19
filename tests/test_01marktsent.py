@@ -10,7 +10,7 @@ from unittest.mock import MagicMock,patch
 import numpy as np
 import pandas as pd
 import requests
-import bot_01marktsent as b
+from strats import bot_01marktsent as b
 
 
 def history(ticker='A',n=300):

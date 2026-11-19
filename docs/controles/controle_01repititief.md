@@ -1,6 +1,6 @@
 # Controle Seizoenseffecten — 14 november 2026
 
-Scope: bot_01repititief.py en run_01repititief.yml in Ronnyvdb2000/refactor. De bestaande gecontroleerde tickerlijsten zijn niet gewijzigd. De workflow gebruikt x-lijsten; de oude naam FULL was misleidend.
+Scope: strats/bot_01repititief.py en run_01repititief.yml in Ronnyvdb2000/refactor. De bestaande gecontroleerde tickerlijsten zijn niet gewijzigd. De workflow gebruikt x-lijsten; de oude naam FULL was misleidend.
 
 ## Signalen en data
 

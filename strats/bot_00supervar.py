@@ -441,6 +441,6 @@ def run_live_engine(regio: str = "alle"):
 if __name__ == "__main__":
     arg = sys.argv[1].lower() if len(sys.argv) > 1 else "alle"
     if arg not in ("europa", "namerika", "alle"):
-        sys.exit("Gebruik: python bot_00supervar.py [alle|europa|namerika]")
+        sys.exit("Gebruik: python -m strats.bot_00supervar [alle|europa|namerika]")
     run_live_engine(arg)
 

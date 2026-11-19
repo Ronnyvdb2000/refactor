@@ -36,7 +36,7 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python bot_00mr.py orb
+        run: python -m strats.bot_00mr orb
       - name: Bewaar scanresultaten
         if: always()
         uses: actions/upload-artifact@v4

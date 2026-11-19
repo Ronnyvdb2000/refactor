@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock
 import numpy as np
 import pandas as pd
-import bot_01repititief as b
+from strats import bot_01repititief as b
 
 
 def frame(start='2019-01-01', end='2026-11-13', ticker='A'):

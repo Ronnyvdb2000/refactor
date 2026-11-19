@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
-import bot_01beurssign as b
+from strats import bot_01beurssign as b
 
 
 def history(n=65):
@@ -263,7 +263,7 @@ class Tests(unittest.TestCase):
             self.assertEqual(preflight[0]['run'], 'python -c "from sklearn.cluster import DBSCAN"')
 
             self.assertNotIn('TELEGRAM_TOKEN',env)
-            self.assertEqual(step['run'],f'python bot_01beurssign.py {mode}')
+            self.assertEqual(step['run'],f'python -m strats.bot_01beurssign {mode}')
             self.assertFalse(doc['concurrency']['cancel-in-progress'])
 
     def test_candidate_count_not_capped(self):

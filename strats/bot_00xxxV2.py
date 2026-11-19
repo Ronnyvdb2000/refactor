@@ -593,4 +593,4 @@ if __name__ == "__main__":
     if mode=="live":run_live_engine()
     elif mode=="backtest":run_backtest()
     elif mode=="apply":apply_telegram_commands(LivePortfolio(START_CAPITAL),"commands.txt")
-    else:sys.exit("Gebruik: python bot_00xxxV2.py [live|backtest|apply]")
+    else:sys.exit("Gebruik: python -m strats.bot_00xxxV2 [live|backtest|apply]")

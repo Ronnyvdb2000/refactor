@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
-import bot_01cointegr as b
+from strats import bot_01cointegr as b
 
 
 def prices(n=300):

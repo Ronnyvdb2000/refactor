@@ -387,7 +387,7 @@ def run_live_engine():
 
     model, meta = load_model()
     if model is None:
-        print(f"[ERROR] Geen opgeslagen model gevonden ({MODEL_PATH}). Voer eerst 'python bot_01xgboost.py train' uit.")
+        print(f"[ERROR] Geen opgeslagen model gevonden ({MODEL_PATH}). Voer eerst 'python -m strats.bot_01xgboost train' uit.")
         return
     print(f"Model geladen — getraind op {meta.get('trained_at')}, data tot {meta.get('trained_until')}, AUC {meta.get('val_metrics', {}).get('auc', '?')}")
 

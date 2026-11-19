@@ -1,11 +1,11 @@
 # Controle Ultimate-mailbot — 13 november 2026
 
-Repository: Ronnyvdb2000/refactor. Wijzigingen betreffen `bot_00ultmail.py`,
+Repository: Ronnyvdb2000/refactor. Wijzigingen betreffen `strats/bot_00ultmail.py`,
 zijn workflow en de bijbehorende regressietests. Andere bots zijn niet gewijzigd.
 
 ## Dataverwerking en rapportage
 
-De bot hergebruikt `prepare_history` en `cached_history` uit `bot_00mail.py`.
+De bot hergebruikt `prepare_history` en `cached_history` uit `strats/bot_00mail.py`.
 Importeren van die module start geen scan of notificatie. Dit bewaart dezelfde
 opschoning en downloadcache als de gewone mailbot, zonder twee implementaties.
 

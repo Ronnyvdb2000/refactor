@@ -34,7 +34,7 @@ jobs:
           EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
-        run: python bot_00kr.py live
+        run: python -m strats.bot_00kr live
       - name: Opslaan CSV
         if: always()
         run: |

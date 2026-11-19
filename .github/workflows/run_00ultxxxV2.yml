@@ -44,7 +44,7 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           # TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python bot_00xxxV2.py live
+        run: python -m strats.bot_00xxxV2 live
 
 
       - name: Bewaar scanresultaten

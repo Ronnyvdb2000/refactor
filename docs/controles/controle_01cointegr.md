@@ -1,6 +1,6 @@
 # Controle Pairs Trading — 14 november 2026
 
-Repository uitsluitend Ronnyvdb2000/refactor. Script bot_01cointegr.py;
+Repository uitsluitend Ronnyvdb2000/refactor. Script strats/bot_01cointegr.py;
 workflow run_01cointr.yml. Refactor-lab blijft apart.
 
 ## Selectie en data
@@ -95,14 +95,14 @@ kosten/cashaansluiting, open posities en workflowinstellingen.
 ```
 python -m unittest discover -s tests -p 'test_01cointegr.py' -q
 python -m unittest discover -s tests -p 'test_01beurssign.py' -q
-python -m py_compile bot_01cointegr.py
+python -m py_compile strats/bot_01cointegr.py
 ```
 
 Geen externe meldingen of database-inserts tijdens de tests. Live hertest staat
 open via run_01cointr.yml, mode live, main. Controleer looptijd, datadekking,
 paren, koersdatums, opslag en ontvangen e-mail. Geen live run of grote historische
 backtest gestart. MR EOD en ORB blijven open; ORB ook tijdens beursuren testen.
-Volgende bot in bestandsvolgorde: bot_01hoogl.py.
+Volgende bot in bestandsvolgorde: strats/bot_01hoogl.py.
 
 
 ## Live hertest ontvangen — 14 november 2026

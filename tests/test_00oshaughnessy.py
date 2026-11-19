@@ -14,7 +14,7 @@ for module in ('yfinance', 'requests', 'dotenv'):
         __import__(module)
     except ImportError:
         sys.modules[module] = MagicMock()
-import bot_00oshaughnessy as bot
+from strats import bot_00oshaughnessy as bot
 
 DATE = pd.Timestamp('2025-12-31')
 

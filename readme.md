@@ -7,7 +7,7 @@ Deze handleiding beschrijft de code op `main`. De repository `Ronnyvdb2000/refac
 ## Dataflow
 
 1. Tickerlijsten (`tickers_*.txt`) vormen het universum voor de scanners.
-2. Strategieën (`bot_*.py`) produceren selecties en rapporten.
+2. Strategieën (`strats/bot_*.py`) produceren selecties en rapporten.
 3. Feature-builders vullen technische en fundamentele gegevens in Supabase/PostgreSQL.
 4. `bouw_forward_returns.py` koppelt selecties aan latere rendementen.
 5. Analyse- en modelscripts gebruiken deze gegevens voor evaluatie, training en scoring.
@@ -24,7 +24,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | [common/](common/) | Gedeelde indicatoren, koersdownloads, notificaties, tekst- en positiegroottefuncties |
 | [common.py](common.py) | Compatibiliteitsbestand naast de package |
 | [tests/](tests/) | Tests voor gedeelde functies en verschillende bots |
-| `bot_*.py` | Strategieën en scanners |
+| [strats/](strats/README.md) | Alle `bot_00*`- en `bot_01*`-strategieën en scanners |
 | [combiners/](combiners/) | Combineerders van strategische signalen |
 | `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
@@ -167,7 +167,7 @@ Voorbeelden van de huidige YAML-configuratie:
 | --- | --- |
 | Generieke technicals | Dagelijks 21:00 UTC en handmatig |
 | Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python bouw_forward_returns.py build` |
-| Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python bot_00kr.py live` |
+| Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python -m strats.bot_00kr live` |
 | LightGBM V2 | Handmatig |
 
 Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.

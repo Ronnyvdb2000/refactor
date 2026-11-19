@@ -1,7 +1,7 @@
 # Controle Volatiele Dip-Scan — 14 november 2026
 
 Uitsluitend Ronnyvdb2000/refactor, los van refactor-lab.
-Script bot_01volhunter.py; workflow run_01volatieledipscan.yml.
+Script strats/bot_01volhunter.py; workflow run_01volatieledipscan.yml.
 
 ## Hersteld
 
@@ -64,7 +64,7 @@ notificaties uitgevoerd. Compile en git diff --check slagen.
 
 ```
 python -m unittest discover -s tests -p 'test_01volhunter.py' -q
-python -m py_compile bot_01volhunter.py
+python -m py_compile strats/bot_01volhunter.py
 ```
 
 Live hertest blijft open: start run_01volatieledipscan.yml handmatig op main.

@@ -80,7 +80,7 @@ jobs:
           EMAIL_PASS:          ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER:      ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL:     ${{ secrets.SUPABASE_DB_URL }}
-        run: python bot_01xgboostMeta.py live
+        run: python -m strats.bot_01xgboostMeta live
 
   bot-01xgboostmeta-train:
     needs: bepaal-modus
@@ -101,7 +101,7 @@ jobs:
       - name: Run bot_01xgboostMeta (train)
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
-        run: python bot_01xgboostMeta.py train
+        run: python -m strats.bot_01xgboostMeta train
       - name: Model committen
         if: always()
         run: |
@@ -136,4 +136,4 @@ jobs:
       - name: Run bot_01xgboostMeta (backtest)
         env:
           TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
-        run: python bot_01xgboostMeta.py backtest
+        run: python -m strats.bot_01xgboostMeta backtest

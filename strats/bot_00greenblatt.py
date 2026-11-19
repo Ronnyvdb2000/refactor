@@ -430,5 +430,5 @@ if __name__ == "__main__":
     elif mode == "live":
         run_live_engine()
     else:
-        sys.exit("Gebruik: python bot_00greenblatt.py [live|backtest]")
+        sys.exit("Gebruik: python -m strats.bot_00greenblatt [live|backtest]")
 

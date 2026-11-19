@@ -379,4 +379,4 @@ if __name__=="__main__":
     mode=sys.argv[1].lower() if len(sys.argv)>1 else "eod"
     if mode in ("eod","live"):run_eod()
     elif mode=="orb":run_orb()
-    else:sys.exit("Gebruik: python bot_00mr.py [eod|live|orb]; backtest/status niet geïmplementeerd")
+    else:sys.exit("Gebruik: python -m strats.bot_00mr [eod|live|orb]; backtest/status niet geïmplementeerd")

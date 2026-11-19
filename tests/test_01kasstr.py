@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import MagicMock,patch
 import pandas as pd
 import numpy as np
-import bot_01kasstr as b
+from strats import bot_01kasstr as b
 
 DATES=pd.to_datetime(['2025-12-31','2024-12-31'])
 
@@ -292,7 +292,7 @@ class Tests(unittest.TestCase):
         import yaml
         doc=yaml.safe_load((Path(__file__).resolve().parents[1]/'.github/workflows/run_01kasstr.yml').read_text())
         job=doc['jobs']['bot-01kasstr'];step=job['steps'][-1]
-        self.assertEqual(step['run'],'python bot_01kasstr.py live')
+        self.assertEqual(step['run'],'python -m strats.bot_01kasstr live')
         self.assertIn('EMAIL_PASS',step['env']);self.assertIn('SUPABASE_DB_URL',step['env'])
         self.assertNotIn('TELEGRAM_TOKEN',step['env']);self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
 

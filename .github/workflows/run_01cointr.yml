@@ -55,7 +55,7 @@ jobs:
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          python bot_01cointegr.py ${{ github.event.inputs.mode || 'live' }}
+          python -m strats.bot_01cointegr ${{ github.event.inputs.mode || 'live' }}
 
       - name: Bewaar backtestuitvoer
         if: always()

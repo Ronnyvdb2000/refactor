@@ -15,7 +15,7 @@ for name in ("requests", "yfinance"):
     except ImportError:
         sys.modules[name] = MagicMock()
 
-import bot_00greenblatt as bot
+from strats import bot_00greenblatt as bot
 
 
 def company(**info_changes):

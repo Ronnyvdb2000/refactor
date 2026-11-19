@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import MagicMock,patch
 import pandas as pd
-import bot_01hoogl as b
+from strats import bot_01hoogl as b
 
 
 def info():
@@ -186,7 +186,7 @@ class Tests(unittest.TestCase):
         for filename,mode in [('run_01hoogl.yml','live'),('run_01hoogl_full.yml','full')]:
             doc=yaml.safe_load((Path(__file__).resolve().parents[1]/'.github/workflows'/filename).read_text())
             job=next(iter(doc['jobs'].values()));step=job['steps'][-1]
-            self.assertEqual(step['run'],f'python bot_01hoogl.py {mode}')
+            self.assertEqual(step['run'],f'python -m strats.bot_01hoogl {mode}')
             self.assertIn('SUPABASE_DB_URL',step['env']);self.assertIn('EMAIL_PASS',step['env'])
             self.assertNotIn('TELEGRAM_TOKEN',step['env']);self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
 

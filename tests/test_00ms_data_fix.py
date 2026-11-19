@@ -10,7 +10,7 @@ from unittest.mock import patch
 import numpy as np
 import pandas as pd
 from test_00kr_data_fix import history
-import bot_00ms as bot
+from strats import bot_00ms as bot
 
 
 class MinerviniTests(unittest.TestCase):

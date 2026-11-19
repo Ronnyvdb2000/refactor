@@ -30,11 +30,11 @@ from common import (
     compute_atr_series,
 )
 
-import bot_01kasstr as kasstr
-import bot_00Fisher as fisher
-import bot_01repititief as repititief
-import bot_00vcp as vcp
-import bot_01hoogl as hoogl
+from strats import bot_01kasstr as kasstr
+from strats import bot_00Fisher as fisher
+from strats import bot_01repititief as repititief
+from strats import bot_00vcp as vcp
+from strats import bot_01hoogl as hoogl
 import db_logger
 from .shared import finite
 

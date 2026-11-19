@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 from common import io as shared_io
-import bot_01volhunter as vol
-import bot_01hoogl as hoogl
-import bot_01marktsent as sentiment
+from strats import bot_01volhunter as vol
+from strats import bot_01hoogl as hoogl
+from strats import bot_01marktsent as sentiment
 
 
 def test_download_timeout_also_reaches_individual_fallback():

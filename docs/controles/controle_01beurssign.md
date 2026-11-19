@@ -1,7 +1,7 @@
 # Controle BeursSignalen — 14 november 2026
 
 Repository: uitsluitend Ronnyvdb2000/refactor; refactor-lab niet gewijzigd.
-Scripts/workflows: bot_01beurssign.py, run_01beurssign.yml (live/x-lijsten),
+Scripts/workflows: strats/bot_01beurssign.py, run_01beurssign.yml (live/x-lijsten),
 run_01beurssignfull.yml (full/a-lijsten). Eerdere controle_*.md geraadpleegd.
 
 ## Hersteld
@@ -70,7 +70,7 @@ Beide workflows geparseerd, CLI/compile en git diff --check gecontroleerd.
 ```
 python -m unittest discover -s tests -p 'test_01beurssign.py' -q
 python -m unittest discover -s tests -p 'test_00mr.py' -q
-python -m py_compile bot_01beurssign.py
+python -m py_compile strats/bot_01beurssign.py
 ```
 
 Live hertests van BeursSignalen staan nog open voor beide workflows op main.

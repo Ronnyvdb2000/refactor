@@ -9,6 +9,7 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 ## Uitvoering
 
+- [Basisstrategieën: strats-map en gekoppelde workflows](../strats/README.md)
 - [Weekly bots: structuur, weekgrenzen en rapportage](weekly.md)
 - [TradingAgents: workflowcontrole, Groq-instellingen en beperkingen](tradingagents.md)
 

@@ -1,6 +1,6 @@
 # Combineerders — structuur en controle
 
-De combineerders van `Ronnyvdb2000/refactor` staan in `combiners/`. Start ze vanuit de repository-root. De basisbots, tickerlijsten, databasehelpers en modellen staan voorlopig op hun bestaande plaats.
+De combineerders van `Ronnyvdb2000/refactor` staan in `combiners/`. Start ze vanuit de repository-root. De basisbots staan in [strats/](../strats/README.md); tickerlijsten, databasehelpers en modelbestanden blijven in de repository-root.
 
 | Module | Functie | Workflow |
 | --- | --- | --- |
