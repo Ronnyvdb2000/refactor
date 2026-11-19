@@ -29,7 +29,10 @@ jobs:
           python-version: "3.11"
 
       - name: Installeer dependencies
-        run: pip install yfinance pandas numpy requests python-dotenv psycopg2-binary
+        run: pip install yfinance pandas numpy requests python-dotenv psycopg2-binary scikit-learn
+
+      - name: Controleer Yahoo-repair dependency
+        run: python -c "from sklearn.cluster import DBSCAN"
 
       - name: Run bouw_generieke_technicals
         env:

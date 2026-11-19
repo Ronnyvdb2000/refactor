@@ -133,3 +133,56 @@ def test_providerstop_stays_red_even_after_eighty_percent_committed(run, monkeyp
     with pytest.raises(RuntimeError, match='Yahoo-rate-limit'): b.main()
     assert conn.commit.call_count == write.call_count == 4
     assert [r['status'] for r in diagnosis()] == ['geschreven']*4 + ['afgebroken']
+
+
+def broken_history():
+    raw = history()
+    raw.loc[raw.index[-1], ['Open','High','Low','Close']] = np.nan
+    return raw
+
+
+def test_missing_close_repaired_on_same_day_and_indicators_recomputed(run):
+    _, write, ticker, telegram, _ = run
+    fixed = history()
+    ticker.return_value.history.side_effect = [broken_history(), fixed, broken_history(), fixed]
+    b.main()
+    assert write.call_count == 2
+    assert all(c.args[2] == fixed.index[-1].date() for c in write.call_args_list)
+    assert all(pd.notna(c.args[3]['MA200']) for c in write.call_args_list)
+    repairs = [c for c in ticker.return_value.history.call_args_list if c.kwargs.get('repair')]
+    assert len(repairs) == 2
+    assert all(c.kwargs['timeout'] == 15 for c in repairs)
+    assert all(r['detail'].startswith('Yahoo-repair') for r in diagnosis())
+    assert 'Yahoo-repair opgeslagen:* 2' in telegram.call_args.args[0]
+
+
+@pytest.mark.parametrize('failure', ['older','invalid','short','incoherent','zero_volume'])
+def test_failed_repair_never_substitutes_an_older_bar_or_bypasses_quality_gate(run, failure):
+    _, write, ticker, _, _ = run
+    fixed = history()
+    if failure == 'older': fixed = fixed.iloc[:-1]
+    if failure == 'invalid': fixed = broken_history()
+    if failure == 'short': fixed = history(periods=100)
+    if failure == 'incoherent': fixed.loc[fixed.index[-1], 'Low'] = 999.
+    if failure == 'zero_volume': fixed.loc[fixed.index[-1], 'Volume'] = 0.
+    ticker.return_value.history.side_effect = [broken_history(), fixed, broken_history(), fixed]
+    with pytest.raises(RuntimeError, match='0/2'): b.main()
+    write.assert_not_called()
+    assert ticker.return_value.history.call_count == 4
+    expected = 'ontbrekende_features' if failure == 'short' else 'ongeldige_koers'
+    assert all(r['reden'] == expected for r in diagnosis())
+
+
+def test_rate_limit_during_repair_stops_all_remaining_requests(run):
+    _, write, ticker, _, _ = run
+    def respond(**kwargs):
+        if kwargs.get('repair'):
+            logging.getLogger('yfinance').error('HTTP Error 429: Too Many Requests')
+            return history()
+        return broken_history()
+    ticker.return_value.history.side_effect = respond
+    with pytest.raises(RuntimeError, match='Yahoo-rate-limit'): b.main()
+    assert ticker.return_value.history.call_count == 2
+    ticker.assert_called_with('A')
+    write.assert_not_called()
+    assert [r['status'] for r in diagnosis()] == ['afgebroken','niet_opgevraagd']

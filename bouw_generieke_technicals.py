@@ -472,6 +472,35 @@ def schrijf_rij(conn, ticker, datum, rij):
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
+def herstel_koers(ticker, start, index_ret, koersdatum):
+    """One provider repair; never replace the requested day by an older bar."""
+    try:
+        with stop_on_throttle():
+            fixed = yf.Ticker(ticker).history(
+                start=start, auto_adjust=True, repair=True, timeout=15)
+        if fixed is None or fixed.empty:
+            return None
+        if not {'Open', 'High', 'Low', 'Close', 'Volume'}.issubset(fixed.columns):
+            return None
+        g = bereken_indicatoren(fixed, index_ret)
+        if g.empty or g.index.has_duplicates or koersdatum not in g.index:
+            return None
+        row = g.loc[koersdatum]
+        prices = [float(row.get(name)) for name in ('Open', 'High', 'Low', 'Close')]
+        volume = float(row.get('Volume'))
+        if any(not math.isfinite(value) or value <= 0 for value in prices) or not math.isfinite(volume) or volume <= 0:
+            return None
+        op, high, low, close = prices
+        if high < max(op, low, close) or low > min(op, high, close):
+            return None
+        return row
+    except YahooRateLimited:
+        raise
+    except Exception as exc:
+        print(f'[repair] {ticker}: herstel mislukt ({type(exc).__name__})', flush=True)
+        return None
+
+
 def schrijf_diagnose(rijen):
     pad = Path('results/generieke_technicals_dekking.csv')
     pad.parent.mkdir(parents=True, exist_ok=True)
@@ -583,9 +612,14 @@ def main():
                     or pd.isna(rij.get("High"))
                     or pd.isna(rij.get("Low"))
                 ):
-                    uitkomst['reden'] = 'ongeldige_koers'
-                    n_skip += 1
-                    continue
+                    hersteld = herstel_koers(ticker, start, index_ret, bar_datum_ts)
+                    if hersteld is None:
+                        uitkomst.update(reden='ongeldige_koers', detail='Een Yahoo-repair zonder bruikbaar herstel van dezelfde koersdag')
+                        n_skip += 1
+                        continue
+                    rij = hersteld
+                    uitkomst['detail'] = 'Yahoo-repair op dezelfde koersdag; providerherstel, niet onafhankelijk geverifieerd'
+                    print(f'[repair] {ticker}: koersdag {bar_datum_ts.date()} hersteld via Yahoo', flush=True)
 
                 ontbrekend = [feature for feature in verplichte_features
                               if _veilig(rij.get(feature)) is None]
@@ -639,6 +673,8 @@ def main():
     succes_ratio = n_ok / len(tickers)
     onvoldoende = succes_ratio < MIN_SUCCES_RATIO
     print(f"Succespercentage : {succes_ratio:.1%} (minimum {MIN_SUCCES_RATIO:.1%})")
+    n_hersteld = sum(r['status'] == 'geschreven' and r['detail'].startswith('Yahoo-repair') for r in diagnose)
+    print(f"Via Yahoo-repair opgeslagen: {n_hersteld}", flush=True)
     redenen = Counter(r['reden'] for r in diagnose if r['status'] != 'geschreven')
     diagnose_tekst = '\n'.join(f'{reden}: {aantal}' for reden, aantal in sorted(redenen.items()))
     feature_redenen = Counter(feature for r in diagnose if r['reden'] == 'ontbrekende_features'
@@ -664,6 +700,7 @@ def main():
         f"_{datum_str}_\n\n"
         f"✅ *Rijen geschreven:* {n_ok}\n"
         f"⏭️ *Overgeslagen:* {n_skip}\n"
+        f"🛠️ *Via Yahoo-repair opgeslagen:* {n_hersteld}\n"
     )
     if fouten:
         tg_bericht += f"⚠️ *Fouten:* {len(fouten)}\n"
@@ -686,6 +723,7 @@ def main():
         f"Tickers verwerkt: {len(tickers)}\n"
         f"Rijen geschreven: {n_ok}\n"
         f"Overgeslagen: {n_skip}\n"
+        f"Via Yahoo-repair opgeslagen: {n_hersteld}\n"
     )
     if fouten:
         email_body += f"Aantal fouten: {len(fouten)}\n"

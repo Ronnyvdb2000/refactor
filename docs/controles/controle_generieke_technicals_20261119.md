@@ -57,3 +57,56 @@ Er is geen nieuwe live scan gestart en geen productiegegeven gewijzigd tijdens
 de validatie. De oorzaakverdeling van de oorspronkelijke 554 skips blijft onbekend.
 De volgende run moet die verdeling met het CSV-artifact aantonen; deze correctie
 is geen bewijs dat de volgende run boven 80% zal uitkomen.
+
+## Diagnose van run 44474144356 en begrensd herstel
+
+De [nieuwe run](https://github.com/Ronnyvdb2000/refactor/actions/runs/44474144356)
+op `6565ae2` bevestigt 446/1000 geschreven, met nul verwerkingsfouten. Het
+diagnose-artifact 14506385296 bevat 544 ongeldige koersrijen, één lege historie,
+vier tickers met ontbrekende verplichte features en vijf verouderde koersen.
+Alle 544 ongeldige rijen zijn van 18 november. De groep bevat vooral Europese
+noteringen: onder meer 244 `.L`, 63 `.PA`, 53 `.MI`, 34 `.DE` en 33 `.AS`.
+
+Gerichte read-only providercontroles van `1SXP.DE` en `ASML.AS` met yfinance 1.8.0
+bevestigen een ontbrekende Close op 18 november. Ook de ongecorrigeerde historie
+heeft die ontbrekende Close, terwijl Open/High/Low en volume wel aanwezig zijn.
+`auto_adjust=True` maakt daarbij ook de aangepaste Open/High/Low ongeldig.
+Dit is geen bewijs dat alle 544 rijen exact dezelfde onderliggende oorzaak hebben.
+Er is geen volledige nieuwe universumscan gedaan tijdens het onderzoek.
+
+Voor beide gecontroleerde tickers herstelt Yahoo `repair=True` de koersdag
+18 november, met een gemarkeerde `Repaired?`-rij. Voor `1SXP.DE` is daarnaast
+het volledige 400-daagse historiepad gecontroleerd: de herstelde dag heeft alle
+elf verplichte technische features. Geen databaseopslag of notificatie gestart.
+
+### Correctie
+
+Bij een geselecteerde rij met ontbrekende Close/High/Low volgt maximaal één
+extra `history(..., auto_adjust=True, repair=True, timeout=15)`-aanroep. Het
+herstel moet exact de oorspronkelijke koersdatum bevatten, zonder dubbele
+datums, met eindige positieve Open/High/Low/Close, een coherente dagrange en
+positief volume. Ontbrekende OHLCV-kolommen worden niet verzonnen. De indicatoren
+worden opnieuw over de herstelhistorie berekend; daarna geldt opnieuw dezelfde
+controle op alle verplichte features. Een kortere herstelde reeks met ontbrekende
+MA200/HIGH52W blijft afgekeurd. Geen terugval naar de slotkoers van een oudere dag.
+
+Een blijvend ongeldige rij blijft `ongeldige_koers`, met een repair-detail in het
+CSV. Een Yahoo-rate-limit tijdens repair stopt ook alle volgende tickeraanvragen
+en laat de workflow rood. Bestaande 80%-norm, stale-koerscontrole, Telegram en
+artifactopslag blijven behouden. De workflow installeert en importeert
+scikit-learn/DBSCAN voor het providerherstel, zoals bij de dipscan.
+
+Succesvolle opslag via dit pad wordt per ticker gemarkeerd in het CSV en geteld
+in log, Telegram en e-mail. Dit is **Yahoo-providerherstel, geen onafhankelijke
+prijsverificatie**. De limiet betreft één extra yfinance-aanroep per ongeldige
+ticker; repair kan intern meerdere HTTP-verzoeken doen. De totale doorlooptijd
+of het halen van 80% dekking is hiermee nog niet live bevestigd.
+
+Zeven aanvullende offline regressies dekken geslaagd herstel op dezelfde dag,
+weigeren van oudere, ongeldige, korte, incoherente en volumeloze hersteldata,
+en het stoppen bij een alleen gelogde 429 tijdens repair. Alle provider-, opslag-
+en verzendaanroepen zijn in die tests gemockt.
+
+Volledige offline suite: **813 tests en 19 deeltests geslaagd**, dertien optionele
+tests overgeslagen, met uitgaande socketverbindingen geblokkeerd. Workflowaudit:
+65 workflows zonder fouten of waarschuwingen; aangepaste YAML en shellsyntax geldig.
