@@ -17,6 +17,8 @@ from typing import List, Dict, Optional, Tuple
 import pandas as pd
 import yfinance as yf
 
+from common.notify import send_telegram_report
+
 from common import (
     today_str, safe_float, yahoo_link,
     load_tickers_from_file, bouw_bestandslijst, label_voor,
@@ -352,10 +354,11 @@ def run_engine(modus: str):
     if not analysed:
         errors.append("Geen bruikbare analyses")
     summary = (f"{analysed}/{len(requested)} unieke tickers geanalyseerd. "
-               f"Database: {stored}/{selected} selecties opgeslagen. Telegram uit.")
+               f"Database: {stored}/{selected} selecties opgeslagen.")
     body = "\n\n".join([summary]+reports+["Databeperkingen:"]+issues+["Fouten:"]+errors)
     print(body, flush=True)
     subject = ("[ONVOLLEDIG] " if issues or errors else "") + cfg["label"] + " " + today_str()
+    send_telegram_report(subject + "\n\n" + body)
     if not send_email(subject, body):
         errors.append("E-mail niet verzonden")
     if errors:

@@ -72,3 +72,22 @@ def send_email(subject: str, body: str, *, html_body: bool = False,
         print(f"[WARN] Email: {e}")
         return False
 
+
+def send_telegram_report(text: str) -> bool:
+    """Deliver all plain-text parts within Telegram's UTF-16 size limit."""
+    parts, current, units = [], [], 0
+    for char in text:
+        width = 2 if ord(char) > 0xFFFF else 1
+        if units + width > 3900:
+            parts.append(''.join(current))
+            current, units = [], 0
+        current.append(char)
+        units += width
+    if current:
+        parts.append(''.join(current))
+    success = True
+    for number, part in enumerate(parts, 1):
+        if not send_telegram(part, parse_mode=None):
+            print(f"::warning::Telegram rapportdeel {number}/{len(parts)} niet verzonden", flush=True)
+            success = False
+    return success

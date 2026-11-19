@@ -46,3 +46,10 @@ Python-imports gebruiken bijvoorbeeld `from strats import bot_01kasstr`. De oude
 27 workflowbestanden gebruiken nu `python -m strats.<bot>`. De bestaande argumenten, secrets, cron-tijden, rechten, concurrencygroepen, timeouts, artifacts en publicatiestappen zijn inhoudelijk gelijk gebleven. Uitgeschakelde workflows en de uitgeschakelde TradingAgents-job blijven uitgeschakeld. De strategie-identificaties in database en rapportage zijn niet hernoemd; Telegram blijft behouden. TradingAgents en refactor-lab blijven apart.
 
 Verificatie: alle 24 strategiemodules veilig geïmporteerd; 784 tests en 19 deeltests geslaagd, dertien optionele tests overgeslagen, met uitgaand netwerkverkeer geblokkeerd. Workflowaudit: 65 workflows zonder fouten of waarschuwingen. Alle YAML-bestanden geladen en 208 shellstappen met `bash -n` gecontroleerd. Workflowconfiguratie is structureel met de vorige main vergeleken: alleen de Python-startcommando’s verschillen. Geen live scans gestart.
+
+Hoogland en BeursSignalen versturen hun volledige rapport via Telegram én e-mail,
+voor zowel de dagelijkse als volledige scan. Telegram gebruikt gewone tekst in
+stukken van maximaal 3.900 UTF-16-eenheden. Een mislukt deel wordt gelogd als
+waarschuwing; latere delen en de e-mail worden nog geprobeerd. De vier workflows
+geven de bestaande Telegram-secrets door. Bezorging vereist geldige secrets;
+de offline tests versturen geen berichten.

@@ -191,3 +191,17 @@ Gerichte offline validatie: 47 tests geslaagd, tien optionele databasetests
 overgeslagen. De regressie voert de gegenereerde UPSERT uit en controleert dat
 herhaling geen wijziging telt en de bestaande opslagdatum behoudt. Telegram blijft
 behouden. Geen historische selecties verwijderd of datums verschoven.
+
+### Opschoning probleemgevallen op 19 november 2026
+
+Op expliciet verzoek zijn de 1.237 gediagnosticeerde combinaties met ontbrekende
+selectiedatumkoers, ontbrekende historie of geen bruikbare horizon verwijderd:
+1.262 bronselecties (inclusief dubbele bronrijen) en 927 bijbehorende rendementen.
+Vooraf is een volledige herstelkopie buiten de publieke repository opgeslagen.
+De transactie controleerde alle rijvingerafdrukken en verwachte aantallen;
+nacontrole vond nul resterende bron- of rendementsrijen voor deze sleutels.
+Dit corrigeert geen providersymbolen of toekomstige bronproblemen.
+
+Na opschoning: nul kandidaten zonder 5d-label; respectievelijk 15, 29, 27 en 98
+kandidaten zonder 10d-, 20d-, 30d- en 60d-label. Dit zijn overlappende groepen op
+basis van kalendergrenzen, geen bewijs van 60 beschikbare koerssessies.

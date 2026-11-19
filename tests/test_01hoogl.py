@@ -18,6 +18,7 @@ def info():
 
 class Tests(unittest.TestCase):
     def setUp(self):
+        tg=patch.object(b,"send_telegram_report",return_value=True);tg.start();self.addCleanup(tg.stop)
         p=patch.object(b,'today_str',return_value='2026-11-13');p.start();self.addCleanup(p.stop)
 
     def analyse(self,values=None,mode='live'):
@@ -139,10 +140,10 @@ class Tests(unittest.TestCase):
             except RuntimeError as exc:failed=exc
             return b.log_selectie,b.send_email,b.analyse_ticker,failed
 
-    def test_cache_overlap_services_telegram_off(self):
+    def test_cache_overlap_services_telegram_enabled(self):
         db,email,analyse,error=self.run_bot();self.assertIsNone(error)
         self.assertEqual(db.call_count,2);analyse.assert_called_once()
-        self.assertNotIn('send_telegram',b.__dict__)
+        b.send_telegram_report.assert_called_once()
         self.assertIn('2/2 selecties',email.call_args.args[1])
         self.assertEqual(db.call_args.kwargs['parameters']['price_currency'],'USD')
 
@@ -188,6 +189,6 @@ class Tests(unittest.TestCase):
             job=next(iter(doc['jobs'].values()));step=job['steps'][-1]
             self.assertEqual(step['run'],f'python -m strats.bot_01hoogl {mode}')
             self.assertIn('SUPABASE_DB_URL',step['env']);self.assertIn('EMAIL_PASS',step['env'])
-            self.assertNotIn('TELEGRAM_TOKEN',step['env']);self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
+            self.assertEqual(step['env']['TELEGRAM_TOKEN'], '${{ secrets.TELEGRAM_TOKEN }}');self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
 
 if __name__=='__main__':unittest.main()

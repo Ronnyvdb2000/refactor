@@ -19,6 +19,7 @@ def history(n=65):
 
 class Tests(unittest.TestCase):
     def setUp(self):
+        tg=patch.object(b,"send_telegram_report",return_value=True);tg.start();self.addCleanup(tg.stop)
         p = patch.object(b, 'today_str', return_value='2026-11-13')
         p.start(); self.addCleanup(p.stop)
 
@@ -148,12 +149,12 @@ class Tests(unittest.TestCase):
             except RuntimeError as exc:failed=exc
             return b.send_email,b.log_selectie,b.analyse_ticker,failed
 
-    def test_cache_db_date_and_no_telegram(self):
+    def test_cache_db_date_and_telegram(self):
         mail,db,analyse,error=self.run_bot()
         self.assertIsNone(error);analyse.assert_called_once();self.assertEqual(db.call_count,2)
         self.assertEqual(db.call_args.kwargs['datum'],'2026-11-12')
         self.assertIn('2/2 selecties',mail.call_args.args[1])
-        self.assertNotIn('send_telegram',b.__dict__)
+        b.send_telegram_report.assert_called_once()
 
     def test_valid_empty_selection(self):
         mail,db,_,error=self.run_bot(candidate=False)
@@ -249,7 +250,7 @@ class Tests(unittest.TestCase):
             b.run_engine('full')
             self.assertIn(30, [c.args[0] for c in sleep.call_args_list])
 
-    def test_workflows_keep_services_and_telegram_disabled(self):
+    def test_workflows_keep_services_and_telegram_enabled(self):
         from pathlib import Path
         import yaml
         for name,mode in [('run_01beurssign.yml','live'),('run_01beurssignfull.yml','full')]:
@@ -262,7 +263,7 @@ class Tests(unittest.TestCase):
             preflight = [step for step in job['steps'] if step.get('name') == 'Controleer Yahoo-repair dependency']
             self.assertEqual(preflight[0]['run'], 'python -c "from sklearn.cluster import DBSCAN"')
 
-            self.assertNotIn('TELEGRAM_TOKEN',env)
+            self.assertEqual(env['TELEGRAM_TOKEN'], '${{ secrets.TELEGRAM_TOKEN }}')
             self.assertEqual(step['run'],f'python -m strats.bot_01beurssign {mode}')
             self.assertFalse(doc['concurrency']['cancel-in-progress'])
 
