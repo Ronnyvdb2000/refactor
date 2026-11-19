@@ -5,7 +5,7 @@ bouw_generieke_fundamentals.py — GEDEELDE FUNDAMENTELE PARAMETERS v2.0
 
 Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Vult de tabel generieke_fundamentals met FCF, Piotroski, P/E, etc.
-Bevat rate-limit backoff en caching voor recente data.
+Bewaar actuele waarnemingen op de ophaaldatum; dateer niet terug naar selecties.
 """
 
 import os
@@ -29,13 +29,16 @@ from common.yahoo import stop_on_throttle, YahooRateLimited, is_rate_limit
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 MAX_TICKERS_PER_RUN = int(os.environ.get("MAX_TICKERS_PER_RUN", "600"))
 RECENTE_DAGEN_LIMIET = int(os.environ.get("RECENTE_DAGEN_LIMIET", "5"))
-HERGEBRUIK_DAGEN = int(os.environ.get("HERGEBRUIK_DAGEN", "3"))
 
 FCF_MIN_YEARS = 2
 
 
 class OnvolledigeRun(RuntimeError):
     pass
+
+
+def observatiedatum():
+    return datetime.now(timezone.utc).date().isoformat()
 
 # ============================================================
 # HULPFUNCTIES VOOR FUNDAMENTALS
@@ -246,31 +249,32 @@ def haal_fundamentals_op(ticker: str) -> Tuple[Optional[dict], str]:
 # ============================================================
 
 def haal_openstaande_paren(conn) -> List[dict]:
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=RECENTE_DAGEN_LIMIET)).strftime("%Y-%m-%d")
+    dag = observatiedatum()
+    cutoff = (datetime.fromisoformat(dag) - timedelta(days=RECENTE_DAGEN_LIMIET)).strftime("%Y-%m-%d")
     query = """
-        SELECT DISTINCT s.ticker, s.datum
+        SELECT DISTINCT s.ticker, %(observatiedatum)s::text AS datum
         FROM selecties s
-        LEFT JOIN generieke_fundamentals gf ON s.ticker = gf.ticker AND s.datum = gf.datum
+        LEFT JOIN generieke_fundamentals gf ON s.ticker = gf.ticker AND gf.datum = %(observatiedatum)s
         WHERE gf.ticker IS NULL
           AND s.ticker NOT LIKE '%%/%%'
           AND s.datum::date >= %(cutoff)s
-        ORDER BY s.ticker, s.datum;
+          AND s.datum::date <= %(observatiedatum)s::date
+        ORDER BY s.ticker;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query, {"cutoff": cutoff})
+        cur.execute(query, {"cutoff": cutoff, "observatiedatum": dag})
         return cur.fetchall()
 
 def haal_recente_rijen(conn, tickers: List[str]) -> Dict[str, dict]:
     if not tickers:
         return {}
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=HERGEBRUIK_DAGEN)).strftime("%Y-%m-%d")
     query = """
         SELECT DISTINCT ON (ticker) * FROM generieke_fundamentals
-        WHERE ticker = ANY(%(tickers)s) AND datum::date >= %(cutoff)s
+        WHERE ticker = ANY(%(tickers)s) AND datum = %(observatiedatum)s
         ORDER BY ticker, datum DESC;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query, {"tickers": tickers, "cutoff": cutoff})
+        cur.execute(query, {"tickers": tickers, "observatiedatum": observatiedatum()})
         return {r["ticker"]: dict(r) for r in cur.fetchall()}
 
 KOLOMMEN = [
@@ -286,15 +290,18 @@ def upsert_rijen(conn, rijen: List[dict]) -> int:
         return 0
     kolom_lijst = ", ".join(KOLOMMEN)
     placeholders = ", ".join(f"%({k})s" for k in KOLOMMEN)
-    update_lijst = ", ".join(f"{k} = EXCLUDED.{k}" for k in KOLOMMEN if k not in ("ticker", "datum"))
-    update_lijst += ", bijgewerkt_op = now()"
-
-    query = f"INSERT INTO generieke_fundamentals ({kolom_lijst}) VALUES ({placeholders}) ON CONFLICT (ticker, datum) DO UPDATE SET {update_lijst};"
+    # Alleen de eerste waarneming van de huidige dag. Een herhaalrun mag
+    # de bestaande snapshot niet overschrijven of zijn tijdstempel verversen.
+    if any(str(rij.get('datum')) != observatiedatum() for rij in rijen):
+        raise ValueError('Actuele fundamentals mogen alleen op de ophaaldatum worden opgeslagen')
+    query = f"INSERT INTO generieke_fundamentals ({kolom_lijst}) VALUES ({placeholders}) ON CONFLICT (ticker, datum) DO NOTHING;"
+    geschreven = 0
     with conn.cursor() as cur:
         for rij in rijen:
             cur.execute(query, {k: rij.get(k) for k in KOLOMMEN})
+            geschreven += cur.rowcount
     conn.commit()
-    return len(rijen)
+    return geschreven
 
 # ============================================================
 # MAIN
@@ -308,11 +315,11 @@ def _run_build():
     conn = psycopg2.connect(SUPABASE_DB_URL)
     try:
         open_paren = haal_openstaande_paren(conn)
-        print(f"{len(open_paren)} recente (ticker, datum)-paren nog niet aanwezig (venster: laatste {RECENTE_DAGEN_LIMIET} dagen).")
+        print(f"{len(open_paren)} tickers zonder dagsnapshot op {observatiedatum()} (selecties uit de laatste {RECENTE_DAGEN_LIMIET} dagen).")
 
         if not open_paren:
             print("Niets te doen.")
-            return "Niets te doen: geen openstaande recente ticker/datum-paren."
+            return "Niets te doen: geen dagsnapshots aan te vullen."
 
         per_ticker: Dict[str, List[str]] = {}
         for r in open_paren:
@@ -321,23 +328,21 @@ def _run_build():
         volgorde = sorted(per_ticker.keys(), key=lambda t: (min(per_ticker[t]), t))
 
         recent = haal_recente_rijen(conn, volgorde)
-        hergebruikte_rijen = 0
         hergebruikte_tickers = 0
         te_fetchen: List[str] = []
         for t in volgorde:
             if t in recent:
-                basis = {k: recent[t].get(k) for k in KOLOMMEN if k not in ("ticker", "datum")}
-                rijen = [{"ticker": t, "datum": d, **basis} for d in per_ticker[t]]
-                hergebruikte_rijen += upsert_rijen(conn, rijen)
+                # Een gelijktijdige run kan de dagsnapshot al hebben opgeslagen.
+                # Hergebruik betekent overslaan, nooit kopiëren naar andere dagen.
                 hergebruikte_tickers += 1
             else:
                 te_fetchen.append(t)
 
         tickers = te_fetchen[:MAX_TICKERS_PER_RUN]
-        print(f"{hergebruikte_tickers} tickers hergebruikt van een recente rij, {len(tickers)} tickers worden nu echt opgehaald ({len(te_fetchen) - len(tickers)} blijven over).")
+        print(f"{hergebruikte_tickers} dagsnapshots al aanwezig; {len(tickers)} tickers worden nu opgehaald ({len(te_fetchen) - len(tickers)} blijven over).")
 
         opgehaald_ok = 0
-        totaal_bijgewerkt = hergebruikte_rijen
+        totaal_bijgewerkt = 0
         geen_data = 0
         fouten = 0
         rate_limit_fouten = 0
@@ -354,7 +359,7 @@ def _run_build():
             geprobeerd += 1
 
             if reden == "ok":
-                rijen = [{"ticker": ticker, "datum": d, **fundamentals} for d in per_ticker[ticker]]
+                rijen = [{"ticker": ticker, "datum": observatiedatum(), **fundamentals}]
                 totaal_bijgewerkt += upsert_rijen(conn, rijen)
                 opgehaald_ok += 1
             elif reden == "rate_limit":

@@ -100,7 +100,7 @@ def test_cache_only_run_does_not_require_new_provider_calls(run, monkeypatch):
     monkeypatch.setattr(b, 'haal_recente_rijen', lambda *_: {t:{'market_cap':100} for t in ['A','B','C']})
     b.run_build()
     fetch.assert_not_called()
-    assert store.call_count == 3
+    store.assert_not_called()
     assert '3 hergebruikt' in telegram.call_args.args[0]
 
 

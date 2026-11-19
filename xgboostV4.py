@@ -55,6 +55,7 @@ Belangrijk:
 """
 
 import os
+from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 import smtplib
 import warnings
 import datetime as dt
@@ -164,7 +165,7 @@ NAN = float("nan")
 # SQL — met LEFT JOIN naar fundamentals
 # ============================================================
 
-JOIN_QUERY = """
+JOIN_QUERY = f"""
 WITH fr_dedup AS (
     SELECT DISTINCT ON (ticker, datum)
         ticker, datum,
@@ -186,6 +187,7 @@ fund_dedup AS (
         net_debt_ebitda, payout_pct, analisten_count,
         piotroski_score, eps_growth_pct, eps_cagr_pct, peg_ratio
     FROM generieke_fundamentals
+    WHERE {KNOWN_FUNDAMENTALS_SQL}
     ORDER BY ticker, datum DESC
 )
 SELECT

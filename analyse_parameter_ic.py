@@ -25,6 +25,7 @@ Output:
 """
 
 import os
+from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 import sys
 import numpy as np
 import pandas as pd
@@ -50,7 +51,7 @@ NIET_FACTOR = {
 
 
 def get_data(conn) -> pd.DataFrame:
-    query = """
+    query = f"""
     WITH tech AS (
         SELECT DISTINCT ON (ticker, datum)
             ticker, datum, atr14, atr14_pct, rsi14, ibs,
@@ -69,6 +70,7 @@ def get_data(conn) -> pd.DataFrame:
             net_debt_ebitda, payout_pct, analisten_count,
             piotroski_score, eps_growth_pct, eps_cagr_pct, peg_ratio
         FROM generieke_fundamentals
+        WHERE {KNOWN_FUNDAMENTALS_SQL}
         ORDER BY ticker, datum DESC
     ),
     fr AS (
