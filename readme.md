@@ -197,3 +197,7 @@ Bij verdere wijzigingen:
 - Controleer per analyse hoe overlappende rendementen en meerdere toetsen worden behandeld.
 - Controleer database- en bestandsgebruik voordat dezelfde pipeline vanuit een andere repository wordt gestart.
 - Gebruik `docs/controles/controle_*.md` en `docs/EVALUATION.md` als achtergrond; actuele code en nieuwe controles bepalen de huidige status.
+
+## Onderzoekslaag voor allocatie
+
+De aparte ontwikkeling van gestandaardiseerde signalen, kostenbewuste risicolimieten en reproduceerbare mandjessimulaties staat beschreven in [Quantify-principes](docs/quantify_principles.md). Uitvoering: `python -m research invoer.json`.

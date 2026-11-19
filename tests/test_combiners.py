@@ -472,3 +472,24 @@ def test_weighted_successful_selection_retains_telegram_and_signal_date(weighted
     weighted_scan.telegram.assert_called_once()
     assert "`A`" in weighted_scan.telegram.call_args.args[0]
     assert "ONVOLLEDIG" not in weighted_scan.telegram.call_args.args[0]
+
+
+def test_weighted_scan_preserves_legacy_fields_and_emits_research_signal(weighted_scan):
+    def atr(*args, quotes, **kwargs):
+        quotes["A"] = (100.0, "2026-11-13")
+        return {"A": 5.0}
+
+    with (
+        patch.object(weighted, "compute_atr_pct", side_effect=atr),
+        patch.object(weighted, "selecties_kasstr", return_value={"market": {"A"}}),
+    ):
+        weighted.run_live_engine()
+    stored = weighted_scan.store.call_args.kwargs
+    assert stored["strategie"] == "bot_combi_volatiel"
+    assert stored["koers"] == 100
+    params = stored["parameters"]
+    assert params["gewogen_score"] == 1
+    assert params["research_signal"]["reference_price"] == stored["koers"]
+    assert params["research_signal"]["signal_date"] == stored["datum"]
+    assert params["research_signal"]["schema_version"] == 1
+    weighted_scan.telegram.assert_called_once()

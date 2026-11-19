@@ -37,6 +37,7 @@ from strats import bot_00vcp as vcp
 from strats import bot_01hoogl as hoogl
 import db_logger
 from .shared import finite
+from research.signals import SelectionSignal
 
 # ============================================================
 # CONFIG
@@ -641,6 +642,11 @@ def _run_live_engine():
                 beurs=ex_name,
                 koers=price,
                 parameters={
+                    "research_signal": SelectionSignal(
+                        ticker=ticker, strategy="bot_combi_volatiel",
+                        signal_date=quote_date, reference_price=price,
+                        atr_pct=atr, score=score,
+                    ).payload(),
                     "signal_date": quote_date,
                     "price_basis": "yahoo_auto_adjusted_close",
                     "gewogen_score": round(score, 2),
