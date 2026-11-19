@@ -21,6 +21,7 @@ import yfinance as yf
 from yfinance.exceptions import YFRateLimitError
 
 from common.notify import send_telegram_report
+from common.yahoo import stop_on_throttle, YahooRateLimited
 
 from common import (
     today_str, safe_float, yahoo_link,
@@ -79,15 +80,16 @@ def pause(seconds: float):
 
 
 def analyse_with_cooldown(ticker, cfg, us):
-    for attempt in range(4):
+    for attempt in range(2):
         try:
-            return analyse_ticker(ticker, cfg, us)
-        except YFRateLimitError:
-            if attempt == 3:
+            with stop_on_throttle():
+                return analyse_ticker(ticker, cfg, us)
+        except (YFRateLimitError, YahooRateLimited):
+            if attempt == 1:
                 raise
-            delay = (60, 180, 300)[attempt]
+            delay = 60
             print(f"[RATE] {ticker}: Yahoo-limiet; {delay}s pauze, "
-                  f"herpoging {attempt + 1}/3", flush=True)
+                  f"herpoging {attempt + 1}/1", flush=True)
             pause(delay)
 
 
@@ -334,7 +336,7 @@ def run_engine(modus: str):
     requested = set()
     stored = selected = analysed = attempted = 0
     provider_blocked = False
-    print(f"{cfg['label']} {today_str()} — Telegram uit", flush=True)
+    print(f"{cfg['label']} {today_str()}", flush=True)
     for filename in bouw_bestandslijst(cfg["bestand_suffix"]):
         try:
             tickers = sorted(set(load_tickers_from_file(filename)))
@@ -368,10 +370,10 @@ def run_engine(modus: str):
                         issues.append(f"{ticker}: {cache[key].data_note}")
                     if us and not math.isfinite(cache[key].insider_net_shares):
                         issues.append(f"{ticker}: insiderdata onbekend; geen insiderpunt")
-                except YFRateLimitError:
+                except (YFRateLimitError, YahooRateLimited):
                     cache[key] = None
                     provider_blocked = True
-                    errors.append(f"{ticker}: Yahoo-limiet blijft na drie pauzes/herpogingen; "
+                    errors.append(f"{ticker}: Yahoo-limiet blijft na één pauze/herpoging; "
                                   "verdere nieuwe analyses gestopt")
                 except DataUnavailable as exc:
                     cache[key] = None

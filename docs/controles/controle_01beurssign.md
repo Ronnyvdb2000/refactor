@@ -155,3 +155,21 @@ Full krijgt 0,5 seconde tussen analyses en 30 seconden na iedere 100 nieuwe anal
 Na de vierde rate-limitfout stopt de run nieuwe analyses, gebruikt reeds gecachte resultaten, vermeldt overgeslagen aantallen per lijst, bewaart geldige selecties en probeert het onvolledige rapport te mailen. De job blijft terecht rood. Foutieve a-symbolen blijven afzonderlijk open; er worden geen suffixen gegokt. Pauzes garanderen geen opheffing van Yahoo-blokkades. De bestaande full-timeout van 300 minuten blijft gelden; de extra wachttijd kan die limiet bereiken. Nieuwe full-hertest nodig.
 
 Validatie: 38 offline tests geslaagd onder lokale Python 3.12, inclusief herstel na rate limiting, begrensd wachtbudget, stoppen van nieuwe aanvragen, periodieke pauze en e-mailrapportage. Geen live diensten aangeroepen.
+
+
+## Verkorte Yahoo-herpoging — 19 november 2026
+
+Deze wijziging vervangt het hierboven beschreven wachtbudget van negen minuten.
+Live en full doen maximaal één herpoging na 60 seconden. Bij een blijvende
+Yahoo-limiet stopt de engine nieuwe analyses en meldt hij de overgeslagen dekking.
+De gedeelde logdetectie herkent ook een gelogde 429 als yfinance geen exceptie
+doorgeeft. Onverwachte fouten worden niet herhaald. De volledige tickerlijsten,
+selectievoorwaarden, opslag en beide rapportkanalen blijven behouden.
+Telegram is sinds 1e1e04c weer actief; de oude logtekst “Telegram uit” is verwijderd.
+Een herpoging voert de analyse opnieuw uit en kan eerdere bronaanvragen herhalen;
+het betreft geen onbeperkte retrylus. Live doorlooptijd is nog niet gevalideerd.
+
+Gerichte offline validatie: 41 tests en vier deeltests geslaagd, inclusief
+herstel na één limiet, stoppen bij aanhoudende limieten, 60 seconden totaal
+wachtbudget en detectie van een uitsluitend gelogde 429. Uitgaand netwerk
+was tijdens de tests geblokkeerd. Geen live scan gestart.

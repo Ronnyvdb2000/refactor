@@ -215,7 +215,9 @@ class Tests(unittest.TestCase):
 
     def test_persistent_limit_stops_and_emails(self):
         mail, db, analyse, error = self.run_bot(error=b.YFRateLimitError(), mode='full', tickers=['A','B'])
-        self.assertEqual(analyse.call_count, 4)
+        self.assertEqual(analyse.call_count, 2)
+        b.send_telegram_report.assert_called_once()
+        self.assertIn('één pauze/herpoging', b.send_telegram_report.call_args.args[0])
         self.assertIsNotNone(error)
         db.assert_not_called()
         self.assertIn('analyses niet aangevraagd', mail.call_args.args[1])
@@ -223,9 +225,9 @@ class Tests(unittest.TestCase):
 
     def test_persistent_limit_wait_budget(self):
         with patch.object(b, 'analyse_ticker', side_effect=b.YFRateLimitError()), patch.object(b.time, 'sleep') as sleep:
-            with self.assertRaises(b.YFRateLimitError):
+            with self.assertRaises((b.YFRateLimitError, b.YahooRateLimited)):
                 b.analyse_with_cooldown('A', b.MODUS_CFG['full'], False)
-            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list), 540)
+            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list), 60)
 
     def test_non_rate_error_not_retried(self):
         with patch.object(b, 'analyse_ticker', side_effect=ValueError('bug')) as analyse, patch.object(b.time, 'sleep') as sleep:
