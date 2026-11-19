@@ -55,14 +55,14 @@ def test_valid_inputs_and_safe_date_arguments_reach_both_commands(tmp_path):
     assert result.returncode==0,result.stderr
     bindir=tmp_path/'bin';bindir.mkdir()
     fake=bindir/'python'
-    fake.write_text('#!'+sys.executable+'\nimport json,sys\nfrom pathlib import Path\nargs=sys.argv[1:]\nif args[0]=="-u": args=args[1:]\nPath(args[0]+".args").write_text(json.dumps(args[1:]))\n')
+    fake.write_text('#!'+sys.executable+'\nimport json,sys\nfrom pathlib import Path\nargs=sys.argv[1:]\nif args[0]=="-u": args=args[1:]\nif args[0]=="-m": args=args[1:]\nPath(args[0]+".args").write_text(json.dumps(args[1:]))\n')
     fake.chmod(0o755)
     env=environment(PATH=str(bindir)+os.pathsep+os.environ['PATH'],DATE_ARG='2026-11-06')
     for name in ['Run a_par_model (indien source=par)','Run TradingAgents bridge']:
         result=subprocess.run(['bash','-e','-o','pipefail','-c',STEPS[name]['run']],
             cwd=tmp_path,env=env,capture_output=True,text=True)
         assert result.returncode==0,result.stderr
-    producer=json.loads((tmp_path/'a_par_model.py.args').read_text())
+    producer=json.loads((tmp_path/'meta_models.a_par_model.args').read_text())
     consumer=json.loads((tmp_path/'tradingagents_bridge.py.args').read_text())
     assert producer[producer.index('--datum')+1]=='2026-11-06'
     assert consumer[consumer.index('--date')+1]=='2026-11-06'
