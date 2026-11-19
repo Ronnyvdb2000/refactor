@@ -2,6 +2,7 @@
 import unittest
 import contextlib
 import io
+import logging
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 import numpy as np
@@ -155,11 +156,56 @@ class Tests(unittest.TestCase):
         gate=b.RequestGate();fn=MagicMock(side_effect=b.YFRateLimitError())
         with patch.object(b.time,'sleep') as sleep:
             with self.assertRaises(b.ProviderStop):b.yahoo_request(fn,gate)
-            self.assertEqual(fn.call_count,4)
-            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list),540)
+            self.assertEqual(fn.call_count,2)
+            self.assertEqual(sum(c.args[0] for c in sleep.call_args_list),60)
             self.assertTrue(all(c.args[0]<=30 for c in sleep.call_args_list))
             with self.assertRaises(b.ProviderStop):b.yahoo_request(fn,gate)
-            self.assertEqual(fn.call_count,4)
+            self.assertEqual(fn.call_count,2)
+
+    def test_logged_rate_limit_never_starts_individual_fallback(self):
+        for partial in (False,True):
+            with self.subTest(partial=partial):
+                gate=b.RequestGate()
+                def limited(*args,**kwargs):
+                    logging.getLogger('yfinance').error('HTTP Error 429: Too Many Requests')
+                    return pd.concat({'A':history().set_index('Date')},axis=1) if partial else pd.DataFrame()
+                with patch.object(b.yf,'download',side_effect=limited) as download, \
+                     patch.object(b.yf,'Ticker') as ticker,patch.object(b.time,'sleep') as sleep:
+                    self.assertEqual(b.download_batch(['A','B'],gate=gate),{})
+                    self.assertEqual(download.call_count,2)
+                    ticker.assert_not_called()
+                    self.assertTrue(gate.blocked_reason)
+                    self.assertEqual(sum(c.args[0] for c in sleep.call_args_list),60)
+
+    def test_rate_cooldown_checks_deadline_before_retry(self):
+        fn=MagicMock(side_effect=b.YFRateLimitError())
+        with patch.object(b.time,'monotonic',side_effect=[0,0,100]), \
+             patch.object(b.time,'sleep') as sleep,self.assertRaises(b.ProviderStop):
+            b.yahoo_request(fn,b.RequestGate(deadline=60))
+        fn.assert_called_once()
+        sleep.assert_called_once_with(30)
+
+    def test_logged_rate_recovers_and_keeps_logger_state(self):
+        logger=logging.getLogger('yfinance')
+        handlers,level=list(logger.handlers),logger.level
+        def limited():
+            logger.error('HTTP Error 429: Too Many Requests')
+            return None
+        fn=MagicMock(side_effect=[limited,lambda:7])
+        with patch.object(b.time,'sleep'):
+            self.assertEqual(b.yahoo_request(lambda:fn()(),b.RequestGate()),7)
+        self.assertEqual(logger.handlers,handlers)
+        self.assertEqual(logger.level,level)
+
+    def test_rate_limit_during_individual_fallback_stops_later_tickers(self):
+        with patch.object(b.yf,'download',return_value=pd.DataFrame()), \
+             patch.object(b.yf,'Ticker') as ticker,patch.object(b.time,'sleep'):
+            ticker.return_value.history.side_effect=b.YFRateLimitError()
+            gate=b.RequestGate()
+            self.assertEqual(b.download_batch(['A','B'],gate=gate),{})
+            ticker.assert_called_with('A')
+            self.assertEqual(ticker.call_count,2)
+            self.assertTrue(gate.blocked_reason)
 
     def test_deadline_no_request(self):
         fn=MagicMock()

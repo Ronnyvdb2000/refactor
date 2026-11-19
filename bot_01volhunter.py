@@ -13,6 +13,7 @@ import yfinance as yf
 from yfinance.exceptions import YFRateLimitError
 from common import (today_str, yahoo_link, load_tickers_from_file, label_voor,
                     compute_rsi_series, compute_atr_series, compute_ibs, send_email, send_telegram)
+from common.yahoo import stop_on_throttle, YahooRateLimited
 
 try:
     from db_logger import log_selectie
@@ -75,17 +76,17 @@ def check_gate(gate):
 
 
 def yahoo_request(fn, gate):
-    for attempt in range(4):
+    for attempt in range(2):
         check_gate(gate)
         try:
-            return fn()
-        except YFRateLimitError:
-            if attempt == 3:
-                gate.blocked_reason = "Yahoo-limiet blijft na drie pauzes/herpogingen; verdere aanvragen gestopt"
+            with stop_on_throttle():
+                return fn()
+        except (YFRateLimitError, YahooRateLimited):
+            if attempt == 1:
+                gate.blocked_reason = "Yahoo-limiet blijft na één pauze/herpoging; verdere aanvragen gestopt"
                 raise ProviderStop(gate.blocked_reason)
-            delay = (60, 180, 300)[attempt]
-            print(f"[RATE] Yahoo-limiet: {delay}s rust; herpoging {attempt+1}/3", flush=True)
-            pause(delay, gate)
+            print("[RATE] Yahoo-limiet: 60s rust; enige herpoging", flush=True)
+            pause(60, gate)
 
 
 def bouw_bestandslijst_a():

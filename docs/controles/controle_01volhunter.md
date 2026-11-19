@@ -21,9 +21,9 @@ Script bot_01volhunter.py; workflow run_01volatieledipscan.yml.
   Ontbrekende batchdata krijgt een individuele heraanvraag. Een ongeldige laatste
   OHLCV krijgt Yahoo-repair; alleen herstel van dezelfde laatste afgeronde dag
   wordt aanvaard en expliciet gemarkeerd als niet onafhankelijk geverifieerd.
-- Seriële batches van standaard vijftig, dertig seconden rust tussen batches en
+- Seriële batches van standaard vijftig, vijf seconden rust tussen batches en
   een halve seconde na individuele aanvragen/herstel. Expliciete Yahoo-rate-limit
-  krijgt maximaal drie herpogingen na 60/180/300 seconden; daarna stoppen verdere
+  krijgt sinds 19 november maximaal één herpoging na 60 seconden; daarna stoppen verdere
   aanvragen en worden reeds bruikbare resultaten als gedeeltelijke scan gemeld.
 - Aanvraagbudget 225 minuten bij workflowtimeout 240 minuten. Controle tussen
   aanvragen/pauzes, niet tijdens een lopende provideroproep: geen harde garantie
@@ -82,6 +82,21 @@ niet; de job meldt daarna een fout. De tests vervangen verzending door mocks.
 De actuele tussenpauze is vijf seconden, zoals beschreven in [scantempo](../scantempo.md).
 De download blijft serieel (`threads=False`), met een aanvraagtimeout van vijftien
 seconden en een scanbudget van 225 minuten. De eigen downloader gebruikt nog
-individuele fallback/repair en maximaal drie rate-limit-herpogingen; de gedeelde
-downloaderbegrenzing geldt hier niet automatisch. Volledige live doorlooptijd en
+individuele fallback/repair voor ontbrekende of ongeldige data. Volledige live doorlooptijd en
 dekking zijn hiermee nog niet afgetekend. Er is geen nieuwe scan gestart.
+
+## Begrensde Yahoo-herpoging — vervolg 19 november
+
+De dipscan gebruikt nu dezelfde detectie van gelogde 429's als de gedeelde
+downloader. Ook als yfinance een fout alleen logt en een lege/gedeeltelijke
+tabel teruggeeft, volgt één herstelpauze van zestig seconden. Bij opnieuw
+begrensde toegang blokkeert de requestgate verdere batch-, ticker- en
+repairaanvragen. Zo veroorzaakt een mislukte batch geen individuele
+aanvraagstorm. Dit is één herpoging per yfinance-aanroep; yfinance kan intern
+meerdere HTTP-verzoeken uitvoeren. Gewone ontbrekende historie behoudt het
+bestaande fallbackpad. Eerder afgeronde batches blijven beschikbaar voor
+het onvolledige rapport; de blijvend begrensde batch wordt niet gebruikt.
+
+Offline regressies controleren lege en gedeeltelijke 429-responsen, herstel,
+stoppen tijdens tickerfallback en het bereiken van de deadline in de pauze.
+Selectieregels, volledige invoer, Telegram, e-mail en databaseopslag blijven behouden.

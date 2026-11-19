@@ -33,9 +33,50 @@ werken. De tests ondersteunen de gecontroleerde importpaden en regressies; een
 volledige dependencyvalidatie in alle workflowomgevingen blijft open.
 
 Voor de dipscan blijven live dekking en doorlooptijd open. De eigen seriële
-downloader heeft nog individuele fallback/repair en drie rate-limit-herpogingen.
-Deze controle wijzigt het downloadbeleid niet. Geen grote scan of modeltraining
+downloader heeft nog individuele fallback/repair voor ontbrekende of ongeldige
+data. De latere correctie hieronder begrenst rate-limit-herpogingen. Geen grote scan of modeltraining
 gestart. De volledige repository is hiermee niet definitief afgetekend.
 
 TradingAgents blijft buiten deze correctie; de ongepubliceerde wijzigingen zijn
 niet gevalideerd of meegenomen.
+
+## Vervolgronde vanaf `49583ca`
+
+### Dependencies
+
+De Python-imports van de gevonden workflow-entrypoints zijn statisch gevolgd
+door lokale modules en package-initialisatie heen, inclusief imports binnen
+functies. Deze inventaris is vergeleken met de pip-installaties en gebruikte
+requirementsbestanden per job. De TradingAgents-workflows zijn buiten deze ronde
+gehouden. De drie gevonden aandachtspunten zijn afzonderlijk beoordeeld:
+
+| Workflow | Bevinding | Beoordeling en actie |
+| --- | --- | --- |
+| `analyse_correlatie_parameters.yml` | `analyse_parameter_correlatie.py` importeert `statsmodels.api`, niet geïnstalleerd via `requirements-analysis.txt` | Werkelijk ontbrekend; `statsmodels>=0.14` toegevoegd en importcontrole vóór uitvoering geplaatst |
+| `score_xgboost.yml` | `model_inputs.py` importeert numpy zonder eigen pip-argument | Wordt door onder meer pandas en scikit-learn mee geïnstalleerd; geen ontbrekende dependency aangetoond |
+| `weekly_runV2.yml` | Statisch pad naar psycopg2 via `weekly.shared` | Alleen via de functie voor selectieopslag; de winnaarsanalyse roept deze functie niet aan en vereist dit opslagpad niet |
+
+Een nieuwe geïsoleerde Python 3.12-omgeving is uitsluitend met
+`requirements-analysis.txt` geïnstalleerd. De imports van
+`analyse_parameter_correlatie`, `meta_models.a_meta_model`,
+`meta_models.a_meta_model_train` en `meta_models.a_meta_model_score` slagen,
+met uitgaand socketverkeer geblokkeerd. `pip check` vindt geen conflicten.
+Dit valideert de concrete dependencycorrectie; geen modelrun, databaseverbinding
+of notificatie is gestart. Actions gebruikt voor deze workflows Python 3.11.
+Andere versiecombinaties, dynamische imports, providerinterne dependencies en
+optionele uitvoerpaden blijven buiten de garantie van deze statische controle.
+
+### Dipscan
+
+De eigen downloader herkende voorheen alleen opgegooide rate-limit-excepties.
+Een gelogde 429 met lege/partiële tabel kon daardoor individuele fallback
+activeren. De gedeelde logdetectie wordt nu rond elke yfinance-aanroep gebruikt.
+Maximaal één herpoging na zestig seconden; bij herhaling stopt de requestgate
+verdere aanvragen. De eerdere drie herpogingen met samen negen minuten pauze
+zijn vervallen. De volledige invoer en selectievoorwaarden blijven behouden.
+
+### Verificatie
+
+De volledige offline suite slaagt met **763 tests en 19 deeltests**; 13 optionele
+tests overgeslagen. Alle uitgaande socketverbindingen zijn tijdens die testrun
+geblokkeerd. Geen grote live scan gestart; live dekking en doorlooptijd blijven open.
