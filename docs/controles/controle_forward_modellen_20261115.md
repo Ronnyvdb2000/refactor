@@ -75,3 +75,40 @@ De actuele tabel `forward_returns` bevat 42.317 rijen, waarvan 9.268 met een
 De opslag is dus verder aangevuld sinds de vorige controle. Dit bewijst geen
 modelkwaliteit; voldoende trainings- en validatiedatums blijven afzonderlijk vereist.
 Geen databasewaarden gewijzigd en geen training of analyse herstart.
+
+## XGBoostV3: scheiding van trainingslabels en testperiode — 19 november
+
+De dagelijkse productie-entrypoint `xgboostV3.py` splitste uitsluitend op
+selectiedatum. Het rendement van een trainingsrij vlak vóór de testgrens kon
+daardoor doorlopen in de testperiode. Dit gold ook voor de 60d-horizon; veel
+tickers op slechts twaalf datums lossen die tijdsoverlap niet op.
+
+De trainingsset stopt nu strikt vóór `split_datum - calendar_embargo(horizon)`:
+16, 44 en 86 kalenderdagen voor respectievelijk 10d, 30d en 60d. De bestaande
+80/20-keuze van de testgrens en alle rijen in de testperiode blijven behouden.
+Rijen in de tussenruimte worden niet gebruikt voor training. Hoofdmodel en
+relatief controlemodel gebruiken exact dezelfde gescheiden sets. De grens en
+het aantal uitgesloten rijen worden gelogd. De bestaande minimumrijentellingen
+worden na deze scheiding opnieuw toegepast; onvoldoende data slaat de horizon
+over vóór fitting en modelpublicatie.
+
+Dit is dezelfde kalenderbenadering als de andere horizoncontroles in deze repo,
+geen exacte beurskalender of bewijs van onafhankelijke testwaarnemingen. Een
+label-einddatum per ticker is niet beschikbaar in deze trainingsquery. Gedeelde
+marktbewegingen en overlappende horizons binnen de testperiode blijven bestaan.
+
+Vijf synthetische regressies controleren de daadwerkelijke invoer van beide
+modeltrainingen voor alle drie horizons, de strikte grensdatum en het overslaan
+van een dichte twaalfdaagse 60d-dataset zonder het bestaande model te wijzigen.
+Training, opslag en notificaties zijn tijdens de controles niet echt uitgevoerd.
+
+De afzonderlijke proefvariant `xgboostV3_gecontroleerd.py` had al een eigen
+embargoperiode en blijft apart. Deze correctie vervangt geen productiecode door
+die proefvariant, wijzigt geen Telegraminstellingen en start geen hertraining.
+Bestaande modelbestanden en historische metrieken blijven behouden; zij zijn
+hiermee niet achteraf op deze nieuwe scheiding gevalideerd. De eerstvolgende
+productietraining kan terecht minder horizons bijwerken dan voorheen.
+
+Volledige offline suite na deze correctie: **784 tests en 19 deeltests geslaagd**,
+dertien optionele tests overgeslagen. Uitgaande socketverbindingen waren geblokkeerd.
+Workflowaudit: 65 workflows zonder fouten of waarschuwingen. `git diff --check` slaagt.

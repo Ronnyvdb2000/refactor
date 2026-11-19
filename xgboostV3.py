@@ -17,6 +17,7 @@ Belangrijk:
 - Een bestaand geldig model blijft behouden als een nieuwe training
   voor die horizon nog niet mogelijk is.
 - Tijdssplit gebeurt op volledige datumgrenzen.
+- Horizonafhankelijke wachtruimte scheidt trainingslabels van de testperiode.
 """
 
 import os
@@ -35,6 +36,7 @@ import requests
 import xgboost as xgb
 
 from sklearn.metrics import roc_auc_score
+from horizon_utils import calendar_embargo
 
 
 warnings.filterwarnings(
@@ -886,6 +888,8 @@ def train_voor_horizon(
     horizon: str,
 ) -> Dict:
 
+    embargo_dagen = calendar_embargo(horizon)
+
     target_column = (
         f"fwd_ret_{horizon}"
     )
@@ -1016,9 +1020,16 @@ def train_voor_horizon(
         split_datum_index
     ]
 
-    train_df = df_clean[
-        df_clean["datum"] < split_datum
-    ].copy()
+    # Een eerdere selectiedatum is niet genoeg: het latere rendement van
+    # die rij mag niet doorlopen in de testperiode. De kalenderbenadering
+    # volgt dezelfde horizonregels als de andere modellen in deze repo.
+    train_grens = split_datum - pd.Timedelta(days=embargo_dagen)
+    train_df = df_clean[df_clean["datum"] < train_grens].copy()
+    n_embargo = int(((df_clean["datum"] >= train_grens)
+                     & (df_clean["datum"] < split_datum)).sum())
+    print(f"[{horizon}] Tijdsscheiding: {embargo_dagen} kalenderdagen; "
+          f"{n_embargo} rijen tussen {train_grens.date()} en "
+          f"{split_datum.date()} uitgesloten van training.")
 
     test_df = df_clean[
         df_clean["datum"] >= split_datum
@@ -1054,7 +1065,7 @@ def train_voor_horizon(
     if len(train_df) < MIN_RIJEN_TRAINING:
 
         msg = (
-            "te weinig data in de trainingsset "
+            f"te weinig data in de trainingsset na {embargo_dagen} kalenderdagen scheiding "
             f"(nu {len(train_df)}, minimaal "
             f"{MIN_RIJEN_TRAINING} vereist)"
         )
@@ -1101,7 +1112,7 @@ def train_voor_horizon(
     print(
         f"[{horizon}] Start training op "
         f"{len(train_df)} records "
-        f"(vóór {split_datum}), "
+        f"(vóór {train_grens}, testgrens {split_datum}), "
         f"test op {len(test_df)} "
         f"recentere records..."
     )
