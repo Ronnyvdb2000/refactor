@@ -7,7 +7,7 @@ bouw_generieke_technicals.py
 Bouwt per ticker/datum een rij met technische indicatoren in de tabel
 generieke_technicals.
 
-Scope: alle tickers uit de tickers_*.txt bestanden (het brede universum).
+Scope: unieke tickers uit de x-lijsten 041–059.
 
 Features (kolommen):
   ATR14, ATR14_pct, RSI14, IBS,
@@ -48,12 +48,16 @@ import time
 import datetime as dt
 import warnings
 import traceback
+import csv
+from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import psycopg2
 import psycopg2.extras
 import yfinance as yf
+from common.yahoo import stop_on_throttle, YahooRateLimited
 
 # Importeer de notificatie-functies uit onze common package.
 # oud: from common import send_telegram, send_email, today_str
@@ -189,15 +193,18 @@ def _veilig(waarde, is_int=False):
 
 def download_index_returns(start_datum):
     try:
-        hist = yf.Ticker(INDEX_TICKER).history(
-            start=start_datum, auto_adjust=True
-        )
+        with stop_on_throttle():
+            hist = yf.Ticker(INDEX_TICKER).history(
+                start=start_datum, auto_adjust=True, timeout=15
+            )
         if hist is None or hist.empty:
             return None
         hist.index = pd.to_datetime(hist.index).tz_localize(None)
         # Geef de indexkoers terug: de 20-daagse referentie wordt
         # later berekend op dezelfde handelsdatums als het aandeel.
         return pd.to_numeric(hist["Close"], errors="coerce")
+    except YahooRateLimited:
+        raise
     except Exception as e:
         print(f"[index] download mislukt: {e}")
         return None
@@ -465,6 +472,17 @@ def schrijf_rij(conn, ticker, datum, rij):
 # --------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------
+def schrijf_diagnose(rijen):
+    pad = Path('results/generieke_technicals_dekking.csv')
+    pad.parent.mkdir(parents=True, exist_ok=True)
+    with pad.open('w', encoding='utf-8', newline='') as bestand:
+        writer = csv.DictWriter(bestand, fieldnames=[
+            'ticker', 'status', 'reden', 'detail', 'historierijen', 'koersdatum'])
+        writer.writeheader()
+        writer.writerows(rijen)
+    print(f'Diagnose: {pad}', flush=True)
+
+
 def main():
     if not DB_URL:
         sys.exit("SUPABASE_DB_URL ontbreekt")
@@ -476,7 +494,7 @@ def main():
     if not tickers:
         sys.exit("Geen tickers gevonden in tickers_*.txt")
 
-    print(f"Tickers: {len(tickers)}")
+    print(f"Tickers: {len(tickers)}", flush=True)
     if datum_doel_ts is not None:
         print(f"Doeldatum (override): {datum_doel_ts.date()}")
     else:
@@ -487,12 +505,19 @@ def main():
         else pd.Timestamp.now().normalize()
     )
     start = (ref_start_ts - pd.Timedelta(days=LOOKBACK_BUFFER_DAGEN)).strftime("%Y-%m-%d")
-    index_ret = download_index_returns(start)
+    blokkade = ''
+    try:
+        with stop_on_throttle():
+            index_ret = download_index_returns(start)
+    except YahooRateLimited:
+        index_ret = None
+        blokkade = 'Yahoo-rate-limit bij indexdownload; verdere aanvragen gestopt'
 
     conn = psycopg2.connect(DB_URL)
     n_ok = 0
     n_skip = 0
     fouten = []
+    diagnose = []
     # Vereiste model-features: schrijf geen onvolledige trainingsrij.
     verplichte_features = (
         "ATR14", "ATR14_PCT", "RSI14", "IBS", "MA50", "MA200",
@@ -502,18 +527,30 @@ def main():
 
     try:
         for i, ticker in enumerate(tickers, 1):
-            if "/" in ticker:
-                n_skip += 1
-                continue
+            uitkomst = dict(ticker=ticker, status='overgeslagen', reden='',
+                            detail='', historierijen=0, koersdatum='')
+            diagnose.append(uitkomst)
             try:
-                hist = yf.Ticker(ticker).history(start=start, auto_adjust=True)
+                if blokkade:
+                    uitkomst.update(status='niet_opgevraagd', reden='providerstop', detail=blokkade)
+                    n_skip += 1
+                    continue
+                if "/" in ticker:
+                    uitkomst['reden'] = 'ongeldig_symbool'
+                    n_skip += 1
+                    continue
+                with stop_on_throttle():
+                    hist = yf.Ticker(ticker).history(start=start, auto_adjust=True, timeout=15)
                 if hist is None or hist.empty:
+                    uitkomst['reden'] = 'geen_historie'
                     n_skip += 1
                     continue
 
                 hist.index = pd.to_datetime(hist.index).tz_localize(None)
+                uitkomst['historierijen'] = len(hist)
                 g = bereken_indicatoren(hist, index_ret)
                 if g.empty:
+                    uitkomst['reden'] = 'geen_indicatorhistorie'
                     n_skip += 1
                     continue
 
@@ -523,16 +560,19 @@ def main():
                     pos = len(g) - 1
 
                 if pos < 0:
+                    uitkomst['reden'] = 'geen_koers_op_of_voor_doeldatum'
                     n_skip += 1
                     continue
 
                 bar_datum_ts = g.index[pos]
+                uitkomst['koersdatum'] = str(bar_datum_ts.date())
 
                 referentie_ts = (
                     datum_doel_ts if datum_doel_ts is not None
                     else pd.Timestamp.now().normalize()
                 )
                 if (referentie_ts - bar_datum_ts).days > MAX_BAR_AFSTAND_DAGEN:
+                    uitkomst['reden'] = 'verouderde_koers'
                     n_skip += 1
                     continue
 
@@ -543,10 +583,14 @@ def main():
                     or pd.isna(rij.get("High"))
                     or pd.isna(rij.get("Low"))
                 ):
+                    uitkomst['reden'] = 'ongeldige_koers'
                     n_skip += 1
                     continue
 
-                if any(_veilig(rij.get(feature)) is None for feature in verplichte_features):
+                ontbrekend = [feature for feature in verplichte_features
+                              if _veilig(rij.get(feature)) is None]
+                if ontbrekend:
+                    uitkomst.update(reden='ontbrekende_features', detail=','.join(ontbrekend))
                     n_skip += 1
                     continue
 
@@ -556,12 +600,15 @@ def main():
                 schrijf_rij(conn, ticker, bar_datum_ts.date(), rij)
                 conn.commit()
                 n_ok += 1
-
-                if i % 100 == 0:
-                    print(f"  [{i}/{len(tickers)}] {n_ok} geschreven")
+                uitkomst.update(status='geschreven', reden='ok')
                 time.sleep(0.15)
 
+            except YahooRateLimited:
+                blokkade = 'Yahoo-rate-limit; verdere aanvragen gestopt'
+                uitkomst.update(status='afgebroken', reden='providerstop', detail=blokkade)
+                n_skip += 1
             except Exception as e:
+                uitkomst.update(status='fout', reden='verwerkingsfout', detail=f'{type(e).__name__}: {e}')
                 # Ook na een mislukte COMMIT de verbinding expliciet
                 # terugzetten. Als rollback zelf faalt, stoppen: de
                 # toestand van de databaseverbinding is dan onzeker.
@@ -573,9 +620,14 @@ def main():
                         f"{rollback_fout} (oorspronkelijke fout: {e})"
                     ) from rollback_fout
                 fouten.append((ticker, str(e)))
+            finally:
+                if i % 100 == 0 or i == len(tickers):
+                    print(f"  [{i}/{len(tickers)}] {n_ok} geschreven; {n_skip} overgeslagen; "
+                          f"{len(fouten)} fouten", flush=True)
 
     finally:
         conn.close()
+        schrijf_diagnose(diagnose)
 
     print()
     print("=" * 60)
@@ -587,6 +639,15 @@ def main():
     succes_ratio = n_ok / len(tickers)
     onvoldoende = succes_ratio < MIN_SUCCES_RATIO
     print(f"Succespercentage : {succes_ratio:.1%} (minimum {MIN_SUCCES_RATIO:.1%})")
+    redenen = Counter(r['reden'] for r in diagnose if r['status'] != 'geschreven')
+    diagnose_tekst = '\n'.join(f'{reden}: {aantal}' for reden, aantal in sorted(redenen.items()))
+    feature_redenen = Counter(feature for r in diagnose if r['reden'] == 'ontbrekende_features'
+                              for feature in r['detail'].split(','))
+    if feature_redenen:
+        diagnose_tekst += '\nOntbrekende features: ' + ', '.join(
+            f'{feature}={aantal}' for feature, aantal in sorted(feature_redenen.items()))
+    if diagnose_tekst:
+        print('Redenen niet opgeslagen:\n' + diagnose_tekst, flush=True)
     if fouten:
         print(f"Fouten           : {len(fouten)}")
         for t, e in fouten[:10]:
@@ -609,6 +670,10 @@ def main():
 
     if onvoldoende:
         tg_bericht += f"❌ *Onvoldoende dekking:* {succes_ratio:.1%} (minimum {MIN_SUCCES_RATIO:.1%})\n"
+    if diagnose_tekst:
+        tg_bericht += '\nRedenen niet opgeslagen:\n' + diagnose_tekst.replace('_', ' ')
+    if blokkade:
+        tg_bericht += '\n' + blokkade
 
     # Stuur Telegram (als de secrets bestaan)
     send_telegram(tg_bericht, parse_mode="Markdown")
@@ -629,8 +694,11 @@ def main():
 
     if onvoldoende:
         email_body += f"\nFOUT: onvoldoende dekking ({succes_ratio:.1%} < {MIN_SUCCES_RATIO:.1%}).\n"
+    email_body += '\nRedenen niet opgeslagen:\n' + diagnose_tekst
     send_email(email_onderwerp, email_body)
 
+    if blokkade:
+        raise RuntimeError(blokkade)
     if onvoldoende:
         raise RuntimeError(
             f"Slechts {n_ok}/{len(tickers)} tickers geschreven "
