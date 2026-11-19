@@ -104,7 +104,8 @@ def test_60d_database_eligibility_no_longer_waits_99_days():
     assert 'f.fwd_ret_60d IS NULL' in query
 
 
-def test_report_recounts_open_rows_instead_of_counting_partial_updates(monkeypatch):
+def test_report_recounts_open_rows_instead_of_counting_partial_updates(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(forward, 'SUPABASE_DB_URL', 'offline')
     row = selection()
     with (

@@ -19,6 +19,9 @@ import sys
 import math
 import time
 import traceback
+import csv
+from pathlib import Path
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple
 
@@ -98,7 +101,8 @@ def haal_openstaande_rijen(conn) -> List[dict]:
               AND ticker NOT LIKE '%%/%%'
             ORDER BY ticker, datum, strategie, {volgorde_dubbel}
         )
-        SELECT s.ticker, s.datum, s.strategie, s.beurs, s.koers
+        SELECT s.ticker, s.datum, s.strategie, s.beurs, s.koers,
+               f.entry_koers AS opgeslagen_instapkoers
         FROM s
         LEFT JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
@@ -158,7 +162,42 @@ def upsert_labels(conn, rijen: List[dict]) -> int:
     return changed
 
 
-def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
+def diagnose_sleutel(rij):
+    return (rij['ticker'], str(rij['datum']), rij['strategie'])
+
+
+def instap_blokkade(rij):
+    koers = float(rij['koers'])
+    if not math.isfinite(koers) or koers <= 0:
+        return 'ongeldige_instapkoers'
+    opgeslagen = rij.get('opgeslagen_instapkoers')
+    if opgeslagen is None:
+        return None
+    opgeslagen = float(opgeslagen)
+    if not math.isfinite(opgeslagen) or opgeslagen <= 0:
+        return 'ongeldige_opgeslagen_instapkoers'
+    if abs(opgeslagen-koers) > max(.000001, abs(opgeslagen)*.000001):
+        return 'instapkoers_conflict'
+    return None
+
+
+def schrijf_diagnose(diagnose):
+    pad = Path('results/forward_returns_diagnose.csv')
+    pad.parent.mkdir(parents=True, exist_ok=True)
+    with pad.open('w', encoding='utf-8', newline='') as bestand:
+        writer = csv.DictWriter(bestand, fieldnames=[
+            'ticker','datum','strategie','beurs','bronkoers','opgeslagen_instapkoers',
+            'weekenddatum','status','reden','detail'])
+        writer.writeheader()
+        writer.writerows(diagnose.values())
+    print(f'Diagnose: {pad}', flush=True)
+
+
+def bereken_labels_voor_ticker(ticker: str, rijen: List[dict], diagnose=None) -> List[dict]:
+    def note(rij, status, reden, detail=''):
+        if diagnose is not None:
+            diagnose[diagnose_sleutel(rij)].update(status=status, reden=reden, detail=detail)
+
     vroegste = min(r["datum"] for r in rijen)
     try:
         hist = yf.Ticker(ticker).history(
@@ -166,16 +205,19 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
         )
     except Exception as e:
         waarschuw(f"{ticker}: download mislukt ({e})")
+        for r in rijen: note(r, 'niet_berekend', 'download_mislukt', type(e).__name__)
         return []
 
     if hist is None or hist.empty or "Close" not in hist.columns:
         waarschuw(f"{ticker}: geen koersdata")
+        for r in rijen: note(r, 'niet_berekend', 'geen_koersdata')
         return []
 
     hist = hist.copy()
     hist.index = pd.to_datetime(hist.index).tz_localize(None).normalize()
     if hist.index.hasnans or hist.index.has_duplicates:
         waarschuw(f"{ticker}: ongeldige of dubbele koersdatums; geen labels")
+        for r in rijen: note(r, 'beoordeling_nodig', 'ongeldige_of_dubbele_koersdatums')
         return []
     hist = hist.sort_index()
     hist = hist.loc[hist.index < pd.Timestamp(today_str())]
@@ -197,9 +239,11 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
             pos_kandidaten = datums.searchsorted(doel)
             if pos_kandidaten >= len(datums) or datums[pos_kandidaten] != doel:
                 waarschuw(f"{ticker} {r['datum']}: geen koers op selectiedatum; geen verschoven label")
+                note(r, 'beoordeling_nodig', 'geen_koers_op_selectiedatum')
                 continue
             entry_koers = float(r["koers"])
             if not math.isfinite(entry_koers) or entry_koers <= 0:
+                note(r, 'beoordeling_nodig', 'ongeldige_instapkoers')
                 continue
 
             pos_vorige = datums.searchsorted(doel, side="right") - 1
@@ -207,6 +251,7 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
             factor = split_factor_na(splits, prijsdatum)
             if not math.isfinite(factor) or factor <= 0:
                 waarschuw(f"{ticker}: ongeldige splitfactor {factor}")
+                note(r, 'beoordeling_nodig', 'ongeldige_splitfactor')
                 continue
             entry_adj = entry_koers / factor
             if factor != 1.0:
@@ -243,8 +288,13 @@ def bereken_labels_voor_ticker(ticker: str, rijen: List[dict]) -> List[dict]:
                     rij[f"fwd_ret_{h}d"] = None
             if any(rij.get(f"fwd_ret_{h}d") is not None for h in HORIZONS):
                 resultaten.append(rij)
+                open_horizons = [str(h) for h in HORIZONS if rij.get(f'fwd_ret_{h}d') is None]
+                note(r, 'berekend', 'labels_berekend', 'Nog niet berekend: '+','.join(open_horizons) if open_horizons else '')
+            else:
+                note(r, 'niet_berekend', 'geen_bruikbare_horizon')
         except Exception as e:
             waarschuw(f"{ticker} {r['datum']}/{r['strategie']}: {e}")
+            note(r, 'niet_berekend', 'berekenfout', type(e).__name__)
             continue
 
     if n_split_gecorr or n_eenheid_gecorr:
@@ -262,13 +312,26 @@ def run_build():
 
     WAARSCHUWINGEN.clear()
     conn = psycopg2.connect(SUPABASE_DB_URL, connect_timeout=15)
+    diagnose = {}
     try:
         open_rijen = haal_openstaande_rijen(conn)
         print(f"{len(open_rijen)} (ticker, datum, strategie)-rijen wachten op een (bijgewerkt) label.")
 
         per_ticker: Dict[str, List[dict]] = {}
         for r in open_rijen:
+            reden = instap_blokkade(r)
+            diagnose[diagnose_sleutel(r)] = dict(
+                ticker=r['ticker'], datum=str(r['datum']), strategie=r['strategie'],
+                beurs=r.get('beurs'), bronkoers=r['koers'],
+                opgeslagen_instapkoers=r.get('opgeslagen_instapkoers'),
+                weekenddatum=pd.Timestamp(r['datum']).weekday() >= 5,
+                status='beoordeling_nodig' if reden else 'niet_opgevraagd',
+                reden=reden or 'runlimiet', detail='')
+            if reden:
+                continue
             per_ticker.setdefault(r["ticker"], []).append(r)
+        geblokkeerd = len(open_rijen) - sum(len(rows) for rows in per_ticker.values())
+        print(f'{geblokkeerd} rijen geblokkeerd door instapcontrole; geen nieuwe koersaanvraag voor deze rijen.', flush=True)
 
         oudste_datum_per_ticker = {t: min(r["datum"] for r in rijen) for t, rijen in per_ticker.items()}
         alle_tickers_gesorteerd = sorted(per_ticker.keys(), key=lambda t: oudste_datum_per_ticker[t])
@@ -282,7 +345,7 @@ def run_build():
         totaal_bijgewerkt = 0
         totaal_compleet = 0
         for i, ticker in enumerate(tickers, start=1):
-            labels = bereken_labels_voor_ticker(ticker, per_ticker[ticker])
+            labels = bereken_labels_voor_ticker(ticker, per_ticker[ticker], diagnose=diagnose)
             aantal = upsert_labels(conn, labels)
             totaal_bijgewerkt += aantal
             totaal_compleet += sum(
@@ -310,12 +373,20 @@ def run_build():
             for w in WAARSCHUWINGEN[:MAX_WAARSCHUWINGEN_IN_BERICHT]:
                 lijnen.append(f"• {esc(w)}")
 
+        lijnen.append(f'🔎 {geblokkeerd} rijen geblokkeerd door instapcontrole; bestaande labels behouden.')
+        redenen = Counter(r['reden'] for r in diagnose.values())
+        print('Diagnosetellingen: '+', '.join(f'{key}={value}' for key,value in sorted(redenen.items())), flush=True)
+        if redenen.get('geen_koers_op_selectiedatum'):
+            lijnen.append(f"📅 {redenen['geen_koers_op_selectiedatum']} rijen zonder koers op selectiedatum; geen datum verschoven.")
+
         bericht = "\n".join(lijnen)
+        print(bericht, flush=True)
         send_telegram(bericht, parse_mode="HTML")
         send_email(f"Forward-Returns Store {today_str()}", bericht, html_body=True)
         print(f"\nKlaar. {totaal_bijgewerkt} rijen bijgewerkt.")
     finally:
         conn.close()
+        schrijf_diagnose(diagnose)
 
 
 if __name__ == "__main__":

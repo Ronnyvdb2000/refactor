@@ -112,3 +112,68 @@ productietraining kan terecht minder horizons bijwerken dan voorheen.
 Volledige offline suite na deze correctie: **784 tests en 19 deeltests geslaagd**,
 dertien optionele tests overgeslagen. Uitgaande socketverbindingen waren geblokkeerd.
 Workflowaudit: 65 workflows zonder fouten of waarschuwingen. `git diff --check` slaagt.
+
+## Forward-returnlog van 19 november: instapconflicten en ontbrekende koersdagen
+
+Het aangeleverde log op `3e79f13` start met 1784 openstaande ticker/datum/strategie-
+rijen en verwerkt 652 unieke tickers. Er worden 378 rijen bijgewerkt. De 985
+waarschuwingen zijn: 792 zonder koers op de selectiedatum (veel weekenddatums),
+169 geweigerde updates wegens een andere instapkoers, dertien ontbrekende
+histories en elf ongeldige koersvensters/historiegaten. Een bijgewerkte rij hoeft
+nog niet alle langere horizons te bevatten; de echte openstand wordt opnieuw
+uit de database gelezen.
+
+### Alleen-lezen onderzoek
+
+Een actuele vergelijking van de canonieke eerste niet-NULL-selectie met de
+bewaarde labelinstap vond 172 conflicten, over 125 marktsentiment-, 44 kasstroom-
+en drie seizoensrijen. Dat is de hele databasevergelijking, niet uitsluitend de
+in deze ene run afgehandelde subset. Voor 171 conflicten bestaat nog een andere
+selectierij met een koers die aansluit op de bewaarde labelinstap. Dit bewijst
+een verschil in bronkeuze, niet welke koers historisch de juiste instap was.
+De huidige bronregel blijft daarom expliciet de eerste selectie; er wordt geen
+andere selectie gekozen alleen om een bestaand label passend te maken.
+
+### Door gebruiker gevraagde opschoning
+
+Op verzoek zijn de **172 conflicterende rijen uit `forward_returns` verwijderd**,
+zodat een volgende builderrun opnieuw kan berekenen op de bestaande canonieke
+bronselectie. Vooraf is een volledige herstelkopie met alle labelkolommen en
+rijvingerafdrukken buiten deze publieke repository opgeslagen. De DELETE was
+begrensd tot de gekopieerde sleutels en ongewijzigde rijvingerafdrukken, en alleen
+als de instap op het moment van verwijderen nog conflicteerde. Verwijderd:
+125 `bot_01marktsent`, 44 `bot_01kasstr`, drie `bot_01repititief`.
+Een nacontrole vond nul resterende instapkoersconflicten.
+
+De tabel `selecties`, weekendselecties en overige labels zijn niet door deze
+DELETE gewijzigd. Geen koersdatum of instapkoers is aangepast. De verwijdering
+is geen bewijs dat historische bronkoersen of oude modelprestaties daarmee
+volledig gevalideerd zijn; modellen zijn niet hertraind.
+
+### Diagnose en voorkómen van herhaalde onbruikbare aanvragen
+
+De builder leest voortaan ook de bewaarde instapkoers bij de openstaande rij.
+Een conflict met de gekozen bron wordt vóór downloaden geblokkeerd, met dezelfde
+tolerantie als de bestaande UPSERT. De UPSERT zelf houdt zijn tweede controle
+tegen conflicten tijdens een gelijktijdige verwerking. Zulke rijen blijven in
+de totale openstand staan; zij verdwijnen alleen uit de downloadpogingen.
+
+Iedere openstaande rij krijgt een regel in `results/forward_returns_diagnose.csv`,
+met bronkoers, opgeslagen instap, weekendvlag, status, reden en detail. Ontbrekende
+koersdagen worden voor beoordeling gemarkeerd, niet verschoven naar vrijdag of
+maandag. Weekenddatums worden niet blind geweigerd: als de provider daadwerkelijk
+een sessie op die datum levert, blijft de bestaande berekening beschikbaar.
+De status `berekend` is géén opslagbevestiging; het log en de database-openstand
+blijven leidend voor opgeslagen/afgeronde rijen.
+
+De workflow bewaart het artifact `forward-returns-diagnose` met `if: always()`.
+Het volledige Telegram-rapport wordt ook gelogd, inclusief geblokkeerde rijen en
+de werkelijke openstand. Bestaande Telegram- en e-mailaanroepen blijven behouden.
+
+Negen nieuwe offline regressies toetsen conflicttolerantie, geen download/write
+bij een conflict, behouden bronkeuze, verwerking van een andere geldige rij,
+weekenddatums met en zonder echte providerbalken en diagnose na een opslagfout.
+Volledige suite: **822 tests en 19 deeltests geslaagd**, dertien optionele tests
+overgeslagen, met uitgaande socketverbindingen geblokkeerd. Workflowaudit:
+65 workflows zonder fouten of waarschuwingen. YAML/shellsyntax en whitespace
+gecontroleerd. Geen nieuwe live labelscan of modeltraining gestart.
