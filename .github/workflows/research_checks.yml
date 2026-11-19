@@ -2,10 +2,15 @@ name: Research principles checks
 on:
   push:
     branches: [feature/quantify-principles]
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
   pull_request:
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
   workflow_dispatch:
+    inputs:
+      signals_json:
+        description: 'Optioneel: JSON-mandje met currency, data_provenance en signals; leeg = alleen testresultaat'
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -18,4 +23,23 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pytest
-      - run: python -m pytest tests/test_research.py -q
+      - name: Offline tests
+        id: tests
+        run: python -m pytest tests/test_research.py tests/test_research_telegram.py -q
+      - name: Simulatie naar Telegram
+        if: success() && github.event_name == 'workflow_dispatch' && inputs.signals_json != ''
+        env:
+          SIGNALS_JSON: ${{ inputs.signals_json }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "import os; from pathlib import Path; Path('research-input.json').write_text(os.environ['SIGNALS_JSON'])"
+          python -m research research-input.json --telegram
+      - name: Teststatus naar Telegram
+        if: always() && github.event_name != 'pull_request'
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RESEARCH_TEST_STATUS: ${{ steps.tests.outcome }}
+          RESEARCH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python -m research.telegram

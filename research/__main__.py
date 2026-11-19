@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", type=Path, help="JSON: currency, signals, data_provenance")
     parser.add_argument("--config", type=Path, default=Path("config/research.json"))
+    parser.add_argument("--telegram", action="store_true", help="Stuur simulatie naar Telegram")
     args = parser.parse_args()
     data = json.loads(args.input.read_text())
     if not isinstance(data.get("currency"), str) or not data["currency"].strip():
@@ -33,8 +34,12 @@ def main():
                 "policy": asdict(policy), "revision": revision, "code": code}
     canonical = json.dumps(manifest, sort_keys=True, allow_nan=False, separators=(",", ":"))
     run_id = hashlib.sha256(canonical.encode()).hexdigest()
-    print(json.dumps({"run_id": run_id, "manifest": manifest,
-                      "simulation": allocate(signals, policy)}, indent=2, allow_nan=False))
+    result = {"run_id": run_id, "manifest": manifest,
+              "simulation": allocate(signals, policy)}
+    print(json.dumps(result, indent=2, allow_nan=False))
+    if args.telegram:
+        from .telegram import format_result, send_text
+        send_text(format_result(result))
 
 
 if __name__ == "__main__":

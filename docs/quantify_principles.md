@@ -53,3 +53,9 @@ De standaardinstellingen (50.000 kapitaal, 1% geschat stoprisico, 10% per positi
 Dit is een selectieschema en allocatiesimulator, geen event-driven backtester en geen broker/paper-tradingadministratie. Er zijn nog geen historische fills, bestaande posities, sectorlimieten, valutaomrekening, benchmarkrendementen of walk-forward-evaluaties toegevoegd. Voeg die pas toe met expliciete data over sectoren, FX, tijdstip en portefeuilletoestand; een actuele tickerlijst is geen historisch universum.
 
 De koppeling is nu geïmplementeerd voor de volatiele combiner; overige bots gebruiken nog hun bestaande formaat. Training/scoring, TradingAgents en `refactor-lab` zijn niet gewijzigd. De CI-workflow test offline en heeft geen secrets nodig. De branch wordt niet automatisch met `main` samengevoegd.
+
+## Telegram
+
+`python -m research invoer.json --telegram` stuurt het berekende mandje naar de bestaande `TELEGRAM_TOKEN` en `TELEGRAM_CHAT_ID`. Zonder die vlag blijft de CLI offline. Ontbrekende secrets of mislukte verzending laten de opdracht falen; een eerdere deelverzending kan al ontvangen zijn.
+
+De workflow **Research principles checks** stuurt voortaan de teststatus met een link naar de run. Dit is expliciet een testbericht, geen beursresultaat. Bij handmatig starten kun je optioneel `signals_json` invullen met het JSON-mandje uit het voorbeeld hierboven; na geslaagde tests gaat ook de simulatie naar Telegram. Er wordt nog geen mandje automatisch uit Supabase geladen. Geen CSV-export, geen orders. PR-runs versturen geen teststatus naar Telegram.
