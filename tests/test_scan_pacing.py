@@ -40,18 +40,18 @@ def test_dipscan_visits_every_batch_and_only_waits_between_batches():
 
 
 def test_hoogland_returns_to_base_pacing_after_provider_recovers():
-    with patch.multiple(hoogl, RATE_LIMIT_CONSECUTIVE_DREMPEL=1, RATE_LIMIT_PAUZE_SEC=0,
+    with patch.multiple(hoogl, RATE_LIMIT_PAUZE_SEC=0,
         bouw_bestandslijst=MagicMock(return_value=['a']),
         load_tickers_from_file=MagicMock(return_value=['A', 'B']),
-        analyse_ticker=MagicMock(side_effect=[(None, True), (None, False)]),
+        analyse_ticker=MagicMock(side_effect=[(None, True), (None, False), (None, False)]),
         send_email=MagicMock(return_value=True)), patch.object(hoogl.time, 'sleep') as sleep, \
         contextlib.redirect_stdout(io.StringIO()):
         # No usable signals is deliberately reported as a failed scan.
         with pytest.raises(RuntimeError):
             hoogl.run_engine('full')
-        assert hoogl.analyse_ticker.call_count == 2
+        assert hoogl.analyse_ticker.call_count == 3
         assert sleep.call_args_list[-1].args[0] == hoogl.MODUS_CFG['full']['throttle_sec']
-        assert max(call.args[0] for call in sleep.call_args_list) <= hoogl.RATE_LIMIT_MAX_THROTTLE
+        assert max(call.args[0] for call in sleep.call_args_list) <= hoogl.MODUS_CFG['full']['throttle_sec']
 
 
 def test_sentiment_batches_cover_all_unique_tickers_despite_download_failure():

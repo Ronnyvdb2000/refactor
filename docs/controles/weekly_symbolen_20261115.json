@@ -1,0 +1,5312 @@
+[
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "06MAGNA.WA",
+    "weekly_ticker": "06N.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI0600010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0600010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "08OCTAVA.WA",
+    "weekly_ticker": "08N.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI0800016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0800016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "11BIT.WA",
+    "weekly_ticker": "11B.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PL11BTS00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL11BTS00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "3RGAMES.WA",
+    "weekly_ticker": "3RG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGRNKT00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRNKT00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "4MASS.WA",
+    "weekly_ticker": "4MS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PL4MASS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL4MASS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ABPL.WA",
+    "weekly_ticker": "ABE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAB00000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAB00000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ACAUTOGAZ.WA",
+    "weekly_ticker": "ACG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLACSA000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLACSA000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ACTION.WA",
+    "weekly_ticker": "ACT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLACTIN00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLACTIN00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ADATEX.WA",
+    "weekly_ticker": "ADX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPIK0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPIK0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ADIUVO.WA",
+    "weekly_ticker": "ADV.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLADVIV00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADVIV00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AGORA.WA",
+    "weekly_ticker": "AGO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAGORA00067",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAGORA00067",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AIGAMES.WA",
+    "weekly_ticker": "ALG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSNTFG00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNTFG00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AILLERON.WA",
+    "weekly_ticker": "ALL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWNDMB00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWNDMB00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AIRWAY.WA",
+    "weekly_ticker": "AWM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAIRWY00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAIRWY00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ALIOR.WA",
+    "weekly_ticker": "ALR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLALIOR00045",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLALIOR00045",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ALTA.WA",
+    "weekly_ticker": "AAT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRNSU00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRNSU00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ALTUS.WA",
+    "weekly_ticker": "ALI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATTFI00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATTFI00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AMBRA.WA",
+    "weekly_ticker": "AMB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAMBRA00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMBRA00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AMICA.WA",
+    "weekly_ticker": "AMC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAMICA00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMICA00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AMPLI.WA",
+    "weekly_ticker": "APL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAMPLI00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMPLI00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ANSWEAR.WA",
+    "weekly_ticker": "ANR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLANSWR00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLANSWR00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "APATOR.WA",
+    "weekly_ticker": "APT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAPATR00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPATR00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "APLISENS.WA",
+    "weekly_ticker": "APN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAPLS000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPLS000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "APSENERGY.WA",
+    "weekly_ticker": "APE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLAPSEN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPSEN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ARCHICOM.WA",
+    "weekly_ticker": "ARH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLARHCM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARHCM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ARCTIC.WA",
+    "weekly_ticker": "ATC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLARTPR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARTPR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ARLEN.WA",
+    "weekly_ticker": "ARL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLARLEN00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARLEN00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ARTIFEX.WA",
+    "weekly_ticker": "ART.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLARTFX00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARTFX00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ASMGROUP.WA",
+    "weekly_ticker": "ASM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLASMGR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASMGR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ASSECOBS.WA",
+    "weekly_ticker": "ABS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLABS0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLABS0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ASSECOPOL.WA",
+    "weekly_ticker": "ACP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSOFTB00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSOFTB00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ASSECOSEE.WA",
+    "weekly_ticker": "ASE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLASSEE00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASSEE00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ATAL.WA",
+    "weekly_ticker": "1AT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATAL000046",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATAL000046",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ATENDE.WA",
+    "weekly_ticker": "ATD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATMSI00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATMSI00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ATLANTAPL.WA",
+    "weekly_ticker": "ATP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATLPL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATLPL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ATMGRUPA.WA",
+    "weekly_ticker": "ATG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATM0000021",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATM0000021",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ATREM.WA",
+    "weekly_ticker": "ATR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATREM00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATREM00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "AUTOPARTN.WA",
+    "weekly_ticker": "APR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLATPRT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATPRT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BBIDEV.WA",
+    "weekly_ticker": "BBD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI1200018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI1200018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BENEFIT.WA",
+    "weekly_ticker": "BFT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBNFTS00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBNFTS00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BEST.WA",
+    "weekly_ticker": "BST.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBEST000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBEST000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BETACOM.WA",
+    "weekly_ticker": "BCM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBTCOM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBTCOM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BIGCHEESE.WA",
+    "weekly_ticker": "BCS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLA340200015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLA340200015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BIOCELTIX.WA",
+    "weekly_ticker": "BCX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBCLTX00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBCLTX00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BIOMAXIMA.WA",
+    "weekly_ticker": "BMX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBIOMX00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOMX00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BIOPLANET.WA",
+    "weekly_ticker": "BIP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBIOPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BIOTON.WA",
+    "weekly_ticker": "BIO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBIOTN00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOTN00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BLOOBER.WA",
+    "weekly_ticker": "BLO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBLOBR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBLOBR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BNPPPL.WA",
+    "weekly_ticker": "BNP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBGZ0000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBGZ0000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BOGDANKA.WA",
+    "weekly_ticker": "LWB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLWBGD00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLWBGD00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BOOMBIT.WA",
+    "weekly_ticker": "BBT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBMBIT00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMBIT00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BORYSZEW.WA",
+    "weekly_ticker": "BRS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBRSZW00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBRSZW00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BOS.WA",
+    "weekly_ticker": "BOS.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLBOS0000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBOS0000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BOWIM.WA",
+    "weekly_ticker": "BOW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBOWM000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBOWM000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BUDIMEX.WA",
+    "weekly_ticker": "BDX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBUDMX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBUDMX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "BUMECH.WA",
+    "weekly_ticker": "BMC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBMECH00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMECH00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CAPITAL.WA",
+    "weekly_ticker": "CAPITAL.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CAPITEA.WA",
+    "weekly_ticker": "CAP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGTBCK00297",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGTBCK00297",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CAPTORTX.WA",
+    "weekly_ticker": "CTX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCPTRT00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCPTRT00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CASPAR.WA",
+    "weekly_ticker": "CSR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCSPAM00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCSPAM00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CAVATINA.WA",
+    "weekly_ticker": "CAV.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCVTNH00040",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCVTNH00040",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CCENERGY.WA",
+    "weekly_ticker": "CCE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKAREN00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKAREN00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CDPROJEKT.WA",
+    "weekly_ticker": "CDR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLOPTTC00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPTTC00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CDRL.WA",
+    "weekly_ticker": "CDL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCDRL000043",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCDRL000043",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CELTIC.WA",
+    "weekly_ticker": "CPD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCELPD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCELPD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CFI.WA",
+    "weekly_ticker": "CFI.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLINTKS00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTKS00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CIGAMES.WA",
+    "weekly_ticker": "CIG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCTINT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCTINT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CLNPHARMA.WA",
+    "weekly_ticker": "CLN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCLNPH00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCLNPH00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CLOUD.WA",
+    "weekly_ticker": "CLD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCLDTC00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCLDTC00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "COGNOR.WA",
+    "weekly_ticker": "COG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCNTSL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCNTSL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "COLUMBUS.WA",
+    "weekly_ticker": "CLC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTIGR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTIGR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "COMP.WA",
+    "weekly_ticker": "CMP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCMP0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMP0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "COMPERIA.WA",
+    "weekly_ticker": "CPL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCOMPR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCOMPR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "COMPREMUM.WA",
+    "weekly_ticker": "CPR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPZBDT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPZBDT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CORMAY.WA",
+    "weekly_ticker": "CRM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCMRAY00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMRAY00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CREEPYJAR.WA",
+    "weekly_ticker": "CRJ.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCRPJR00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRPJR00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CREOTECH.WA",
+    "weekly_ticker": "CRI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCRTCH00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRTCH00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CRQUANTUM.WA",
+    "weekly_ticker": "CRQ.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCTHQM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCTHQM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CYBERFLKS.WA",
+    "weekly_ticker": "CBF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLR220000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLR220000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CYFRPLSAT.WA",
+    "weekly_ticker": "CPS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCFRPT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCFRPT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "CZTOREBKA.WA",
+    "weekly_ticker": "CZT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCRWTR00022",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRWTR00022",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DADELO.WA",
+    "weekly_ticker": "DAD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDADEL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDADEL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DATAWALK.WA",
+    "weekly_ticker": "DAT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPILAB00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPILAB00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DBENERGY.WA",
+    "weekly_ticker": "DBE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDBENR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDBENR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DEBICA.WA",
+    "weekly_ticker": "DBC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDEBCA00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDEBCA00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DECORA.WA",
+    "weekly_ticker": "DCR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDECOR00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDECOR00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DEKPOL.WA",
+    "weekly_ticker": "DEK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDEKPL00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDEKPL00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DELKO.WA",
+    "weekly_ticker": "DEL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDELKO00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDELKO00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DEVELIA.WA",
+    "weekly_ticker": "DVL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLCCRP00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLCCRP00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DGA.WA",
+    "weekly_ticker": "DGA.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLDGA0000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDGA0000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DIAG.WA",
+    "weekly_ticker": "DIA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDGNST00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDGNST00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DIGITANET.WA",
+    "weekly_ticker": "DIG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PL4FNMD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL4FNMD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DIGITREE.WA",
+    "weekly_ticker": "DTR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSARE000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSARE000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DINOPL.WA",
+    "weekly_ticker": "DNP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDINPL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDINPL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DMGROUP.WA",
+    "weekly_ticker": "DMG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGLBLC00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGLBLC00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DOMDEV.WA",
+    "weekly_ticker": "DOM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDMDVL00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDMDVL00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "DRAGOENT.WA",
+    "weekly_ticker": "DGE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDRG0000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDRG0000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ECBSA.WA",
+    "weekly_ticker": "ECB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLECBDZ00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECBDZ00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ECHO.WA",
+    "weekly_ticker": "ECH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLECHPS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECHPS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EDINVEST.WA",
+    "weekly_ticker": "EDI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLEDINV00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEDINV00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EFEKT.WA",
+    "weekly_ticker": "EFK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLEFEKT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEFEKT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EKOEXPORT.WA",
+    "weekly_ticker": "EEX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLEKEP000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEKEP000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ELEKTROTI.WA",
+    "weekly_ticker": "ELT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLELEKT00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLELEKT00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENAP.WA",
+    "weekly_ticker": "ENP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLENAP000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENAP000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENEA.WA",
+    "weekly_ticker": "ENA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLENEA000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENEA000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENELMED.WA",
+    "weekly_ticker": "ENE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLENLMD00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENLMD00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENERGA.WA",
+    "weekly_ticker": "ENG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLENERG00022",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENERG00022",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENERGOINS.WA",
+    "weekly_ticker": "ENI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLERGIN00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERGIN00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ENTER.WA",
+    "weekly_ticker": "ENT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLENTER00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENTER00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EQUNICO.WA",
+    "weekly_ticker": "EQU.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRESBD00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRESBD00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ERBUD.WA",
+    "weekly_ticker": "ERB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLERBUD00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERBUD00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ERG.WA",
+    "weekly_ticker": "ERG.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLERGZB00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERGZB00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ERSTEPL.WA",
+    "weekly_ticker": "EBP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBZ00000044",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBZ00000044",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ESOTIQ.WA",
+    "weekly_ticker": "EAH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLESTHN00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLESTHN00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EUCO.WA",
+    "weekly_ticker": "EUC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLERPCO00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERPCO00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EUROCASH.WA",
+    "weekly_ticker": "EUR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLEURCH00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEURCH00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "EUROTEL.WA",
+    "weekly_ticker": "ETL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLERTEL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERTEL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FABRITY.WA",
+    "weekly_ticker": "FAB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLK2ITR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLK2ITR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FASING.WA",
+    "weekly_ticker": "FSG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLFSING00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFSING00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FASTFIN.WA",
+    "weekly_ticker": "FFI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLFSTFC00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFSTFC00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FEERUM.WA",
+    "weekly_ticker": "FEE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLFEERM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFEERM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FERRO.WA",
+    "weekly_ticker": "FRO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLFERRO00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFERRO00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FMG.WA",
+    "weekly_ticker": "FMG.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FOODHUB.WA",
+    "weekly_ticker": "FHB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPMPOL00031",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPMPOL00031",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "FORTE.WA",
+    "weekly_ticker": "FTE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLFORTE00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFORTE00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GAMEOPS.WA",
+    "weekly_ticker": "GOP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGMSOP00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGMSOP00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GAMFACTOR.WA",
+    "weekly_ticker": "GIF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGMNGF00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGMNGF00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GENOMTEC.WA",
+    "weekly_ticker": "GMT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGNMTC00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGNMTC00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GETIN.WA",
+    "weekly_ticker": "GTN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGSPR000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGSPR000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GOBARTO.WA",
+    "weekly_ticker": "GOB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLDUDA000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDUDA000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GPW.WA",
+    "weekly_ticker": "GPW.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLGPW0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGPW0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GRODNO.WA",
+    "weekly_ticker": "GRN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGRODN00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRODN00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GRUPAAZOTY.WA",
+    "weekly_ticker": "ATT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZATRM00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZATRM00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GRUPRACUJ.WA",
+    "weekly_ticker": "GPP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLGRPRC00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRPRC00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "GTC.WA",
+    "weekly_ticker": "GTC.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLGTC0000037",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGTC0000037",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "HANDLOWY.WA",
+    "weekly_ticker": "BHW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBH00000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBH00000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "HARPER.WA",
+    "weekly_ticker": "HRP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLHRPHG00023",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHRPHG00023",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "HELIO.WA",
+    "weekly_ticker": "HEL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLHELIO00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHELIO00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "HERKULES.WA",
+    "weekly_ticker": "HRS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZRWZW00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZRWZW00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "HYDROTOR.WA",
+    "weekly_ticker": "HDR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLHDRTR00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHDRTR00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IBSM.WA",
+    "weekly_ticker": "IBSM.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IDMSA.WA",
+    "weekly_ticker": "IDM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIDMSA00044",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIDMSA00044",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IFIRMA.WA",
+    "weekly_ticker": "IFI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPWRMD00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPWRMD00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IMMOBILE.WA",
+    "weekly_ticker": "GKI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMAKRM00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMAKRM00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IMPERIO.WA",
+    "weekly_ticker": "IMP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI0700018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0700018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IMS.WA",
+    "weekly_ticker": "IMS.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLINTMS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTMS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INC.WA",
+    "weekly_ticker": "INC.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLINCLT00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINCLT00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INDYGO.WA",
+    "weekly_ticker": "IDG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLSTIA00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSTIA00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INGBSK.WA",
+    "weekly_ticker": "ING.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBSK0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBSK0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INPRO.WA",
+    "weekly_ticker": "INP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINPRO00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINPRO00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INSTALKRK.WA",
+    "weekly_ticker": "INK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINSTK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINSTK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INTERBUD.WA",
+    "weekly_ticker": "ITB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINTBD00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTBD00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INTERCARS.WA",
+    "weekly_ticker": "CAR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINTCS00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTCS00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INTERSPPL.WA",
+    "weekly_ticker": "IPO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINTSP00038",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTSP00038",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "INTROL.WA",
+    "weekly_ticker": "INL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLINTRL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTRL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IPOPEMA.WA",
+    "weekly_ticker": "IPE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIPOPM00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIPOPM00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IZOBLOK.WA",
+    "weekly_ticker": "IZB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIZBLK00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZBLK00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IZOLACJA.WA",
+    "weekly_ticker": "IZO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIZCJR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZCJR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "IZOSTAL.WA",
+    "weekly_ticker": "IZS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIZSTL00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZSTL00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "JRH.WA",
+    "weekly_ticker": "JRH.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLJRINV00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLJRINV00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "JSW.WA",
+    "weekly_ticker": "JSW.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLJSW0000015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLJSW0000015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "JWWINVEST.WA",
+    "weekly_ticker": "JWW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLJWWNT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLJWWNT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KCI.WA",
+    "weekly_ticker": "KCI.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPONAR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPONAR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KETY.WA",
+    "weekly_ticker": "KTY.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKETY000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKETY000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KGHM.WA",
+    "weekly_ticker": "KGH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKGHM000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKGHM000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KGL.WA",
+    "weekly_ticker": "KGL.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLKRKGL00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRKGL00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KINOPOL.WA",
+    "weekly_ticker": "KPL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKNOPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKNOPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KOGENERA.WA",
+    "weekly_ticker": "KGN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKGNRC00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKGNRC00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KOMPAP.WA",
+    "weekly_ticker": "KMP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKOMPP00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKOMPP00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KOMPUTRON.WA",
+    "weekly_ticker": "KOM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKMPTR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKMPTR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KPPD.WA",
+    "weekly_ticker": "KPD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKPPD000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKPPD000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KRAKCHEM.WA",
+    "weekly_ticker": "KCH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKRKCH00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRKCH00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KRUK.WA",
+    "weekly_ticker": "KRU.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKRK0000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRK0000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "KRVITAMIN.WA",
+    "weekly_ticker": "KVT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKRVTM00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRVTM00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LARQ.WA",
+    "weekly_ticker": "LRQ.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCAMMD00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCAMMD00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LENA.WA",
+    "weekly_ticker": "LEN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLENAL00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLENAL00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LENTEX.WA",
+    "weekly_ticker": "LTX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLENTX00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLENTX00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LESS.WA",
+    "weekly_ticker": "LESS.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LIBET.WA",
+    "weekly_ticker": "LBT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLBT0000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLBT0000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LOKUM.WA",
+    "weekly_ticker": "LKD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLKMDW00049",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLKMDW00049",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LPP.WA",
+    "weekly_ticker": "LPP.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLLPP0000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLPP0000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LSISOFT.WA",
+    "weekly_ticker": "LSI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLSSFT00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSSFT00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "LUBAWA.WA",
+    "weekly_ticker": "LBW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLUBAW00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLUBAW00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MABION.WA",
+    "weekly_ticker": "MAB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMBION00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMBION00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MAKARONPL.WA",
+    "weekly_ticker": "MAK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMKRNP00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMKRNP00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MANGATA.WA",
+    "weekly_ticker": "MGT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZTKMA00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZTKMA00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MANYDEV.WA",
+    "weekly_ticker": "MAN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLADDRG00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADDRG00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MARVIPOL.WA",
+    "weekly_ticker": "MVP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMRVDV00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRVDV00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MAXCOM.WA",
+    "weekly_ticker": "MXC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMXCMS00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMXCMS00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MBANK.WA",
+    "weekly_ticker": "MBK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBRE0000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBRE0000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MCI.WA",
+    "weekly_ticker": "MCI.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLMCIMG00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMCIMG00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MCR.WA",
+    "weekly_ticker": "MCR.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLMRCOR00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRCOR00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MDIENERGIA.WA",
+    "weekly_ticker": "MDI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI1000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI1000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MEDICALG.WA",
+    "weekly_ticker": "MDG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMDCLG00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMDCLG00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MEDINICE.WA",
+    "weekly_ticker": "ICE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMDNCE00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMDNCE00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MEGARON.WA",
+    "weekly_ticker": "MEG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMGRON00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMGRON00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MENNICA.WA",
+    "weekly_ticker": "MNC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMNNCP00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMNNCP00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MERCATOR.WA",
+    "weekly_ticker": "MRC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMRCTR00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRCTR00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MEXPOLSKA.WA",
+    "weekly_ticker": "MEX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMEXPL00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMEXPL00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MFO.WA",
+    "weekly_ticker": "MFO.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLMFO0000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMFO0000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MILLENNIUM.WA",
+    "weekly_ticker": "MIL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBIG0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIG0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MIRACULUM.WA",
+    "weekly_ticker": "MIR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKLSTN00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKLSTN00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MIRBUD.WA",
+    "weekly_ticker": "MRB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMRBUD00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRBUD00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MLPGROUP.WA",
+    "weekly_ticker": "MLG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMLPGR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMLPGR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MLSYSTEM.WA",
+    "weekly_ticker": "MLS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMLSTM00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMLSTM00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOBRUK.WA",
+    "weekly_ticker": "MBR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMOBRK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMOBRK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MODIVO.WA",
+    "weekly_ticker": "MDV.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCCC0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCCC0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOLECURE.WA",
+    "weekly_ticker": "MOC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLONCTH00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLONCTH00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MONNARI.WA",
+    "weekly_ticker": "MON.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMNRTR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMNRTR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOSTALPLC.WA",
+    "weekly_ticker": "MSP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMSTPL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTPL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOSTALWAR.WA",
+    "weekly_ticker": "MSW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMSTWS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTWS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOSTALZAB.WA",
+    "weekly_ticker": "MSZ.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMSTZB00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTZB00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MOVIEGAMES.WA",
+    "weekly_ticker": "MOV.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMVGMS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMVGMS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MURAPOL.WA",
+    "weekly_ticker": "MUR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMURPL00190",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMURPL00190",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MUZA.WA",
+    "weekly_ticker": "MZA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMUZA000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMUZA000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "MWTRADE.WA",
+    "weekly_ticker": "MWT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMWTRD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMWTRD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NANOGROUP.WA",
+    "weekly_ticker": "NNG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNNGRP00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNNGRP00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NEUCA.WA",
+    "weekly_ticker": "NEU.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRFRM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRFRM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NEWAG.WA",
+    "weekly_ticker": "NWG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNEWAG00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNEWAG00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NEXITY.WA",
+    "weekly_ticker": "NXG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWDMCP00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDMCP00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NIEWIADOW.WA",
+    "weekly_ticker": "GNS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVNTCP00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNTCP00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NOCTILUCA.WA",
+    "weekly_ticker": "NCL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNCTLC00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNCTLC00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NOVAVISGR.WA",
+    "weekly_ticker": "NVG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI0500012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0500012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NOVITA.WA",
+    "weekly_ticker": "NVT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNVITA00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNVITA00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NTCAPITAL.WA",
+    "weekly_ticker": "NTC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLECMNG00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECMNG00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NTTSYSTEM.WA",
+    "weekly_ticker": "NTT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNTSYS00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNTSYS00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "NWAI.WA",
+    "weekly_ticker": "NWA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNWAI000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNWAI000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ODLEWNIE.WA",
+    "weekly_ticker": "ODL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLODLPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLODLPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ONDE.WA",
+    "weekly_ticker": "OND.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLONDE000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLONDE000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ONEMORE.WA",
+    "weekly_ticker": "OML.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLSRMD00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSRMD00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ONESANO.WA",
+    "weekly_ticker": "ONO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSKTAN00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKTAN00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "OPONEO.PL.WA",
+    "weekly_ticker": "OPN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLOPNPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPNPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "OPTEAM.WA",
+    "weekly_ticker": "OPM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLOPTEM00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPTEM00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ORANGEPL.WA",
+    "weekly_ticker": "OPL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTLKPL00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTLKPL00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ORZBIALY.WA",
+    "weekly_ticker": "OBL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLORZBL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLORZBL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "OTLOG.WA",
+    "weekly_ticker": "OTS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLODRTS00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLODRTS00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "OTMUCHOW.WA",
+    "weekly_ticker": "OTM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZPCOT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZPCOT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PANOVA.WA",
+    "weekly_ticker": "NVA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPANVA00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPANVA00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PASSUS.WA",
+    "weekly_ticker": "PAS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPSSUS00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPSSUS00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PATENTUS.WA",
+    "weekly_ticker": "PAT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPTNTS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPTNTS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PBG.WA",
+    "weekly_ticker": "PBG.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPBG0000029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPBG0000029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PBSFINANSE.WA",
+    "weekly_ticker": "PBF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBEFSN00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBEFSN00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PCCEXOL.WA",
+    "weekly_ticker": "PCX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPCCEX00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCCEX00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PCCROKITA.WA",
+    "weekly_ticker": "PCR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPCCRK00076",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCCRK00076",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PCFGROUP.WA",
+    "weekly_ticker": "PCF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPCFGR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCFGR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PEKABEX.WA",
+    "weekly_ticker": "PBX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPKBEX00072",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKBEX00072",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PEKAO.WA",
+    "weekly_ticker": "PEO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPEKAO00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEKAO00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PEP.WA",
+    "weekly_ticker": "PEP.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPLSEP00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPLSEP00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PEPEES.WA",
+    "weekly_ticker": "PPS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPEPES00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEPES00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PGE.WA",
+    "weekly_ticker": "PGE.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPGER000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPGER000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PGFGROUP.WA",
+    "weekly_ticker": "PGFGROUP.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PHARMENA.WA",
+    "weekly_ticker": "PHR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPHRMN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPHRMN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PHN.WA",
+    "weekly_ticker": "PHN.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPHN0000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPHN0000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PJPMAKRUM.WA",
+    "weekly_ticker": "PJP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPROJP00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPROJP00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PKNORLEN.WA",
+    "weekly_ticker": "PKN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPKN0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKN0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PKOBP.WA",
+    "weekly_ticker": "PKO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPKO0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKO0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PKPCARGO.WA",
+    "weekly_ticker": "PKP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPKPCR00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKPCR00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PLAYWAY.WA",
+    "weekly_ticker": "PLW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPLAYW00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPLAYW00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PMPG.WA",
+    "weekly_ticker": "PGM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPEKPL00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEKPL00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "POLICE.WA",
+    "weekly_ticker": "PCE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZCPLC00036",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZCPLC00036",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "POLIMEXMS.WA",
+    "weekly_ticker": "PXM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLMSTSD00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTSD00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "POLTREG.WA",
+    "weekly_ticker": "PTG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPLTRG00038",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPLTRG00038",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "POLWAX.WA",
+    "weekly_ticker": "PWX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPOLWX00026",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPOLWX00026",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PRAGMAINK.WA",
+    "weekly_ticker": "PRI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPRGNK00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRGNK00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PRIMAMODA.WA",
+    "weekly_ticker": "PMA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPRMMD00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRMMD00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PROCHEM.WA",
+    "weekly_ticker": "PRM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPRCHM00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRCHM00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PROTEKTOR.WA",
+    "weekly_ticker": "PRT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLZPSK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLZPSK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PTWP.WA",
+    "weekly_ticker": "PTW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPTWP000015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPTWP000015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PULAWY.WA",
+    "weekly_ticker": "ZAP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZAPUL00057",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZAPUL00057",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PURE.WA",
+    "weekly_ticker": "PURE.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "PZU.WA",
+    "weekly_ticker": "PZU.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPZU0000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPZU0000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "QNATECHNO.WA",
+    "weekly_ticker": "QNA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLQNTHL00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQNTHL00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "QUANTUM.WA",
+    "weekly_ticker": "QNT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLQNTUM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQNTUM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "QUERCUS.WA",
+    "weekly_ticker": "QRS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLQRCUS00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQRCUS00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RAFAMET.WA",
+    "weekly_ticker": "RAF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRFMET00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRFMET00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RAINBOW.WA",
+    "weekly_ticker": "RBW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRNBWT00031",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNBWT00031",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RANKPROGR.WA",
+    "weekly_ticker": "RNK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRNKPR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNKPR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RAWLPLUG.WA",
+    "weekly_ticker": "RWL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLKLNR000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKLNR000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "REDAN.WA",
+    "weekly_ticker": "RDN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLREDAN00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLREDAN00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "REGNON.WA",
+    "weekly_ticker": "REG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLPRNTC00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRNTC00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "REINO.WA",
+    "weekly_ticker": "RNC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWDM0000029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDM0000029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RELPOL.WA",
+    "weekly_ticker": "RLP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRELPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRELPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "REMAK.WA",
+    "weekly_ticker": "RMK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLREMAK00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLREMAK00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RENDER.WA",
+    "weekly_ticker": "RND.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLRNDCB00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNDCB00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "REX.WA",
+    "weekly_ticker": "REX.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLRXCNC00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRXCNC00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ROBYG.WA",
+    "weekly_ticker": "ROB.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLROBYG00321",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLROBYG00321",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ROPCZYCE.WA",
+    "weekly_ticker": "RPC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLROPCE00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLROPCE00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "RYVU.WA",
+    "weekly_ticker": "RVU.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSELVT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSELVT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SANOK.WA",
+    "weekly_ticker": "SNK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTLSK00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLSK00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SANWIL.WA",
+    "weekly_ticker": "SNW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSANWL00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSANWL00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SATIS.WA",
+    "weekly_ticker": "STS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLADVPL00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADVPL00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SCANWAY.WA",
+    "weekly_ticker": "SCW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSCWAY00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSCWAY00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SCPFL.WA",
+    "weekly_ticker": "SCP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSCPFL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSCPFL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SECOGROUP.WA",
+    "weekly_ticker": "SWG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWRWCK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWRWCK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SEKO.WA",
+    "weekly_ticker": "SEK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSEKO000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSEKO000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SELENAFM.WA",
+    "weekly_ticker": "SEL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSELNA00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSELNA00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SELVITA.WA",
+    "weekly_ticker": "SLV.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSLVCR00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSLVCR00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SFINKS.WA",
+    "weekly_ticker": "SFS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSFNKS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSFNKS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SHOPER.WA",
+    "weekly_ticker": "SHOPER.WA",
+    "identificatie": "geen_exacte_gpw_match",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SIMFABRIC.WA",
+    "weekly_ticker": "SIM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSMFBC00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSMFBC00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SKARBIEC.WA",
+    "weekly_ticker": "SKH.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSKRBH00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKRBH00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SKYLINE.WA",
+    "weekly_ticker": "SKL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSKLNW00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKLNW00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SNIEZKA.WA",
+    "weekly_ticker": "SKA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSNZKA00033",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNZKA00033",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SNTVERSE.WA",
+    "weekly_ticker": "SVE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBMDLB00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMDLB00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SOHODEV.WA",
+    "weekly_ticker": "SHD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNFI0400015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0400015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SONEL.WA",
+    "weekly_ticker": "SON.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSONEL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSONEL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SPYROSOFT.WA",
+    "weekly_ticker": "SPR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSPRSF00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSPRSF00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "STALEXP.WA",
+    "weekly_ticker": "STX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTLEX00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLEX00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "STALPROD.WA",
+    "weekly_ticker": "STP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTLPD00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLPD00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "STALPROFI.WA",
+    "weekly_ticker": "STF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTLPF00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLPF00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "STAPORKOW.WA",
+    "weekly_ticker": "ZUK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSTPRK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTPRK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "STARHEDGE.WA",
+    "weekly_ticker": "SHG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLHRDEX00021",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHRDEX00021",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SUNEX.WA",
+    "weekly_ticker": "SNX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSUNEX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSUNEX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SYGNITY.WA",
+    "weekly_ticker": "SGN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLCMPLD00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMPLD00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SYN2BIO.WA",
+    "weekly_ticker": "S2B.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSNBIO00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNBIO00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "SYNEKTIK.WA",
+    "weekly_ticker": "SNT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLSNKTK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNKTK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TALEX.WA",
+    "weekly_ticker": "TLX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTALEX00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTALEX00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TARCZYNSKI.WA",
+    "weekly_ticker": "TAR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRCZN00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRCZN00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TAURONPE.WA",
+    "weekly_ticker": "TPE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTAURN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTAURN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TBULL.WA",
+    "weekly_ticker": "TBL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTBULL00024",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTBULL00024",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TENDERHUT.WA",
+    "weekly_ticker": "THG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTNDRH00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTNDRH00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TERMOREX.WA",
+    "weekly_ticker": "TRR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRMRX00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRMRX00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TESGAS.WA",
+    "weekly_ticker": "TSG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTSGS000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTSGS000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TEXT.WA",
+    "weekly_ticker": "TXT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLLVTSF00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLVTSF00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TORPOL.WA",
+    "weekly_ticker": "TOR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTORPL00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTORPL00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TOWERINVT.WA",
+    "weekly_ticker": "TOW.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTWRNV00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTWRNV00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TOYA.WA",
+    "weekly_ticker": "TOA.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTOYA000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTOYA000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TRAKCJA.WA",
+    "weekly_ticker": "TRK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRKPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRKPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TRANSPOL.WA",
+    "weekly_ticker": "TRN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTRNSP00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRNSP00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TRITON.WA",
+    "weekly_ticker": "TRI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLASMOT00030",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASMOT00030",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "TSGAMES.WA",
+    "weekly_ticker": "TEN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLTSQGM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTSQGM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ULMA.WA",
+    "weekly_ticker": "ULM.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLBAUMA00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBAUMA00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ULTGAMES.WA",
+    "weekly_ticker": "ULG.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLULTGM00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLULTGM00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "UNFOLD.WA",
+    "weekly_ticker": "UNF.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVNTIN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNTIN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "UNIBEP.WA",
+    "weekly_ticker": "UNI.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLUNBEP00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNBEP00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "UNIMOT.WA",
+    "weekly_ticker": "UNT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLUNMOT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNMOT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "URTESTE.WA",
+    "weekly_ticker": "URT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLURTST00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLURTST00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VERCOM.WA",
+    "weekly_ticker": "VRC.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVRCM000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVRCM000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VIGOPHOTN.WA",
+    "weekly_ticker": "VGO.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVIGOS00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVIGOS00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VINDEXUS.WA",
+    "weekly_ticker": "VIN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVNDEX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNDEX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VIRTUS.WA",
+    "weekly_ticker": "GVT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLIQPRT00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIQPRT00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VIVID.WA",
+    "weekly_ticker": "VVD.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVVDGM00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVVDGM00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VOTUM.WA",
+    "weekly_ticker": "VOT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVOTUM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVOTUM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VOXEL.WA",
+    "weekly_ticker": "VOX.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLVOXEL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVOXEL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "VRG.WA",
+    "weekly_ticker": "VRG.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLVSTLA00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVSTLA00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WASKO.WA",
+    "weekly_ticker": "WAS.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLHOGA000041",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHOGA000041",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WAWEL.WA",
+    "weekly_ticker": "WWL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWAWEL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWAWEL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WIELTON.WA",
+    "weekly_ticker": "WLT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWELTN00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWELTN00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WIKANA.WA",
+    "weekly_ticker": "WIK.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLELPO000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLELPO000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WIRTUALNA.WA",
+    "weekly_ticker": "WPL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWRTPL00027",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWRTPL00027",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WITTCHEN.WA",
+    "weekly_ticker": "WTN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWTCHN00030",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWTCHN00030",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "WOODPCKR.WA",
+    "weekly_ticker": "WPR.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLWDPCK00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDPCK00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "XPLUS.WA",
+    "weekly_ticker": "XPL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLXPLUS00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLXPLUS00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "XTB.WA",
+    "weekly_ticker": "XTB.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLXTRDM00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLXTRDM00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "XTPL.WA",
+    "weekly_ticker": "XTP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLXTPL000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLXTPL000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "YANOSIK.WA",
+    "weekly_ticker": "YAN.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLNEPTS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNEPTS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "YARRL.WA",
+    "weekly_ticker": "YRL.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLUNMST00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNMST00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ZAMET.WA",
+    "weekly_ticker": "ZMT.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZAMET00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZAMET00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ZEPAK.WA",
+    "weekly_ticker": "ZEP.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZEPAK00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZEPAK00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ZREMB.WA",
+    "weekly_ticker": "ZRE.WA",
+    "identificatie": "alias_geverifieerd",
+    "isin": "PLZBMZC00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZBMZC00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051a.txt",
+    "bron": "ZUE.WA",
+    "weekly_ticker": "ZUE.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLZUE0000015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZUE0000015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "ACP.WA",
+    "weekly_ticker": "ACP.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLSOFTB00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSOFTB00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "APR.WA",
+    "weekly_ticker": "APR.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLATPRT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATPRT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "ASB.WA",
+    "weekly_ticker": "ASB.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "CY1000031710",
+    "bron_url": "https://www.gpw.pl/spolka?isin=CY1000031710",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "ATR.WA",
+    "weekly_ticker": "ATR.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLATREM00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATREM00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "BDX.WA",
+    "weekly_ticker": "BDX.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLBUDMX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBUDMX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "CDR.WA",
+    "weekly_ticker": "CDR.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLOPTTC00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPTTC00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "CEZ.WA",
+    "weekly_ticker": "CEZ.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "CZ0005112300",
+    "bron_url": "https://www.gpw.pl/spolka?isin=CZ0005112300",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "CMP.WA",
+    "weekly_ticker": "CMP.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLCMP0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMP0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "CRI.WA",
+    "weekly_ticker": "CRI.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLCRTCH00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRTCH00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "CRJ.WA",
+    "weekly_ticker": "CRJ.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLCRPJR00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRPJR00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "DAD.WA",
+    "weekly_ticker": "DAD.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLDADEL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDADEL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "ELT.WA",
+    "weekly_ticker": "ELT.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLELEKT00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLELEKT00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "GPP.WA",
+    "weekly_ticker": "GPP.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLGRPRC00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRPRC00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "KGH.WA",
+    "weekly_ticker": "KGH.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLKGHM000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKGHM000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "LBW.WA",
+    "weekly_ticker": "LBW.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLLUBAW00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLUBAW00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "MOL.WA",
+    "weekly_ticker": "MOL.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "HU0000153937",
+    "bron_url": "https://www.gpw.pl/spolka?isin=HU0000153937",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "MRB.WA",
+    "weekly_ticker": "MRB.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLMRBUD00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRBUD00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "PAS.WA",
+    "weekly_ticker": "PAS.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPSSUS00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPSSUS00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "PKN.WA",
+    "weekly_ticker": "PKN.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLPKN0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKN0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "PXM.WA",
+    "weekly_ticker": "PXM.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLMSTSD00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTSD00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "QRS.WA",
+    "weekly_ticker": "QRS.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLQRCUS00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQRCUS00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "RBW.WA",
+    "weekly_ticker": "RBW.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLRNBWT00031",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNBWT00031",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "TEN.WA",
+    "weekly_ticker": "TEN.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLTSQGM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTSQGM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "TOA.WA",
+    "weekly_ticker": "TOA.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLTOYA000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTOYA000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "TOR.WA",
+    "weekly_ticker": "TOR.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLTORPL00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTORPL00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "TPE.WA",
+    "weekly_ticker": "TPE.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLTAURN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTAURN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "TRK.WA",
+    "weekly_ticker": "TRK.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLTRKPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRKPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "VOX.WA",
+    "weekly_ticker": "VOX.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLVOXEL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVOXEL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_051x.txt",
+    "bron": "VRC.WA",
+    "weekly_ticker": "VRC.WA",
+    "identificatie": "beurscode_geverifieerd",
+    "isin": "PLVRCM000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVRCM000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AALLON.HE",
+    "weekly_ticker": "AALLON.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ABITI.HE",
+    "weekly_ticker": "ABITI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ACG1V.HE",
+    "weekly_ticker": "ACG1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ADFEN.HE",
+    "weekly_ticker": "ADFEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ADMCM.HE",
+    "weekly_ticker": "ADMCM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AFAGR.HE",
+    "weekly_ticker": "AFAGR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AFRNT.HE",
+    "weekly_ticker": "AFRNT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AKTIA.HE",
+    "weekly_ticker": "AKTIA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALBAV.HE",
+    "weekly_ticker": "ALBAV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALBBV.HE",
+    "weekly_ticker": "ALBBV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALEX.HE",
+    "weekly_ticker": "ALEX.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALMA.HE",
+    "weekly_ticker": "ALMA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALMA2.HE",
+    "weekly_ticker": "ALMA2.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AMER.HE",
+    "weekly_ticker": "AMER.HE",
+    "identificatie": "historische_naam_geen_vervanging",
+    "isin": "FI0009000285",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b804d9b11501c8a2b8017a8a1e4ba787c&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ANORA.HE",
+    "weekly_ticker": "ANORA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "APETIT.HE",
+    "weekly_ticker": "APETIT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ARTE.HE",
+    "weekly_ticker": "ARTE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ASK.HE",
+    "weekly_ticker": "ASK.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ASPO.HE",
+    "weekly_ticker": "ASPO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ATEA.HE",
+    "weekly_ticker": "ATEA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ATRAV.HE",
+    "weekly_ticker": "ATRAV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BIOION.HE",
+    "weekly_ticker": "BIOION.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BITTI.HE",
+    "weekly_ticker": "BITTI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BLC.HE",
+    "weekly_ticker": "BLC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BOR.HE",
+    "weekly_ticker": "BOR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BOREO.HE",
+    "weekly_ticker": "BOREO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BRIGHT.HE",
+    "weekly_ticker": "BRIGHT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CAPMAN.HE",
+    "weekly_ticker": "CAPMAN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CRAMO.HE",
+    "weekly_ticker": "CRAMO.HE",
+    "identificatie": "historische_naam_geen_vervanging",
+    "isin": "FI4000384243",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b85c41499cdbf8f85dc94f0a1f04f8b31&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CRE.HE",
+    "weekly_ticker": "CRE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CTY1S.HE",
+    "weekly_ticker": "CTY1S.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DETEC.HE",
+    "weekly_ticker": "DETEC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DIGIA.HE",
+    "weekly_ticker": "DIGIA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DIGITAL.HE",
+    "weekly_ticker": "DIGITAL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EAB.HE",
+    "weekly_ticker": "EAB.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ELEC.HE",
+    "weekly_ticker": "ELEC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ELISA.HE",
+    "weekly_ticker": "ELISA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EMCE.HE",
+    "weekly_ticker": "EMCE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ENENTO.HE",
+    "weekly_ticker": "ENENTO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EQV1V.HE",
+    "weekly_ticker": "EQV1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ESET.HE",
+    "weekly_ticker": "ESET.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EXC.HE",
+    "weekly_ticker": "EXC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EXL1V.HE",
+    "weekly_ticker": "EXL1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FAL.HE",
+    "weekly_ticker": "FAL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FCR1V.HE",
+    "weekly_ticker": "FCR1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FEN.HE",
+    "weekly_ticker": "FEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FIN.HE",
+    "weekly_ticker": "FIN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FNT.HE",
+    "weekly_ticker": "FNT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FORTUM.HE",
+    "weekly_ticker": "FORTUM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FSE.HE",
+    "weekly_ticker": "FSE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FSKRS.HE",
+    "weekly_ticker": "FSKRS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GAA.HE",
+    "weekly_ticker": "GAA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GDL.HE",
+    "weekly_ticker": "GDL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GLAS.HE",
+    "weekly_ticker": "GLAS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GLASTON.HE",
+    "weekly_ticker": "GLA1V.HE",
+    "identificatie": "alias_geverifieerd",
+    "isin": "FI4000587340",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b66d676dd34c492ca2f58b3bc2555cb0e&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HARVIA.HE",
+    "weekly_ticker": "HARVIA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HLTH.HE",
+    "weekly_ticker": "HLTH.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HON.HE",
+    "weekly_ticker": "HON.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HUH1V.HE",
+    "weekly_ticker": "HUH1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HURA.HE",
+    "weekly_ticker": "HURA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ILK.HE",
+    "weekly_ticker": "ILK.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ILONA.HE",
+    "weekly_ticker": "ILONA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "INVENT.HE",
+    "weekly_ticker": "INVENT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "INVEST.HE",
+    "weekly_ticker": "INVEST.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KAIS.HE",
+    "weekly_ticker": "KAIS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KAMUX.HE",
+    "weekly_ticker": "KAMUX.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KCR1V.HE",
+    "weekly_ticker": "KCR.HE",
+    "identificatie": "alias_geverifieerd",
+    "isin": "FI0009005870",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b4cb824e10b4d2bd096e3fd4b26e5c267&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KEM.HE",
+    "weekly_ticker": "KEM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KEMIRA.HE",
+    "weekly_ticker": "KEMIRA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KESKOA.HE",
+    "weekly_ticker": "KESKOA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KESKOB.HE",
+    "weekly_ticker": "KESKOB.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KNEBV.HE",
+    "weekly_ticker": "KNEBV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KONE.HE",
+    "weekly_ticker": "KNEBV.HE",
+    "identificatie": "alias_geverifieerd",
+    "isin": "FI0009013403",
+    "bron_url": "https://www.kone.com/en/Images/KONE_Annual%20Review_2025_tcm17-141619.pdf",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KOPP.HE",
+    "weekly_ticker": "KOPP.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KOR.HE",
+    "weekly_ticker": "KOR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KREATE.HE",
+    "weekly_ticker": "KREATE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LAUR.HE",
+    "weekly_ticker": "LAUR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LIND.HE",
+    "weekly_ticker": "LIND.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LOY.HE",
+    "weekly_ticker": "LOY.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LUO.HE",
+    "weekly_ticker": "LUO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MAG.HE",
+    "weekly_ticker": "MAG.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MANTA.HE",
+    "weekly_ticker": "MANTA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MARME.HE",
+    "weekly_ticker": "MARME.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MB.HE",
+    "weekly_ticker": "MB.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MED.HE",
+    "weekly_ticker": "MED.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MEKKO.HE",
+    "weekly_ticker": "MEKKO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MEN.HE",
+    "weekly_ticker": "MEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MER.HE",
+    "weekly_ticker": "MER.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSA.HE",
+    "weekly_ticker": "METSA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSB.HE",
+    "weekly_ticker": "METSB.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSO.HE",
+    "weekly_ticker": "METSO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MIPS.HE",
+    "weekly_ticker": "MIPS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MM.HE",
+    "weekly_ticker": "MM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MUSTI.HE",
+    "weekly_ticker": "MUSTI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NDA-FI.HE",
+    "weekly_ticker": "NDA-FI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NESTE.HE",
+    "weekly_ticker": "NESTE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NEX.HE",
+    "weekly_ticker": "NEX.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NNO.HE",
+    "weekly_ticker": "NNO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NOKIA.HE",
+    "weekly_ticker": "NOKIA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NORD.HE",
+    "weekly_ticker": "NORD.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NORMA.HE",
+    "weekly_ticker": "NORMA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NOV.HE",
+    "weekly_ticker": "NOV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OLVAS.HE",
+    "weekly_ticker": "OLVAS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OMA.HE",
+    "weekly_ticker": "OMA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ORNAV.HE",
+    "weekly_ticker": "ORNAV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ORNBV.HE",
+    "weekly_ticker": "ORNBV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OUT1V.HE",
+    "weekly_ticker": "OUT1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OYJ.HE",
+    "weekly_ticker": "OYJ.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PAN.HE",
+    "weekly_ticker": "PAN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PAR.HE",
+    "weekly_ticker": "PAR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PART.HE",
+    "weekly_ticker": "PART.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PEL.HE",
+    "weekly_ticker": "PEL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PEN.HE",
+    "weekly_ticker": "PEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PONSSE.HE",
+    "weekly_ticker": "PONSSE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PRO.HE",
+    "weekly_ticker": "PRO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PUUILO.HE",
+    "weekly_ticker": "PUUILO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PYH.HE",
+    "weekly_ticker": "PYH.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "QPR1V.HE",
+    "weekly_ticker": "QPR1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "QTCOM.HE",
+    "weekly_ticker": "QTCOM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RAISIO.HE",
+    "weekly_ticker": "RAISIO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RAIVV.HE",
+    "weekly_ticker": "RAIVV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REGI.HE",
+    "weekly_ticker": "REGI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REL.HE",
+    "weekly_ticker": "REL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REMEDY.HE",
+    "weekly_ticker": "REMEDY.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REV.HE",
+    "weekly_ticker": "REV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RMP.HE",
+    "weekly_ticker": "RMP.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ROVIO.HE",
+    "weekly_ticker": "ROVIO.HE",
+    "identificatie": "oude_notering_bevestigd",
+    "isin": "FI4000266804",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b904f5e8b8c3ec587b8e19ae6944f5abd&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAF.HE",
+    "weekly_ticker": "SAF.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAFH.HE",
+    "weekly_ticker": "SAFH.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAL.HE",
+    "weekly_ticker": "SAL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAMPO.HE",
+    "weekly_ticker": "SAMPO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAN.HE",
+    "weekly_ticker": "SAN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SANOMA.HE",
+    "weekly_ticker": "SANOMA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAV.HE",
+    "weekly_ticker": "SAV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SEN.HE",
+    "weekly_ticker": "SEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SER.HE",
+    "weekly_ticker": "SER.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SIILI.HE",
+    "weekly_ticker": "SIILI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SIL.HE",
+    "weekly_ticker": "SIL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SITOWS.HE",
+    "weekly_ticker": "SITOWS.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SKJ1V.HE",
+    "weekly_ticker": "SKJ1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SOK.HE",
+    "weekly_ticker": "SOK.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SOL.HE",
+    "weekly_ticker": "SOL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SON.HE",
+    "weekly_ticker": "SON.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SPO.HE",
+    "weekly_ticker": "SPO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SPT.HE",
+    "weekly_ticker": "SPT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SRV1V.HE",
+    "weekly_ticker": "SRV1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SSH1V.HE",
+    "weekly_ticker": "SSH1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SST.HE",
+    "weekly_ticker": "SST.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STERV.HE",
+    "weekly_ticker": "STERV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STH.HE",
+    "weekly_ticker": "STH.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STORV.HE",
+    "weekly_ticker": "STORV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STP.HE",
+    "weekly_ticker": "STP.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STR.HE",
+    "weekly_ticker": "STR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SUL.HE",
+    "weekly_ticker": "SUL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SUY1V.HE",
+    "weekly_ticker": "SUY1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SWM.HE",
+    "weekly_ticker": "SWM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TAALER.HE",
+    "weekly_ticker": "TAALER.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TALLC.HE",
+    "weekly_ticker": "TALLC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TAO.HE",
+    "weekly_ticker": "TAO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TEKIL.HE",
+    "weekly_ticker": "TEKIL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELA.HE",
+    "weekly_ticker": "TELA.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELC.HE",
+    "weekly_ticker": "TELC.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELIA.HE",
+    "weekly_ticker": "TELIA1.HE",
+    "identificatie": "alias_geverifieerd",
+    "isin": "SE0000667925",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b040a5f40fb38be8470bdccc1691e40c5&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TEN.HE",
+    "weekly_ticker": "TEN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TERV.HE",
+    "weekly_ticker": "TERV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TIETO.HE",
+    "weekly_ticker": "TIETO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TOKMAN.HE",
+    "weekly_ticker": "TOKMAN.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TUL.HE",
+    "weekly_ticker": "TUL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TYRES.HE",
+    "weekly_ticker": "TYRES.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "UBG.HE",
+    "weekly_ticker": "UBG.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "UPM.HE",
+    "weekly_ticker": "UPM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAISALA.HE",
+    "weekly_ticker": "VAIAS.HE",
+    "identificatie": "alias_geverifieerd",
+    "isin": "FI0009900682",
+    "bron_url": "https://www.vaisala.com/en/investors/shares-and-shareholders",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAL.HE",
+    "weekly_ticker": "VAL.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VALMT.HE",
+    "weekly_ticker": "VALMT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAPO.HE",
+    "weekly_ticker": "VAPO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VART.HE",
+    "weekly_ticker": "VART.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAST.HE",
+    "weekly_ticker": "VAST.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VINCIT.HE",
+    "weekly_ticker": "VINCIT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VIO.HE",
+    "weekly_ticker": "VIO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VIR.HE",
+    "weekly_ticker": "VIR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VRI.HE",
+    "weekly_ticker": "VRI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VTT.HE",
+    "weekly_ticker": "VTT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WID.HE",
+    "weekly_ticker": "WID.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WRT1V.HE",
+    "weekly_ticker": "WRT1V.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WTR.HE",
+    "weekly_ticker": "WTR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "YIT.HE",
+    "weekly_ticker": "YIT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ZIT.HE",
+    "weekly_ticker": "ZIT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "캐피탈.HE",
+    "weekly_ticker": "캐피탈.HE",
+    "identificatie": "identiteit_onbekend",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "BITTI.HE",
+    "weekly_ticker": "BITTI.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "CTY1S.HE",
+    "weekly_ticker": "CTY1S.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "FORTUM.HE",
+    "weekly_ticker": "FORTUM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "KCR.HE",
+    "weekly_ticker": "KCR.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "METSO.HE",
+    "weekly_ticker": "METSO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "NESTE.HE",
+    "weekly_ticker": "NESTE.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "ORNBV.HE",
+    "weekly_ticker": "ORNBV.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "QTCOM.HE",
+    "weekly_ticker": "QTCOM.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "SSABBH.HE",
+    "weekly_ticker": "SSABBH.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "TIETO.HE",
+    "weekly_ticker": "TIETO.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "TYRES.HE",
+    "weekly_ticker": "TYRES.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijst": "tickers_054x.txt",
+    "bron": "VALMT.HE",
+    "weekly_ticker": "VALMT.HE",
+    "identificatie": "geen_geverifieerde_correctie",
+    "isin": "",
+    "bron_url": "",
+    "gecontroleerd_op": "2026-11-15"
+  }
+]

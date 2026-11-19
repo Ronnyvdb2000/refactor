@@ -1,0 +1,38 @@
+[
+  {
+    "lijst": "tickers_059a.txt",
+    "deelmarkt": "Bratislava (broncode)",
+    "aantal": "9",
+    "bruikbaar": "0",
+    "onbekend": "0",
+    "dekking": "0.0",
+    "status": "onvoldoende",
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "meting": "run_43697627590_plus_gerichte_controle"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "deelmarkt": "Ljubljana",
+    "aantal": "17",
+    "bruikbaar": "0",
+    "onbekend": "0",
+    "dekking": "0.0",
+    "status": "onvoldoende",
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "meting": "run_43697627590_plus_gerichte_controle"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "deelmarkt": "Wenen",
+    "aantal": "68",
+    "bruikbaar": "63",
+    "onbekend": "0",
+    "dekking": "0.9264705882352942",
+    "status": "voldoende",
+    "week_startdatum": "2026-11-09",
+    "week_einddatum": "2026-11-13",
+    "meting": "run_43697627590_plus_gerichte_controle"
+  }
+]

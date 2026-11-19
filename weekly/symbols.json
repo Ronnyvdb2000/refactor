@@ -1,0 +1,2962 @@
+[
+  {
+    "lijstcode": "051",
+    "bron": "06MAGNA.WA",
+    "doel": "06N.WA",
+    "isin": "PLNFI0600010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0600010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "08OCTAVA.WA",
+    "doel": "08N.WA",
+    "isin": "PLNFI0800016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0800016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "11BIT.WA",
+    "doel": "11B.WA",
+    "isin": "PL11BTS00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL11BTS00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "3RGAMES.WA",
+    "doel": "3RG.WA",
+    "isin": "PLGRNKT00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRNKT00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "4MASS.WA",
+    "doel": "4MS.WA",
+    "isin": "PL4MASS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL4MASS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ABPL.WA",
+    "doel": "ABE.WA",
+    "isin": "PLAB00000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAB00000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ACAUTOGAZ.WA",
+    "doel": "ACG.WA",
+    "isin": "PLACSA000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLACSA000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ACTION.WA",
+    "doel": "ACT.WA",
+    "isin": "PLACTIN00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLACTIN00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ADATEX.WA",
+    "doel": "ADX.WA",
+    "isin": "PLPIK0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPIK0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ADIUVO.WA",
+    "doel": "ADV.WA",
+    "isin": "PLADVIV00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADVIV00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AGORA.WA",
+    "doel": "AGO.WA",
+    "isin": "PLAGORA00067",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAGORA00067",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AIGAMES.WA",
+    "doel": "ALG.WA",
+    "isin": "PLSNTFG00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNTFG00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AILLERON.WA",
+    "doel": "ALL.WA",
+    "isin": "PLWNDMB00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWNDMB00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AIRWAY.WA",
+    "doel": "AWM.WA",
+    "isin": "PLAIRWY00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAIRWY00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ALIOR.WA",
+    "doel": "ALR.WA",
+    "isin": "PLALIOR00045",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLALIOR00045",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ALTA.WA",
+    "doel": "AAT.WA",
+    "isin": "PLTRNSU00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRNSU00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ALTUS.WA",
+    "doel": "ALI.WA",
+    "isin": "PLATTFI00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATTFI00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AMBRA.WA",
+    "doel": "AMB.WA",
+    "isin": "PLAMBRA00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMBRA00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AMICA.WA",
+    "doel": "AMC.WA",
+    "isin": "PLAMICA00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMICA00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AMPLI.WA",
+    "doel": "APL.WA",
+    "isin": "PLAMPLI00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAMPLI00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ANSWEAR.WA",
+    "doel": "ANR.WA",
+    "isin": "PLANSWR00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLANSWR00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "APATOR.WA",
+    "doel": "APT.WA",
+    "isin": "PLAPATR00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPATR00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "APLISENS.WA",
+    "doel": "APN.WA",
+    "isin": "PLAPLS000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPLS000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "APSENERGY.WA",
+    "doel": "APE.WA",
+    "isin": "PLAPSEN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLAPSEN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ARCHICOM.WA",
+    "doel": "ARH.WA",
+    "isin": "PLARHCM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARHCM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ARCTIC.WA",
+    "doel": "ATC.WA",
+    "isin": "PLARTPR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARTPR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ARLEN.WA",
+    "doel": "ARL.WA",
+    "isin": "PLARLEN00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARLEN00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ARTIFEX.WA",
+    "doel": "ART.WA",
+    "isin": "PLARTFX00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLARTFX00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ASMGROUP.WA",
+    "doel": "ASM.WA",
+    "isin": "PLASMGR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASMGR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ASSECOBS.WA",
+    "doel": "ABS.WA",
+    "isin": "PLABS0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLABS0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ASSECOPOL.WA",
+    "doel": "ACP.WA",
+    "isin": "PLSOFTB00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSOFTB00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ASSECOSEE.WA",
+    "doel": "ASE.WA",
+    "isin": "PLASSEE00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASSEE00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ATAL.WA",
+    "doel": "1AT.WA",
+    "isin": "PLATAL000046",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATAL000046",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ATENDE.WA",
+    "doel": "ATD.WA",
+    "isin": "PLATMSI00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATMSI00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ATLANTAPL.WA",
+    "doel": "ATP.WA",
+    "isin": "PLATLPL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATLPL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ATMGRUPA.WA",
+    "doel": "ATG.WA",
+    "isin": "PLATM0000021",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATM0000021",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ATREM.WA",
+    "doel": "ATR.WA",
+    "isin": "PLATREM00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATREM00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "AUTOPARTN.WA",
+    "doel": "APR.WA",
+    "isin": "PLATPRT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLATPRT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BBIDEV.WA",
+    "doel": "BBD.WA",
+    "isin": "PLNFI1200018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI1200018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BENEFIT.WA",
+    "doel": "BFT.WA",
+    "isin": "PLBNFTS00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBNFTS00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BEST.WA",
+    "doel": "BST.WA",
+    "isin": "PLBEST000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBEST000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BETACOM.WA",
+    "doel": "BCM.WA",
+    "isin": "PLBTCOM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBTCOM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BIGCHEESE.WA",
+    "doel": "BCS.WA",
+    "isin": "PLA340200015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLA340200015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BIOCELTIX.WA",
+    "doel": "BCX.WA",
+    "isin": "PLBCLTX00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBCLTX00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BIOMAXIMA.WA",
+    "doel": "BMX.WA",
+    "isin": "PLBIOMX00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOMX00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BIOPLANET.WA",
+    "doel": "BIP.WA",
+    "isin": "PLBIOPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BIOTON.WA",
+    "doel": "BIO.WA",
+    "isin": "PLBIOTN00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIOTN00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BLOOBER.WA",
+    "doel": "BLO.WA",
+    "isin": "PLBLOBR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBLOBR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BNPPPL.WA",
+    "doel": "BNP.WA",
+    "isin": "PLBGZ0000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBGZ0000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BOGDANKA.WA",
+    "doel": "LWB.WA",
+    "isin": "PLLWBGD00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLWBGD00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BOOMBIT.WA",
+    "doel": "BBT.WA",
+    "isin": "PLBMBIT00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMBIT00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BORYSZEW.WA",
+    "doel": "BRS.WA",
+    "isin": "PLBRSZW00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBRSZW00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BOWIM.WA",
+    "doel": "BOW.WA",
+    "isin": "PLBOWM000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBOWM000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BUDIMEX.WA",
+    "doel": "BDX.WA",
+    "isin": "PLBUDMX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBUDMX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "BUMECH.WA",
+    "doel": "BMC.WA",
+    "isin": "PLBMECH00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMECH00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CAPITEA.WA",
+    "doel": "CAP.WA",
+    "isin": "PLGTBCK00297",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGTBCK00297",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CAPTORTX.WA",
+    "doel": "CTX.WA",
+    "isin": "PLCPTRT00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCPTRT00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CASPAR.WA",
+    "doel": "CSR.WA",
+    "isin": "PLCSPAM00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCSPAM00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CAVATINA.WA",
+    "doel": "CAV.WA",
+    "isin": "PLCVTNH00040",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCVTNH00040",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CCENERGY.WA",
+    "doel": "CCE.WA",
+    "isin": "PLKAREN00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKAREN00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CDPROJEKT.WA",
+    "doel": "CDR.WA",
+    "isin": "PLOPTTC00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPTTC00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CDRL.WA",
+    "doel": "CDL.WA",
+    "isin": "PLCDRL000043",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCDRL000043",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CELTIC.WA",
+    "doel": "CPD.WA",
+    "isin": "PLCELPD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCELPD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CIGAMES.WA",
+    "doel": "CIG.WA",
+    "isin": "PLCTINT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCTINT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CLNPHARMA.WA",
+    "doel": "CLN.WA",
+    "isin": "PLCLNPH00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCLNPH00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CLOUD.WA",
+    "doel": "CLD.WA",
+    "isin": "PLCLDTC00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCLDTC00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "COGNOR.WA",
+    "doel": "COG.WA",
+    "isin": "PLCNTSL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCNTSL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "COLUMBUS.WA",
+    "doel": "CLC.WA",
+    "isin": "PLSTIGR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTIGR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "COMP.WA",
+    "doel": "CMP.WA",
+    "isin": "PLCMP0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMP0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "COMPERIA.WA",
+    "doel": "CPL.WA",
+    "isin": "PLCOMPR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCOMPR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "COMPREMUM.WA",
+    "doel": "CPR.WA",
+    "isin": "PLPZBDT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPZBDT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CORMAY.WA",
+    "doel": "CRM.WA",
+    "isin": "PLCMRAY00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMRAY00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CREEPYJAR.WA",
+    "doel": "CRJ.WA",
+    "isin": "PLCRPJR00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRPJR00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CREOTECH.WA",
+    "doel": "CRI.WA",
+    "isin": "PLCRTCH00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRTCH00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CRQUANTUM.WA",
+    "doel": "CRQ.WA",
+    "isin": "PLCTHQM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCTHQM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CYBERFLKS.WA",
+    "doel": "CBF.WA",
+    "isin": "PLR220000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLR220000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CYFRPLSAT.WA",
+    "doel": "CPS.WA",
+    "isin": "PLCFRPT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCFRPT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "CZTOREBKA.WA",
+    "doel": "CZT.WA",
+    "isin": "PLCRWTR00022",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCRWTR00022",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DADELO.WA",
+    "doel": "DAD.WA",
+    "isin": "PLDADEL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDADEL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DATAWALK.WA",
+    "doel": "DAT.WA",
+    "isin": "PLPILAB00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPILAB00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DBENERGY.WA",
+    "doel": "DBE.WA",
+    "isin": "PLDBENR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDBENR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DEBICA.WA",
+    "doel": "DBC.WA",
+    "isin": "PLDEBCA00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDEBCA00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DECORA.WA",
+    "doel": "DCR.WA",
+    "isin": "PLDECOR00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDECOR00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DEKPOL.WA",
+    "doel": "DEK.WA",
+    "isin": "PLDEKPL00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDEKPL00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DELKO.WA",
+    "doel": "DEL.WA",
+    "isin": "PLDELKO00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDELKO00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DEVELIA.WA",
+    "doel": "DVL.WA",
+    "isin": "PLLCCRP00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLCCRP00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DIAG.WA",
+    "doel": "DIA.WA",
+    "isin": "PLDGNST00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDGNST00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DIGITANET.WA",
+    "doel": "DIG.WA",
+    "isin": "PL4FNMD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PL4FNMD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DIGITREE.WA",
+    "doel": "DTR.WA",
+    "isin": "PLSARE000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSARE000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DINOPL.WA",
+    "doel": "DNP.WA",
+    "isin": "PLDINPL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDINPL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DMGROUP.WA",
+    "doel": "DMG.WA",
+    "isin": "PLGLBLC00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGLBLC00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DOMDEV.WA",
+    "doel": "DOM.WA",
+    "isin": "PLDMDVL00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDMDVL00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "DRAGOENT.WA",
+    "doel": "DGE.WA",
+    "isin": "PLDRG0000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDRG0000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ECBSA.WA",
+    "doel": "ECB.WA",
+    "isin": "PLECBDZ00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECBDZ00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ECHO.WA",
+    "doel": "ECH.WA",
+    "isin": "PLECHPS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECHPS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EDINVEST.WA",
+    "doel": "EDI.WA",
+    "isin": "PLEDINV00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEDINV00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EFEKT.WA",
+    "doel": "EFK.WA",
+    "isin": "PLEFEKT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEFEKT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EKOEXPORT.WA",
+    "doel": "EEX.WA",
+    "isin": "PLEKEP000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEKEP000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ELEKTROTI.WA",
+    "doel": "ELT.WA",
+    "isin": "PLELEKT00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLELEKT00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENAP.WA",
+    "doel": "ENP.WA",
+    "isin": "PLENAP000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENAP000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENEA.WA",
+    "doel": "ENA.WA",
+    "isin": "PLENEA000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENEA000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENELMED.WA",
+    "doel": "ENE.WA",
+    "isin": "PLENLMD00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENLMD00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENERGA.WA",
+    "doel": "ENG.WA",
+    "isin": "PLENERG00022",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENERG00022",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENERGOINS.WA",
+    "doel": "ENI.WA",
+    "isin": "PLERGIN00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERGIN00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ENTER.WA",
+    "doel": "ENT.WA",
+    "isin": "PLENTER00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLENTER00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EQUNICO.WA",
+    "doel": "EQU.WA",
+    "isin": "PLRESBD00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRESBD00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ERBUD.WA",
+    "doel": "ERB.WA",
+    "isin": "PLERBUD00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERBUD00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ERSTEPL.WA",
+    "doel": "EBP.WA",
+    "isin": "PLBZ00000044",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBZ00000044",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ESOTIQ.WA",
+    "doel": "EAH.WA",
+    "isin": "PLESTHN00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLESTHN00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EUCO.WA",
+    "doel": "EUC.WA",
+    "isin": "PLERPCO00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERPCO00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EUROCASH.WA",
+    "doel": "EUR.WA",
+    "isin": "PLEURCH00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLEURCH00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "EUROTEL.WA",
+    "doel": "ETL.WA",
+    "isin": "PLERTEL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLERTEL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FABRITY.WA",
+    "doel": "FAB.WA",
+    "isin": "PLK2ITR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLK2ITR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FASING.WA",
+    "doel": "FSG.WA",
+    "isin": "PLFSING00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFSING00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FASTFIN.WA",
+    "doel": "FFI.WA",
+    "isin": "PLFSTFC00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFSTFC00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FEERUM.WA",
+    "doel": "FEE.WA",
+    "isin": "PLFEERM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFEERM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FERRO.WA",
+    "doel": "FRO.WA",
+    "isin": "PLFERRO00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFERRO00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FOODHUB.WA",
+    "doel": "FHB.WA",
+    "isin": "PLPMPOL00031",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPMPOL00031",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "FORTE.WA",
+    "doel": "FTE.WA",
+    "isin": "PLFORTE00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLFORTE00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GAMEOPS.WA",
+    "doel": "GOP.WA",
+    "isin": "PLGMSOP00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGMSOP00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GAMFACTOR.WA",
+    "doel": "GIF.WA",
+    "isin": "PLGMNGF00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGMNGF00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GENOMTEC.WA",
+    "doel": "GMT.WA",
+    "isin": "PLGNMTC00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGNMTC00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GETIN.WA",
+    "doel": "GTN.WA",
+    "isin": "PLGSPR000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGSPR000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GOBARTO.WA",
+    "doel": "GOB.WA",
+    "isin": "PLDUDA000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLDUDA000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GRODNO.WA",
+    "doel": "GRN.WA",
+    "isin": "PLGRODN00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRODN00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GRUPAAZOTY.WA",
+    "doel": "ATT.WA",
+    "isin": "PLZATRM00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZATRM00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "GRUPRACUJ.WA",
+    "doel": "GPP.WA",
+    "isin": "PLGRPRC00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLGRPRC00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "HANDLOWY.WA",
+    "doel": "BHW.WA",
+    "isin": "PLBH00000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBH00000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "HARPER.WA",
+    "doel": "HRP.WA",
+    "isin": "PLHRPHG00023",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHRPHG00023",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "HELIO.WA",
+    "doel": "HEL.WA",
+    "isin": "PLHELIO00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHELIO00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "HERKULES.WA",
+    "doel": "HRS.WA",
+    "isin": "PLZRWZW00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZRWZW00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "HYDROTOR.WA",
+    "doel": "HDR.WA",
+    "isin": "PLHDRTR00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHDRTR00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IDMSA.WA",
+    "doel": "IDM.WA",
+    "isin": "PLIDMSA00044",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIDMSA00044",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IFIRMA.WA",
+    "doel": "IFI.WA",
+    "isin": "PLPWRMD00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPWRMD00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IMMOBILE.WA",
+    "doel": "GKI.WA",
+    "isin": "PLMAKRM00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMAKRM00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IMPERIO.WA",
+    "doel": "IMP.WA",
+    "isin": "PLNFI0700018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0700018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INDYGO.WA",
+    "doel": "IDG.WA",
+    "isin": "PLLSTIA00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSTIA00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INGBSK.WA",
+    "doel": "ING.WA",
+    "isin": "PLBSK0000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBSK0000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INPRO.WA",
+    "doel": "INP.WA",
+    "isin": "PLINPRO00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINPRO00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INSTALKRK.WA",
+    "doel": "INK.WA",
+    "isin": "PLINSTK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINSTK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INTERBUD.WA",
+    "doel": "ITB.WA",
+    "isin": "PLINTBD00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTBD00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INTERCARS.WA",
+    "doel": "CAR.WA",
+    "isin": "PLINTCS00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTCS00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INTERSPPL.WA",
+    "doel": "IPO.WA",
+    "isin": "PLINTSP00038",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTSP00038",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "INTROL.WA",
+    "doel": "INL.WA",
+    "isin": "PLINTRL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLINTRL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IPOPEMA.WA",
+    "doel": "IPE.WA",
+    "isin": "PLIPOPM00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIPOPM00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IZOBLOK.WA",
+    "doel": "IZB.WA",
+    "isin": "PLIZBLK00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZBLK00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IZOLACJA.WA",
+    "doel": "IZO.WA",
+    "isin": "PLIZCJR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZCJR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "IZOSTAL.WA",
+    "doel": "IZS.WA",
+    "isin": "PLIZSTL00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIZSTL00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "JWWINVEST.WA",
+    "doel": "JWW.WA",
+    "isin": "PLJWWNT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLJWWNT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KETY.WA",
+    "doel": "KTY.WA",
+    "isin": "PLKETY000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKETY000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KGHM.WA",
+    "doel": "KGH.WA",
+    "isin": "PLKGHM000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKGHM000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KINOPOL.WA",
+    "doel": "KPL.WA",
+    "isin": "PLKNOPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKNOPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KOGENERA.WA",
+    "doel": "KGN.WA",
+    "isin": "PLKGNRC00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKGNRC00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KOMPAP.WA",
+    "doel": "KMP.WA",
+    "isin": "PLKOMPP00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKOMPP00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KOMPUTRON.WA",
+    "doel": "KOM.WA",
+    "isin": "PLKMPTR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKMPTR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KPPD.WA",
+    "doel": "KPD.WA",
+    "isin": "PLKPPD000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKPPD000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KRAKCHEM.WA",
+    "doel": "KCH.WA",
+    "isin": "PLKRKCH00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRKCH00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KRUK.WA",
+    "doel": "KRU.WA",
+    "isin": "PLKRK0000010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRK0000010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "KRVITAMIN.WA",
+    "doel": "KVT.WA",
+    "isin": "PLKRVTM00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKRVTM00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LARQ.WA",
+    "doel": "LRQ.WA",
+    "isin": "PLCAMMD00032",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCAMMD00032",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LENA.WA",
+    "doel": "LEN.WA",
+    "isin": "PLLENAL00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLENAL00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LENTEX.WA",
+    "doel": "LTX.WA",
+    "isin": "PLLENTX00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLENTX00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LIBET.WA",
+    "doel": "LBT.WA",
+    "isin": "PLLBT0000013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLBT0000013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LOKUM.WA",
+    "doel": "LKD.WA",
+    "isin": "PLLKMDW00049",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLKMDW00049",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LSISOFT.WA",
+    "doel": "LSI.WA",
+    "isin": "PLLSSFT00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSSFT00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "LUBAWA.WA",
+    "doel": "LBW.WA",
+    "isin": "PLLUBAW00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLUBAW00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MABION.WA",
+    "doel": "MAB.WA",
+    "isin": "PLMBION00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMBION00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MAKARONPL.WA",
+    "doel": "MAK.WA",
+    "isin": "PLMKRNP00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMKRNP00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MANGATA.WA",
+    "doel": "MGT.WA",
+    "isin": "PLZTKMA00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZTKMA00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MANYDEV.WA",
+    "doel": "MAN.WA",
+    "isin": "PLADDRG00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADDRG00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MARVIPOL.WA",
+    "doel": "MVP.WA",
+    "isin": "PLMRVDV00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRVDV00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MAXCOM.WA",
+    "doel": "MXC.WA",
+    "isin": "PLMXCMS00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMXCMS00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MBANK.WA",
+    "doel": "MBK.WA",
+    "isin": "PLBRE0000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBRE0000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MDIENERGIA.WA",
+    "doel": "MDI.WA",
+    "isin": "PLNFI1000012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI1000012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MEDICALG.WA",
+    "doel": "MDG.WA",
+    "isin": "PLMDCLG00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMDCLG00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MEDINICE.WA",
+    "doel": "ICE.WA",
+    "isin": "PLMDNCE00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMDNCE00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MEGARON.WA",
+    "doel": "MEG.WA",
+    "isin": "PLMGRON00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMGRON00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MENNICA.WA",
+    "doel": "MNC.WA",
+    "isin": "PLMNNCP00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMNNCP00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MERCATOR.WA",
+    "doel": "MRC.WA",
+    "isin": "PLMRCTR00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRCTR00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MEXPOLSKA.WA",
+    "doel": "MEX.WA",
+    "isin": "PLMEXPL00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMEXPL00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MILLENNIUM.WA",
+    "doel": "MIL.WA",
+    "isin": "PLBIG0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBIG0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MIRACULUM.WA",
+    "doel": "MIR.WA",
+    "isin": "PLKLSTN00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKLSTN00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MIRBUD.WA",
+    "doel": "MRB.WA",
+    "isin": "PLMRBUD00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMRBUD00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MLPGROUP.WA",
+    "doel": "MLG.WA",
+    "isin": "PLMLPGR00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMLPGR00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MLSYSTEM.WA",
+    "doel": "MLS.WA",
+    "isin": "PLMLSTM00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMLSTM00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOBRUK.WA",
+    "doel": "MBR.WA",
+    "isin": "PLMOBRK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMOBRK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MODIVO.WA",
+    "doel": "MDV.WA",
+    "isin": "PLCCC0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCCC0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOLECURE.WA",
+    "doel": "MOC.WA",
+    "isin": "PLONCTH00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLONCTH00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MONNARI.WA",
+    "doel": "MON.WA",
+    "isin": "PLMNRTR00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMNRTR00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOSTALPLC.WA",
+    "doel": "MSP.WA",
+    "isin": "PLMSTPL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTPL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOSTALWAR.WA",
+    "doel": "MSW.WA",
+    "isin": "PLMSTWS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTWS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOSTALZAB.WA",
+    "doel": "MSZ.WA",
+    "isin": "PLMSTZB00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTZB00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MOVIEGAMES.WA",
+    "doel": "MOV.WA",
+    "isin": "PLMVGMS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMVGMS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MURAPOL.WA",
+    "doel": "MUR.WA",
+    "isin": "PLMURPL00190",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMURPL00190",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MUZA.WA",
+    "doel": "MZA.WA",
+    "isin": "PLMUZA000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMUZA000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "MWTRADE.WA",
+    "doel": "MWT.WA",
+    "isin": "PLMWTRD00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMWTRD00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NANOGROUP.WA",
+    "doel": "NNG.WA",
+    "isin": "PLNNGRP00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNNGRP00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NEUCA.WA",
+    "doel": "NEU.WA",
+    "isin": "PLTRFRM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRFRM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NEWAG.WA",
+    "doel": "NWG.WA",
+    "isin": "PLNEWAG00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNEWAG00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NEXITY.WA",
+    "doel": "NXG.WA",
+    "isin": "PLWDMCP00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDMCP00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NIEWIADOW.WA",
+    "doel": "GNS.WA",
+    "isin": "PLVNTCP00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNTCP00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NOCTILUCA.WA",
+    "doel": "NCL.WA",
+    "isin": "PLNCTLC00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNCTLC00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NOVAVISGR.WA",
+    "doel": "NVG.WA",
+    "isin": "PLNFI0500012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0500012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NOVITA.WA",
+    "doel": "NVT.WA",
+    "isin": "PLNVITA00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNVITA00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NTCAPITAL.WA",
+    "doel": "NTC.WA",
+    "isin": "PLECMNG00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLECMNG00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NTTSYSTEM.WA",
+    "doel": "NTT.WA",
+    "isin": "PLNTSYS00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNTSYS00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "NWAI.WA",
+    "doel": "NWA.WA",
+    "isin": "PLNWAI000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNWAI000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ODLEWNIE.WA",
+    "doel": "ODL.WA",
+    "isin": "PLODLPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLODLPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ONDE.WA",
+    "doel": "OND.WA",
+    "isin": "PLONDE000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLONDE000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ONEMORE.WA",
+    "doel": "OML.WA",
+    "isin": "PLLSRMD00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLSRMD00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ONESANO.WA",
+    "doel": "ONO.WA",
+    "isin": "PLSKTAN00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKTAN00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "OPONEO.PL.WA",
+    "doel": "OPN.WA",
+    "isin": "PLOPNPL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPNPL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "OPTEAM.WA",
+    "doel": "OPM.WA",
+    "isin": "PLOPTEM00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLOPTEM00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ORANGEPL.WA",
+    "doel": "OPL.WA",
+    "isin": "PLTLKPL00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTLKPL00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ORZBIALY.WA",
+    "doel": "OBL.WA",
+    "isin": "PLORZBL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLORZBL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "OTLOG.WA",
+    "doel": "OTS.WA",
+    "isin": "PLODRTS00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLODRTS00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "OTMUCHOW.WA",
+    "doel": "OTM.WA",
+    "isin": "PLZPCOT00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZPCOT00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PANOVA.WA",
+    "doel": "NVA.WA",
+    "isin": "PLPANVA00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPANVA00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PASSUS.WA",
+    "doel": "PAS.WA",
+    "isin": "PLPSSUS00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPSSUS00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PATENTUS.WA",
+    "doel": "PAT.WA",
+    "isin": "PLPTNTS00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPTNTS00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PBSFINANSE.WA",
+    "doel": "PBF.WA",
+    "isin": "PLBEFSN00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBEFSN00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PCCEXOL.WA",
+    "doel": "PCX.WA",
+    "isin": "PLPCCEX00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCCEX00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PCCROKITA.WA",
+    "doel": "PCR.WA",
+    "isin": "PLPCCRK00076",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCCRK00076",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PCFGROUP.WA",
+    "doel": "PCF.WA",
+    "isin": "PLPCFGR00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPCFGR00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PEKABEX.WA",
+    "doel": "PBX.WA",
+    "isin": "PLPKBEX00072",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKBEX00072",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PEKAO.WA",
+    "doel": "PEO.WA",
+    "isin": "PLPEKAO00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEKAO00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PEPEES.WA",
+    "doel": "PPS.WA",
+    "isin": "PLPEPES00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEPES00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PHARMENA.WA",
+    "doel": "PHR.WA",
+    "isin": "PLPHRMN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPHRMN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PJPMAKRUM.WA",
+    "doel": "PJP.WA",
+    "isin": "PLPROJP00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPROJP00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PKNORLEN.WA",
+    "doel": "PKN.WA",
+    "isin": "PLPKN0000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKN0000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PKOBP.WA",
+    "doel": "PKO.WA",
+    "isin": "PLPKO0000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKO0000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PKPCARGO.WA",
+    "doel": "PKP.WA",
+    "isin": "PLPKPCR00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPKPCR00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PLAYWAY.WA",
+    "doel": "PLW.WA",
+    "isin": "PLPLAYW00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPLAYW00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PMPG.WA",
+    "doel": "PGM.WA",
+    "isin": "PLPEKPL00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPEKPL00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "POLICE.WA",
+    "doel": "PCE.WA",
+    "isin": "PLZCPLC00036",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZCPLC00036",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "POLIMEXMS.WA",
+    "doel": "PXM.WA",
+    "isin": "PLMSTSD00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLMSTSD00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "POLTREG.WA",
+    "doel": "PTG.WA",
+    "isin": "PLPLTRG00038",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPLTRG00038",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "POLWAX.WA",
+    "doel": "PWX.WA",
+    "isin": "PLPOLWX00026",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPOLWX00026",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PRAGMAINK.WA",
+    "doel": "PRI.WA",
+    "isin": "PLPRGNK00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRGNK00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PRIMAMODA.WA",
+    "doel": "PMA.WA",
+    "isin": "PLPRMMD00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRMMD00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PROCHEM.WA",
+    "doel": "PRM.WA",
+    "isin": "PLPRCHM00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRCHM00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PROTEKTOR.WA",
+    "doel": "PRT.WA",
+    "isin": "PLLZPSK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLZPSK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PTWP.WA",
+    "doel": "PTW.WA",
+    "isin": "PLPTWP000015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPTWP000015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "PULAWY.WA",
+    "doel": "ZAP.WA",
+    "isin": "PLZAPUL00057",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZAPUL00057",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "QNATECHNO.WA",
+    "doel": "QNA.WA",
+    "isin": "PLQNTHL00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQNTHL00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "QUANTUM.WA",
+    "doel": "QNT.WA",
+    "isin": "PLQNTUM00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQNTUM00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "QUERCUS.WA",
+    "doel": "QRS.WA",
+    "isin": "PLQRCUS00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLQRCUS00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RAFAMET.WA",
+    "doel": "RAF.WA",
+    "isin": "PLRFMET00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRFMET00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RAINBOW.WA",
+    "doel": "RBW.WA",
+    "isin": "PLRNBWT00031",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNBWT00031",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RANKPROGR.WA",
+    "doel": "RNK.WA",
+    "isin": "PLRNKPR00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNKPR00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RAWLPLUG.WA",
+    "doel": "RWL.WA",
+    "isin": "PLKLNR000017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLKLNR000017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "REDAN.WA",
+    "doel": "RDN.WA",
+    "isin": "PLREDAN00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLREDAN00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "REGNON.WA",
+    "doel": "REG.WA",
+    "isin": "PLPRNTC00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLPRNTC00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "REINO.WA",
+    "doel": "RNC.WA",
+    "isin": "PLWDM0000029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDM0000029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RELPOL.WA",
+    "doel": "RLP.WA",
+    "isin": "PLRELPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRELPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "REMAK.WA",
+    "doel": "RMK.WA",
+    "isin": "PLREMAK00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLREMAK00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RENDER.WA",
+    "doel": "RND.WA",
+    "isin": "PLRNDCB00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLRNDCB00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ROBYG.WA",
+    "doel": "ROB.WA",
+    "isin": "PLROBYG00321",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLROBYG00321",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ROPCZYCE.WA",
+    "doel": "RPC.WA",
+    "isin": "PLROPCE00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLROPCE00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "RYVU.WA",
+    "doel": "RVU.WA",
+    "isin": "PLSELVT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSELVT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SANOK.WA",
+    "doel": "SNK.WA",
+    "isin": "PLSTLSK00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLSK00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SANWIL.WA",
+    "doel": "SNW.WA",
+    "isin": "PLSANWL00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSANWL00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SATIS.WA",
+    "doel": "STS.WA",
+    "isin": "PLADVPL00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLADVPL00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SCANWAY.WA",
+    "doel": "SCW.WA",
+    "isin": "PLSCWAY00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSCWAY00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SCPFL.WA",
+    "doel": "SCP.WA",
+    "isin": "PLSCPFL00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSCPFL00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SECOGROUP.WA",
+    "doel": "SWG.WA",
+    "isin": "PLWRWCK00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWRWCK00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SEKO.WA",
+    "doel": "SEK.WA",
+    "isin": "PLSEKO000014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSEKO000014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SELENAFM.WA",
+    "doel": "SEL.WA",
+    "isin": "PLSELNA00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSELNA00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SELVITA.WA",
+    "doel": "SLV.WA",
+    "isin": "PLSLVCR00029",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSLVCR00029",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SFINKS.WA",
+    "doel": "SFS.WA",
+    "isin": "PLSFNKS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSFNKS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SIMFABRIC.WA",
+    "doel": "SIM.WA",
+    "isin": "PLSMFBC00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSMFBC00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SKARBIEC.WA",
+    "doel": "SKH.WA",
+    "isin": "PLSKRBH00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKRBH00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SKYLINE.WA",
+    "doel": "SKL.WA",
+    "isin": "PLSKLNW00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSKLNW00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SNIEZKA.WA",
+    "doel": "SKA.WA",
+    "isin": "PLSNZKA00033",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNZKA00033",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SNTVERSE.WA",
+    "doel": "SVE.WA",
+    "isin": "PLBMDLB00018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBMDLB00018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SOHODEV.WA",
+    "doel": "SHD.WA",
+    "isin": "PLNFI0400015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNFI0400015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SONEL.WA",
+    "doel": "SON.WA",
+    "isin": "PLSONEL00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSONEL00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SPYROSOFT.WA",
+    "doel": "SPR.WA",
+    "isin": "PLSPRSF00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSPRSF00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "STALEXP.WA",
+    "doel": "STX.WA",
+    "isin": "PLSTLEX00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLEX00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "STALPROD.WA",
+    "doel": "STP.WA",
+    "isin": "PLSTLPD00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLPD00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "STALPROFI.WA",
+    "doel": "STF.WA",
+    "isin": "PLSTLPF00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTLPF00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "STAPORKOW.WA",
+    "doel": "ZUK.WA",
+    "isin": "PLSTPRK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSTPRK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "STARHEDGE.WA",
+    "doel": "SHG.WA",
+    "isin": "PLHRDEX00021",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHRDEX00021",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SUNEX.WA",
+    "doel": "SNX.WA",
+    "isin": "PLSUNEX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSUNEX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SYGNITY.WA",
+    "doel": "SGN.WA",
+    "isin": "PLCMPLD00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLCMPLD00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SYN2BIO.WA",
+    "doel": "S2B.WA",
+    "isin": "PLSNBIO00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNBIO00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "SYNEKTIK.WA",
+    "doel": "SNT.WA",
+    "isin": "PLSNKTK00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLSNKTK00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TALEX.WA",
+    "doel": "TLX.WA",
+    "isin": "PLTALEX00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTALEX00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TARCZYNSKI.WA",
+    "doel": "TAR.WA",
+    "isin": "PLTRCZN00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRCZN00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TAURONPE.WA",
+    "doel": "TPE.WA",
+    "isin": "PLTAURN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTAURN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TBULL.WA",
+    "doel": "TBL.WA",
+    "isin": "PLTBULL00024",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTBULL00024",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TENDERHUT.WA",
+    "doel": "THG.WA",
+    "isin": "PLTNDRH00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTNDRH00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TERMOREX.WA",
+    "doel": "TRR.WA",
+    "isin": "PLTRMRX00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRMRX00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TESGAS.WA",
+    "doel": "TSG.WA",
+    "isin": "PLTSGS000019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTSGS000019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TEXT.WA",
+    "doel": "TXT.WA",
+    "isin": "PLLVTSF00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLLVTSF00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TORPOL.WA",
+    "doel": "TOR.WA",
+    "isin": "PLTORPL00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTORPL00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TOWERINVT.WA",
+    "doel": "TOW.WA",
+    "isin": "PLTWRNV00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTWRNV00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TOYA.WA",
+    "doel": "TOA.WA",
+    "isin": "PLTOYA000011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTOYA000011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TRAKCJA.WA",
+    "doel": "TRK.WA",
+    "isin": "PLTRKPL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRKPL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TRANSPOL.WA",
+    "doel": "TRN.WA",
+    "isin": "PLTRNSP00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTRNSP00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TRITON.WA",
+    "doel": "TRI.WA",
+    "isin": "PLASMOT00030",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLASMOT00030",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "TSGAMES.WA",
+    "doel": "TEN.WA",
+    "isin": "PLTSQGM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLTSQGM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ULMA.WA",
+    "doel": "ULM.WA",
+    "isin": "PLBAUMA00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLBAUMA00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ULTGAMES.WA",
+    "doel": "ULG.WA",
+    "isin": "PLULTGM00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLULTGM00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "UNFOLD.WA",
+    "doel": "UNF.WA",
+    "isin": "PLVNTIN00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNTIN00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "UNIBEP.WA",
+    "doel": "UNI.WA",
+    "isin": "PLUNBEP00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNBEP00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "UNIMOT.WA",
+    "doel": "UNT.WA",
+    "isin": "PLUNMOT00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNMOT00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "URTESTE.WA",
+    "doel": "URT.WA",
+    "isin": "PLURTST00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLURTST00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VERCOM.WA",
+    "doel": "VRC.WA",
+    "isin": "PLVRCM000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVRCM000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VIGOPHOTN.WA",
+    "doel": "VGO.WA",
+    "isin": "PLVIGOS00015",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVIGOS00015",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VINDEXUS.WA",
+    "doel": "VIN.WA",
+    "isin": "PLVNDEX00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVNDEX00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VIRTUS.WA",
+    "doel": "GVT.WA",
+    "isin": "PLIQPRT00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLIQPRT00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VIVID.WA",
+    "doel": "VVD.WA",
+    "isin": "PLVVDGM00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVVDGM00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VOTUM.WA",
+    "doel": "VOT.WA",
+    "isin": "PLVOTUM00016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVOTUM00016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "VOXEL.WA",
+    "doel": "VOX.WA",
+    "isin": "PLVOXEL00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLVOXEL00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WASKO.WA",
+    "doel": "WAS.WA",
+    "isin": "PLHOGA000041",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLHOGA000041",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WAWEL.WA",
+    "doel": "WWL.WA",
+    "isin": "PLWAWEL00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWAWEL00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WIELTON.WA",
+    "doel": "WLT.WA",
+    "isin": "PLWELTN00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWELTN00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WIKANA.WA",
+    "doel": "WIK.WA",
+    "isin": "PLELPO000016",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLELPO000016",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WIRTUALNA.WA",
+    "doel": "WPL.WA",
+    "isin": "PLWRTPL00027",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWRTPL00027",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WITTCHEN.WA",
+    "doel": "WTN.WA",
+    "isin": "PLWTCHN00030",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWTCHN00030",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "WOODPCKR.WA",
+    "doel": "WPR.WA",
+    "isin": "PLWDPCK00017",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLWDPCK00017",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "XPLUS.WA",
+    "doel": "XPL.WA",
+    "isin": "PLXPLUS00013",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLXPLUS00013",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "XTPL.WA",
+    "doel": "XTP.WA",
+    "isin": "PLXTPL000018",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLXTPL000018",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "YANOSIK.WA",
+    "doel": "YAN.WA",
+    "isin": "PLNEPTS00011",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLNEPTS00011",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "YARRL.WA",
+    "doel": "YRL.WA",
+    "isin": "PLUNMST00014",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLUNMST00014",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ZAMET.WA",
+    "doel": "ZMT.WA",
+    "isin": "PLZAMET00010",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZAMET00010",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ZEPAK.WA",
+    "doel": "ZEP.WA",
+    "isin": "PLZEPAK00012",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZEPAK00012",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "051",
+    "bron": "ZREMB.WA",
+    "doel": "ZRE.WA",
+    "isin": "PLZBMZC00019",
+    "bron_url": "https://www.gpw.pl/spolka?isin=PLZBMZC00019",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "GLASTON.HE",
+    "doel": "GLA1V.HE",
+    "isin": "FI4000587340",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b66d676dd34c492ca2f58b3bc2555cb0e&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "KCR1V.HE",
+    "doel": "KCR.HE",
+    "isin": "FI0009005870",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b4cb824e10b4d2bd096e3fd4b26e5c267&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "KONE.HE",
+    "doel": "KNEBV.HE",
+    "isin": "FI0009013403",
+    "bron_url": "https://www.kone.com/en/Images/KONE_Annual%20Review_2025_tcm17-141619.pdf",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "TELIA.HE",
+    "doel": "TELIA1.HE",
+    "isin": "SE0000667925",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=b040a5f40fb38be8470bdccc1691e40c5&lang=en",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "VAISALA.HE",
+    "doel": "VAIAS.HE",
+    "isin": "FI0009900682",
+    "bron_url": "https://www.vaisala.com/en/investors/shares-and-shareholders",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "041",
+    "bron": "CFE.BR",
+    "doel": "CFEB.BR",
+    "isin": "BE0003883031",
+    "bron_url": "https://live.euronext.com/fr/markets/brussels/equities/euronext/list",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "041",
+    "bron": "CELY.BR",
+    "doel": "CYAD.BR",
+    "isin": "BE0974260896",
+    "bron_url": "https://live.euronext.com/fr/markets/brussels/equities/euronext/list",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "041",
+    "bron": "NBB.BR",
+    "doel": "BNB.BR",
+    "isin": "BE0003008019",
+    "bron_url": "https://live.euronext.com/fr/markets/brussels/equities/euronext/list",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "EXL1V.HE",
+    "doel": "EXEL.HE",
+    "isin": "FI4000602172",
+    "bron_url": "https://view.news.eu.nasdaq.com/view?id=bc7a599da6bd88fda7c62589793b19512&lang=en&src=listed",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "PONSSE.HE",
+    "doel": "PON1V.HE",
+    "isin": "FI0009005078",
+    "bron_url": "https://www.ponsse.com/pt/empresa/lancamentos/a_p/P4s3zYhpxHUQ/c/-bonus-issue-of-ponsse-oyj",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "054",
+    "bron": "TAALER.HE",
+    "doel": "TAALA.HE",
+    "isin": "FI4000062195",
+    "bron_url": "https://taaleri.com/share/managers-transactions/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "AGRANA.VI",
+    "doel": "AGR.VI",
+    "isin": "AT000AGRANA3",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/agrana-beteiligungs-ag-AT000AGRANA3/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "ACARD.VI",
+    "doel": "ACAG.VI",
+    "isin": "AT0000A325L0",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/austriacard-holdings-ag-AT0000A325L0/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "BAJAJ.VI",
+    "doel": "BMAG.VI",
+    "isin": "AT0000KTMI02",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/bajaj-mobility-ag-AT0000KTMI02/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "BAWAG.VI",
+    "doel": "BG.VI",
+    "isin": "AT0000BAWAG2",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/bawag-group-ag-AT0000BAWAG2/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "DOCO.VI",
+    "doel": "DOC.VI",
+    "isin": "AT0000818802",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/do-co-aktiengesellschaft-AT0000818802/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "FREQ.VI",
+    "doel": "FQT.VI",
+    "isin": "ATFREQUENT09",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/frequentis-ag-ATFREQUENT09/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "KTC.VI",
+    "doel": "KTCG.VI",
+    "isin": "AT000KAPSCH9",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/kapsch-trafficcom-ag-AT000KAPSCH9/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "LENZ.VI",
+    "doel": "LNZ.VI",
+    "isin": "AT0000644505",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/lenzing-ag-AT0000644505/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "PLT.VI",
+    "doel": "PYT.VI",
+    "isin": "AT0000A00XX9",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/polytec-holding-ag-AT0000A00XX9/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "PORR.VI",
+    "doel": "POS.VI",
+    "isin": "AT0000609607",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/porr-ag-AT0000609607/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "SEMP.VI",
+    "doel": "SEM.VI",
+    "isin": "AT0000785555",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/semperit-ag-holding-AT0000785555/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "UBM.VI",
+    "doel": "UBS.VI",
+    "isin": "AT0000815402",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/ubm-development-ag-AT0000815402/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "ZUM.VI",
+    "doel": "ZAG.VI",
+    "isin": "AT0000837307",
+    "bron_url": "https://www.wienerborse.at/en/stock-prime-market/zumtobel-group-ag-AT0000837307/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "WFX.VI",
+    "doel": "WXF.VI",
+    "isin": "AT0000827209",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/warimpex-finanz-und-bet-ag-AT0000827209/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "ADDIKO.VI",
+    "doel": "ADKO.VI",
+    "isin": "AT000ADDIKO0",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/addiko-bank-ag-AT000ADDIKO0/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "BTV.VI",
+    "doel": "BTS.VI",
+    "isin": "AT0000625504",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/btv-vier-laender-bank-ag-AT0000625504/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "BGH.VI",
+    "doel": "BHD.VI",
+    "isin": "AT0000640552",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/burgenland-holding-ag-AT0000640552/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "FRAU.VI",
+    "doel": "FKA.VI",
+    "isin": "AT0000762406",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/frauenthal-holding-ag-AT0000762406/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "HEID.VI",
+    "doel": "HED.VI",
+    "isin": "AT0000690151",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/maschinenfabrik-heid-ag-AT0000690151/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "RATH.VI",
+    "doel": "RAT.VI",
+    "isin": "AT0000767306",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/rath-ag-AT0000767306/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "STAM.VI",
+    "doel": "STM.VI",
+    "isin": "AT0000797303",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/stadlauer-malzfabrik-ag-AT0000797303/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "ATHOS.VI",
+    "doel": "ATH.VI",
+    "isin": "AT0000616701",
+    "bron_url": "https://www.wienerborse.at/en/stock-direct-market-plus/athos-immobilien-ag-AT0000616701/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "EMH.VI",
+    "doel": "SMRX.VI",
+    "isin": "AT0000A3UZE1",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/emerald-horizon-ag-AT0000A3UZE1/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "SWU.VI",
+    "doel": "SWUT.VI",
+    "isin": "AT0000808209",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/sw-umwelttechnik-ag-AT0000808209/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "REPLOID.VI",
+    "doel": "HRX5.VI",
+    "isin": "AT0000A3HRX5",
+    "bron_url": "https://www.wienerborse.at/en/stock-direct-market-plus/reploid-group-ag-AT0000A3HRX5/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "RWTRACE.VI",
+    "doel": "RWT.VI",
+    "isin": "AT00RWTRACE1",
+    "bron_url": "https://www.wienerborse.at/en/stock-direct-market-plus/rwt-ag-AT00RWTRACE1/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "MARIN.VI",
+    "doel": "MARI.VI",
+    "isin": "ATMARINOMED6",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/marinomed-biotech-ag-ATMARINOMED6/company-profile/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "OBER.VI",
+    "doel": "OBS.VI",
+    "isin": "AT0000625108",
+    "bron_url": "https://www.wienerborse.at/en/stock-standard-market/oberbank-ag-AT0000625108/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "STEYR.VI",
+    "doel": "4X0.VI",
+    "isin": "AT0000A3FW25",
+    "bron_url": "https://www.wienerborse.at/en/stock-direct-market-plus/steyr-motors-ag-AT0000A3FW25/",
+    "gecontroleerd_op": "2026-11-15"
+  },
+  {
+    "lijstcode": "059",
+    "bron": "STYRMOT.VI",
+    "doel": "4X0.VI",
+    "isin": "AT0000A3FW25",
+    "bron_url": "https://www.wienerborse.at/en/stock-direct-market-plus/steyr-motors-ag-AT0000A3FW25/",
+    "gecontroleerd_op": "2026-11-15"
+  }
+]

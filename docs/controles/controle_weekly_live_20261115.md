@@ -36,13 +36,13 @@ De laatste twee categorieën mogen niet als bewezen verkeerde bronsymbolen worde
 
 De bronlijst gebruikt veel GPW-weergavenamen met `.WA`, terwijl Yahoo de handelscode nodig heeft. Voorbeeld: `CDPROJEKT.WA` wordt `CDR.WA`. De [issuerinformatie van CD PROJEKT](https://www.cdprojekt.com/en/investors/basic-data/) bevestigt CDR/CDR.WA.
 
-Controleprocedure: de [volledige officiële GPW-bedrijvenlijst](https://www.gpw.pl/spolki?offset=0&limit=500) levert het ISIN en de handelscode. Op de bijbehorende bedrijfskaart worden de verkorte weergavenaam, hetzelfde ISIN en de handelscode gecontroleerd. Alleen een exacte overeenkomst met een bestaande broninvoer krijgt een alias. Geen fuzzy matching en geen automatische koppeling naar een Amerikaanse of andere buitenlandse notering. Het register `weekly/symbols.csv` bewaart het bewijs per koppeling.
+Controleprocedure: de [volledige officiële GPW-bedrijvenlijst](https://www.gpw.pl/spolki?offset=0&limit=500) levert het ISIN en de handelscode. Op de bijbehorende bedrijfskaart worden de verkorte weergavenaam, hetzelfde ISIN en de handelscode gecontroleerd. Alleen een exacte overeenkomst met een bestaande broninvoer krijgt een alias. Geen fuzzy matching en geen automatische koppeling naar een Amerikaanse of andere buitenlandse notering. Het register `weekly/symbols.json` bewaart het bewijs per koppeling.
 
 Een ontbrekende exacte match is geen bewijs van delisting. Die broninvoer blijft staan en blijft meetellen bij de dekkingsnorm. De audit-CSV naast dit document maakt het onderscheid zichtbaar.
 
 Alle 402 bedrijfskaarten uit de GPW-lijst zijn opgehaald en gecontroleerd, zonder ontbrekende of inconsistente identiteit. Van de 361 a-bronsymbolen krijgen 329 een geverifieerde handelscode; 25 waren al correct en zeven hebben geen exacte actuele GPW-match: CAPITAL.WA, FMG.WA, IBSM.WA, LESS.WA, PGFGROUP.WA, PURE.WA en SHOPER.WA. Deze zeven worden niet verwijderd. Alle 29 x-symbolen komen overeen met actuele GPW-handelscodes. De noemer van Warschau blijft 361; er is geen dekking gewonnen door moeilijke symbolen weg te laten.
 
-De [audit-CSV](weekly_symbolen_20261115.csv) bevat 590 oorspronkelijke a/x-invoerregels voor beide beurzen, met de weekly-code en identificatiestatus. Dit is een **identiteitsaudit**, geen CSV met gemeten weekkoersdekking. Het runtime-register bevat 329 Warschau- en vijf Helsinki-koppelingen. Helsinki-a gaat van 188 bronregels naar 187 unieke noteringen doordat KONE.HE en de reeds aanwezige KNEBV.HE hetzelfde beursgenoteerde B-aandeel betreffen.
+De [audit-JSON](weekly_symbolen_20261115.json) bevat 590 oorspronkelijke a/x-invoerregels voor beide beurzen, met de weekly-code en identificatiestatus. Dit is een **identiteitsaudit**, geen rapport met gemeten weekkoersdekking. Het runtime-register bevat 329 Warschau- en vijf Helsinki-koppelingen. Helsinki-a gaat van 188 bronregels naar 187 unieke noteringen doordat KONE.HE en de reeds aanwezige KNEBV.HE hetzelfde beursgenoteerde B-aandeel betreffen.
 
 ## Bronsymbolen Helsinki
 

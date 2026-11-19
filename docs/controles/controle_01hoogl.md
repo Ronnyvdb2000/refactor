@@ -128,3 +128,16 @@ Eerder aangeleverde wekelijkse full-run: 05:34–08:24 UTC, circa 2 uur 50 minut
 Telegram uit, geen uitvoeringsfouten en één rate-limitpauze van vijf minuten.
 Ook de volledige run is technisch geslaagd met databeperkingen. Dit zijn geen
 validatie van de strategie of onafhankelijke verificatie van Yahoo-fundamentals.
+
+
+## Begrensde Yahoo-herpoging — 19 november 2026
+
+De oude regeling van zes pauzes van vijf minuten is vervangen. Bij een
+rate-limitmelding probeert de scanner dezelfde ticker één keer opnieuw na
+60 seconden, in slaapstappen van maximaal 30 seconden. Ook uitsluitend
+gelogde Yahoo-429's gelden als beperking. Bij een tweede beperking stopt de
+scan nieuwe bronaanvragen en meldt hij de overgeslagen tickers; reeds
+gecachete resultaten en databasebevestigingen blijven in de rapportage staan.
+Telegram en e-mail blijven behouden. Andere fouten worden niet herhaald.
+Een geslaagde herpoging laat de scan doorgaan met de volledige invoerlijsten.
+Live dekking en doorlooptijd zijn nog niet opnieuw vastgesteld.

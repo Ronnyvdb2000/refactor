@@ -1,0 +1,3348 @@
+[
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "8GW.I",
+    "weekly_code": "8GW.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "A5G.I",
+    "weekly_code": "A5G.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AALB.AS",
+    "weekly_code": "AALB.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ABI.BR",
+    "weekly_code": "ABI.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ABLX.BR",
+    "weekly_code": "ABLX.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ABN.AS",
+    "weekly_code": "ABN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ABO.BR",
+    "weekly_code": "ABO.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ACKB.BR",
+    "weekly_code": "ACKB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ACOMO.AS",
+    "weekly_code": "ACOMO.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AD.AS",
+    "weekly_code": "AD.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ADYEN.AS",
+    "weekly_code": "ADYEN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AED.BR",
+    "weekly_code": "AED.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AGN.AS",
+    "weekly_code": "AGN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AGS.BR",
+    "weekly_code": "AGS.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AJAX.AS",
+    "weekly_code": "AJAX.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AKZA.AS",
+    "weekly_code": "AKZA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ALBERT.BR",
+    "weekly_code": "ALBERT.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ALFEN.AS",
+    "weekly_code": "ALFEN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ALLFG.AS",
+    "weekly_code": "ALLFG.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ALX.AS",
+    "weekly_code": "ALX.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AMG.AS",
+    "weekly_code": "AMG.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "APAM.AS",
+    "weekly_code": "APAM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ARCAD.AS",
+    "weekly_code": "ARCAD.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ARGX.BR",
+    "weekly_code": "ARGX.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ASM.AS",
+    "weekly_code": "ASM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ASML.AS",
+    "weekly_code": "ASML.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ASRNL.AS",
+    "weekly_code": "ASRNL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ATC.BR",
+    "weekly_code": "ATC.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ATEB.BR",
+    "weekly_code": "ATEB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AVTX.AS",
+    "weekly_code": "AVTX.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AXS.AS",
+    "weekly_code": "AXS.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "AZRN.AS",
+    "weekly_code": "AZRN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BALTA.BR",
+    "weekly_code": "BALTA.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BAMNB.AS",
+    "weekly_code": "BAMNB.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BEKB.BR",
+    "weekly_code": "BEKB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BESI.AS",
+    "weekly_code": "BESI.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BEVER.AS",
+    "weekly_code": "BEVER.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BFIT.AS",
+    "weekly_code": "BFIT.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BIL.LU",
+    "weekly_code": "BIL.LU",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BIRG.I",
+    "weekly_code": "BIRG.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BPOST.BR",
+    "weekly_code": "BPOST.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BREB.BR",
+    "weekly_code": "BREB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BRNL.AS",
+    "weekly_code": "BRNL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "BSGR.AS",
+    "weekly_code": "BSGR.AS",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "C5H.I",
+    "weekly_code": "C5H.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CABLE.AS",
+    "weekly_code": "CABLE.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CELY.BR",
+    "weekly_code": "CYAD.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CFE.BR",
+    "weekly_code": "CFEB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CMBT.BR",
+    "weekly_code": "CMBT.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CMCOM.AS",
+    "weekly_code": "CMCOM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "COLR.BR",
+    "weekly_code": "COLR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CRBN.AS",
+    "weekly_code": "CRBN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "CTAC.AS",
+    "weekly_code": "CTAC.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "DECB.BR",
+    "weekly_code": "DECB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "DEME.BR",
+    "weekly_code": "DEME.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "DIE.BR",
+    "weekly_code": "DIE.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "DQ7A.I",
+    "weekly_code": "DQ7A.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "EBUS.AS",
+    "weekly_code": "EBUS.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ECMPA.AS",
+    "weekly_code": "ECMPA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ECS.BR",
+    "weekly_code": "ECS.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "EG7.I",
+    "weekly_code": "EG7.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ELI.BR",
+    "weekly_code": "ELI.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ENGB.BR",
+    "weekly_code": "ENGB.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ENVI.AS",
+    "weekly_code": "ENVI.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "EURN.BR",
+    "weekly_code": "EURN.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "EVS.BR",
+    "weekly_code": "EVS.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FAGR.BR",
+    "weekly_code": "FAGR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FAST.AS",
+    "weekly_code": "FAST.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FERGR.AS",
+    "weekly_code": "FERGR.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FERR.LU",
+    "weekly_code": "FERR.LU",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FFARM.AS",
+    "weekly_code": "FFARM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FLOW.AS",
+    "weekly_code": "FLOW.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FLUX.BR",
+    "weekly_code": "FLUX.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "FUR.AS",
+    "weekly_code": "FUR.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GBLB.BR",
+    "weekly_code": "GBLB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GIMB.BR",
+    "weekly_code": "GIMB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GL9.I",
+    "weekly_code": "GL9.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GLPG.AS",
+    "weekly_code": "GLPG.AS",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GLPG.BR",
+    "weekly_code": "GLPG.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GNE.BR",
+    "weekly_code": "GNE.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GREEN.BR",
+    "weekly_code": "GREEN.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GRP.I",
+    "weekly_code": "GRP.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "GVR.I",
+    "weekly_code": "GVR.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "HAL.AS",
+    "weekly_code": "HAL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "HEIA.AS",
+    "weekly_code": "HEIA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "HEIJM.AS",
+    "weekly_code": "HEIJM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "HEIO.AS",
+    "weekly_code": "HEIO.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "HYDRA.AS",
+    "weekly_code": "HYDRA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "IBAB.BR",
+    "weekly_code": "IBAB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "IMCD.AS",
+    "weekly_code": "IMCD.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "IMMO.BR",
+    "weekly_code": "IMMO.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "INGA.AS",
+    "weekly_code": "INGA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "INTO.BR",
+    "weekly_code": "INTO.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "IR5B.I",
+    "weekly_code": "IR5B.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "IRES.I",
+    "weekly_code": "IRES.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "JDEP.AS",
+    "weekly_code": "JDEP.AS",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "JEN.BR",
+    "weekly_code": "JEN.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KBC.BR",
+    "weekly_code": "KBC.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KENDR.AS",
+    "weekly_code": "KENDR.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KINE.BR",
+    "weekly_code": "KINE.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KMR.I",
+    "weekly_code": "KMR.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KPN.AS",
+    "weekly_code": "KPN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KRX.I",
+    "weekly_code": "KRX.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "KRZ.I",
+    "weekly_code": "KRZ.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "LIGHT.AS",
+    "weekly_code": "LIGHT.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "LOTB.BR",
+    "weekly_code": "LOTB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "LUX.BR",
+    "weekly_code": "LUX.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "LUXEMPART.LU",
+    "weekly_code": "LUXEMPART.LU",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MDXH.BR",
+    "weekly_code": "MDXH.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MELE.BR",
+    "weekly_code": "MELE.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MIO.I",
+    "weekly_code": "MIO.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MLC.I",
+    "weekly_code": "MLC.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MONT.BR",
+    "weekly_code": "MONT.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MONTE.BR",
+    "weekly_code": "MONTE.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MORE.AS",
+    "weekly_code": "MORE.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MT.AS",
+    "weekly_code": "MT.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "MTRK.AS",
+    "weekly_code": "MTRK.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NAI.AS",
+    "weekly_code": "NAI.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NBB.BR",
+    "weekly_code": "BNB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NEDAP.AS",
+    "weekly_code": "NEDAP.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NEDSE.AS",
+    "weekly_code": "NEDSE.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NN.AS",
+    "weekly_code": "NN.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NRP.AS",
+    "weekly_code": "NRP.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NSI.AS",
+    "weekly_code": "NSI.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NXFIL.AS",
+    "weekly_code": "NXFIL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "NYR.BR",
+    "weekly_code": "NYR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "OBEL.BR",
+    "weekly_code": "OBEL.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "OCI.AS",
+    "weekly_code": "OCI.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "OIZ.I",
+    "weekly_code": "OIZ.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ONTEX.BR",
+    "weekly_code": "ONTEX.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ONWD.BR",
+    "weekly_code": "ONWD.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "OPTI.BR",
+    "weekly_code": "OPTI.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ORP.BR",
+    "weekly_code": "ORP.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "OXUR.BR",
+    "weekly_code": "OXUR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PAY.BR",
+    "weekly_code": "PAY.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PHARM.AS",
+    "weekly_code": "PHARM.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PHIA.AS",
+    "weekly_code": "PHIA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PNL.AS",
+    "weekly_code": "PNL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PORF.AS",
+    "weekly_code": "PORF.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PROX.BR",
+    "weekly_code": "PROX.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "PTSB.I",
+    "weekly_code": "PTSB.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "QEV.AS",
+    "weekly_code": "QEV.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "QRF.BR",
+    "weekly_code": "QRF.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RAND.AS",
+    "weekly_code": "RAND.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RECT.BR",
+    "weekly_code": "RECT.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RET.BR",
+    "weekly_code": "RET.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RETI.BR",
+    "weekly_code": "RETI.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ROBT.BR",
+    "weekly_code": "ROBT.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RTL.LU",
+    "weekly_code": "RTL.LU",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "RYA.I",
+    "weekly_code": "RYA.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SAB.BR",
+    "weekly_code": "SAB.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SBMO.AS",
+    "weekly_code": "SBMO.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SESG.LU",
+    "weekly_code": "SESG.LU",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SGB.BR",
+    "weekly_code": "SGB.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SHELL.AS",
+    "weekly_code": "SHELL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SHUR.BR",
+    "weekly_code": "SHUR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SIFG.AS",
+    "weekly_code": "SIFG.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SIOE.BR",
+    "weekly_code": "SIOE.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SIOEN.BR",
+    "weekly_code": "SIOEN.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SIP.BR",
+    "weekly_code": "SIP.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SLIGR.AS",
+    "weekly_code": "SLIGR.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SOF.BR",
+    "weekly_code": "SOF.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SOFIB.BR",
+    "weekly_code": "SOFIB.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SOLB.BR",
+    "weekly_code": "SOLB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SPG.BR",
+    "weekly_code": "SPG.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "SYENS.BR",
+    "weekly_code": "SYENS.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TESB.BR",
+    "weekly_code": "TESB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TEXF.BR",
+    "weekly_code": "TEXF.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "THEON.AS",
+    "weekly_code": "THEON.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TINC.BR",
+    "weekly_code": "TINC.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TOM2.AS",
+    "weekly_code": "TOM2.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TRIO.AS",
+    "weekly_code": "TRIO.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TUB.BR",
+    "weekly_code": "TUB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "TWEKA.AS",
+    "weekly_code": "TWEKA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "UCB.BR",
+    "weekly_code": "UCB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "UCM.BR",
+    "weekly_code": "UCM.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "UNA.AS",
+    "weekly_code": "UNA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "UPR.I",
+    "weekly_code": "UPR.IR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VAC.BR",
+    "weekly_code": "VAC.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VALUE.AS",
+    "weekly_code": "VALUE.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VASTB.BR",
+    "weekly_code": "VASTB.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VGP.BR",
+    "weekly_code": "VGP.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VLK.AS",
+    "weekly_code": "VLK.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VPK.AS",
+    "weekly_code": "VPK.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VPK.BR",
+    "weekly_code": "VPK.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "VVY.AS",
+    "weekly_code": "VVY.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "WAV.BR",
+    "weekly_code": "WAV.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "WAVE.BR",
+    "weekly_code": "WAVE.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "WDP.BR",
+    "weekly_code": "WDP.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "WHA.AS",
+    "weekly_code": "WHA.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "WKL.AS",
+    "weekly_code": "WKL.AS",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "XIOR.BR",
+    "weekly_code": "XIOR.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ZEN.BR",
+    "weekly_code": "ZEN.BR",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_041a.txt",
+    "bron": "ZIL.BR",
+    "weekly_code": "ZIL.BR",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AALLON.HE",
+    "weekly_code": "AALLON.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ABITI.HE",
+    "weekly_code": "ABITI.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ACG1V.HE",
+    "weekly_code": "ACG1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ADFEN.HE",
+    "weekly_code": "ADFEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ADMCM.HE",
+    "weekly_code": "ADMCM.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AFAGR.HE",
+    "weekly_code": "AFAGR.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AFRNT.HE",
+    "weekly_code": "AFRNT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AKTIA.HE",
+    "weekly_code": "AKTIA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALBAV.HE",
+    "weekly_code": "ALBAV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALBBV.HE",
+    "weekly_code": "ALBBV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALEX.HE",
+    "weekly_code": "ALEX.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALMA.HE",
+    "weekly_code": "ALMA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ALMA2.HE",
+    "weekly_code": "ALMA2.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "AMER.HE",
+    "weekly_code": "AMER.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ANORA.HE",
+    "weekly_code": "ANORA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "APETIT.HE",
+    "weekly_code": "APETIT.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ARTE.HE",
+    "weekly_code": "ARTE.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ASK.HE",
+    "weekly_code": "ASK.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ASPO.HE",
+    "weekly_code": "ASPO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ATEA.HE",
+    "weekly_code": "ATEA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ATRAV.HE",
+    "weekly_code": "ATRAV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BIOION.HE",
+    "weekly_code": "BIOION.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BITTI.HE",
+    "weekly_code": "BITTI.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BLC.HE",
+    "weekly_code": "BLC.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BOR.HE",
+    "weekly_code": "BOR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BOREO.HE",
+    "weekly_code": "BOREO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "BRIGHT.HE",
+    "weekly_code": "BRIGHT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CAPMAN.HE",
+    "weekly_code": "CAPMAN.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CRAMO.HE",
+    "weekly_code": "CRAMO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CRE.HE",
+    "weekly_code": "CRE.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "CTY1S.HE",
+    "weekly_code": "CTY1S.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DETEC.HE",
+    "weekly_code": "DETEC.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DIGIA.HE",
+    "weekly_code": "DIGIA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "DIGITAL.HE",
+    "weekly_code": "DIGITAL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EAB.HE",
+    "weekly_code": "EAB.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ELEC.HE",
+    "weekly_code": "ELEC.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ELISA.HE",
+    "weekly_code": "ELISA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EMCE.HE",
+    "weekly_code": "EMCE.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ENENTO.HE",
+    "weekly_code": "ENENTO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EQV1V.HE",
+    "weekly_code": "EQV1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ESET.HE",
+    "weekly_code": "ESET.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EXC.HE",
+    "weekly_code": "EXC.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "EXL1V.HE",
+    "weekly_code": "EXEL.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FAL.HE",
+    "weekly_code": "FAL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FCR1V.HE",
+    "weekly_code": "FCR1V.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FEN.HE",
+    "weekly_code": "FEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FIN.HE",
+    "weekly_code": "FIN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FNT.HE",
+    "weekly_code": "FNT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FORTUM.HE",
+    "weekly_code": "FORTUM.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FSE.HE",
+    "weekly_code": "FSE.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "FSKRS.HE",
+    "weekly_code": "FSKRS.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GAA.HE",
+    "weekly_code": "GAA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GDL.HE",
+    "weekly_code": "GDL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GLAS.HE",
+    "weekly_code": "GLAS.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "GLASTON.HE",
+    "weekly_code": "GLA1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HARVIA.HE",
+    "weekly_code": "HARVIA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HLTH.HE",
+    "weekly_code": "HLTH.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HON.HE",
+    "weekly_code": "HON.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HUH1V.HE",
+    "weekly_code": "HUH1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "HURA.HE",
+    "weekly_code": "HURA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ILK.HE",
+    "weekly_code": "ILK.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ILONA.HE",
+    "weekly_code": "ILONA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "INVENT.HE",
+    "weekly_code": "INVENT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "INVEST.HE",
+    "weekly_code": "INVEST.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KAIS.HE",
+    "weekly_code": "KAIS.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KAMUX.HE",
+    "weekly_code": "KAMUX.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KCR1V.HE",
+    "weekly_code": "KCR.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KEM.HE",
+    "weekly_code": "KEM.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KEMIRA.HE",
+    "weekly_code": "KEMIRA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KESKOA.HE",
+    "weekly_code": "KESKOA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KESKOB.HE",
+    "weekly_code": "KESKOB.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KNEBV.HE",
+    "weekly_code": "KNEBV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KONE.HE",
+    "weekly_code": "KNEBV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KOPP.HE",
+    "weekly_code": "KOPP.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KOR.HE",
+    "weekly_code": "KOR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "KREATE.HE",
+    "weekly_code": "KREATE.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LAUR.HE",
+    "weekly_code": "LAUR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LIND.HE",
+    "weekly_code": "LIND.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LOY.HE",
+    "weekly_code": "LOY.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "LUO.HE",
+    "weekly_code": "LUO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MAG.HE",
+    "weekly_code": "MAG.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MANTA.HE",
+    "weekly_code": "MANTA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MARME.HE",
+    "weekly_code": "MARME.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MB.HE",
+    "weekly_code": "MB.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MED.HE",
+    "weekly_code": "MED.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MEKKO.HE",
+    "weekly_code": "MEKKO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MEN.HE",
+    "weekly_code": "MEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MER.HE",
+    "weekly_code": "MER.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSA.HE",
+    "weekly_code": "METSA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSB.HE",
+    "weekly_code": "METSB.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "METSO.HE",
+    "weekly_code": "METSO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MIPS.HE",
+    "weekly_code": "MIPS.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MM.HE",
+    "weekly_code": "MM.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "MUSTI.HE",
+    "weekly_code": "MUSTI.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NDA-FI.HE",
+    "weekly_code": "NDA-FI.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NESTE.HE",
+    "weekly_code": "NESTE.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NEX.HE",
+    "weekly_code": "NEX.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NNO.HE",
+    "weekly_code": "NNO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NOKIA.HE",
+    "weekly_code": "NOKIA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NORD.HE",
+    "weekly_code": "NORD.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NORMA.HE",
+    "weekly_code": "NORMA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "NOV.HE",
+    "weekly_code": "NOV.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OLVAS.HE",
+    "weekly_code": "OLVAS.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OMA.HE",
+    "weekly_code": "OMA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ORNAV.HE",
+    "weekly_code": "ORNAV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ORNBV.HE",
+    "weekly_code": "ORNBV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OUT1V.HE",
+    "weekly_code": "OUT1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "OYJ.HE",
+    "weekly_code": "OYJ.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PAN.HE",
+    "weekly_code": "PAN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PAR.HE",
+    "weekly_code": "PAR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PART.HE",
+    "weekly_code": "PART.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PEL.HE",
+    "weekly_code": "PEL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PEN.HE",
+    "weekly_code": "PEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PONSSE.HE",
+    "weekly_code": "PON1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PRO.HE",
+    "weekly_code": "PRO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PUUILO.HE",
+    "weekly_code": "PUUILO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "PYH.HE",
+    "weekly_code": "PYH.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "QPR1V.HE",
+    "weekly_code": "QPR1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "QTCOM.HE",
+    "weekly_code": "QTCOM.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RAISIO.HE",
+    "weekly_code": "RAISIO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RAIVV.HE",
+    "weekly_code": "RAIVV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REGI.HE",
+    "weekly_code": "REGI.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REL.HE",
+    "weekly_code": "REL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REMEDY.HE",
+    "weekly_code": "REMEDY.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "REV.HE",
+    "weekly_code": "REV.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "RMP.HE",
+    "weekly_code": "RMP.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ROVIO.HE",
+    "weekly_code": "ROVIO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAF.HE",
+    "weekly_code": "SAF.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAFH.HE",
+    "weekly_code": "SAFH.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAL.HE",
+    "weekly_code": "SAL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAMPO.HE",
+    "weekly_code": "SAMPO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAN.HE",
+    "weekly_code": "SAN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SANOMA.HE",
+    "weekly_code": "SANOMA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SAV.HE",
+    "weekly_code": "SAV.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SEN.HE",
+    "weekly_code": "SEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SER.HE",
+    "weekly_code": "SER.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SIILI.HE",
+    "weekly_code": "SIILI.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SIL.HE",
+    "weekly_code": "SIL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SITOWS.HE",
+    "weekly_code": "SITOWS.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SKJ1V.HE",
+    "weekly_code": "SKJ1V.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SOK.HE",
+    "weekly_code": "SOK.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SOL.HE",
+    "weekly_code": "SOL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SON.HE",
+    "weekly_code": "SON.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SPO.HE",
+    "weekly_code": "SPO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SPT.HE",
+    "weekly_code": "SPT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SRV1V.HE",
+    "weekly_code": "SRV1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SSH1V.HE",
+    "weekly_code": "SSH1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SST.HE",
+    "weekly_code": "SST.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STERV.HE",
+    "weekly_code": "STERV.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STH.HE",
+    "weekly_code": "STH.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STORV.HE",
+    "weekly_code": "STORV.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STP.HE",
+    "weekly_code": "STP.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "STR.HE",
+    "weekly_code": "STR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SUL.HE",
+    "weekly_code": "SUL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SUY1V.HE",
+    "weekly_code": "SUY1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "SWM.HE",
+    "weekly_code": "SWM.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TAALER.HE",
+    "weekly_code": "TAALA.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TALLC.HE",
+    "weekly_code": "TALLC.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TAO.HE",
+    "weekly_code": "TAO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TEKIL.HE",
+    "weekly_code": "TEKIL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELA.HE",
+    "weekly_code": "TELA.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELC.HE",
+    "weekly_code": "TELC.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TELIA.HE",
+    "weekly_code": "TELIA1.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TEN.HE",
+    "weekly_code": "TEN.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TERV.HE",
+    "weekly_code": "TERV.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TIETO.HE",
+    "weekly_code": "TIETO.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TOKMAN.HE",
+    "weekly_code": "TOKMAN.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TUL.HE",
+    "weekly_code": "TUL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "TYRES.HE",
+    "weekly_code": "TYRES.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "UBG.HE",
+    "weekly_code": "UBG.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "UPM.HE",
+    "weekly_code": "UPM.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAISALA.HE",
+    "weekly_code": "VAIAS.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAL.HE",
+    "weekly_code": "VAL.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VALMT.HE",
+    "weekly_code": "VALMT.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAPO.HE",
+    "weekly_code": "VAPO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VART.HE",
+    "weekly_code": "VART.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VAST.HE",
+    "weekly_code": "VAST.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VINCIT.HE",
+    "weekly_code": "VINCIT.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VIO.HE",
+    "weekly_code": "VIO.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VIR.HE",
+    "weekly_code": "VIR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VRI.HE",
+    "weekly_code": "VRI.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "VTT.HE",
+    "weekly_code": "VTT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WID.HE",
+    "weekly_code": "WID.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WRT1V.HE",
+    "weekly_code": "WRT1V.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "WTR.HE",
+    "weekly_code": "WTR.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "YIT.HE",
+    "weekly_code": "YIT.HE",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "ZIT.HE",
+    "weekly_code": "ZIT.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_054a.txt",
+    "bron": "캐피탈.HE",
+    "weekly_code": "캐피탈.HE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1BSL01AE",
+    "weekly_code": "1BSL01AE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1GRT002E",
+    "weekly_code": "1GRT002E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1GVR001E",
+    "weekly_code": "1GVR001E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1PRV001E",
+    "weekly_code": "1PRV001E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1SKF401E",
+    "weekly_code": "1SKF401E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1SLP401E",
+    "weekly_code": "1SLP401E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1TAT01DE",
+    "weekly_code": "1TAT01DE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1TMR001E",
+    "weekly_code": "1TMR001E",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "1VIP01AE",
+    "weekly_code": "1VIP01AE",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ABE.VI",
+    "weekly_code": "ABE.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ACARD.VI",
+    "weekly_code": "ACAG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ADDIKO.VI",
+    "weekly_code": "ADKO.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "AGRANA.VI",
+    "weekly_code": "AGR.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "AMAG.VI",
+    "weekly_code": "AMAG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ANDR.VI",
+    "weekly_code": "ANDR.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ATHOS.VI",
+    "weekly_code": "ATH.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ATS.VI",
+    "weekly_code": "ATS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BAJAJ.VI",
+    "weekly_code": "BMAG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BAWAG.VI",
+    "weekly_code": "BG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BGH.VI",
+    "weekly_code": "BHD.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BIOG.VI",
+    "weekly_code": "BIOG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BIOGENA.VI",
+    "weekly_code": "BIOGENA.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BKS.VI",
+    "weekly_code": "BKS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "BTV.VI",
+    "weekly_code": "BTS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "CAI.VI",
+    "weekly_code": "CAI.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "CETG.LJ",
+    "weekly_code": "CETG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "CICG.LJ",
+    "weekly_code": "CICG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "CPI.VI",
+    "weekly_code": "CPI.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "DOCO.VI",
+    "weekly_code": "DOC.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "EBS.VI",
+    "weekly_code": "EBS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "EMH.VI",
+    "weekly_code": "SMRX.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "EQNX.LJ",
+    "weekly_code": "EQNX.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ETS.VI",
+    "weekly_code": "ETS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "EVN.VI",
+    "weekly_code": "EVN.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "FACC.VI",
+    "weekly_code": "FACC.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "FLU.VI",
+    "weekly_code": "FLU.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "FRAU.VI",
+    "weekly_code": "FKA.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "FREQ.VI",
+    "weekly_code": "FQT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "GUR.A.VI",
+    "weekly_code": "GUR.A.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "GUR.VI",
+    "weekly_code": "GUR.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "HEID.VI",
+    "weekly_code": "HED.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "HUT.VI",
+    "weekly_code": "HUT.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "KRKG.LJ",
+    "weekly_code": "KRKG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "KTC.VI",
+    "weekly_code": "KTCG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "LENZ.VI",
+    "weekly_code": "LNZ.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "LKPG.LJ",
+    "weekly_code": "LKPG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "LTH.VI",
+    "weekly_code": "LTH.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "MAN.VI",
+    "weekly_code": "MAN.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "MARIN.VI",
+    "weekly_code": "MARI.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "MKOG.LJ",
+    "weekly_code": "MKOG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "MMK.VI",
+    "weekly_code": "MMK.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "NLBR.LJ",
+    "weekly_code": "NLBR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "OBER.VI",
+    "weekly_code": "OBER.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "OMV.VI",
+    "weekly_code": "OMV.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "PAL.VI",
+    "weekly_code": "PAL.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "PETG.LJ",
+    "weekly_code": "PETG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "PLT.VI",
+    "weekly_code": "PYT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "PORR.VI",
+    "weekly_code": "POS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "POSR.LJ",
+    "weekly_code": "POSR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "POST.VI",
+    "weekly_code": "POST.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RATH.VI",
+    "weekly_code": "RAT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RBI.VI",
+    "weekly_code": "RBI.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RELR.LJ",
+    "weekly_code": "RELR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "REPLOID.VI",
+    "weekly_code": "HRX5.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RHIM.VI",
+    "weekly_code": "RHIM.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ROS.VI",
+    "weekly_code": "ROS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RWT.VI",
+    "weekly_code": "RWT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "RWTRACE.VI",
+    "weekly_code": "RWT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "SALR.LJ",
+    "weekly_code": "SALR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "SBO.VI",
+    "weekly_code": "SBO.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "SEMP.VI",
+    "weekly_code": "SEM.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "SKDR.LJ",
+    "weekly_code": "SKDR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "STAM.VI",
+    "weekly_code": "STM.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "STEYR.VI",
+    "weekly_code": "STEYR.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "STR.VI",
+    "weekly_code": "STR.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "STYRMOT.VI",
+    "weekly_code": "STYRMOT.VI",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "SWU.VI",
+    "weekly_code": "SWUT.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "TCRG.LJ",
+    "weekly_code": "TCRG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "TKA.VI",
+    "weekly_code": "TKA.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "TLSG.LJ",
+    "weekly_code": "TLSG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "UBM.VI",
+    "weekly_code": "UBS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "UKIG.LJ",
+    "weekly_code": "UKIG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "UKO.VI",
+    "weekly_code": "UKO.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "UQA.VI",
+    "weekly_code": "UQA.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "VAS.VI",
+    "weekly_code": "VAS.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "VER.VI",
+    "weekly_code": "VER.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "VIG.VI",
+    "weekly_code": "VIG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "VOE.VI",
+    "weekly_code": "VOE.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "VZZR.LJ",
+    "weekly_code": "VZZR.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "WFX.VI",
+    "weekly_code": "WXF.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "WIE.VI",
+    "weekly_code": "WIE.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "WOL.VI",
+    "weekly_code": "WOL.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "WOLF.VI",
+    "weekly_code": "WOLF.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "WPB.VI",
+    "weekly_code": "WPB.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "ongewijzigd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ZUM.VI",
+    "weekly_code": "ZAG.VI",
+    "bruikbaar_na_aliassen": "True",
+    "status": "code_gecorrigeerd"
+  },
+  {
+    "lijst": "tickers_059a.txt",
+    "bron": "ZVTG.LJ",
+    "weekly_code": "ZVTG.LJ",
+    "bruikbaar_na_aliassen": "False",
+    "status": "ongewijzigd"
+  }
+]

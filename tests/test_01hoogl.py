@@ -160,12 +160,14 @@ class Tests(unittest.TestCase):
     def test_email_failure(self):self.assertIsNotNone(self.run_bot(email=False)[-1])
 
     def test_rate_limit_stop_visible_and_fails(self):
-        with patch.multiple(b,RATE_LIMIT_CONSECUTIVE_DREMPEL=1,RATE_LIMIT_MAX_PAUZES=0,
+        with patch.multiple(b,
             bouw_bestandslijst=MagicMock(return_value=['tickers_041x.txt']),
             load_tickers_from_file=MagicMock(return_value=['A','B']),analyse_ticker=MagicMock(return_value=(None,True)),
             send_email=MagicMock(return_value=True)),patch.object(b.time,'sleep'),contextlib.redirect_stdout(io.StringIO()):
             with self.assertRaises(RuntimeError):b.run_engine('live')
             self.assertIn('Niet verwerkt na stop: B',b.send_email.call_args.args[1])
+            self.assertEqual(b.analyse_ticker.call_count, 2)
+            b.send_telegram_report.assert_called_once()
 
     def test_ranking_unknown_last_ties_ticker(self):
         a=self.analyse();c=self.analyse();c.ticker='C';c.terugverdienperiode=float('nan')

@@ -1,4 +1,4 @@
-import csv
+import json
 from pathlib import Path
 import re
 
@@ -19,8 +19,8 @@ def test_aliases_deduplicate_same_listing_but_keep_unknown_sources(monkeypatch, 
 
 
 def test_symbol_registry_has_provenance_and_no_conflicts_or_alias_chains():
-    with Path(symbols.__file__).with_suffix('.csv').open(encoding='utf-8', newline='') as f:
-        rows = list(csv.DictReader(f))
+    with Path(symbols.__file__).with_suffix('.json').open(encoding='utf-8') as f:
+        rows = json.load(f)
     assert len(rows) == len(symbols.GEVERIFIEERD)
     for row in rows:
         suffix = {'041': '.BR', '051': '.WA', '054': '.HE', '059': '.VI'}[row['lijstcode']]
@@ -66,7 +66,7 @@ def test_helsinki_source_matches_complete_official_snapshot():
     from common.io import load_tickers_from_file
 
     root = Path(symbols.__file__).parents[1]
-    official = pd.read_csv(root / 'docs/controles/helsinki_universum_20261115.csv', dtype=str)
+    official = pd.read_json(root / 'docs/controles/helsinki_universum_20261115.json', dtype=False)
     assert len(official) == 198 and official.ticker.nunique() == len(official)
     assert set(official.segment) == {'LARGE_CAP', 'MID_CAP', 'SMALL_CAP', 'FN'}
     assert official['isin'].str.fullmatch(r'[A-Z]{2}[A-Z0-9]{10}').all()

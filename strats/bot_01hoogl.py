@@ -18,6 +18,7 @@ import pandas as pd
 import yfinance as yf
 
 from common.notify import send_telegram_report
+from common.yahoo import stop_on_throttle, YahooRateLimited
 
 from common import (
     today_str, safe_float, yahoo_link,
@@ -36,11 +37,7 @@ except Exception as _e:
 # CONFIG
 # ============================================================
 
-RATE_LIMIT_CONSECUTIVE_DREMPEL = 5
-RATE_LIMIT_PAUZE_SEC           = 300
-RATE_LIMIT_MAX_PAUZES          = 6
-RATE_LIMIT_THROTTLE_VERHOGING  = 0.1
-RATE_LIMIT_MAX_THROTTLE       = 0.5
+RATE_LIMIT_PAUZE_SEC = 60
 
 MODUS_CFG = {
     "live": {
@@ -268,6 +265,27 @@ def format_bericht(exchange_name: str, signalen: List[HooglSignaal], alle: List[
 # ENGINE
 # ============================================================
 
+
+def analyse_met_herpoging(ticker, cfg, fx_cache):
+    """One retry after throttling; never continue a blocked scan indefinitely."""
+    for attempt in range(2):
+        try:
+            with stop_on_throttle():
+                sig, limited = analyse_ticker(ticker, cfg, fx_cache=fx_cache)
+        except YahooRateLimited:
+            sig, limited = None, True
+        if not limited:
+            return sig, False
+        if attempt == 0:
+            print(f"[RATE] {ticker}: {RATE_LIMIT_PAUZE_SEC}s rust; enige herpoging", flush=True)
+            remaining = RATE_LIMIT_PAUZE_SEC
+            while remaining > 0:
+                chunk = min(30, remaining)
+                time.sleep(chunk)
+                remaining -= chunk
+    return None, True
+
+
 def run_engine(modus: str):
     cfg = MODUS_CFG[modus]
     reports, issues, errors = [], [], []
@@ -279,7 +297,6 @@ def run_engine(modus: str):
         else:
             issues.append(f"{filename}: ontbrekende of lege tickerlijst")
     cache, rates = {}, {}
-    consecutive = pauses = rate_errors = 0
     stopped = False
     stored = selected = 0
     throttle = cfg["throttle_sec"]
@@ -288,14 +305,11 @@ def run_engine(modus: str):
             if ticker in cache or stopped:
                 continue
             try:
-                sig, limited = analyse_ticker(ticker, cfg, fx_cache=rates)
+                sig, limited = analyse_met_herpoging(ticker, cfg, fx_cache=rates)
                 if limited:
-                    rate_errors += 1
-                    consecutive += 1
-                    issues.append(f"{ticker}: rate limiting; niet geanalyseerd")
+                    stopped = True
+                    errors.append(f"{ticker}: Yahoo-limiet blijft na één pauze/herpoging; verdere aanvragen gestopt")
                 else:
-                    consecutive = 0
-                    throttle = cfg["throttle_sec"]
                     if sig is None:
                         issues.append(f"{ticker}: onbruikbare koers/valuta of verouderde koersdatum")
                 cache[ticker] = sig
@@ -304,19 +318,6 @@ def run_engine(modus: str):
             except Exception as exc:
                 cache[ticker] = None
                 errors.append(f"{ticker}: analyse mislukt ({type(exc).__name__}: {exc})")
-            if consecutive >= RATE_LIMIT_CONSECUTIVE_DREMPEL:
-                if pauses >= RATE_LIMIT_MAX_PAUZES:
-                    stopped = True
-                    errors.append(f"Run gestopt: rate-limitpauzebudget uitgeput ({rate_errors} fouten)")
-                else:
-                    pauses += 1
-                    throttle = min(RATE_LIMIT_MAX_THROTTLE, throttle + RATE_LIMIT_THROTTLE_VERHOGING)
-                    print(f"Rate-limitpauze {pauses}/{RATE_LIMIT_MAX_PAUZES}", flush=True)
-                    remaining = RATE_LIMIT_PAUZE_SEC
-                    while remaining > 0:
-                        time.sleep(min(60, remaining))
-                        remaining -= min(60, remaining)
-                    consecutive = 0
             if len(cache) == 1 or len(cache) % 50 == 0:
                 print(f"[VOORTGANG] {len(cache)} unieke tickers verwerkt; pauze {throttle:g}s", flush=True)
             time.sleep(throttle)
