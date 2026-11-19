@@ -5,7 +5,7 @@ Script bot_01volhunter.py; workflow run_01volatieledipscan.yml.
 
 ## Hersteld
 
-- Telegram verwijderd; e-mail en database behouden. Ook nul kandidaten geeft een
+- Telegram hersteld op 19 november; e-mail en database behouden. Ook nul kandidaten geeft een
   rapport. Opslagbevestigingen worden geteld; opslag-, mail- en analysefouten,
   een geheel onbruikbare scan of uitgeput aanvraagbudget geven een foutstatus.
 - Alle bestaande a-lijsten 041–059 blijven ongewijzigd. Unieke tickers worden
@@ -69,4 +69,19 @@ python -m py_compile bot_01volhunter.py
 
 Live hertest blijft open: start run_01volatieledipscan.yml handmatig op main.
 Controleer volledige a-lijstdekking, laatste koersdagen, repairmeldingen,
-rate limits, databasebevestigingen en ontvangen e-mail. Telegram blijft uit.
+rate limits, databasebevestigingen en ontvangen e-mail en Telegram.
+
+## Vervolgcontrole — 19 november 2026
+
+De workflow geeft opnieuw `TELEGRAM_TOKEN` en `TELEGRAM_CHAT_ID` door. Het volledige
+rapport, inclusief lege resultaten en databeperkingen, wordt zonder opmaak verstuurd.
+Lange rapporten worden opgesplitst in delen van maximaal 3900 UTF-16-eenheden,
+ook bij emoji. Een mislukt deel verhindert het proberen van latere delen of e-mail
+niet; de job meldt daarna een fout. De tests vervangen verzending door mocks.
+
+De actuele tussenpauze is vijf seconden, zoals beschreven in [scantempo](../scantempo.md).
+De download blijft serieel (`threads=False`), met een aanvraagtimeout van vijftien
+seconden en een scanbudget van 225 minuten. De eigen downloader gebruikt nog
+individuele fallback/repair en maximaal drie rate-limit-herpogingen; de gedeelde
+downloaderbegrenzing geldt hier niet automatisch. Volledige live doorlooptijd en
+dekking zijn hiermee nog niet afgetekend. Er is geen nieuwe scan gestart.

@@ -67,3 +67,11 @@ De gegenereerde UPSERT is tevens met conflicterende oudere labels uitgevoerd in 
 [Forward-returnrun 43685780913](https://github.com/Ronnyvdb2000/refactor/actions/runs/43685780913), met commit `ee79ee5`, is geslaagd en op 15 november om circa 08:02 Belgische tijd afgerond. De daaropvolgende alleen-lezen databasecontrole vond 41.892 forward-returnrijen en **6.573 ingevulde 60d-labels over tien selectiedatums (10–21 augustus 2026)**. De eerdere momentopname met nul 60d-labels is dus achterhaald voor de huidige stand; zij blijft hierboven staan als uitgangspunt van de reparatie.
 
 Dit bevestigt de live aanvulling, niet dat er al voldoende onafhankelijke historie is om een 60d-model verantwoord te trainen en valideren. Er is geen modeltraining geforceerd en er zijn tijdens deze vervolgcontrole geen databasewaarden gewijzigd.
+
+## Alleen-lezen opvolging — 19 november 2026
+
+De actuele tabel `forward_returns` bevat 42.317 rijen, waarvan 9.268 met een
+60d-label over twaalf selectiedatums, van 10 tot en met 25 augustus 2026.
+De opslag is dus verder aangevuld sinds de vorige controle. Dit bewijst geen
+modelkwaliteit; voldoende trainings- en validatiedatums blijven afzonderlijk vereist.
+Geen databasewaarden gewijzigd en geen training of analyse herstart.
