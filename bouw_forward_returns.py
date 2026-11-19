@@ -130,15 +130,20 @@ def bouw_upsert_query() -> str:
             )
     updates.append("bijgewerkt_op = now()")
     update_lijst = ", ".join(updates)
+    aanvullingen = " OR ".join(
+        f"(forward_returns.{k} IS NULL AND EXCLUDED.{k} IS NOT NULL)"
+        for k in kolommen if k not in ("ticker", "datum", "strategie")
+    )
 
     return f"""
         INSERT INTO forward_returns ({kolom_lijst})
         VALUES ({placeholders})
         ON CONFLICT (ticker, datum, strategie)
         DO UPDATE SET {update_lijst}
-        WHERE forward_returns.entry_koers IS NULL
+        WHERE (forward_returns.entry_koers IS NULL
            OR abs(forward_returns.entry_koers - EXCLUDED.entry_koers)
-              <= GREATEST(0.000001, abs(forward_returns.entry_koers) * 0.000001);
+              <= GREATEST(0.000001, abs(forward_returns.entry_koers) * 0.000001))
+          AND ({aanvullingen});
     """
 
 
@@ -156,8 +161,8 @@ def upsert_labels(conn, rijen: List[dict]) -> int:
             volledige_rij = {k: rij.get(k) for k in kolommen}
             cur.execute(query, volledige_rij)
             changed += cur.rowcount
-            if not cur.rowcount:
-                waarschuw(f"{rij['ticker']} {rij['datum']}/{rij['strategie']}: andere instapkoers; bestaande labels behouden")
+            # Zero also means all supplied values already exist. Entry conflicts
+            # are diagnosed before downloading; the SQL guard remains for races.
     conn.commit()
     return changed
 

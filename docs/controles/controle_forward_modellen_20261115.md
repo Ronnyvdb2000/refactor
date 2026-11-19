@@ -177,3 +177,17 @@ Volledige suite: **822 tests en 19 deeltests geslaagd**, dertien optionele tests
 overgeslagen, met uitgaande socketverbindingen geblokkeerd. Workflowaudit:
 65 workflows zonder fouten of waarschuwingen. YAML/shellsyntax en whitespace
 gecontroleerd. Geen nieuwe live labelscan of modeltraining gestart.
+
+### Herhaalde gedeeltelijke resultaten tellen alleen bij echte aanvulling
+
+De laatste run berekende 154 gedeeltelijke resultaten terwijl nul selecties volledig
+werden afgerond. De UPSERT telde ook bestaande waarden opnieuw als bijgewerkt en
+vernieuwde daarbij de opslagdatum. Nu wordt een bestaande rij alleen bijgewerkt
+als minstens één ontbrekend veld daadwerkelijk wordt aangevuld. De bescherming
+van bestaande labels en de controle op de instapkoers blijven actief. Een SQL-resultaat
+zonder wijziging wordt niet meer ten onrechte als instapconflict gemeld.
+
+Gerichte offline validatie: 47 tests geslaagd, tien optionele databasetests
+overgeslagen. De regressie voert de gegenereerde UPSERT uit en controleert dat
+herhaling geen wijziging telt en de bestaande opslagdatum behoudt. Telegram blijft
+behouden. Geen historische selecties verwijderd of datums verschoven.

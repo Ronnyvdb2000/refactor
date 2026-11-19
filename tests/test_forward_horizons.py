@@ -195,6 +195,10 @@ def test_filling_60d_does_not_relabel_existing_shorter_horizons():
     conn.execute(query, dict(initial, fwd_ret_5d=999., fwd_close_5d=1099.,
                              fwd_ret_60d=60., fwd_close_60d=160.))
     assert conn.execute('SELECT fwd_ret_5d,fwd_ret_60d FROM forward_returns').fetchone() == (5.,60.)
+    # Replaying partial results must neither count a write nor touch its timestamp.
+    conn.execute("UPDATE forward_returns SET bijgewerkt_op='original'")
+    assert conn.execute(query, initial).rowcount == 0
+    assert conn.execute('SELECT bijgewerkt_op FROM forward_returns').fetchone() == ('original',)
     conn.execute(query, dict(initial, entry_koers=200., fwd_ret_60d=999.))
     assert conn.execute('SELECT entry_koers,fwd_ret_5d,fwd_ret_60d FROM forward_returns').fetchone() == (100.,5.,60.)
     conn.close()
