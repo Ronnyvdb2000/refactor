@@ -28,6 +28,7 @@ jobs:
       - run: pip install yfinance pandas requests psycopg2-binary
       - name: Run bouw_generieke_fundamentals
         env:
+          PYTHONUNBUFFERED: "1"
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

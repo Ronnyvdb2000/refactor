@@ -19,7 +19,8 @@ import psycopg2
 import psycopg2.extras
 import yfinance as yf
 
-from common import safe_float, today_str, alle_tickers
+from common import safe_float, today_str, alle_tickers, send_telegram
+from common.yahoo import stop_on_throttle, YahooRateLimited, is_rate_limit
 
 # ============================================================
 # CONFIG
@@ -30,11 +31,11 @@ MAX_TICKERS_PER_RUN = int(os.environ.get("MAX_TICKERS_PER_RUN", "600"))
 RECENTE_DAGEN_LIMIET = int(os.environ.get("RECENTE_DAGEN_LIMIET", "5"))
 HERGEBRUIK_DAGEN = int(os.environ.get("HERGEBRUIK_DAGEN", "3"))
 
-RL_DREMPEL = int(os.environ.get("RL_DREMPEL", "5"))
-RL_PAUZE_SEC = float(os.environ.get("RL_PAUZE_SEC", "60"))
-RL_MAX_PAUZES = int(os.environ.get("RL_MAX_PAUZES", "2"))
-
 FCF_MIN_YEARS = 2
+
+
+class OnvolledigeRun(RuntimeError):
+    pass
 
 # ============================================================
 # HULPFUNCTIES VOOR FUNDAMENTALS
@@ -87,7 +88,9 @@ def _piotroski_f_score(tk, cashflow) -> int:
     try:
         bs = tk.balance_sheet
         inc = tk.financials
-    except Exception:
+    except Exception as exc:
+        if is_rate_limit(exc):
+            raise YahooRateLimited('Yahoo-rate-limit bij balans/resultaten') from exc
         return -1
 
     if bs is None or bs.empty or inc is None or inc.empty:
@@ -151,7 +154,7 @@ def haal_fundamentals_op(ticker: str) -> Tuple[Optional[dict], str]:
         tk = yf.Ticker(ticker)
         info = tk.info or {}
     except Exception as e:
-        if "Too Many Requests" in str(e) or "Rate limited" in str(e):
+        if is_rate_limit(e):
             return None, "rate_limit"
         return None, "fout"
 
@@ -161,11 +164,15 @@ def haal_fundamentals_op(ticker: str) -> Tuple[Optional[dict], str]:
 
     try:
         cashflow = tk.cashflow
-    except Exception:
+    except Exception as exc:
+        if is_rate_limit(exc):
+            return None, "rate_limit"
         cashflow = None
     try:
         financials = tk.financials
-    except Exception:
+    except Exception as exc:
+        if is_rate_limit(exc):
+            return None, "rate_limit"
         financials = None
 
     fcf_series = _fcf_series(cashflow)
@@ -293,7 +300,7 @@ def upsert_rijen(conn, rijen: List[dict]) -> int:
 # MAIN
 # ============================================================
 
-def run_build():
+def _run_build():
     if not SUPABASE_DB_URL:
         print("FOUT: SUPABASE_DB_URL ontbreekt.", file=sys.stderr)
         sys.exit(1)
@@ -305,7 +312,7 @@ def run_build():
 
         if not open_paren:
             print("Niets te doen.")
-            return
+            return "Niets te doen: geen openstaande recente ticker/datum-paren."
 
         per_ticker: Dict[str, List[str]] = {}
         for r in open_paren:
@@ -334,39 +341,33 @@ def run_build():
         geen_data = 0
         fouten = 0
         rate_limit_fouten = 0
-        rl_achtereen = 0
-        pauzes = 0
         vroegtijdig_gestopt = False
         geprobeerd = 0
 
         for i, ticker in enumerate(tickers, start=1):
-            fundamentals, reden = haal_fundamentals_op(ticker)
+            try:
+                # yfinance kan een 429 loggen en vervolgens lege data teruggeven.
+                with stop_on_throttle():
+                    fundamentals, reden = haal_fundamentals_op(ticker)
+            except YahooRateLimited:
+                fundamentals, reden = None, "rate_limit"
             geprobeerd += 1
 
             if reden == "ok":
                 rijen = [{"ticker": ticker, "datum": d, **fundamentals} for d in per_ticker[ticker]]
                 totaal_bijgewerkt += upsert_rijen(conn, rijen)
                 opgehaald_ok += 1
-                rl_achtereen = 0
             elif reden == "rate_limit":
                 rate_limit_fouten += 1
-                rl_achtereen += 1
             elif reden == "geen_data":
                 geen_data += 1
-                rl_achtereen = 0
             else:
                 fouten += 1
-                rl_achtereen = 0
 
-            if rl_achtereen >= RL_DREMPEL:
-                if pauzes >= RL_MAX_PAUZES:
-                    print(f"[RATE LIMIT] Pauzebudget uitgeput na {rate_limit_fouten} fouten -- run stopt.")
-                    vroegtijdig_gestopt = True
-                    break
-                pauzes += 1
-                print(f"[RATE LIMIT] {rl_achtereen} fouten (laatste: {ticker}) -- pauze {RL_PAUZE_SEC:.0f}s ({pauzes}/{RL_MAX_PAUZES})")
-                time.sleep(RL_PAUZE_SEC)
-                rl_achtereen = 0
+            if reden == "rate_limit":
+                print(f"[RATE LIMIT] Yahoo beperkt aanvragen bij {ticker}; verdere aanvragen gestopt.", flush=True)
+                vroegtijdig_gestopt = True
+                break
 
             if i % 25 == 0 or i == len(tickers):
                 print(f"  {i}/{len(tickers)} tickers geprobeerd...")
@@ -385,8 +386,42 @@ def run_build():
             print("⚠️ Vroegtijdig gestopt wegens Yahoo rate limiting.")
         print("=" * 60)
 
+        samenvatting = (
+            f"{totaal_bijgewerkt} rijen bijgewerkt; {opgehaald_ok} tickers opgehaald, "
+            f"{hergebruikte_tickers} hergebruikt.\n"
+            f"{geprobeerd} aanvragen geprobeerd; geen data {geen_data}, "
+            f"rate limit {rate_limit_fouten}, overige fouten {fouten}.\n"
+            f"Niet opgevraagd wegens runlimiet/providerstop: {nog_te_gaan}."
+        )
+        if vroegtijdig_gestopt or fouten or (tickers and not opgehaald_ok):
+            raise OnvolledigeRun("Fundamentals onvolledig. " + samenvatting)
+        return samenvatting
+
     finally:
         conn.close()
+
+
+def meld_resultaat(tekst, onvolledig=False):
+    onderwerp = ("ONVOLLEDIG — " if onvolledig else "") + "Generieke Fundamentals " + today_str()
+    bericht = onderwerp + "\n" + tekst
+    try:
+        if not send_telegram(bericht, parse_mode=None):
+            print("::warning::Telegram: fundamentals-melding niet verzonden; controleer configuratie.", flush=True)
+    except Exception:
+        print("::warning::Telegram: fundamentals-melding mislukt.", flush=True)
+
+
+def run_build():
+    if MAX_TICKERS_PER_RUN < 1:
+        raise ValueError("MAX_TICKERS_PER_RUN moet minimaal 1 zijn")
+    try:
+        bericht = _run_build()
+    except Exception as exc:
+        # Onverwachte exceptiontekst kan verbindingsdetails bevatten.
+        tekst = str(exc) if isinstance(exc, OnvolledigeRun) else f"{type(exc).__name__}; zie Actions-log."
+        meld_resultaat(tekst[:2000], onvolledig=True)
+        raise
+    meld_resultaat(bericht)
 
 if __name__ == "__main__":
     run_build()
