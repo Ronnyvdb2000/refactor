@@ -36,10 +36,10 @@ Installatie:
     pip install psycopg2-binary yfinance pandas numpy scipy requests --break-system-packages
 
 Gebruik:
-    python analyseer_forward_correlaties.py                 # default 3 weken
-    python analyseer_forward_correlaties.py --weken 4
-    python analyseer_forward_correlaties.py --csv rapport.csv
-    python analyseer_forward_correlaties.py --telegram --email
+    python -m analyses.analyseer_forward_correlaties                 # default 3 weken
+    python -m analyses.analyseer_forward_correlaties --weken 4
+    python -m analyses.analyseer_forward_correlaties --csv rapport.csv
+    python -m analyses.analyseer_forward_correlaties --telegram --email
 """
 
 import argparse

@@ -15,13 +15,13 @@ Installatie:
     pip install psycopg2-binary yfinance pandas requests --break-system-packages
 
 Gebruik:
-    python analyse_selecties.py
-    python analyse_selecties.py --strategie dm          # filter op 1 strategie
-    python analyse_selecties.py --sinds 2026-05-01       # alleen selecties vanaf datum
-    python analyse_selecties.py --trim 0.10               # trim 10% langs elke kant (default)
-    python analyse_selecties.py --telegram                # stuur beknopte samenvatting via Telegram
-    python analyse_selecties.py --email                   # stuur beknopte samenvatting via e-mail
-    python analyse_selecties.py --check-duplicates         # zoek dubbele (ticker, strategie, datum) records en stop
+    python -m analyses.analyse_selecties
+    python -m analyses.analyse_selecties --strategie dm          # filter op 1 strategie
+    python -m analyses.analyse_selecties --sinds 2026-05-01       # alleen selecties vanaf datum
+    python -m analyses.analyse_selecties --trim 0.10               # trim 10% langs elke kant (default)
+    python -m analyses.analyse_selecties --telegram                # stuur beknopte samenvatting via Telegram
+    python -m analyses.analyse_selecties --email                   # stuur beknopte samenvatting via e-mail
+    python -m analyses.analyse_selecties --check-duplicates         # zoek dubbele (ticker, strategie, datum) records en stop
 
 Wijziging (2026-09-05): NaN-guard toegevoegd in bereken_rendementen(). Als
 yfinance een niet-lege maar deels corrupte DataFrame teruggeeft (bv. door

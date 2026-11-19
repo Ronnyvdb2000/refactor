@@ -52,7 +52,7 @@ jobs:
           pip install -r requirements-analysis.txt
 
       - name: Controleer analyse-import
-        run: python -c "import analyse_parameter_correlatie"
+        run: python -c "import analyses.analyse_parameter_correlatie"
 
       - name: Bot draaien
         env:
@@ -66,7 +66,7 @@ jobs:
           if [ "${{ github.event.inputs.use_whitelist }}" = "true" ]; then
             WL="--use-whitelist"
           fi
-          python analyse_parameter_correlatie.py \
+          python -m analyses.analyse_parameter_correlatie \
             --min-n "${{ github.event.inputs.min_n || '50' }}" \
             --min-per-datum "${{ github.event.inputs.min_per_datum || '15' }}" \
             --min-dagen "${{ github.event.inputs.min_dagen || '10' }}" \

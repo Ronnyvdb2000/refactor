@@ -52,13 +52,13 @@ gehouden. De drie gevonden aandachtspunten zijn afzonderlijk beoordeeld:
 
 | Workflow | Bevinding | Beoordeling en actie |
 | --- | --- | --- |
-| `analyse_correlatie_parameters.yml` | `analyse_parameter_correlatie.py` importeert `statsmodels.api`, niet geïnstalleerd via `requirements-analysis.txt` | Werkelijk ontbrekend; `statsmodels>=0.14` toegevoegd en importcontrole vóór uitvoering geplaatst |
+| `analyse_correlatie_parameters.yml` | `analyses/analyse_parameter_correlatie.py` importeert `statsmodels.api`, niet geïnstalleerd via `requirements-analysis.txt` | Werkelijk ontbrekend; `statsmodels>=0.14` toegevoegd en importcontrole vóór uitvoering geplaatst |
 | `score_xgboost.yml` | `model_inputs.py` importeert numpy zonder eigen pip-argument | Wordt door onder meer pandas en scikit-learn mee geïnstalleerd; geen ontbrekende dependency aangetoond |
 | `weekly_runV2.yml` | Statisch pad naar psycopg2 via `weekly.shared` | Alleen via de functie voor selectieopslag; de winnaarsanalyse roept deze functie niet aan en vereist dit opslagpad niet |
 
 Een nieuwe geïsoleerde Python 3.12-omgeving is uitsluitend met
 `requirements-analysis.txt` geïnstalleerd. De imports van
-`analyse_parameter_correlatie`, `meta_models.a_meta_model`,
+`analyses.analyse_parameter_correlatie`, `meta_models.a_meta_model`,
 `meta_models.a_meta_model_train` en `meta_models.a_meta_model_score` slagen,
 met uitgaand socketverkeer geblokkeerd. `pip check` vindt geen conflicten.
 Dit valideert de concrete dependencycorrectie; geen modelrun, databaseverbinding

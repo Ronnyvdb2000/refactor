@@ -42,7 +42,7 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
         run: >
-          python analyseer_forward_correlaties.py
+          python -m analyses.analyseer_forward_correlaties
           --weken 3
           --csv forward_correlatie_rapport.csv
           --telegram

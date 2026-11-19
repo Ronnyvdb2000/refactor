@@ -75,7 +75,7 @@ opslaat, veroorzaakt daardoor geen overschrijving of dubbele schrijftelling.
 Geen schemawijziging of historische herstelactie nodig.
 
 De drie lezers van deze tabel (`meta_models/a_par_model.py`,
-`analyse_parameter_ic.py` en `xgboostV4.py`) gebruiken dezelfde beschikbaarheidsregel:
+`analyses/analyse_parameter_ic.py` en `xgboostV4.py`) gebruiken dezelfde beschikbaarheidsregel:
 `bijgewerkt_op` moet bekend zijn en zijn UTC-datum mag niet ná `datum` liggen.
 De bestaande LEFT JOINs blijven behouden: ontbrekende betrouwbare fundamentals
 verwijderen technische invoerrijen niet stilzwijgend. De bestaande modellen

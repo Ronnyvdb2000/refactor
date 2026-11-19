@@ -30,4 +30,4 @@ jobs:
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python analyse_forward_returns.py --min-n ${{ github.event.inputs.min_n }}
+        run: python -m analyses.analyse_forward_returns --min-n ${{ github.event.inputs.min_n }}

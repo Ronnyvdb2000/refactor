@@ -10,7 +10,7 @@ import pytest
 import bouw_generieke_fundamentals as b
 from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 from meta_models import a_par_model as par
-import analyse_parameter_ic as ic
+from analyses import analyse_parameter_ic as ic
 import xgboostV4 as xgb
 
 

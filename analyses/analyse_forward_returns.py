@@ -31,7 +31,7 @@ gesorteerd op getrimd gemiddelde van de langste horizon (20d).
 
 GEBRUIK
 =======
-  python analyse_forward_returns.py [--min-n 30] [--horizon 20]
+  python -m analyses.analyse_forward_returns [--min-n 30] [--horizon 20]
 
 Env vars:
   SUPABASE_DB_URL     - Postgres connectiestring

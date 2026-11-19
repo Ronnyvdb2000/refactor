@@ -7,7 +7,7 @@ on:
     - cron: "0 5 * * 0"
   push:
     paths:
-      - "analyse_parameter_ic.py"
+      - "analyses/analyse_parameter_ic.py"
       - ".github/workflows/analyse_parameter_ic.yml"
 
 permissions:
@@ -70,7 +70,7 @@ jobs:
       - name: Run IC analysis
         run: |
           mkdir -p results
-          python analyse_parameter_ic.py
+          python -m analyses.analyse_parameter_ic
 
       - name: Controle output
         if: always()

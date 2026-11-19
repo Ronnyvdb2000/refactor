@@ -39,4 +39,4 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-        run: python analyse_selecties.py --telegram --email
+        run: python -m analyses.analyse_selecties --telegram --email
