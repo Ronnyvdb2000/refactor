@@ -132,6 +132,9 @@ def fundamental_call(fn):
     # Inspect these errors around the call, even if the strategy catches exceptions.
     logger = logging.getLogger("yfinance")
     handler = _YahooErrors()
+    old_level = logger.level
+    if logger.getEffectiveLevel() > logging.ERROR:
+        logger.setLevel(logging.ERROR)
     logger.addHandler(handler)
     try:
         try:
@@ -146,6 +149,7 @@ def fundamental_call(fn):
         return result
     finally:
         logger.removeHandler(handler)
+        logger.setLevel(old_level)
 
 
 def met_retry(fn, ticker: str, label: str):
@@ -388,18 +392,21 @@ def selecties_repititief(exchange_tickers, all_tickers) -> Dict[str, Set[str]]:
     df = download_universe(all_tickers, period=f"{lookback}y")
     if df.empty:
         return {}
+    wanted = {ticker for members in exchange_tickers.values() for ticker in members}
+    analyses = {}
+    for ticker, group in df.groupby("Ticker", sort=False):
+        if ticker not in wanted:
+            continue
+        try:
+            analyses[ticker] = repititief.analyseer_ticker(ticker, group)
+        except repititief.DataUnavailable as exc:
+            print(f"[DATA] seizoenseffecten {ticker}: {exc}", flush=True)
+            analyses[ticker] = None
     result: Dict[str, Set[str]] = {}
     for ex_name, tlist in exchange_tickers.items():
-        df_ex = df[df["Ticker"].isin(tlist)]
-        kandidaten = []
-        for ticker, group in df_ex.groupby("Ticker", sort=False):
-            try:
-                k = repititief.analyseer_ticker(ticker, group)
-            except repititief.DataUnavailable as exc:
-                print(f"[DATA] seizoenseffecten {ticker}: {exc}", flush=True)
-                continue
-            if k is not None:
-                kandidaten.append(k)
+        members = set(tlist)
+        kandidaten = [candidate for ticker, candidate in analyses.items()
+                      if ticker in members and candidate is not None]
         if not kandidaten:
             result[ex_name] = set()
             continue
@@ -415,20 +422,20 @@ def selecties_vcp(exchange_tickers, all_tickers, data=None) -> Dict[str, Set[str
     df = download_universe(all_tickers, period="2y") if data is None else data
     if df.empty:
         return {}
-    result: Dict[str, Set[str]] = {}
-    for ex_name, tlist in exchange_tickers.items():
-        df_ex = df[df["Ticker"].isin(tlist)]
-        geselecteerd = set()
-        for ticker, group in df_ex.groupby("Ticker", sort=True):
-            try:
-                clean = prepare_daily(group)
-            except ValueError as exc:
-                print(f"[DATA] VCP {ticker}: {exc}", flush=True)
-                continue
-            if vcp.analyse_ticker(ticker, clean):
-                geselecteerd.add(ticker)
-        result[ex_name] = geselecteerd
-    return result
+    wanted = {ticker for members in exchange_tickers.values() for ticker in members}
+    geselecteerd = set()
+    for ticker, group in df.groupby("Ticker", sort=True):
+        if ticker not in wanted:
+            continue
+        try:
+            clean = prepare_daily(group)
+        except ValueError as exc:
+            print(f"[DATA] VCP {ticker}: {exc}", flush=True)
+            continue
+        if vcp.analyse_ticker(ticker, clean):
+            geselecteerd.add(ticker)
+    return {exchange: geselecteerd.intersection(tickers)
+            for exchange, tickers in exchange_tickers.items()}
 
 
 def selecties_kasstr(shortlist_per_beurs: Dict[str, Set[str]]) -> Dict[str, Set[str]]:

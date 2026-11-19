@@ -56,6 +56,7 @@ Nu wordt één recente combinatie van modelversie en scoredatum gekozen voor de 
 - Een ongeldige laatste koers wordt niet vervangen door een ouder signaal. Na recente datagaten wordt alleen de aaneengesloten bruikbare staart gebruikt.
 - Verwacht ontbrekende seizoenshistorie wordt per ticker gemeld en overgeslagen; het breekt niet langer de gehele scan af.
 - Kasstroom-, Fisher- en Hoogland-analyses worden per unieke ticker gecachet over overlappende beurslijsten, inclusief afwijzingen. De valutacache wordt waar beschikbaar gedeeld binnen die fase.
+- Sinds 19 november worden ook VCP en de ruwe seizoensanalyse eenmaal per unieke ticker berekend. Ontbrekende historie en afwijzingen worden niet opnieuw per overlappende beurs geanalyseerd. De seizoens-BH-correctie blijft afzonderlijk per beurs en buckettype; dezelfde ruwe kandidaat kan daardoor op één beurs wel en op een andere niet significant zijn. Downloads en historieperiodes blijven behouden.
 - Blijvende rate limits, een geheel mislukte opwarming of ontbrekende bruikbare ATR-data worden als fouten zichtbaar. De standaardopwarming is verkort tot twee pogingen met 15 seconden tussenpauze; herstel bij echte providerlimieten blijft bestaan.
 - De oorspronkelijke trechter blijft behouden: een aandeel moet eerst via VCP of seizoenseffecten op de shortlist komen. Dit is dus geen zelfstandige fundamentele scan van alle tickers. Het gebruikt de bestaande x-lijsten.
 
@@ -80,11 +81,34 @@ Herstel na de combi-run van 15 november 2026 (`2dac9d9`):
 - Fundamentele strategieën met gewicht nul worden overgeslagen om onnodige Yahoo-aanvragen te voorkomen. De technische shortlist blijft VCP én seizoenseffecten gebruiken, ook bij gewicht nul.
 - De fix herstelt de foutafhandeling en rapportage; hij kan externe Yahoo-toegangsweigering niet opheffen. ATR-dekking blijft apart gerapporteerd en bewijst geen volledige fundamentele dekking.
 
+Vervolg van 19 november: de fundamentele logbewaking zet een eventueel strenger
+yfinance-logniveau tijdelijk op ERROR. Daardoor blijven gelogde 401/403/429-fouten
+zichtbaar voor de controle, ook als de strategie ze opvangt en `None` teruggeeft.
+Het oorspronkelijke logniveau en de handlerlijst worden na succes en fouten
+hersteld. Telegram en e-mail blijven behouden.
+
 Offline regressies controleren onder meer gelogde en opgevangen 401/429-fouten, volledig ontbrekende fundamentals, stoppen vóór databasepublicatie, lege én gevulde Telegram-rapporten, gewichten nul en notificatiefouten. Er is geen live scan gestart en geen testbericht verstuurd.
 
 ## Verificatie
 
-- De volledige `tests/`-suite: 558 tests en 17 deeltests geslaagd, met negen overgeslagen verbindingstests. De bestaande bot- en opslagregressies blijven slagen.
+Vervolg van 19 november 2026 vanaf `8ffa675`: de uitgebreide combiner leest
+1000 unieke tickers in 1033 ticker/beurs-combinaties uit vijftien niet-lege
+beurslijsten. Er zijn 33 tickers in meer dan één lijst. Caching voorkomt dus
+maximaal 33 herberekeningen per technische/seizoensfase wanneer alle benodigde
+histories beschikbaar zijn. De DataFrame wordt per fase eenmaal gegroepeerd;
+de eerdere volledige filtering per beurs vervalt. Dit is geen gemeten versnelling
+van een live run; downloads en fundamentele providerverzoeken blijven nodig.
+
+Vijf nieuwe offline regressies toetsen hergebruik van successen, afwijzingen en
+ontbrekende historie, het behouden van verschillende BH-uitkomsten per beurs,
+en foutdetectie/herstel van loggerinstellingen bij onderdrukte yfinance-logs.
+Volledige suite: **779 tests en 19 deeltests geslaagd**, dertien optionele tests
+overgeslagen. Uitgaand socketverkeer was geblokkeerd tijdens de tests.
+Workflowaudit: 65 workflows, geen fouten of waarschuwingen. Geen live scan,
+databasewrite of notificatie gestart. Lokale wijzigingen uit andere gesprekken
+zijn niet gewijzigd; TradingAgents en refactor-lab blijven apart.
+
+- Bij de oorspronkelijke herstructurering slaagden 558 tests en 17 deeltests, met negen overgeslagen verbindingstests. De latere aantallen staan hierboven.
 - Nieuwe tests dekken onder meer duplicaten, eigen uitvoer, strategiefamilies, koersdatum, score-schaalinvariantie, kosten/budget, opslagbevestiging, datagaten, caching en gewichten.
 - Alle drie de nieuwe modulecommando's zijn met `--help` uitgevoerd en de YAML-uitvoercommando's zijn gecontroleerd.
 - De werkelijk gegenereerde XGBoost-snapshotquery is met meerdere datums en modelversies uitgevoerd in een geïsoleerde PostgreSQL-standalonebackend.
