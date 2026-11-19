@@ -43,6 +43,5 @@ jobs:
           name: mr-eod-signals
           path: |
             mr_eod_scan.json
-            mr_eod_signalen_*.csv
           retention-days: 7
           if-no-files-found: warn

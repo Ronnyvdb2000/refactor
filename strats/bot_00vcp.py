@@ -19,6 +19,7 @@ Score systeem (0-8):
   8. Breakout boven pivot op verhoogd volume
 """
 
+from common.exports import write_csv
 import sys
 import os
 import math
@@ -388,7 +389,7 @@ def run_live_engine():
         database=dict(saved=saved,requested=len(rows)))
     columns = ["ticker","datum","beurs","koers","score","total_score","n_contracties","pivot","laatste_pct","breakout","breakout_vol","stage2","atr","stop","price_unit","signal_date"]
     csv_path = f"vcp_signalen_{today_str()}.csv"
-    pd.DataFrame(rows,columns=columns).to_csv(csv_path,index=False)
+    write_csv(pd.DataFrame(rows,columns=columns), csv_path, index=False)
     temp_path = VCP_SIGNALS_PATH + ".tmp"
     with open(temp_path,"w",encoding="utf-8") as f: json.dump(payload,f,ensure_ascii=False,allow_nan=False)
     os.replace(temp_path,VCP_SIGNALS_PATH)
@@ -516,8 +517,8 @@ def run_backtest():
             closed_trades=len(result["trades"]),open_position=result["open_position"] is not None,
             evaluated_sessions=result["evaluated_sessions"],last_session=result["equity"][-1]["date"]))
         trades.extend(result["trades"])
-    pd.DataFrame(summaries,columns=["ticker","final_value","return_pct","closed_trades","open_position","evaluated_sessions","last_session"]).to_csv("vcp_backtest_per_ticker.csv",index=False)
-    pd.DataFrame(trades,columns=["ticker","entry_date","exit_date","entry_price","exit_price","size","entry_cost","exit_cost","net","reason","days"]).to_csv("vcp_backtest_trades.csv",index=False)
+    write_csv(pd.DataFrame(summaries,columns=["ticker","final_value","return_pct","closed_trades","open_position","evaluated_sessions","last_session"]), "vcp_backtest_per_ticker.csv", index=False)
+    write_csv(pd.DataFrame(trades,columns=["ticker","entry_date","exit_date","entry_price","exit_price","size","entry_cost","exit_cost","net","reason","days"]), "vcp_backtest_trades.csv", index=False)
     print(f"Backtest {BACKTEST_START} t/m {BACKTEST_END}: {len(summaries)} tickers | {len(skipped)} overgeslagen: {', '.join(skipped)}")
     print("Afzonderlijke accounts van 50.000 oorspronkelijke koerseenheden per ticker; geen gezamenlijk portefeuille- of EUR-rendement. Geen belastingmodel. Open posities gewaardeerd tegen laatste slotkoers zonder fictieve verkoopkosten.")
     if not summaries: raise RuntimeError("Geen bruikbare backtesthistorie")

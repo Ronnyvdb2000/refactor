@@ -202,3 +202,10 @@ class Tests(unittest.TestCase):
         for key in ('EMAIL_USER','SUPABASE_DB_URL','PYTHONUNBUFFERED','timeout-minutes'):self.assertIn(key,s)
 
 if __name__=='__main__':unittest.main()
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def explicit_csv_export_tests(monkeypatch):
+    monkeypatch.setenv('CSV_EXPORT_ENABLED', '1')

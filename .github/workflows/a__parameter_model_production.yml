@@ -156,16 +156,16 @@ jobs:
           ls -lh results/ || echo "(geen bestanden)"
           echo ""
           shopt -s nullglob
-          picks=(results/a_par_model_*_picks.csv)
+          picks=(results/a_par_model_*_picks.json)
           if [ ${#picks[@]} -eq 0 ]; then
-            echo "WAARSCHUWING: geen enkele picks-CSV gegenereerd."
+            echo "WAARSCHUWING: geen enkele picks-JSON gegenereerd."
           else
             for p in "${picks[@]}"; do
-              echo "OK: $(basename "$p") ($(wc -l < "$p") regels)"
+              echo "OK: $(basename "$p") ($(wc -c < "$p") bytes)"
             done
           fi
           echo ""
-          weights=(results/a_par_model_*_weights.csv)
+          weights=(results/a_par_model_*_weights.json)
           if [ ${#weights[@]} -gt 0 ]; then
             echo "Gewichten-bestanden: ${#weights[@]}"
           fi

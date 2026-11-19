@@ -125,3 +125,10 @@ def test_par_command_failure_is_not_hidden_by_tee(tmp_path):
     result=subprocess.run(['bash','-e','-c',STEPS['Run a_par_model (indien source=par)']['run']],
         cwd=tmp_path,env=environment(PATH=str(bindir)+os.pathsep+os.environ['PATH']),capture_output=True,text=True)
     assert result.returncode==7
+
+
+def test_tradingagents_consumes_json_picks(tmp_path, monkeypatch, bridge):
+    monkeypatch.chdir(tmp_path)
+    Path('results').mkdir()
+    Path('results/a_par_model_10d_picks.json').write_text('[{"ticker":"A"},{"ticker":"B"}]')
+    assert bridge.lees_par_picks('10d', 1) == ['A']

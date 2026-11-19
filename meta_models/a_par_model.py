@@ -16,7 +16,7 @@ Werkwijze:
   4. Voor elke (ticker, score_datum): rangschik elke parameter cross-
      sectioneel (0..1) en bereken score = Σ (IC_i × (rang_i - 0.5)) / Σ |IC_i|.
   5. Top-N per horizon = picks.
-  6. Output: CSV per horizon + Telegram-bericht + optioneel schrijven naar
+  6. Output: JSON per horizon + Telegram-bericht + optioneel schrijven naar
      selecties (strategie a_par_model_v1) + metrics naar model_metrics.
 
 Env:
@@ -61,6 +61,7 @@ from horizon_utils import calendar_embargo
 from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 
 import os
+from common.exports import write_csv
 import sys
 import argparse
 import html
@@ -597,6 +598,15 @@ def parse_args():
     return ap.parse_args()
 
 
+
+def schrijf_rapporten(picks, gewichten, horizon):
+    csv_path = os.path.join(RESULTS_DIR, f"a_par_model_{horizon}_picks.csv")
+    picks.to_json(csv_path.replace(".csv", ".json"), orient="records", date_format="iso", force_ascii=False)
+    write_csv(picks, csv_path, index=False)
+    w_path = os.path.join(RESULTS_DIR, f"a_par_model_{horizon}_weights.csv")
+    gewichten.to_json(w_path.replace(".csv", ".json"), orient="records", date_format="iso", force_ascii=False)
+    write_csv(gewichten, w_path, index=False)
+
 def main():
     args = parse_args()
     horizons = [h.strip() for h in args.horizons.split(",") if h.strip()]
@@ -754,10 +764,7 @@ def main():
                 print(f"    {i:>2}. {r['ticker']:<12} "
                       f"score={r['score']:+.4f}  koers={koers_str}")
 
-            csv_path = os.path.join(RESULTS_DIR, f"a_par_model_{horizon}_picks.csv")
-            picks.to_csv(csv_path, index=False)
-            w_path = os.path.join(RESULTS_DIR, f"a_par_model_{horizon}_weights.csv")
-            gewichten.to_csv(w_path, index=False)
+            schrijf_rapporten(picks, gewichten, horizon)
 
             # === Metrics wegschrijven ===
             schrijf_model_metrics(

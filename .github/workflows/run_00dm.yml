@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 300
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,11 +35,3 @@ jobs:
           EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
         run: python -m strats.bot_00dm live
-      - name: Opslaan CSV
-        if: always()
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f dm_signalen_*.csv 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "bot_00dm $(date '+%Y-%m-%d')"
-          python -m maintenance.push_generated_commit

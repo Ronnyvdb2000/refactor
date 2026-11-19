@@ -329,3 +329,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
 
 if __name__=='__main__':unittest.main()
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def explicit_csv_export_tests(monkeypatch):
+    monkeypatch.setenv('CSV_EXPORT_ENABLED', '1')

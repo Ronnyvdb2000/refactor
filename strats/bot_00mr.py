@@ -3,6 +3,7 @@
 """IBS/RSI and Opening Range Breakout advisory scans. No simulated fills,
 portfolio mutations or broker execution; legacy state is read only for MR exits.
 """
+from common.exports import write_csv
 import os
 import sys
 import json
@@ -281,7 +282,7 @@ def deliver(mode,rows,reports,diagnostics,missing,errors):
     for ticker,(category,reason) in sorted(diagnostics.items()):
         if category!="ok":print(f"[{category.upper()}] {ticker}: {reason}")
     columns=list(MRSignaal.__dataclass_fields__) if mode=="eod" else list(ORBSignaal.__dataclass_fields__)
-    pd.DataFrame(rows,columns=columns).to_csv(f"mr_{mode}_signalen_{today_str()}.csv",index=False)
+    write_csv(pd.DataFrame(rows,columns=columns), f"mr_{mode}_signalen_{today_str()}.csv", index=False)
     atomic_json(f"mr_{mode}_scan.json",dict(mode=mode,date=today_str(),complete=not partial,
         coverage=dict(counts),diagnostics=diagnostics,missing_files=missing,errors=errors,
         database=dict(saved=saved,requested=selected),signals=rows))

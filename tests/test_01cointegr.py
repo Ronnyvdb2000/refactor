@@ -204,3 +204,10 @@ class Tests(unittest.TestCase):
         self.assertIn('SUPABASE_DB_URL',run['env']);self.assertEqual(doc['permissions']['contents'],'read')
 
 if __name__=='__main__':unittest.main()
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def explicit_csv_export_tests(monkeypatch):
+    monkeypatch.setenv('CSV_EXPORT_ENABLED', '1')

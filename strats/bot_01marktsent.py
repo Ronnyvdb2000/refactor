@@ -5,6 +5,7 @@
 Live genereert adviezen, geen orders. Backtest simuleert uitsluitend de
 technische component per ticker in oorspronkelijke koerseenheden, zonder FX.
 """
+from common.exports import write_csv
 import argparse
 import os
 import math
@@ -476,12 +477,12 @@ def run_backtest():
         except Exception as exc:
             errors.append(f'{ticker}: {type(exc).__name__}: {exc}')
     os.makedirs('backtest_results',exist_ok=True)
-    pd.DataFrame(summaries,columns=['ticker','start_value','final_value','return_pct','trades','win_rate_pct',
+    write_csv(pd.DataFrame(summaries,columns=['ticker','start_value','final_value','return_pct','trades','win_rate_pct',
         'profit_factor','max_drawdown_pct','last_quote_date','open_positions','open_entry_date',
-        'open_entry_price','open_size','open_stop','open_entry_fee']).to_csv('backtest_results/marktsent_summary_per_ticker.csv',index=False)
-    pd.DataFrame(trades,columns=['ticker','entry_date','exit_date','entry_price','exit_price','size',
-        'entry_fee','exit_fee','pnl','sessions_held','reason']).to_csv('backtest_results/marktsent_trades.csv',index=False)
-    pd.DataFrame(equity,columns=['ticker','date','value']).to_csv('backtest_results/marktsent_equity.csv',index=False)
+        'open_entry_price','open_size','open_stop','open_entry_fee']), 'backtest_results/marktsent_summary_per_ticker.csv', index=False)
+    write_csv(pd.DataFrame(trades,columns=['ticker','entry_date','exit_date','entry_price','exit_price','size',
+        'entry_fee','exit_fee','pnl','sessions_held','reason']), 'backtest_results/marktsent_trades.csv', index=False)
+    write_csv(pd.DataFrame(equity,columns=['ticker','date','value']), 'backtest_results/marktsent_equity.csv', index=False)
     print('TECHNISCHE BACKTEST — onafhankelijke accounts in oorspronkelijke koerseenheden; geen EUR-portefeuille, geen sentiment, geen belastingmodel.')
     print(f'{len(summaries)}/{len(tickers)} tickers gesimuleerd; {len(trades)} gesloten trades.')
     print('\n'.join(issues+errors))

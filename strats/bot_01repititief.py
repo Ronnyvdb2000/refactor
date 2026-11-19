@@ -5,6 +5,7 @@ Live historische check is beschrijvend, na selectie, geen onafhankelijke validat
 Backtest traint uitsluitend op eerdere jaren; vaste afzonderlijke notional per trade.
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import sys
 import math
 import time
@@ -557,8 +558,9 @@ def run_backtest():
                                         str(entry_date.date()), str(exit_date.date()), exchange)
         print(f"[BACKTEST] {exchange} afgerond", flush=True)
     tdf = pd.DataFrame(trades, columns=TRADE_COLUMNS)
-    tdf.to_csv("seizoen_backtest_trades.csv", index=False)
-    print(f"{len(tdf)} trades opgeslagen: seizoen_backtest_trades.csv", flush=True)
+    write_csv(tdf, "seizoen_backtest_trades.csv", index=False)
+    if csv_exports_enabled():
+        print(f"{len(tdf)} trades opgeslagen: seizoen_backtest_trades.csv", flush=True)
     print("Afzonderlijke hypothetische posities, indexbasis 100 per ticker; 2500 synthetische "
           "eenheden inclusief aankoopkosten per trade; 0,1% slippage per kant, "
           "kosten max(15, 0,35% notional) per kant; geen belastingaanname. "

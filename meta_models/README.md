@@ -4,7 +4,7 @@ Deze map groepeert het parametermodel, de Ridge-meta-modellen, meta-labelclassif
 
 | Module | Functie | Workflow |
 | --- | --- | --- |
-| `a_par_model` | Rolling IC-parametermodel; CSV-picks, gewichten en optionele opslag/melding | `a__parameter_model_production.yml` |
+| `a_par_model` | Rolling IC-parametermodel; JSON-picks, gewichten en optionele opslag/melding | `a__parameter_model_production.yml` |
 | `a_meta_model` | Ridge walk-forwardevaluatie | `a_meta_model.yml` |
 | `a_meta_model_train` | Ridge trainen en model bewaren | `a__meta_model_production.yml` |
 | `a_meta_model_score` | Scoren met opgeslagen Ridge-model | `a__meta_model_production.yml` |
@@ -24,7 +24,7 @@ python -m meta_models.a_meta_model_train --help
 
 De workflows blijven onder `.github/workflows/`; hun namen, schema's, secrets, Telegraminstellingen en log-/artifactpaden zijn behouden. Resultaten blijven onder `results/` vanaf de hoofdmap staan. De eerdere losse scripts in de hoofdmap zijn verplaatst; vervang eigen oude aanroepen `python a_meta_....py` door de moduleaanroep hierboven.
 
-Het parametermodel start via `python -m meta_models.a_par_model`. De parameterworkflow en de 10d-vergelijking gebruiken dit nieuwe pad. Ook de TradingAgents-workflow gebruikt deze moduleaanroep. Er staat geen startwrapper meer in de hoofdmap; externe aanroepen moeten eveneens `python -m meta_models.a_par_model` gebruiken. CSV-picks en gewichten blijven onder `results/a_par_model_*` staan zodat de TradingAgents-consument ze blijft vinden. De XGBoost-modellen en gedeelde hulpmiddelen blijven in de hoofdmap omdat ze ook buiten deze groep worden gebruikt. De weekly-bots vallen buiten deze herindeling. De twee classifiervarianten zijn afzonderlijk behouden; de verhuizing voegt hun gedrag niet samen.
+Het parametermodel start via `python -m meta_models.a_par_model`. De parameterworkflow en de 10d-vergelijking gebruiken dit nieuwe pad. Ook de TradingAgents-workflow gebruikt deze moduleaanroep. Er staat geen startwrapper meer in de hoofdmap; externe aanroepen moeten eveneens `python -m meta_models.a_par_model` gebruiken. JSON-picks en gewichten blijven onder `results/a_par_model_*` staan zodat de TradingAgents-consument ze blijft vinden. De XGBoost-modellen en gedeelde hulpmiddelen blijven in de hoofdmap omdat ze ook buiten deze groep worden gebruikt. De weekly-bots vallen buiten deze herindeling. De twee classifiervarianten zijn afzonderlijk behouden; de verhuizing voegt hun gedrag niet samen.
 
 Zie ook [invoercontrole en publicatievoorwaarden](../docs/model_inputs.md).
 

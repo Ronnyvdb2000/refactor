@@ -32,7 +32,7 @@ class Temporary(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.old=Path.cwd();os.chdir(self.temp.name)
         self.addCleanup(self.restore)
         p=patch.object(b,'today_str',return_value='2026-11-13');p.start();self.addCleanup(p.stop)
-        p=patch.dict(os.environ,{},clear=True);p.start();self.addCleanup(p.stop)
+        p=patch.dict(os.environ,{"CSV_EXPORT_ENABLED":"1"},clear=True);p.start();self.addCleanup(p.stop)
     def restore(self):os.chdir(self.old);self.temp.cleanup()
 
 class Signals(unittest.TestCase):
@@ -241,3 +241,10 @@ class Live(Temporary):
         self.assertIsNotNone(r['error']);self.assertIn('ouder',r['payload']['skipped']['A'])
 
 if __name__=='__main__':unittest.main()
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def explicit_csv_export_tests(monkeypatch):
+    monkeypatch.setenv('CSV_EXPORT_ENABLED', '1')

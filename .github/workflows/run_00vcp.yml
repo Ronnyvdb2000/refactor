@@ -43,7 +43,6 @@ jobs:
           name: vcp-signals
           path: |
             vcp_signals.json
-            vcp_signalen_*.csv
           if-no-files-found: warn
           retention-days: 7
 

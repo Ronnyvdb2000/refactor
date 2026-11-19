@@ -8,6 +8,7 @@ Technische indicatoren via common.indicators, sizing via common.sizing.
 Backtest-functionaliteit is volledig behouden.
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import sys
 import math
 from dataclasses import dataclass
@@ -536,7 +537,7 @@ def run_backtest():
 
     if trades:
         tdf  = pd.DataFrame(trades)
-        tdf.to_csv("cs_backtest_trades.csv", index=False)
+        write_csv(tdf, "cs_backtest_trades.csv", index=False)
         n    = len(tdf)
         nwin = (tdf["net"] > 0).sum()
         pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
@@ -550,7 +551,8 @@ def run_backtest():
         print(f"Belasting betaald: EUR{tdf['tax'].sum():,.2f}")
         print(f"Gem. houdduur    : {tdf['days'].mean():.1f} dagen")
         print(f"{'='*60}")
-        print("Opgeslagen: cs_backtest_trades.csv")
+        if csv_exports_enabled():
+            print("Opgeslagen: cs_backtest_trades.csv")
     else:
         print("Geen trades gegenereerd.")
 

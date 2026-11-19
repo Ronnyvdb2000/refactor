@@ -150,7 +150,7 @@ class Live(unittest.TestCase):
                 try:b.run_live_engine()
                 except RuntimeError as e:error=e
                 payload=json.loads(Path('vcp_signals.json').read_text())
-                csv=pd.read_csv('vcp_signalen_2026-11-13.csv')
+                csv=pd.read_csv('vcp_signalen_2026-11-13.csv') if Path('vcp_signalen_2026-11-13.csv').exists() else None
                 result=dict(error=error,payload=payload,csv=csv,email=b.send_email.call_args,telegram=b.send_telegram.call_count)
             finally:b.os.chdir(old)
         return result
@@ -170,4 +170,18 @@ class Live(unittest.TestCase):
         r=self.run_bot(g=g);self.assertIsNone(r['error'])
         self.assertLess(r['csv'].iloc[0].signal_date,'2026-11-13')
 
+    def test_default_no_csv_preserves_json_database_and_email(self):
+        with patch.dict(b.os.environ, {'CSV_EXPORT_ENABLED': ''}):
+            result = self.run_bot()
+        self.assertIsNone(result['csv'])
+        self.assertIsNone(result['error'])
+        self.assertEqual(result['payload']['database']['saved'], 1)
+
 if __name__=='__main__':unittest.main()
+
+
+import pytest
+
+@pytest.fixture(autouse=True)
+def explicit_csv_export_tests(monkeypatch):
+    monkeypatch.setenv('CSV_EXPORT_ENABLED', '1')

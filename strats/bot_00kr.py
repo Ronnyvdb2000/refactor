@@ -8,6 +8,7 @@ Alle indicatoren (RSI, MACD, ATR) komen uit common.indicators.
 Backtest-functionaliteit is volledig behouden.
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import sys
 import os
 import math
@@ -394,8 +395,9 @@ def run_live_engine():
     # Eén dagsnapshot, ook met alleen kolomkoppen als er geen kandidaten zijn.
     csv_path = f"ks_signalen_{today_str()}.csv"
     columns = ["datum", "beurs", *KSSignaal.__dataclass_fields__]
-    pd.DataFrame(csv_rows, columns=columns).to_csv(csv_path, index=False)
-    print(f"Opgeslagen: {csv_path} ({len(csv_rows)} signalen)")
+    write_csv(pd.DataFrame(csv_rows, columns=columns), csv_path, index=False)
+    if csv_exports_enabled():
+        print(f"Opgeslagen: {csv_path} ({len(csv_rows)} signalen)")
     if total_analysed == 0:
         raise RuntimeError("Geen enkele ticker kon worden geanalyseerd; controleer de koersdata.")
 
@@ -540,7 +542,7 @@ def run_backtest():
 
     if trades:
         tdf  = pd.DataFrame(trades)
-        tdf.to_csv("kr_backtest_trades.csv", index=False)
+        write_csv(tdf, "kr_backtest_trades.csv", index=False)
         n    = len(tdf)
         nwin = (tdf["net"] > 0).sum()
         pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
@@ -554,7 +556,8 @@ def run_backtest():
         print(f"Belasting betaald: EUR{tdf['tax'].sum():,.2f}")
         print(f"Gem. houdduur    : {tdf['days'].mean():.1f} dagen")
         print(f"{'='*60}")
-        print("Opgeslagen: kr_backtest_trades.csv")
+        if csv_exports_enabled():
+            print("Opgeslagen: kr_backtest_trades.csv")
     else:
         print("Geen trades gegenereerd.")
 

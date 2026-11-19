@@ -44,6 +44,5 @@ jobs:
           name: mr-orb-signals
           path: |
             mr_orb_scan.json
-            mr_orb_signalen_*.csv
           retention-days: 7
           if-no-files-found: warn

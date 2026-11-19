@@ -54,6 +54,5 @@ jobs:
           name: xxxV2-signals
           path: |
             xxxV2_scan.json
-            xxxV2_signalen_*.csv
           retention-days: 7
           if-no-files-found: warn

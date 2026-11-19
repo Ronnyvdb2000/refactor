@@ -8,6 +8,7 @@ Combineert top 20% omzetgroei met top 20% relatieve sterkte.
 Backtest-functionaliteit is volledig behouden.
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import sys
 import math
 from dataclasses import dataclass
@@ -544,7 +545,7 @@ def run_backtest():
 
     if trades:
         tdf = pd.DataFrame(trades)
-        tdf.to_csv("dm_backtest_trades.csv", index=False)
+        write_csv(tdf, "dm_backtest_trades.csv", index=False)
         n    = len(tdf)
         nwin = (tdf["net"] > 0).sum()
         pf   = abs(tdf.loc[tdf["net"] > 0, "net"].sum()) / max(abs(tdf.loc[tdf["net"] <= 0, "net"].sum()), 1e-9)
@@ -557,7 +558,8 @@ def run_backtest():
         print(f"Profit Factor    : {pf:.2f}")
         print(f"Belasting betaald: EUR{tdf['tax'].sum():,.2f}")
         print(f"Gem. houdduur    : {tdf['days'].mean():.1f} dagen")
-        print(f"Opgeslagen       : dm_backtest_trades.csv")
+        if csv_exports_enabled():
+            print(f"Opgeslagen       : dm_backtest_trades.csv")
         print(f"{'='*60}")
     else:
         print("Geen trades gegenereerd.")

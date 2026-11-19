@@ -53,3 +53,19 @@ stukken van maximaal 3.900 UTF-16-eenheden. Een mislukt deel wordt gelogd als
 waarschuwing; latere delen en de e-mail worden nog geprobeerd. De vier workflows
 geven de bestaande Telegram-secrets door. Bezorging vereist geldige secrets;
 de offline tests versturen geen berichten.
+
+
+## CSV-export uitgeschakeld
+
+Strategiebots schrijven standaard geen CSV-signalen, backtestrapporten of
+CSV-portefeuilleprojecties meer. De gedeelde exportfunctie is standaard uit;
+alleen expliciet `CSV_EXPORT_ENABLED=1` schakelt een handmatige export in.
+Geen workflow activeert deze optie. De oude CSV-commitstappen van KR, MS, CS en DM
+zijn verwijderd; JSON-artifacts, databaseopslag en notificaties blijven behouden.
+XXXV2 bewaart zijn echte portefeuille en herhaalbeveiliging in `live_state.json`.
+Bestaande CSV-bestanden worden niet automatisch verwijderd.
+
+Het par-model gebruikt JSON-picks en -gewichten onder `results/`; de
+TradingAgents-consument en workflow lezen diezelfde JSON-bestanden. Dit start
+geen LLM-analyse. Diagnosebestanden, statische invoer en de interne weekly-
+hervatcache vallen buiten de CSV-rapportexport van de strategiebots.

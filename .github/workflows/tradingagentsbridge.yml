@@ -145,7 +145,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
-          echo "a_par_model draaien (zonder Telegram, alleen CSV-output)..."
+          echo "a_par_model draaien (zonder Telegram, alleen JSON-output)..."
           mkdir -p results
           
           DATE_ARGS=()
@@ -175,7 +175,7 @@ jobs:
       - name: Controleer par-picks
         if: env.SOURCE == 'par'
         run: |
-          PAD="results/a_par_model_${HORIZON}_picks.csv"
+          PAD="results/a_par_model_${HORIZON}_picks.json"
           if [ ! -s "$PAD" ]; then
             echo "::error::$PAD ontbreekt; TradingAgents kan geen par-picks analyseren."
             exit 1
@@ -217,7 +217,7 @@ jobs:
           path: |
             tradingagents_output.log
             a_par_model_run.log
-            results/a_par_model_*_picks.csv
+            results/a_par_model_*_picks.json
             vcp_signals.json
           if-no-files-found: ignore
           retention-days: 30

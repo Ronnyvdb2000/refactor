@@ -7,7 +7,7 @@ Koppelt TradingAgents (multi-agent LLM-analyse) aan een signaalbron.
 
 Bronnen:
   --source vcp  (default): leest vcp_signals.json (output van bot_00vcp)
-  --source par          : leest results/a_par_model_{horizon}_picks.csv
+  --source par          : leest results/a_par_model_{horizon}_picks.json
 
 Werking:
   1. Bron genereert kandidaat-tickers
@@ -35,7 +35,6 @@ import os
 from copy import deepcopy
 import sys
 import re
-import csv
 import json
 import time
 import argparse
@@ -193,15 +192,14 @@ def lees_vcp_signals(pad: str) -> list:
 
 
 def lees_par_picks(horizon: str, top_n: int) -> list:
-    """Leest picks uit results/a_par_model_{horizon}_picks.csv."""
-    pad = f"results/a_par_model_{horizon}_picks.csv"
+    """Leest picks uit results/a_par_model_{horizon}_picks.json."""
+    pad = f"results/a_par_model_{horizon}_picks.json"
     if not os.path.exists(pad):
         print(f"Geen par-picks gevonden: {pad}")
         return []
     try:
-        with open(pad, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            rijen = list(reader)
+        with open(pad, encoding="utf-8") as f:
+            rijen = json.load(f)
         tickers = [r["ticker"] for r in rijen if r.get("ticker")][:top_n]
         print(f"{len(tickers)} tickers gelezen uit {pad}")
         return tickers
@@ -272,7 +270,7 @@ def main():
         choices=["vcp", "par"],
         default="vcp",
         help="vcp = bot_00vcp signalen uit vcp_signals.json; "
-             "par = a_par_model picks uit results/a_par_model_{horizon}_picks.csv "
+             "par = a_par_model picks uit results/a_par_model_{horizon}_picks.json "
              "(default: vcp)",
     )
     parser.add_argument(

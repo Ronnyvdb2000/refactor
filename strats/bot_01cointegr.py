@@ -10,6 +10,7 @@ Backtest: synthetische genormaliseerde indexeenheden, geen EUR-portefeuille.
 Gebruik:  python -m strats.bot_01cointegr live | backtest
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import os
 import argparse
 import sys
@@ -579,12 +580,12 @@ def run_backtest():
 
     # Always expose empty trades, open positions and valuation history.
     os.makedirs('backtest_results', exist_ok=True)
-    pd.DataFrame(trades, columns=['entry_date','exit_date','pair','direction','entry_z',
-        'exit_z','gross_pnl','net_pnl','days']).to_csv('backtest_results/backtest_cointegr.csv', index=False)
-    pd.DataFrame(equity_curve, columns=['date','value']).to_csv('backtest_results/cointegr_equity.csv', index=False)
-    pd.DataFrame([dict(pair=k, **v) for k,v in positions.items()],
+    write_csv(pd.DataFrame(trades, columns=['entry_date','exit_date','pair','direction','entry_z',
+        'exit_z','gross_pnl','net_pnl','days']), 'backtest_results/backtest_cointegr.csv', index=False)
+    write_csv(pd.DataFrame(equity_curve, columns=['date','value']), 'backtest_results/cointegr_equity.csv', index=False)
+    write_csv(pd.DataFrame([dict(pair=k, **v) for k,v in positions.items()],
         columns=['pair','entry_date','entry_a','entry_b','entry_fees','size_a','size_b',
-                 'direction','entry_z','days','reserved']).to_csv('backtest_results/cointegr_open.csv', index=False)
+                 'direction','entry_z','days','reserved']), 'backtest_results/cointegr_open.csv', index=False)
     # --- Resultaten ---
     if trades:
         tdf = pd.DataFrame(trades)
@@ -603,7 +604,7 @@ def run_backtest():
         max_dd = equity_df['drawdown'].max() * 100
 
         os.makedirs('backtest_results', exist_ok=True)
-        tdf.to_csv('backtest_results/backtest_cointegr.csv', index=False)
+        write_csv(tdf, 'backtest_results/backtest_cointegr.csv', index=False)
 
         print(f"\n{'='*60}")
         print(f"📊 BACKTEST RESULTATEN — bot_01cointegr (walk-forward)")
@@ -623,7 +624,8 @@ def run_backtest():
         for pair, pnl in top_pairs.items():
             print(f"  {pair}: indexeenheden {pnl:,.2f}")
 
-        print("\n💾 Resultaten opgeslagen in backtest_results/backtest_cointegr.csv")
+        if csv_exports_enabled():
+            print("\n💾 Resultaten opgeslagen in backtest_results/backtest_cointegr.csv")
     else:
         print("Geen trades gegenereerd.")
 

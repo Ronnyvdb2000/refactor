@@ -5,6 +5,7 @@ and an explicitly invoked local manual ledger. No broker execution.
 Live mode leaves local portfolio state untouched.
 """
 
+from common.exports import write_csv, csv_exports_enabled
 import os
 import sys
 import math
@@ -255,13 +256,15 @@ class LivePortfolio:
         atomic_json(LIVE_STATE_FILE,dict(version=1,currency=self.currency,cash=self.cash,
             positions=[asdict(p) for p in self.positions.values()],trades=self.trades,
             applied_batches=self.applied_batches,last_update=date))
-        # CSVs are replaceable projections; JSON remains authoritative after a crash.
+        # JSON is authoritative; optional CSV projections are disabled by default.
+        if not csv_exports_enabled():
+            return
         for path,frame in ((LIVE_POSITIONS_FILE,pd.DataFrame([asdict(p) for p in self.positions.values()],columns=list(LivePosition.__dataclass_fields__))),
                            (LIVE_TRADES_FILE,pd.DataFrame(self.trades,columns=["date","ticker","strategy","side","price","size","cost","pnl","tax","net","reason"]))):
-            temp=path+".tmp";frame.to_csv(temp,index=False);os.replace(temp,path)
+            temp=path+".tmp";write_csv(frame, temp, index=False);os.replace(temp,path)
         value=self.current_total_value(prices) if all(t in prices for t in self.positions) else None
         temp=LIVE_PORTFOLIO_FILE+".tmp"
-        pd.DataFrame([dict(date=date,currency=self.currency,cash=self.cash,total=value)]).to_csv(temp,index=False)
+        write_csv(pd.DataFrame([dict(date=date,currency=self.currency,cash=self.cash,total=value)]), temp, index=False)
         os.replace(temp,LIVE_PORTFOLIO_FILE)
 
     def current_total_value(self,prices):
@@ -420,7 +423,7 @@ def run_live_engine():
         except Exception as exc:errors.append(f"Verkoopadvies: {exc}")
     partial=bool(skipped or missing or errors or saved<len(rows))
     columns=["ticker","datum","signal_date","beurs","rank","substrategie","richting","reden","koers","atr","stop","target","rr_ratio","price_unit"]
-    pd.DataFrame(rows,columns=columns).to_csv(f"xxxV2_signalen_{today_str()}.csv",index=False)
+    write_csv(pd.DataFrame(rows,columns=columns), f"xxxV2_signalen_{today_str()}.csv", index=False)
     atomic_json("xxxV2_scan.json",dict(date=today_str(),complete=not partial,requested=len(tickers),analysed=len(cache),
         skipped=skipped,errors=errors,missing_files=missing,database=dict(saved=saved,requested=len(rows)),signals=rows,
         exit_advice=[dict(ticker=s.ticker,signal_date=s.date.isoformat(),reason=s.reason,reference_price=s.price) for s in exit_advice]))
@@ -579,10 +582,10 @@ def run_backtest():
         for strategy in STRAT_CONFIG:
             closed=[r for r in bt.closed_trades if r["strategy"]==strategy]
             strategy_rows.append(dict(ticker=ticker,strategy=strategy,trades=len(closed),net_closed=sum(r["net"] for r in closed)))
-    pd.DataFrame(summaries,columns=["ticker","final_value","return_pct","cagr_pct","max_drawdown_pct","sharpe","profit_factor","closed_trades","n_open","first_session","last_session"]).to_csv("backtest_summary_per_ticker.csv",index=False)
-    pd.DataFrame(trades,columns=["entry_date","exit_date","ticker","strategy","entry_price","exit_price","size","entry_cost","exit_cost","net","reason","days_open"]).to_csv("backtest_trades.csv",index=False)
-    pd.DataFrame(snapshots,columns=["ticker","date","cash","positions_value","total","n_positions"]).to_csv("backtest_portfolio.csv",index=False)
-    pd.DataFrame(strategy_rows,columns=["ticker","strategy","trades","net_closed"]).to_csv("backtest_strategy_per_ticker.csv",index=False)
+    write_csv(pd.DataFrame(summaries,columns=["ticker","final_value","return_pct","cagr_pct","max_drawdown_pct","sharpe","profit_factor","closed_trades","n_open","first_session","last_session"]), "backtest_summary_per_ticker.csv", index=False)
+    write_csv(pd.DataFrame(trades,columns=["entry_date","exit_date","ticker","strategy","entry_price","exit_price","size","entry_cost","exit_cost","net","reason","days_open"]), "backtest_trades.csv", index=False)
+    write_csv(pd.DataFrame(snapshots,columns=["ticker","date","cash","positions_value","total","n_positions"]), "backtest_portfolio.csv", index=False)
+    write_csv(pd.DataFrame(strategy_rows,columns=["ticker","strategy","trades","net_closed"]), "backtest_strategy_per_ticker.csv", index=False)
     print(f"Backtest: {len(summaries)} accounts | {len(skipped)} overgeslagen: {', '.join(skipped)}")
     print("Elk account: 50.000 oorspronkelijke koerseenheden per ticker. Geen gezamenlijk EUR-portefeuillerendement. Geen belastingmodel. Kosten/slippage zijn modelaannames, geen uitvoeringsgarantie.")
     if not summaries:raise RuntimeError("Geen bruikbare backtesthistorie")
