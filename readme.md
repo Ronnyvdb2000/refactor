@@ -173,12 +173,14 @@ Voorbeelden van de huidige YAML-configuratie:
 
 | Taak | Planning / uitvoering |
 | --- | --- |
-| Generieke technicals | Dagelijks 21:00 UTC en handmatig |
+| Generieke technicals | Dagelijks 22:15 UTC en handmatig; legt een feature-peildatum en bronmanifest vast |
 | Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python -m scripts.bouw_forward_returns build` |
 | Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python -m strats.bot_00kr live` |
 | LightGBM V2 | Handmatig |
 
 Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
+
+Productie-XGBoost- en Ridge-meta-scoring starten automatisch na een geslaagde technicals-bouwrun op `main`, met het manifest en de peildatum van die bronrun. Nieuwere selecties wachten op een volgende bouwrun; per toegelaten datum blijven de bestaande dekkingscontroles vereist. De zondagse meta-hertraining blijft apart. Zie [de dagdataketen](docs/feature_pipeline.md).
 
 Ridge-meta- en productie-XGBoost-scoring controleren [datum en invoerdekking vóór publicatie](docs/model_inputs.md). Voor weekendselecties wordt uitsluitend de voorafgaande vrijdag als koersdatum gebruikt; beide datums worden vermeld. Op werkdagen blijft dezelfde datum vereist.
 

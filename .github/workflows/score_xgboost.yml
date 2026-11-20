@@ -1,8 +1,10 @@
 name: XGBoostV3 Scoring — top nieuwe selecties naar Telegram en mail — dagelijks
 
 on:
-  schedule:
-    - cron: "30 21 * * 1-5"
+  workflow_run:
+    workflows: ["Feature Store: Generieke Technicals (ATR/RSI/MA/volume, strategie-onafhankelijk) — dagelijks"]
+    types: [completed]
+    branches: [main]
 
   workflow_dispatch:
 
@@ -13,12 +15,20 @@ concurrency:
 
 jobs:
   score-selecties:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    env:
+      FEATURE_BUILD_MANIFEST: ${{ github.event_name == 'workflow_run' && 'feature-build/feature_build.json' || '' }}
+      FEATURE_BUILD_REQUIRED: ${{ github.event_name == 'workflow_run' && '1' || '0' }}
+      FEATURE_EXPECTED_RUN_ID: ${{ github.event.workflow_run.id }}
+      FEATURE_EXPECTED_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      FEATURE_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     permissions:
       contents: read
+      actions: read
 
     steps:
 
@@ -28,6 +38,9 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
 
       # ======================================================
       # PYTHON
@@ -60,6 +73,19 @@ jobs:
             joblib \
             psycopg2-binary \
             requests
+
+      - name: Download manifest from the successful feature run
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: feature-build-manifest
+          path: feature-build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate feature build provenance
+        run: |
+          python -c "from common.feature_pipeline import load_feature_context, context_summary; c = load_feature_context(); print(context_summary(c) if c else 'Handmatige run: bestaande strikte invoercontrole blijft actief')"
 
       # ======================================================
       # MODELFILES CONTROLEREN

@@ -10,6 +10,9 @@ on:
       - 'strats/**'
       - 'weekly/**'
       - 'common/model_inputs.py'
+      - 'common/feature_pipeline.py'
+      - 'tests/test_feature_pipeline.py'
+      - 'tests/test_generieke_technicals.py'
       - 'common/model_quality_gate.py'
       - 'common/lightgbm_v2_preflight.py'
       - 'maintenance/patch_xgboost_quality.py'
@@ -55,6 +58,8 @@ jobs:
         run: >-
           python -m pytest tests/test_ticker_data_layout.py tests/test_io.py
           tests/test_weekly_symbols.py tests/test_00mr.py -q
+      - name: Test feature-build handoff and scoring readiness
+        run: python -m pytest tests/test_feature_pipeline.py tests/test_generieke_technicals.py -q
       - name: Validate relocated production model files
         run: |
           python - <<'PY'
@@ -73,7 +78,7 @@ jobs:
           import re
           import subprocess
           import yaml
-          names = ['lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
+          names = ['run_generieke_technicals.yml', 'a__meta_model_production.yml', 'lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
                    'run_02XLightGBM V2 Trading.yml', 'run_02xgboost.yml',
                    'run_02xgboostMeta.yml', 'run_02xgboostV2.yml', 'run_02xgboostV3.yml',
                    'run_02xgboostV4.yml', 'score_xgboost.yml', 'xgboostV3_gecontroleerd.yml']

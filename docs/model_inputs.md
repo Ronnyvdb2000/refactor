@@ -76,3 +76,8 @@ De gegenereerde SQL voor beide scorers en training is daarnaast als alleen-lezen
 De weekendcorrectie voegt regressiecontroles toe voor zaterdag/zondag met vrijdagfeatures, ontbrekende vrijdag, te oude vrijdag, onveranderde 80%-dekking, geen maandag-terugval, de gegenereerde SQL en beide datums door XGBoost-voorspelling tot Telegramopmaak. Er zijn geen echte testberichten verzonden.
 
 Verificatie na weekendcorrectie: **742 tests en 17 deeltests geslaagd**, negen optionele tests overgeslagen. Beide werkelijk gegenereerde scorequeries zijn alleen-lezen uitgevoerd: Ridge koppelt 1.436 van 1.484 zaterdagselecties aan 13 november; XGBoost koppelt 1.606 van 1.665 ruwe zaterdagselecties aan 13 november. Dit zijn join-aantallen vóór volledige featurevalidatie, geen gepubliceerde scores.
+
+
+## Gekoppelde featurebouw en scoring
+
+De automatische productie-scorers volgen nu een succesvolle technicals-workflow op `main`, in plaats van een los scoringscron. Het bronmanifest begrenst de selectiedatums; latere selecties worden expliciet uitgesteld. Binnen dat venster blijft de nieuwste selectiedatum verplicht voldoende gedekt. Er is geen terugval naar een oudere volledige datum wanneer de nieuwste toegelaten datum onvolledig is. De bestaande eindigheids-, weekend-, minimumrijen- en maximumleeftijdcontroles blijven gelden. Zie [peildatum, manifest en uitvoering](feature_pipeline.md).

@@ -90,6 +90,7 @@ import requests
 import xgboost
 import numpy as np
 from common.model_inputs import InputUnavailable, scoring_inputs, technical_day_sql
+from common.feature_pipeline import load_feature_context, restrict_to_feature_cutoff, context_summary
 
 
 warnings.filterwarnings(
@@ -852,6 +853,7 @@ def laad_modellen() -> Dict[str, object]:
 
 def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
     print_header("NIEUWE SELECTIES OPHALEN")
+    context = load_feature_context()
     grensdatum = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=LOOKBACK_DAGEN)
     columns = ", ".join(f't.{sql_ident(name)}' for name in VERWACHTE_FEATURES)
     query = f"""
@@ -869,6 +871,7 @@ def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
     except Exception as exc:
         conn.rollback()
         raise RuntimeError("Ophalen van nieuwe selecties mislukt") from exc
+    raw = restrict_to_feature_cutoff(raw, "selectie_datum", context)
     if raw.empty:
         return raw
     ready, coverage = scoring_inputs(
@@ -881,7 +884,9 @@ def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
         return "; ".join(sorted({str(value).strip() for value in series if pd.notna(value) and str(value).strip()}))
     aggregation = dict(strategie=combine_strategies, selectie_koers="first", beurs="first", technische_datum="first")
     aggregation.update({name:"first" for name in VERWACHTE_FEATURES})
-    return ready.groupby(["ticker", "selectie_datum"], as_index=False).agg(aggregation)
+    grouped = ready.groupby(["ticker", "selectie_datum"], as_index=False).agg(aggregation)
+    grouped.attrs["feature_context"] = context
+    return grouped
 
 
 def haal_bestaande_scores_op(
@@ -1623,6 +1628,9 @@ def bouw_telegram_bericht(
         "",
     ]
 
+    if df_top.attrs.get("feature_context"):
+        regels.append(html.escape(context_summary(df_top.attrs["feature_context"])))
+
     for index, rij in df_top.iterrows():
 
         ticker = str(rij["ticker"])
@@ -2083,6 +2091,8 @@ def main() -> int:
                 resultaten
             )
         )
+
+        df_top.attrs["feature_context"] = df_selecties.attrs.get("feature_context")
 
         telegram_ok = (
             stuur_telegram(

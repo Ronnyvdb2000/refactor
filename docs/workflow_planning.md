@@ -5,7 +5,7 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 
 | Workflow | Cron (UTC) | Python-entrypoints | Joblimiet (min) | Run-groep | Yahoo-jobgroep | Scope |
 | --- | --- | --- | --- | --- | --- | --- |
-| [a__meta_model_production.yml](../.github/workflows/a__meta_model_production.yml) | `0 23 * * 1-5`<br>`0 22 * * 0` | `meta_models/a_meta_model_train.py`, `meta_models/a_meta_model_score.py` | 20 | meta-model-production | Niet toegewezen | repo-planning |
+| [a__meta_model_production.yml](../.github/workflows/a__meta_model_production.yml) | `0 22 * * 0` | `meta_models/a_meta_model_train.py`, `meta_models/a_meta_model_score.py` | 20 | meta-model-production | Niet toegewezen | repo-planning |
 | [a__parameter_model_production.yml](../.github/workflows/a__parameter_model_production.yml) | `0 5 * * *` | `meta_models/a_par_model.py` | 30 | workflow-a__parameter_model_production-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [a_meta_labeling_classifier.yml](../.github/workflows/a_meta_labeling_classifier.yml) | `0 5 * * 0` | `meta_models/a_meta_label_classifier.py` | 30 | meta-label-classifier | Niet toegewezen | repo-planning |
 | [a_meta_model.yml](../.github/workflows/a_meta_model.yml) | `30 22 * * 1-5` | `meta_models/a_meta_model.py` | 20 | meta-model | Niet toegewezen | repo-planning |
@@ -59,9 +59,9 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [run_analyse_selecties.yml](../.github/workflows/run_analyse_selecties.yml) | `0 8 * * 6` | `analyses/analyse_selecties.py` | 30 | workflow-run_analyse_selecties-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_forward_returns.yml](../.github/workflows/run_forward_returns.yml) | `0 22 * * *` | `scripts/bouw_forward_returns.py` | 340 | forward-returns-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_generieke_fundamentals.yml](../.github/workflows/run_generieke_fundamentals.yml) | `30 21 * * *` | `scripts/bouw_generieke_fundamentals.py` | 90 | workflow-run_generieke_fundamentals-${{ github.ref }} | refactor-yahoo-features | repo-planning |
-| [run_generieke_technicals.yml](../.github/workflows/run_generieke_technicals.yml) | `0 21 * * *` | `scripts/bouw_generieke_technicals.py` | 180 | workflow-run_generieke_technicals-${{ github.ref }} | refactor-yahoo-features | repo-planning |
+| [run_generieke_technicals.yml](../.github/workflows/run_generieke_technicals.yml) | `15 22 * * *` | `scripts/bouw_generieke_technicals.py` | 180 | workflow-run_generieke_technicals-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_top_dist_sma50.yml](../.github/workflows/run_top_dist_sma50.yml) | Handmatig/event | `analyses/a_top_dist_sma50.py` | 15 | workflow-run_top_dist_sma50-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [score_xgboost.yml](../.github/workflows/score_xgboost.yml) | `30 21 * * 1-5` | `models/score_xgboost.py` | 30 | workflow-score_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [score_xgboost.yml](../.github/workflows/score_xgboost.yml) | Handmatig/event | `models/score_xgboost.py` | 30 | workflow-score_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [test_telegram.yml](../.github/workflows/test_telegram.yml) | Handmatig/event | `maintenance/check_telegram.py` | 5 | workflow-test_telegram-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [tradingagentsbridge.yml](../.github/workflows/tradingagentsbridge.yml) | `0 23 * * *` | `meta_models/a_par_model.py`, `tradingagents_bridge.py` | 90 | workflow-tradingagentsbridge-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [vergelijk_meta_par_10d.yml](../.github/workflows/vergelijk_meta_par_10d.yml) | Handmatig/event | `meta_models/vergelijk_meta_par_10d.py` | 40 | workflow-vergelijk_meta_par_10d-${{ github.ref }} | Niet toegewezen | repo-planning |
@@ -77,7 +77,10 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 
 Deze paden worden uit een andere ref/repository uitgevoerd en zijn niet tegen de lokale hoofdbranch gevalideerd.
 
+- `a__meta_model_production.yml` / `run`: `meta_models/a_meta_model_train.py` uit `${{ github.event.workflow_run.head_sha || github.sha }}`.
+- `a__meta_model_production.yml` / `run`: `meta_models/a_meta_model_score.py` uit `${{ github.event.workflow_run.head_sha || github.sha }}`.
 - `research_simulation.yml` / `simulate`: `research.py` uit `feature/quantify-principles`.
+- `score_xgboost.yml` / `score-selecties`: `models/score_xgboost.py` uit `${{ github.event.workflow_run.head_sha || github.sha }}`.
 
 ## Gelijke geplande startminuten
 
@@ -94,13 +97,11 @@ Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart.
 | ma, di, wo, do, vr | 19:55 | run_00db.yml, run_01hoogl.yml |
 | ma, di, wo, do, vr | 20:00 | run_00cs.yml, run_00graham.yml |
 | ma, di, wo, do, vr | 20:05 | run_00vcp.yml, run_01beurssign.yml |
-| ma, di, wo, do, vr | 21:30 | run_generieke_fundamentals.yml, score_xgboost.yml |
 | zo | 22:00 | a__meta_model_production.yml, run_forward_returns.yml |
 | vr | 22:00 | analyse_correlatie_parameters.yml, run_00fisher.yml, run_forward_returns.yml |
 | ma, di, wo, do | 22:00 | analyse_correlatie_parameters.yml, run_forward_returns.yml |
-| vr | 23:00 | a__meta_model_production.yml, run_01hoogl_full.yml, run_02xgboostV3.yml, tradingagentsbridge.yml, weekly_run.yml |
-| ma, di, wo, do | 23:00 | a__meta_model_production.yml, run_02xgboostV3.yml, tradingagentsbridge.yml |
-| zo, za | 23:00 | run_02xgboostV3.yml, tradingagentsbridge.yml |
+| vr | 23:00 | run_01hoogl_full.yml, run_02xgboostV3.yml, tradingagentsbridge.yml, weekly_run.yml |
+| zo, ma, di, wo, do, za | 23:00 | run_02xgboostV3.yml, tradingagentsbridge.yml |
 
 ## Controlepunten
 

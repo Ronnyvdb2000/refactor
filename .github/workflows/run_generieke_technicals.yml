@@ -2,8 +2,8 @@ name: "Feature Store: Generieke Technicals (ATR/RSI/MA/volume, strategie-onafhan
 
 on:
   schedule:
-    # Dagelijks 21:00 UTC; daadwerkelijke start kan wachten op de Yahoo-featuregroep.
-    - cron: "0 21 * * *"
+    # Dagelijks na de reguliere Noord-Amerikaanse slotkoersen; afnemers volgen op success.
+    - cron: "15 22 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -34,9 +34,21 @@ jobs:
       - name: Controleer Yahoo-repair dependency
         run: python -c "from sklearn.cluster import DBSCAN"
 
+      - name: Freeze selection cutoff before building features
+        run: |
+          python - <<'PYCODE'
+          import os
+          from common.feature_pipeline import latest_closed_feature_day
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f"FEATURE_SELECTION_CUTOFF={latest_closed_feature_day().isoformat()}\n")
+          PYCODE
+
       - name: Run bouw_generieke_technicals
         env:
           PYTHONUNBUFFERED: "1"
+          BACKFILL_DATUM: ${{ env.FEATURE_SELECTION_CUTOFF }}
+          FEATURE_SELECTION_CUTOFF: ${{ env.FEATURE_SELECTION_CUTOFF }}
+          FEATURE_BUILD_MANIFEST: results/feature_build.json
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -47,5 +59,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: generieke-technicals-dekking
+          overwrite: true
           path: results/generieke_technicals_dekking.csv
           if-no-files-found: warn
+
+      - name: Publish successful feature build manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: feature-build-manifest
+          overwrite: true
+          path: results/feature_build.json
+          if-no-files-found: error
+          retention-days: 7

@@ -24,6 +24,7 @@ from common import (
 
 from common.features import MODEL_HORIZON, MODEL_FEATURES
 from common.model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs, technical_day_sql
+from common.feature_pipeline import load_feature_context, context_summary
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
@@ -114,6 +115,11 @@ def haal_laatste_model(conn):
     return row
 
 def haal_selecties(conn, features, datum=None):
+    context = load_feature_context()
+    if context:
+        print("[pipeline] " + context_summary(context), flush=True)
+        if datum is not None and pd.Timestamp(datum).date().isoformat() > context["selection_cutoff"]:
+            raise InputUnavailable("Expliciete datum ligt na de feature-peildatum")
     s = [f for f in features if f not in GENERIEKE_TECHNICALS]
     g = [f for f in features if f in GENERIEKE_TECHNICALS]
 
@@ -137,8 +143,14 @@ def haal_selecties(conn, features, datum=None):
 
     if datum is None:
         with conn.cursor() as cur:
-            cur.execute("SELECT MAX(datum) FROM selecties;")
+            if context:
+                cur.execute("SELECT MAX(datum::date)::text FROM selecties WHERE datum::date <= %s::date;",
+                            (context["selection_cutoff"],))
+            else:
+                cur.execute("SELECT MAX(datum) FROM selecties;")
             datum = cur.fetchone()[0]
+    if context and datum is None:
+        raise InputUnavailable("Geen selecties binnen de bevestigde feature-peildatum")
     print(f"Scoren voor datum: {datum}")
 
     query = canonical_selecties_sql() + f"""
@@ -150,7 +162,9 @@ def haal_selecties(conn, features, datum=None):
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(query, (datum,))
-        return pd.DataFrame(cur.fetchall()), datum
+        frame = pd.DataFrame(cur.fetchall())
+        frame.attrs["feature_context"] = context
+        return frame, datum
 
 # ============================================================
 # MAIN
@@ -189,6 +203,7 @@ def main():
         print(f"Horizon: {model_row['horizon_dagen']}d, features: {len(features)}")
 
         df, datum = haal_selecties(conn, features, args.datum)
+        feature_context = df.attrs.get("feature_context")
         print(f"{len(df)} selecties opgehaald.")
 
         if df.empty:
@@ -237,6 +252,8 @@ def main():
                    f"voor selectiedatum {summary['datum']}, koersdatum {summary['technische_datum']}; "
                    f"overige rijen overgeslagen.\n\n") + bericht
 
+        if feature_context:
+            bericht = esc(context_summary(feature_context)) + "\n\n" + bericht
         if args.datum:
             bericht = "Historische scoring met het geselecteerde model; geen walk-forward backtest.\n\n" + bericht
         ok = send_telegram(bericht, parse_mode="HTML")

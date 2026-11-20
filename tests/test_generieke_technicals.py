@@ -184,3 +184,40 @@ def test_rate_limit_during_repair_stops_all_remaining_requests(run):
     ticker.assert_called_with('A')
     write.assert_not_called()
     assert [r['status'] for r in diagnosis()] == ['afgebroken','niet_opgevraagd']
+
+
+def pipeline_environment(monkeypatch, tmp_path):
+    from common.feature_pipeline import latest_closed_feature_day
+    target = latest_closed_feature_day().isoformat()
+    path = tmp_path / 'feature_build.json'
+    monkeypatch.setenv('FEATURE_BUILD_MANIFEST', str(path))
+    monkeypatch.setenv('FEATURE_SELECTION_CUTOFF', target)
+    monkeypatch.setenv('BACKFILL_DATUM', target)
+    monkeypatch.setenv('GITHUB_RUN_ID', '123')
+    monkeypatch.setenv('GITHUB_SHA', 'a'*40)
+    return path, target
+
+
+def test_manifest_is_created_only_after_successful_feature_commits(run, monkeypatch, tmp_path):
+    import json
+    path, target = pipeline_environment(monkeypatch, tmp_path)
+    conn, write, ticker, _, _ = run
+    conn.cursor.return_value.__enter__.return_value.fetchall.return_value = [('OUTSIDE_X',)]
+    ticker.return_value.history.return_value = history(end=target)
+    b.main()
+    report = json.loads(path.read_text())
+    assert report['status'] == 'ready'
+    assert report['selection_cutoff'] == target
+    assert report['rows_written'] == 3
+    assert write.call_count == conn.commit.call_count == 3
+    assert 'OUTSIDE_X' in {call.args[1] for call in write.call_args_list}
+
+
+def test_failed_build_removes_stale_manifest_and_never_releases_a_new_one(run, monkeypatch, tmp_path):
+    path, target = pipeline_environment(monkeypatch, tmp_path)
+    path.write_text('stale manifest from an earlier build')
+    _, _, ticker, _, _ = run
+    ticker.return_value.history.side_effect = [history(end=target), pd.DataFrame()]
+    with pytest.raises(RuntimeError):
+        b.main()
+    assert not path.exists()

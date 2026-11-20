@@ -512,9 +512,25 @@ def schrijf_diagnose(rijen):
     print(f'Diagnose: {pad}', flush=True)
 
 
+def geselecteerde_tickers(conn, cutoff):
+    """Include recent selected assets even when their source is not an x-list."""
+    end = pd.Timestamp(cutoff).normalize()
+    start = end - pd.Timedelta(days=3)
+    with conn.cursor() as cur:
+        cur.execute("""SELECT DISTINCT ticker FROM selecties
+            WHERE datum::date BETWEEN %s::date AND %s::date
+            AND ticker IS NOT NULL ORDER BY ticker""", (str(start.date()), str(end.date())))
+        return sorted({str(row[0]).strip() for row in cur.fetchall() if str(row[0]).strip()})
+
+
 def main():
     if not DB_URL:
         sys.exit("SUPABASE_DB_URL ontbreekt")
+
+    manifest_path = os.environ.get("FEATURE_BUILD_MANIFEST")
+    if manifest_path:
+        from pathlib import Path
+        Path(manifest_path).unlink(missing_ok=True)
 
     datum_doel = os.environ.get("BACKFILL_DATUM")
     datum_doel_ts = pd.Timestamp(datum_doel).normalize() if datum_doel else None
@@ -555,6 +571,9 @@ def main():
     )
 
     try:
+        selected = geselecteerde_tickers(conn, ref_start_ts)
+        tickers = sorted(set(tickers) | set(selected))
+        print(f"[invoer] {len(selected)} recente geselecteerde tickers; totaal universum {len(tickers)}", flush=True)
         for i, ticker in enumerate(tickers, 1):
             uitkomst = dict(ticker=ticker, status='overgeslagen', reden='',
                             detail='', historierijen=0, koersdatum='')
@@ -742,6 +761,9 @@ def main():
             f"Slechts {n_ok}/{len(tickers)} tickers geschreven "
             f"({succes_ratio:.1%}); vereist minimaal {MIN_SUCCES_RATIO:.1%}."
         )
+
+    from common.feature_pipeline import write_feature_manifest
+    write_feature_manifest(diagnose, MIN_SUCCES_RATIO)
 
 
 if __name__ == "__main__":
