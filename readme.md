@@ -29,6 +29,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | `a_*.py` | Parameter- en meta-modellen |
 | `bouw_*.py` | Feature-stores en forward returns |
 | [weekly/](weekly/) | Weekrapporten a/x met gedeelde winnaaropslag, winnaarsanalyse en weekly-correlaties |
+| [scripts/](scripts/) | Uitvoerbare tools voor tickerlijstvoorbereiding |
 | [maintenance/](maintenance/) | Handmatige backfills en onderhoud |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |
 | [.github/workflows/](.github/workflows/) | Planning, dependencies, secrets en uitvoercommando's per taak |
@@ -59,7 +60,7 @@ Belangrijke vervolgstappen in de pipeline:
 
 | Script | Rol |
 | --- | --- |
-| [bot_041mV2.py](bot_041mV2.py) | Tickerselectie V2 |
+| [bot_041mV2.py](scripts/bot_041mV2.py) | Tickerselectie V2 |
 | [a_trade.py](combiners/a_trade.py), [a_trade_q.py](combiners/a_trade_q.py), [a_trade_combi.py](combiners/a_trade_combi.py) | Combineren en rangschikken van signalen |
 | [a_par_model.py](meta_models/a_par_model.py) | Parametermodel |
 | [a_meta_model.py](meta_models/a_meta_model.py) | Evaluatie van het meta-model |

@@ -127,7 +127,7 @@ def test_filter_batch_also_uses_worker_limit_and_preserves_tickers(monkeypatch):
     logger = logging.getLogger('yfinance')
     old = logger.level
     try:
-        module = importlib.import_module('bot_041mV2')
+        module = importlib.import_module('scripts.bot_041mV2')
         history = pd.concat([frame()] * 60)
         raw = pd.concat({'A':history,'B':history}, axis=1)
         with patch.object(module.yf,'download',return_value=raw) as download:
