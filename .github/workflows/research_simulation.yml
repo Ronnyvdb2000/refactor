@@ -1,0 +1,34 @@
+name: Research USD simulation to Telegram
+on:
+  push:
+    branches: [feature/quantify-principles]
+    paths: ['research/database.py', '.github/workflows/research_simulation.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: research-usd-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install psycopg2-binary
+      - name: Read USD selections and send simulation
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m research --supabase --telegram
+      - name: Report incomplete simulation
+        if: failure()
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "from research.telegram import send_text; send_text('USD-allocatiesimulatie ONVOLLEDIG. Ophalen, valideren, berekenen of verzenden mislukt. Controleer de Actions-log. Geen orders geplaatst.')"

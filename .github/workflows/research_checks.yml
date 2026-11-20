@@ -2,9 +2,9 @@ name: Research principles checks
 on:
   push:
     branches: [feature/quantify-principles]
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
   pull_request:
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'combiners/a_trade_combi.py', '.github/workflows/research_checks.yml']
   workflow_dispatch:
     inputs:
       signals_json:
@@ -25,7 +25,7 @@ jobs:
       - run: pip install pytest
       - name: Offline tests
         id: tests
-        run: python -m pytest tests/test_research.py tests/test_research_telegram.py -q
+        run: python -m pytest tests/test_research.py tests/test_research_telegram.py tests/test_research_database.py -q
       - name: Simulatie naar Telegram
         if: success() && github.event_name == 'workflow_dispatch' && inputs.signals_json != ''
         env:

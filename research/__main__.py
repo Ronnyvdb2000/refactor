@@ -12,11 +12,18 @@ from .signals import SelectionSignal
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input", type=Path, help="JSON: currency, signals, data_provenance")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("input", nargs="?", type=Path, help="JSON-mandje")
+    source.add_argument("--supabase", action="store_true", help="Recent USD-mandje uit Supabase")
+    parser.add_argument("--max-age-days", type=int, default=7)
     parser.add_argument("--config", type=Path, default=Path("config/research.json"))
     parser.add_argument("--telegram", action="store_true", help="Stuur simulatie naar Telegram")
     args = parser.parse_args()
-    data = json.loads(args.input.read_text())
+    if args.supabase:
+        from .database import load_basket
+        data = load_basket(max_age_days=args.max_age_days)
+    else:
+        data = json.loads(args.input.read_text())
     if not isinstance(data.get("currency"), str) or not data["currency"].strip():
         raise ValueError("Geef de gemeenschappelijke valuta op; converteer koersen eerst")
     if not data.get("data_provenance"):

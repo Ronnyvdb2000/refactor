@@ -34,6 +34,9 @@ def format_result(result):
              f"Resterende cash: {simulation['remaining_cash']:,.2f}",
              f"Geschat totaal stopverlies incl. kosten: {simulation['estimated_stop_loss']:,.2f}",
              "Stops bieden geen garantie bij koersgaten."]
+    provenance = manifest.get("data_provenance")
+    if isinstance(provenance, dict):
+        lines.append(f"Bron: {provenance.get('source', 'onbekend')} | markt: {provenance.get('market', 'onbekend')} | koersdatum: {provenance.get('signal_date', 'onbekend')}")
     if not simulation["positions"]:
         lines.append("Geen signalen in het invoermandje.")
     for p in simulation["positions"]:

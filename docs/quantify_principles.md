@@ -59,3 +59,14 @@ De koppeling is nu geïmplementeerd voor de volatiele combiner; overige bots geb
 `python -m research invoer.json --telegram` stuurt het berekende mandje naar de bestaande `TELEGRAM_TOKEN` en `TELEGRAM_CHAT_ID`. Zonder die vlag blijft de CLI offline. Ontbrekende secrets of mislukte verzending laten de opdracht falen; een eerdere deelverzending kan al ontvangen zijn.
 
 De workflow **Research principles checks** stuurt voortaan de teststatus met een link naar de run. Dit is expliciet een testbericht, geen beursresultaat. Bij handmatig starten kun je optioneel `signals_json` invullen met het JSON-mandje uit het voorbeeld hierboven; na geslaagde tests gaat ook de simulatie naar Telegram. Er wordt nog geen mandje automatisch uit Supabase geladen. Geen CSV-export, geen orders. PR-runs versturen geen teststatus naar Telegram.
+
+
+## Automatisch mandje uit Supabase
+
+Workflow **Research USD simulation to Telegram** op `feature/quantify-principles` leest uitsluitend uit `selecties` en stuurt de berekening via de bestaande Telegram-secrets. Start met Run workflow; wijzigingen aan de database-adapter of deze workflow op de onderzoeksbranch starten ook een run. CLI: `python -m research --supabase --telegram`.
+
+De eerste adapter ondersteunt alleen `bot_combi_volatiel` / `048 Nasdaq/NYSE`. Het USD-label volgt de marktconventie van deze lijst; er is geen FX-conversie of onafhankelijke valutaverificatie per ticker. Een expliciet afwijkende valuta in parameters wordt geweigerd. Andere beurzen worden niet bijgemengd. Zorg dat deze lijst uitsluitend USD-genoteerde symbolen bevat.
+
+Er wordt één recentste koersdatum gebruikt (maximaal zeven kalenderdagen oud), met één rij per ticker en de hoogste rij-ID bij duplicaten. Oude rijen worden niet gebruikt om ontbrekende nieuwe gegevens op te vullen. De adapter accepteert ook bestaande combinerparameters (ATR, gewogen score, prijsbasis en signaaldatum); de nieuwe research-payload is niet verplicht. De verbinding is read-only met connect- en querytimeout. Ontbrekende of ongeldige data laat de run falen en veroorzaakt een ONVOLLEDIG-melding. De bronkoersdatum verschijnt in het Telegram-rapport. Dit is geen koersactualisatie en geen bewijs dat een volledige bronscan slaagde.
+
+Geen databasewrites, downloads van actuele koersen, CSV-bestanden of orders. Het fictieve kapitaal wordt voor elke simulatie opnieuw gebruikt; er wordt geen echte portefeuille gevolgd.
