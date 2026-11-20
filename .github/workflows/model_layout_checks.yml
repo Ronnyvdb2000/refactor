@@ -11,6 +11,9 @@ on:
       - 'weekly/**'
       - 'common/model_inputs.py'
       - 'common/feature_pipeline.py'
+      - 'common/xgboost_evaluation.py'
+      - 'analyses/evaluate_xgboost.py'
+      - 'tests/test_xgboost_evaluation.py'
       - 'tests/test_feature_pipeline.py'
       - 'tests/test_generieke_technicals.py'
       - 'common/model_quality_gate.py'
@@ -60,6 +63,8 @@ jobs:
           tests/test_weekly_symbols.py tests/test_00mr.py -q
       - name: Test feature-build handoff and scoring readiness
         run: python -m pytest tests/test_feature_pipeline.py tests/test_generieke_technicals.py -q
+      - name: Test prospective XGBoost evaluation
+        run: python -m pytest tests/test_xgboost_evaluation.py -q
       - name: Validate relocated production model files
         run: |
           python - <<'PY'

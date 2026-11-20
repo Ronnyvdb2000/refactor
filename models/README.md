@@ -36,3 +36,5 @@ Workflows starten modules vanuit de repository-root. Het gebruiken van `python m
 Op 20 november 2026 zijn uitsluitend de XGBoost V2-trainer op `evaluation_logs` en de bijbehorende zondagse hertrainingsworkflow verwijderd. Er was geen bijgehouden `xgboostV2_model.pkl` aanwezig. V4, V3 en de gedeelde databasehelpers blijven behouden. Er zijn geen Supabase-tabellen of gegevens verwijderd; de oude V2-code blijft beschikbaar in de Git-geschiedenis.
 
 Op 20 november 2026 zijn ook de twee zelfstandige strategiebots `bot_01xgboost` (aandelen) en `bot_01xgboostMeta` (Forex/Twelve Data), hun handmatige workflows en hun vier JSON-model-/metadatabestanden verwijderd. Deze experimenten maakten geen deel uit van V3. V3, V4, de gecontroleerde V3-variant en LightGBM blijven behouden. Historische databaseregistraties en compatibele loggerkolommen blijven beschikbaar.
+
+Nieuwe V3-scores krijgen een apart, in dezelfde transactie opgeslagen voorspellogboek met modelhash en vastleggingstijd. De dagelijkse evaluatie leest dit zonder oude scores te herlabelen. Zie [evaluatie](../docs/xgboost_evaluation.md).

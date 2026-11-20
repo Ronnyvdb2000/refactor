@@ -1348,11 +1348,15 @@ def sla_scores_op(
 
         # RETURNING maakt het aantal daadwerkelijk ingevoegde rijen betrouwbaar.
         # Bij ON CONFLICT DO NOTHING kan een rij immers worden overgeslagen.
+        from common.xgboost_evaluation import DDL, prepare_journal, journal_record
+        journal = prepare_journal({h: MODEL_FILES[h] for h in {r['horizon'] for r in resultaten}})
         werkelijk_opgeslagen = 0
         with conn.cursor() as cur:
+            cur.execute(DDL)
             for record in insert_resultaten:
                 cur.execute(query, record)
                 if cur.fetchone() is not None:
+                    journal_record(cur, record, journal)
                     werkelijk_opgeslagen += 1
 
         conn.commit()

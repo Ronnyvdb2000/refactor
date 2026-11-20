@@ -20,6 +20,7 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [backfill.yml](../.github/workflows/backfill.yml) | Handmatig/event | `maintenance/backfill_technische_features.py` | 180 | backfill-technische-features | refactor-yahoo-full | repo-planning |
 | [backfill_rank_kolommen.yml](../.github/workflows/backfill_rank_kolommen.yml) | Handmatig/event | `maintenance/backfill_rank_kolommen.py` | 90 | workflow-backfill_rank_kolommen-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [diag_koersen.yml](../.github/workflows/diag_koersen.yml) | Handmatig/event | `maintenance/diag_koersen.py` | 15 | workflow-diag_koersen-${{ github.ref }} | refactor-yahoo-features | repo-planning |
+| [evaluate_xgboost.yml](../.github/workflows/evaluate_xgboost.yml) | `30 6 * * *` | `analyses/evaluate_xgboost.py` | 180 | xgboost-evaluation-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [lightgbmV2_gecontroleerd.yml](../.github/workflows/lightgbmV2_gecontroleerd.yml) | Handmatig/event | `models/xLightgbmV2_gecontroleerd.py` | 60 | workflow-lightgbmv2_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [model_layout_checks.yml](../.github/workflows/model_layout_checks.yml) | Handmatig/event | `maintenance/audit_workflows.py` | 10 | model-layout-checks-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [patch_xgboost.yml](../.github/workflows/patch_xgboost.yml) | Handmatig/event | `maintenance/patch_xgboost_quality.py` | 10 | workflow-patch_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
@@ -87,6 +88,7 @@ Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart.
 | --- | --- | --- |
 | zo | 05:00 | a__parameter_model_production.yml, a_meta_labeling_classifier.yml, a_trade_combi.yml, analyse_parameter_ic.yml |
 | ma, di, wo, do, vr, za | 05:00 | a__parameter_model_production.yml, a_trade_combi.yml |
+| ma, di, wo, do, vr | 06:30 | evaluate_xgboost.yml, run_00supervar.yml |
 | ma, di, wo, do, vr | 19:30 | run_00mail.yml, run_00mrEOD.yml |
 | ma, di, wo, do, vr | 19:45 | run_00kr.yml, run_00ultmail.yml |
 | ma, di, wo, do, vr | 19:50 | run_00ms.yml, run_01cointr.yml, run_01kasstr.yml, run_01marktsent.yml |
