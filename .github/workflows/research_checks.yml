@@ -1,0 +1,49 @@
+name: Research principles checks
+on:
+  push:
+    branches: [main]
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml']
+  pull_request:
+    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml']
+  workflow_dispatch:
+    inputs:
+      signals_json:
+        description: 'Optioneel: JSON-mandje met currency, data_provenance en signals; leeg = alleen testresultaat'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: research-checks-${{ github.ref }}
+  queue: max
+  cancel-in-progress: false
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pytest pyyaml numpy pandas scipy requests psycopg2-binary yfinance python-dotenv
+      - name: Offline tests
+        id: tests
+        run: python -m pytest tests/test_research.py tests/test_research_telegram.py tests/test_research_database.py tests/test_research_integration.py tests/test_combiners.py -q
+      - name: Simulatie naar Telegram
+        if: success() && github.event_name == 'workflow_dispatch' && inputs.signals_json != ''
+        env:
+          SIGNALS_JSON: ${{ inputs.signals_json }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python -c "import os; from pathlib import Path; Path('research-input.json').write_text(os.environ['SIGNALS_JSON'])"
+          python -m research research-input.json --telegram
+      - name: Teststatus naar Telegram
+        if: always() && github.event_name != 'pull_request'
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RESEARCH_TEST_STATUS: ${{ steps.tests.outcome }}
+          RESEARCH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python -m research.telegram

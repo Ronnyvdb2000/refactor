@@ -29,6 +29,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 - [CatBoost: wekelijkse kandidaat-evaluatie](catboost.md)
 
+- [Onderzoekslaag: signalen, risico en USD-allocatiesimulatie](quantify_principles.md)
+
 ## Controlerapporten
 
 Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigingen kunnen de bevindingen veranderen.

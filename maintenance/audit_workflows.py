@@ -103,6 +103,9 @@ def audit(root):
                         if settings.get('repository'):
                             checkout_ref = str(settings['repository']) + '@' + str(checkout_ref or 'default')
                 for script in entrypoints(step.get('run', '')):
+                    package_main = script[:-3] + '/__main__.py'
+                    if (root / package_main).is_file() and not (root / script).is_file():
+                        script = package_main
                     if script not in row['scripts']:
                         row['scripts'].append(script)
                     if checkout_ref and checkout_ref not in ('main', '${{ github.ref }}', '${{ github.sha }}'):

@@ -1,4 +1,4 @@
-# Daily launcher only: research code stays on feature/quantify-principles.
+# Daily simulation uses the integrated research code on main.
 # Supabase connection is read-only; results are sent to Telegram.
 name: Research USD simulation to Telegram
 on:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 concurrency:
   queue: max
-  group: research-usd-refs/heads/feature/quantify-principles
+  group: research-usd-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   simulate:
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/quantify-principles
+          ref: main
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:

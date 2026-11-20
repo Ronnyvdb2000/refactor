@@ -143,6 +143,10 @@ Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De 
 
 De wekelijkse [CatBoost V1-proef](docs/catboost.md) evalueert kandidaten voor 10/30/60 handelsdagen met chronologisch embargo, een relatief controlemodel en kwaliteitsadvies. De proef loopt zondag om 03:15 UTC en blijft handmatig startbaar. JSON-rapporten en toegelaten kandidaatmodellen worden als Actions-artifact bewaard; Telegram rapporteert de uitkomst. De proef vervangt de bestaande productie-scorer niet.
 
+## Onderzoekslaag
+
+De [onderzoekslaag](docs/quantify_principles.md) scheidt signalen van fictieve portefeuille-allocatie, met ATR-stops, kosten en blootstellingslimieten. De dagelijkse USD-simulatie leest Supabase alleen-lezen en rapporteert naar Telegram om 07:17 UTC. Code, configuratie en tests staan op `main`; er is geen afhankelijkheid meer van de onderzoeksbranch. Er worden geen orders uitgevoerd.
+
 ## Installatie en configuratie
 
 Voer scripts vanuit de repository-root uit, zodat relatieve ticker- en uitvoerpaden kloppen. Python 3.11 wordt onder meer door de V2- en feature-storeworkflows gebruikt.
