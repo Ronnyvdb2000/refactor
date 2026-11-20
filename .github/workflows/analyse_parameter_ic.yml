@@ -77,17 +77,23 @@ jobs:
         run: |
           echo "Bestanden in results/:"
           ls -lh results/ || echo "(geen results map)"
-          if [ ! -f results/parameter_ic_matrix.csv ]; then
-            echo "WAARSCHUWING: parameter_ic_matrix.csv niet gevonden."
-          else
-            echo "OK: parameter_ic_matrix.csv ($(wc -l < results/parameter_ic_matrix.csv) regels)"
-          fi
+          python - <<'PYCODE'
+          import json
+          from pathlib import Path
+          path = Path('results/parameter_ic_matrix.json')
+          if not path.exists():
+              raise SystemExit('FOUT: parameter_ic_matrix.json niet gevonden')
+          records = json.loads(path.read_text(encoding='utf-8'))
+          if not isinstance(records, list):
+              raise SystemExit('FOUT: IC-rapport is geen lijst')
+          print(f'OK: {len(records)} parameters in parameter_ic_matrix.json')
+          PYCODE
 
       - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: parameter-ic-results-${{ github.run_id }}
-          path: results/parameter_ic_matrix.csv
+          path: results/parameter_ic_matrix.json
           retention-days: 90
           if-no-files-found: warn

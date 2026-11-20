@@ -33,3 +33,8 @@ Zie ook [invoercontrole en publicatievoorwaarden](../docs/model_inputs.md).
 De workflow `a_meta_model.yml` toont het rapport in het GitHub-runoverzicht en bewaart de volledige log als artifact. Telegram krijgt dezelfde kerncijfers: testperiode, aantal testdatums en waarnemingen, gemiddelde IC, top-10%-rendement tegenover het selectiegemiddelde en de laatste vijf testdatums.
 
 De referentie is het gemiddelde van de onderzochte selecties, geen beursindex. Rendementen zijn procenten; verschillen zijn procentpunten. Gemiddelden wegen testdatums gelijk en vormen geen samengesteld portefeuillerendement. Kleine topgroepen worden gemarkeerd. De t-stat is beschrijvend en niet gecorrigeerd voor overlappende rendementshorizonten. De rapportwijziging verandert geen training, voorspellingen, selecties of scores.
+
+
+## Vergelijkingsrapporten
+
+De drie `vergelijk_meta_par_*`-tools schrijven `folds.json` en `top_selecties.json` in hun bestaande results-map. De diagnosevariant schrijft ook `diagnose_<categorie>.json`. Records behouden kolomnamen en ISO-datums; ontbrekende waarden worden `null`. Een lege nieuwe proef vervangt oude JSON-detailrapporten door `[]`, zodat eerdere resultaten niet als nieuwe uitvoer blijven staan. De bestaande `samenvatting.json`, Telegram-samenvattingen en directory-artifacts blijven behouden. Deze tools produceren geen CSV-rapporten meer.

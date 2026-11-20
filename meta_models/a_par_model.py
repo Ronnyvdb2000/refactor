@@ -61,7 +61,7 @@ from horizon_utils import calendar_embargo
 from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 
 import os
-from common.exports import write_csv
+from report_utils import write_csv
 import sys
 import argparse
 import html

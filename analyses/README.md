@@ -33,3 +33,6 @@ achter. De workflows gebruiken moduleaanroepen. Uitvoerpaden onder `results/`,
 argumenten, databasegedrag, Telegram en e-mail blijven behouden. De scripts
 onderzoeken verschillende vragen en zijn niet samengevoegd. De laatste analyse
 gebruikt weekly-data, maar beheert geen weekly-selecties of weekly-opslag.
+
+
+De parameter-IC-analyse bewaart `results/parameter_ic_matrix.json`: een lijst parameterrecords met IC, IC-IR en hit rate per horizon. De workflow controleert en uploadt dit JSON-bestand. Ontbrekende waarden zijn `null`; zonder numerieke factoren is het rapport een lege lijst. De console toont de hit rate van de betreffende horizon.

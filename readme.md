@@ -124,9 +124,9 @@ python xLightgbmV2.py --geen-notify
 Resultaten komen standaard in `results/` (aanpasbaar via `RESULTS_DIR`):
 
 - `lightgbmV2_<h>_model.pkl`
-- `lightgbmV2_<h>_feature_importance.csv`
-- `lightgbmV2_<h>_correlations.csv`
-- `lightgbmV2_<h>_test_predictions.csv`
+- `lightgbmV2_<h>_feature_importance.json`
+- `lightgbmV2_<h>_correlations.json`
+- `lightgbmV2_<h>_test_predictions.json`
 - `lightgbmV2_summary.txt`
 
 Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De workflow uploadt `results/` als Actions-artifact met een bewaartermijn van 30 dagen. Controleer de samenvatting en bestanden per horizon.

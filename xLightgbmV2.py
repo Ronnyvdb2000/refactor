@@ -71,9 +71,9 @@ Environment variable: SUPABASE_DB_URL
 OUTPUT (results/)
 -----------------
     lightgbmV2_<h>_model.pkl
-    lightgbmV2_<h>_feature_importance.csv
-    lightgbmV2_<h>_correlations.csv
-    lightgbmV2_<h>_test_predictions.csv
+    lightgbmV2_<h>_feature_importance.json
+    lightgbmV2_<h>_correlations.json
+    lightgbmV2_<h>_test_predictions.json
     lightgbmV2_summary.txt
 """
 
@@ -81,6 +81,7 @@ import argparse
 import datetime as dt
 import html
 import os
+from report_utils import write_json
 import smtplib
 import sys
 import warnings
@@ -726,13 +727,10 @@ def calculate_correlations(
 
     filename = os.path.join(
         RESULTS_DIR,
-        f"{MODEL_VERSIE}_{horizon}_correlations.csv",
+        f"{MODEL_VERSIE}_{horizon}_correlations.json",
     )
 
-    result.to_csv(
-        filename,
-        index=False,
-    )
+    write_json(result, filename)
 
     for _, row in result.head(10).iterrows():
         print(
@@ -996,13 +994,10 @@ def save_feature_importance(
 
     filename = os.path.join(
         RESULTS_DIR,
-        f"{MODEL_VERSIE}_{horizon}_feature_importance.csv",
+        f"{MODEL_VERSIE}_{horizon}_feature_importance.json",
     )
 
-    importance.to_csv(
-        filename,
-        index=False,
-    )
+    write_json(importance, filename)
 
     print()
     print(f"[{horizon}] Feature importance:")
@@ -1260,7 +1255,7 @@ def train_horizon(
 
     predictions_filename = os.path.join(
         RESULTS_DIR,
-        f"{MODEL_VERSIE}_{horizon}_test_predictions.csv",
+        f"{MODEL_VERSIE}_{horizon}_test_predictions.json",
     )
 
     output_columns = [
@@ -1273,16 +1268,9 @@ def train_horizon(
         BASELINE_KOLOM,
     ]
 
-    (
-        test_predictions[output_columns]
-        .sort_values(
-            "model_probability",
-            ascending=False,
-        )
-        .to_csv(
-            predictions_filename,
-            index=False,
-        )
+    write_json(
+        test_predictions[output_columns].sort_values("model_probability", ascending=False),
+        predictions_filename,
     )
 
     # ========================================================

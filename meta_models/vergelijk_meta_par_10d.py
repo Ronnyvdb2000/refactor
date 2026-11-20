@@ -5,6 +5,7 @@ No database writes, notifications, or production model updates. Requires the
 repository root as working directory (meta_models.a_par_model and shared features.py).
 """
 import argparse
+from report_utils import write_json
 import json
 import os
 from pathlib import Path
@@ -204,9 +205,8 @@ def main():
                "notes": "Experimentele vergelijking; geen productievoorspellingen.",
                "results": [summarize(rows, m) for m in ["a_par_model", "meta_label", "ma50"]]}
     (out / "samenvatting.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    if not rows.empty:
-        rows.to_csv(out / "folds.csv", index=False)
-        picks.to_csv(out / "top_selecties.csv", index=False)
+    write_json(rows, out / "folds.json")
+    write_json(picks, out / "top_selecties.json")
     print(json.dumps(summary, indent=2))
     if rows.empty:
         print("Geen vergelijkbare folds: verzamel meer data of bekijk de drempels.")

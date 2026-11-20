@@ -20,11 +20,12 @@ Interpretatie:
 Env:
   SUPABASE_DB_URL
 Output:
-  results/parameter_ic_matrix.csv   (parameters x horizons)
+  results/parameter_ic_matrix.json   (parameters x horizons)
   Console: top-10 per horizon
 """
 
 import os
+from report_utils import write_json
 from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
 import sys
 import numpy as np
@@ -36,7 +37,6 @@ from scipy.stats import spearmanr
 HORIZONS = ["5d", "10d", "20d", "30d", "60d"]
 TARGET_KOLOM = {h: f"fwd_ret_{h}" for h in HORIZONS}
 RESULTS_DIR = "results"
-os.makedirs(RESULTS_DIR, exist_ok=True)
 
 MIN_TICKERS_PER_DATUM = 20
 MIN_DATUMS = 10
@@ -158,9 +158,11 @@ def main():
             r = ic_voor_parameter(df, p, TARGET_KOLOM[h])
             rij[f"ic_{h}"] = r["ic"] if r else np.nan
             rij[f"ir_{h}"] = r["ic_ir"] if r else np.nan
+            rij[f"hit_{h}"] = r["hit"] if r else np.nan
         rijen.append(rij)
 
-    matrix = pd.DataFrame(rijen)
+    columns = ["parameter"] + [f"{metric}_{h}" for h in HORIZONS for metric in ("ic", "ir", "hit")]
+    matrix = pd.DataFrame(rijen, columns=columns)
 
     # Sorteer op absolute IC op 10d (of eerste horizon met data)
     sort_kolom = "ic_10d"
@@ -168,8 +170,8 @@ def main():
     matrix = matrix.sort_values("abs_sort", ascending=False).drop(columns="abs_sort")
 
     # Opslaan
-    out = os.path.join(RESULTS_DIR, "parameter_ic_matrix.csv")
-    matrix.to_csv(out, index=False)
+    out = os.path.join(RESULTS_DIR, "parameter_ic_matrix.json")
+    write_json(matrix, out)
     print(f"Opgeslagen: {out}\n")
 
     # Console: top 15 per horizon
@@ -186,13 +188,13 @@ def main():
         print("=" * 78)
         print(f"TOP 15 PARAMETERS — horizon {h}")
         print("=" * 78)
-        print(f"{'Parameter':<22} {'IC':>8} {'IC-IR':>7} {'hit_10d':>8}")
+        print(f"{'Parameter':<22} {'IC':>8} {'IC-IR':>7} {'hit':>8}")
         print("-" * 50)
         for _, r in top.iterrows():
             print(
                 f"{r['parameter']:<22} {r[kolom]:>8.4f} "
                 f"{r.get(f'ir_{h}', 0):>7.3f} "
-                f"{r.get('ic_10d', np.nan):>8.4f}"
+                f"{r.get(f'hit_{h}', np.nan):>8.3f}"
             )
         print()
 

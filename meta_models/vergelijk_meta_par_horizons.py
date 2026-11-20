@@ -3,6 +3,7 @@
 No DB writes. Each horizon trains only on mature, embargoed outcomes.
 """
 import argparse
+from report_utils import write_json
 import json
 from horizon_utils import calendar_embargo
 
@@ -225,9 +226,8 @@ def main():
                        'MA50 = eenvoudige referentie. Embargo >= max(25, ceil(horizon*7/5)+2) kalenderdagen.',
               'horizons': summaries}
     (OUT / 'samenvatting.json').write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding='utf-8')
-    if rows:
-        pd.DataFrame(rows).to_csv(OUT / 'folds.csv', index=False)
-        pd.DataFrame(picks).to_csv(OUT / 'top_selecties.csv', index=False)
+    write_json(pd.DataFrame(rows), OUT / 'folds.json')
+    write_json(pd.DataFrame(picks), OUT / 'top_selecties.json')
     print(json.dumps(report, indent=2, ensure_ascii=False))
 
 
