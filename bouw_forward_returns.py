@@ -31,7 +31,7 @@ import yfinance as yf
 import pandas as pd
 
 from common import today_str, esc, send_telegram, send_email
-from horizon_utils import calendar_embargo, horizon_days
+from common.horizons import calendar_embargo, horizon_days
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 MAX_TICKERS_PER_RUN = int(os.environ.get("MAX_TICKERS_PER_RUN", "400"))

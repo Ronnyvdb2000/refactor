@@ -7,7 +7,7 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
-from horizon_utils import calendar_embargo
+from common.horizons import calendar_embargo
 from model_inputs import canonical_selecties_sql, numeric_features, unique_snapshots, dates
 
 import os

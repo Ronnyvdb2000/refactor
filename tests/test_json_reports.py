@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import pandas as pd
 import pytest
-from report_utils import write_json
+from common.reports import write_json
 
 
 def test_json_records_preserve_dates_unicode_and_nulls(tmp_path):
@@ -112,6 +112,6 @@ def test_lightgbm_correlations_preserve_missing_values(tmp_path, monkeypatch):
 
 def test_report_only_models_do_not_require_provider_imports():
     import subprocess
-    command = "import sys; sys.modules['yfinance']=None; import report_utils; import meta_models.vergelijk_meta_par_10d; import analyses.analyse_parameter_ic"
+    command = "import sys; sys.modules['yfinance']=None; import common.reports; import meta_models.vergelijk_meta_par_10d; import analyses.analyse_parameter_ic"
     result = subprocess.run([sys.executable, '-c', command], cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, timeout=20)
     assert result.returncode == 0, result.stderr

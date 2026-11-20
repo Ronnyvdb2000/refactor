@@ -25,8 +25,8 @@ Output:
 """
 
 import os
-from report_utils import write_json
-from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
+from common.reports import write_json
+from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 import sys
 import numpy as np
 import pandas as pd

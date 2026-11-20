@@ -5,7 +5,7 @@ No database writes, notifications, or production model updates. Requires the
 repository root as working directory (meta_models.a_par_model and shared features.py).
 """
 import argparse
-from report_utils import write_json
+from common.reports import write_json
 import json
 import os
 from pathlib import Path

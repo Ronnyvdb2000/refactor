@@ -36,7 +36,7 @@ import requests
 import xgboost as xgb
 
 from sklearn.metrics import roc_auc_score
-from horizon_utils import calendar_embargo
+from common.horizons import calendar_embargo
 
 
 warnings.filterwarnings(

@@ -38,12 +38,15 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 
 ### Gedeelde functies
 
-Importeer gedeelde functies via `from common import ...`. De publieke exports staan in [common/__init__.py](common/__init__.py).
+Importeer gedeelde functies via `from common import ...`. Deze exports worden pas bij gebruik geladen; `import common` laadt geen koersprovider of notificatiebibliotheek. De publieke exports staan in [common/__init__.py](common/__init__.py).
 
 - [indicators.py](common/indicators.py): onder meer RSI, ATR, ADX, MACD, Bollinger Bands, stochastic, IBS en voortschrijdende gemiddelden.
 - [io.py](common/io.py): tickerlijsten en `download_history`.
 - [notify.py](common/notify.py): Telegram en e-mail.
 - [sizing.py](common/sizing.py): positiegrootte, ATR-stops en transactiekosten.
+- [fundamentals.py](common/fundamentals.py): beschikbaarheidscontrole voor opgeslagen fundamentals.
+- [horizons.py](common/horizons.py): horizons en kalenderembargo.
+- [reports.py](common/reports.py): JSON-rapporten en optionele CSV-export.
 - [text.py](common/text.py): veilige conversies, opmaak en links.
 
 Niet ieder script gebruikt uitsluitend deze package. Controleer bij aanpassingen ook lokale implementaties en constanten. Het gedeelde kostenmodel gebruikt momenteel `max(15.0, bedrag * 0.0035)` voor een positief bedrag; dit is geen vaste kost plus percentage. Slippage is een afzonderlijke constante en wordt door `trade_cost` niet toegevoegd.

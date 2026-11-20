@@ -29,7 +29,7 @@ from common import (
 
 from features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
 from model_inputs import canonical_selecties_sql, InputUnavailable, numeric_features, dates, unique_snapshots
-from horizon_utils import calendar_embargo
+from common.horizons import calendar_embargo
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 

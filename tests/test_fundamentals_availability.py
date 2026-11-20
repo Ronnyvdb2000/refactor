@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 import bouw_generieke_fundamentals as b
-from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
+from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 from meta_models import a_par_model as par
 from analyses import analyse_parameter_ic as ic
 import xgboostV4 as xgb

@@ -81,7 +81,7 @@ import argparse
 import datetime as dt
 import html
 import os
-from report_utils import write_json
+from common.reports import write_json
 import smtplib
 import sys
 import warnings

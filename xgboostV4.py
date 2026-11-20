@@ -55,7 +55,7 @@ Belangrijk:
 """
 
 import os
-from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
+from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 import smtplib
 import warnings
 import datetime as dt

@@ -57,11 +57,11 @@ WIJZIGINGEN:
       toepassing bij een expliciete --datum (backtest). 0 = uitgeschakeld.
 """
 
-from horizon_utils import calendar_embargo
-from fundamentals_utils import KNOWN_FUNDAMENTALS_SQL
+from common.horizons import calendar_embargo
+from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 
 import os
-from report_utils import write_csv
+from common.reports import write_csv
 import sys
 import argparse
 import html

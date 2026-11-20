@@ -49,7 +49,7 @@ Env:
   EMAIL_USER/EMAIL_PASS/EMAIL_RECEIVER (optioneel).
 """
 
-from horizon_utils import calendar_embargo
+from common.horizons import calendar_embargo
 
 import os
 import sys

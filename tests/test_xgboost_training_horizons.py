@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 import xgboostV3 as b
-from horizon_utils import calendar_embargo
+from common.horizons import calendar_embargo
 
 
 def dataset(days, horizon):
