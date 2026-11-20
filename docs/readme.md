@@ -27,6 +27,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Forward returns, modelhorizons en 60d-controle](controles/controle_forward_modellen_20261115.md)
 - [Modelinvoer: datum, dekking en veilige publicatie](model_inputs.md)
 
+- [CatBoost: handmatige kandidaat-evaluatie](catboost.md)
+
 ## Controlerapporten
 
 Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigingen kunnen de bevindingen veranderen.

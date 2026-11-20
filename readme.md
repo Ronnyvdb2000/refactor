@@ -139,6 +139,10 @@ Modelbundels komen in `models/`; rapporten standaard in `results/` (rapportmap a
 
 Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De workflow uploadt de rapporten uit `results/` en de modelbundels uit `models/` als Actions-artifact met een bewaartermijn van 30 dagen. Controleer de samenvatting en bestanden per horizon.
 
+## CatBoost
+
+De handmatige [CatBoost V1-proef](docs/catboost.md) evalueert kandidaten voor 10/30/60 handelsdagen met chronologisch embargo, een relatief controlemodel en kwaliteitsadvies. JSON-rapporten en toegelaten kandidaatmodellen worden als Actions-artifact bewaard; Telegram rapporteert de uitkomst. De proef vervangt de bestaande productie-scorer niet.
+
 ## Installatie en configuratie
 
 Voer scripts vanuit de repository-root uit, zodat relatieve ticker- en uitvoerpaden kloppen. Python 3.11 wordt onder meer door de V2- en feature-storeworkflows gebruikt.

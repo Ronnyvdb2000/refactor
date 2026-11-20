@@ -19,6 +19,8 @@ on:
       - 'common/model_quality_gate.py'
       - 'common/lightgbm_v2_preflight.py'
       - 'maintenance/patch_xgboost_quality.py'
+      - 'tests/test_catboost.py'
+      - 'requirements-catboost.txt'
       - 'tests/test_model*.py'
       - 'tests/test_lightgbm_v2_preflight.py'
       - 'tests/test_patch_xgboost_quality.py'
@@ -49,7 +51,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install offline test dependencies
-        run: python -m pip install pytest pyyaml lightgbm xgboost-cpu -r requirements-analysis.txt
+        run: python -m pip install pytest pyyaml lightgbm catboost==1.2.8 xgboost-cpu -r requirements-analysis.txt
       - name: Test imports, paths, serialization and model guards
         run: >-
           python -m pytest tests/test_model_layout.py tests/test_model_inputs.py
@@ -63,6 +65,8 @@ jobs:
           tests/test_weekly_symbols.py tests/test_00mr.py -q
       - name: Test feature-build handoff and scoring readiness
         run: python -m pytest tests/test_feature_pipeline.py tests/test_generieke_technicals.py -q
+      - name: Test CatBoost candidate and real model roundtrip
+        run: python -m pytest tests/test_catboost.py -q
       - name: Test prospective XGBoost evaluation
         run: python -m pytest tests/test_xgboost_evaluation.py -q
       - name: Validate relocated production model files
@@ -83,7 +87,7 @@ jobs:
           import re
           import subprocess
           import yaml
-          names = ['run_generieke_technicals.yml', 'a__meta_model_production.yml', 'lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
+          names = ['catboostV1_gecontroleerd.yml', 'run_generieke_technicals.yml', 'a__meta_model_production.yml', 'lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
                    'run_02XLightGBM V2 Trading.yml', 'run_02xgboostV3.yml',
                    'run_02xgboostV4.yml', 'score_xgboost.yml', 'xgboostV3_gecontroleerd.yml']
           for name in names:
