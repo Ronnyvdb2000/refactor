@@ -27,4 +27,4 @@ Resultaat: 237 tests en 11 deeltests geslaagd. Geen live scans gestart.
 
 ## Vervolg — 15 november 2026
 
-De bovenstaande wijzigingen van 14 november verkortten lokale pauzes. Er is nu aanvullend een [gezamenlijke Yahoo-begrenzing](yahoo_budget.md) voor geselecteerde niet-weekly Actions-jobs: afzonderlijke dagelijkse, full-, feature- en tijdgebonden wachtrijen, plus maximaal vier workers in de gedeelde koersdownload. Een 429 start daar geen individuele fallbackstorm meer. De werking en uitzonderingen staan in dat vervolgdocument; dit verandert niets aan de hierboven beschreven selectievoorwaarden.
+De bovenstaande wijzigingen van 14 november verkortten lokale pauzes. Er is nu aanvullend een gezamenlijke Yahoo-begrenzing voor geselecteerde niet-weekly Actions-jobs: afzonderlijke dagelijkse, full-, feature- en tijdgebonden wachtrijen, plus maximaal vier workers in de gedeelde koersdownload. Een 429 start daar geen individuele fallbackstorm meer. Dit verandert niets aan de hierboven beschreven selectievoorwaarden.

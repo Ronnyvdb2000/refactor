@@ -18,7 +18,6 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Combineerders: structuur en inhoudelijke controle](combiners.md)
 
 - [Scantempo en wachttijden](scantempo.md)
-- [Gezamenlijke Yahoo-belasting en wachtrijen](yahoo_budget.md)
 - [Volledig workflowoverzicht](workflow_planning.md)
 - [Repo-vervolgcontrole en open punten — 19 november](controles/controle_repo_vervolg_20261119.md)
 - [Generieke technicals: onvoldoende dekking en diagnose — 19 november](controles/controle_generieke_technicals_20261119.md)
@@ -26,7 +25,6 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 - [Controle workflowplanning en gelijktijdige publicatie](controles/controle_workflow_planning_20261115.md)
 - [Opslagintegriteit en herstarts](opslag_integriteit.md)
 - [Forward returns, modelhorizons en 60d-controle](controles/controle_forward_modellen_20261115.md)
-- [Meta-modellen: mapindeling en workflowaanroepen](../meta_models/README.md)
 - [Modelinvoer: datum, dekking en veilige publicatie](model_inputs.md)
 
 ## Controlerapporten

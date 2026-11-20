@@ -76,7 +76,7 @@ Belangrijke vervolgstappen in de pipeline:
 | [xLightgbmV2.py](models/xLightgbmV2.py) | LightGBM V2-training |
 | [vergelijk_meta_par_horizons.py](meta_models/vergelijk_meta_par_horizons.py) | Vergelijking over rendementshorizonten |
 
-De meta-modellen en hun vergelijkingsscripts staan in [meta_models/](meta_models/README.md). Start ze vanuit de hoofdmap met `python -m meta_models.<scriptnaam>`; de workflows gebruiken deze moduleaanroep.
+De meta-modellen en hun vergelijkingsscripts staan in [meta_models/](meta_models/). Start ze vanuit de hoofdmap met `python -m meta_models.<scriptnaam>`; de workflows gebruiken deze moduleaanroep.
 
 De handmatige technische opzoektool [A Top tickers](analyses/a_top_dist_sma50.py) staat in [analyses/](analyses/README.md). De workflow `run_top_dist_sma50.yml` start deze met `python -m analyses.a_top_dist_sma50`.
 
@@ -178,7 +178,7 @@ Voorbeelden van de huidige YAML-configuratie:
 | Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python -m strats.bot_00kr live` |
 | LightGBM V2 | Handmatig |
 
-Geselecteerde Yahoo-jobs delen [vier aparte wachtrijen](docs/yahoo_budget.md), zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
+Geselecteerde Yahoo-jobs delen vier aparte wachtrijen, zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
 
 Productie-XGBoost- en Ridge-meta-scoring starten automatisch na een geslaagde technicals-bouwrun op `main`, met het manifest en de peildatum van die bronrun. Nieuwere selecties wachten op een volgende bouwrun; per toegelaten datum blijven de bestaande dekkingscontroles vereist. De zondagse meta-hertraining blijft apart. Zie [de dagdataketen](docs/feature_pipeline.md).
 
