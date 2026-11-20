@@ -4,9 +4,8 @@ name: "XLightGBM V2 Trading Model"
 on:
   workflow_dispatch:
 
-  # Wekelijkse training voorlopig handmatig houden.
-  # schedule:
-  #   - cron: "0 2 * * 0"
+  schedule:
+    - cron: "15 2 * * 0"  # Zondag 02:15 UTC
 
 concurrency:
   group: workflow-run_02xlightgbm-v2-trading-${{ github.ref }}

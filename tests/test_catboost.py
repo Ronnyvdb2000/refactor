@@ -130,11 +130,29 @@ def test_database_transaction_is_readonly(monkeypatch):
     assert calls[-2:] == ['rollback', 'close']
 
 
-def test_workflow_is_manual_and_inputs_are_not_shell_code():
+def test_workflow_is_weekly_with_dispatch_defaults_and_safe_inputs():
     import yaml
     path = Path(__file__).resolve().parents[1] / '.github/workflows/catboostV1_gecontroleerd.yml'
     workflow = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
-    assert set(workflow['on']) == {'workflow_dispatch'}
+    assert set(workflow['on']) == {'workflow_dispatch', 'schedule'}
+    assert workflow['on']['schedule'] == [{'cron': '15 3 * * 0'}]
     assert workflow['permissions'] == {'contents': 'read'}
-    for step in workflow['jobs']['evaluate']['steps']:
+    steps = workflow['jobs']['evaluate']['steps']
+    training = next(s for s in steps if s.get('name') == 'CatBoost evalueren')
+    assert training['env']['CATBOOST_HORIZONS'] == "${{ inputs.horizons || '10d,30d,60d' }}"
+    assert training['env']['CATBOOST_TARGET'] == "${{ inputs.target || 'excess' }}"
+    assert '--telegram' in training['run']
+    for step in steps:
         assert '${{ inputs.' not in step.get('run', '')
+
+
+def test_lightgbm_weekly_schedule_retains_telegram():
+    import yaml
+    root = Path(__file__).resolve().parents[1]
+    workflow = yaml.load((root / '.github/workflows/run_02XLightGBM V2 Trading.yml').read_text(), Loader=yaml.BaseLoader)
+    assert workflow['on']['schedule'] == [{'cron': '15 2 * * 0'}]
+    assert 'workflow_dispatch' in workflow['on']
+    job = workflow['jobs']['run-lightgbm']
+    assert 'TELEGRAM_TOKEN' in job['env'] and 'TELEGRAM_CHAT_ID' in job['env']
+    training = next(s for s in job['steps'] if s.get('name') == 'Train LightGBM V2')
+    assert '--geen-notify' not in training['run']

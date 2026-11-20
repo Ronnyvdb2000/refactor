@@ -90,7 +90,7 @@ Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is.
 
 ## LightGBM V2
 
-De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `models.xLightgbmV2` met Python 3.11. In deze workflow is alleen handmatige uitvoering (`workflow_dispatch`) actief; de wekelijkse planning staat uitgecommentarieerd.
+De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `models.xLightgbmV2` met Python 3.11. Deze workflow loopt wekelijks op zondag om 02:15 UTC en kan ook handmatig worden gestart. De bestaande Telegram- en e-mailrapportage blijft actief.
 
 Het model:
 
@@ -141,7 +141,7 @@ Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De 
 
 ## CatBoost
 
-De handmatige [CatBoost V1-proef](docs/catboost.md) evalueert kandidaten voor 10/30/60 handelsdagen met chronologisch embargo, een relatief controlemodel en kwaliteitsadvies. JSON-rapporten en toegelaten kandidaatmodellen worden als Actions-artifact bewaard; Telegram rapporteert de uitkomst. De proef vervangt de bestaande productie-scorer niet.
+De wekelijkse [CatBoost V1-proef](docs/catboost.md) evalueert kandidaten voor 10/30/60 handelsdagen met chronologisch embargo, een relatief controlemodel en kwaliteitsadvies. De proef loopt zondag om 03:15 UTC en blijft handmatig startbaar. JSON-rapporten en toegelaten kandidaatmodellen worden als Actions-artifact bewaard; Telegram rapporteert de uitkomst. De proef vervangt de bestaande productie-scorer niet.
 
 ## Installatie en configuratie
 
@@ -180,7 +180,8 @@ Voorbeelden van de huidige YAML-configuratie:
 | Generieke technicals | Dagelijks 22:15 UTC en handmatig; legt een feature-peildatum en bronmanifest vast |
 | Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python -m scripts.bouw_forward_returns build` |
 | Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python -m strats.bot_00kr live` |
-| LightGBM V2 | Handmatig |
+| LightGBM V2 | Zondag 02:15 UTC en handmatig |
+| CatBoost V1 kandidaat-evaluatie | Zondag 03:15 UTC en handmatig; Telegram-rapport |
 
 Geselecteerde Yahoo-jobs delen vier aparte wachtrijen, zodat lange scans de dagelijkse, feature- en tijdgebonden groepen niet bezet houden. De gedeelde koersdownloader gebruikt maximaal vier workers.
 

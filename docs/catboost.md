@@ -1,13 +1,15 @@
 # CatBoost V1: kandidaat-evaluatie
 
-CatBoost is een afzonderlijke handmatige proef op `main`. Op de bekeken branches,
+CatBoost is een afzonderlijke kandidaatproef op `main`. Op de bekeken branches,
 inclusief `feature/quantify-principles`, stond geen CatBoost-code. Deze module is
 zelfstandig toegevoegd; er is geen branch samengevoegd.
 
 ## Uitvoeren
 
 Start de workflow [CatBoost V1](../.github/workflows/catboostV1_gecontroleerd.yml)
-via Actions, of voer vanuit de repository-root uit:
+via Actions. Deze loopt ook wekelijks op zondag om 03:15 UTC met alle drie
+horizons, target `excess` en Telegram-rapportage. In België is dat 04:15 in de
+winter en 05:15 in de zomer. Of voer vanuit de repository-root uit:
 
 ```bash
 python -m pip install -r requirements-catboost.txt

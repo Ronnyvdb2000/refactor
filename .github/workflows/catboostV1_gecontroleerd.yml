@@ -1,5 +1,7 @@
-name: CatBoost V1 - handmatige kandidaat-evaluatie
+name: CatBoost V1 - wekelijkse kandidaat-evaluatie
 on:
+  schedule:
+    - cron: '15 3 * * 0'  # Zondag 03:15 UTC
   workflow_dispatch:
     inputs:
       horizons:
@@ -33,8 +35,8 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CATBOOST_HORIZONS: ${{ inputs.horizons }}
-          CATBOOST_TARGET: ${{ inputs.target }}
+          CATBOOST_HORIZONS: ${{ inputs.horizons || '10d,30d,60d' }}
+          CATBOOST_TARGET: ${{ inputs.target || 'excess' }}
         run: python -m models.catboostV1 --horizons "$CATBOOST_HORIZONS" --target "$CATBOOST_TARGET" --telegram
       - name: Rapporten en toegelaten kandidaten bewaren
         if: always()
