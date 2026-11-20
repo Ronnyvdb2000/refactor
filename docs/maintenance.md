@@ -21,7 +21,7 @@ python -m maintenance.backfill_rank_kolommen
 python -m maintenance.backfill_rank_kolommen --apply
 ```
 
-De technische backfill behoudt de bestaande `BACKFILL_DRY_RUN`, `BACKFILL_BATCH_SIZE`, `BACKFILL_TICKER_FILTER` en `BACKFILL_SLEEP`-variabelen. `SUPABASE_DB_URL` wordt nog steeds via de workflow doorgegeven. Het script importeert de berekening uit `bouw_generieke_technicals.py` in de hoofdmap; de module-uitvoering zorgt dat die import blijft werken.
+De technische backfill behoudt de bestaande `BACKFILL_DRY_RUN`, `BACKFILL_BATCH_SIZE`, `BACKFILL_TICKER_FILTER` en `BACKFILL_SLEEP`-variabelen. `SUPABASE_DB_URL` wordt nog steeds via de workflow doorgegeven. Het script importeert de berekening uit `scripts/bouw_generieke_technicals.py`; de module-uitvoering zorgt dat die import blijft werken.
 
 De oude losse scriptpaden in de hoofdmap zijn vervangen. Gebruik `--help` bij beide modules om de beschrijving te bekijken zonder een databaseverbinding te openen.
 

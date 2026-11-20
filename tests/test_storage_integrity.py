@@ -12,9 +12,7 @@ import pytest
 from common import db_logger as db
 from meta_models import a_par_model as parameter
 from combiners import a_trade_combi as combi
-import bouw_forward_returns as forward
-
-
+from scripts import bouw_forward_returns as forward
 @pytest.fixture(scope='module')
 def server(tmp_path_factory):
     pgserver = pytest.importorskip('pgserver')

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-import bouw_generieke_fundamentals as b
+from scripts import bouw_generieke_fundamentals as b
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 from meta_models import a_par_model as par
 from analyses import analyse_parameter_ic as ic

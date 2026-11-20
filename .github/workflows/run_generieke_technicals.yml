@@ -40,7 +40,7 @@ jobs:
           SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python bouw_generieke_technicals.py
+        run: python -m scripts.bouw_generieke_technicals
 
       - name: Bewaar dekkingsdiagnose
         if: always()

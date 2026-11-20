@@ -34,4 +34,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           MAX_TICKERS_PER_RUN: "200"
           RECENTE_DAGEN_LIMIET: "5"
-        run: python bouw_generieke_fundamentals.py build
+        run: python -m scripts.bouw_generieke_fundamentals build

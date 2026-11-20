@@ -9,7 +9,7 @@ Deze handleiding beschrijft de code op `main`. De repository `Ronnyvdb2000/refac
 1. Tickerlijsten (`tickers_*.txt`) vormen het universum voor de scanners.
 2. Strategieën (`strats/bot_*.py`) produceren selecties en rapporten.
 3. Feature-builders vullen technische en fundamentele gegevens in Supabase/PostgreSQL.
-4. `bouw_forward_returns.py` koppelt selecties aan latere rendementen.
+4. `scripts/bouw_forward_returns.py` koppelt selecties aan latere rendementen.
 5. Analyse- en modelscripts gebruiken deze gegevens voor evaluatie, training en scoring.
 6. Workflows bewaren, afhankelijk van het script, CSV-bestanden, modelresultaten of andere rapporten en sturen notificaties.
 
@@ -28,7 +28,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | [strats/](strats/README.md) | Alle `bot_00*`- en `bot_01*`-strategieën en scanners |
 | [combiners/](combiners/) | Combineerders van strategische signalen |
 | `a_*.py` | Parameter- en meta-modellen |
-| `bouw_*.py` | Feature-stores en forward returns |
+| `scripts/bouw_*.py` | Feature-stores en forward returns |
 | [weekly/](weekly/) | Weekrapporten a/x met gedeelde winnaaropslag, winnaarsanalyse en weekly-correlaties |
 | [scripts/](scripts/) | Uitvoerbare tools voor tickerlijstvoorbereiding |
 | [maintenance/](maintenance/) | Handmatige backfills en onderhoud |
@@ -81,9 +81,9 @@ De handmatige technische opzoektool [A Top tickers](analyses/a_top_dist_sma50.py
 
 ### Feature-stores
 
-- [bouw_generieke_technicals.py](bouw_generieke_technicals.py): technische features in `generieke_technicals`.
-- [bouw_generieke_fundamentals.py](bouw_generieke_fundamentals.py): fundamentele gegevens in `generieke_fundamentals`.
-- [bouw_forward_returns.py](bouw_forward_returns.py): labels in `forward_returns`; de workflow vraagt horizons 5, 10, 20, 30 en 60 handelsdagen aan. Alleen afgeronde koersdagen tellen mee; bestaande labels worden bij aanvulling behouden. Zie de [controle van forward returns en modelhorizons](docs/controles/controle_forward_modellen_20261115.md).
+- [bouw_generieke_technicals.py](scripts/bouw_generieke_technicals.py): technische features in `generieke_technicals`.
+- [bouw_generieke_fundamentals.py](scripts/bouw_generieke_fundamentals.py): fundamentele gegevens in `generieke_fundamentals`.
+- [bouw_forward_returns.py](scripts/bouw_forward_returns.py): labels in `forward_returns`; de workflow vraagt horizons 5, 10, 20, 30 en 60 handelsdagen aan. Alleen afgeronde koersdagen tellen mee; bestaande labels worden bij aanvulling behouden. Zie de [controle van forward returns en modelhorizons](docs/controles/controle_forward_modellen_20261115.md).
 
 Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is. Veel tickers op weinig datums vervangen geen langere historie. Controleer ook dat koersaanpassingen, peildatums en rendementseenheden overeenkomen tussen builders en modellen.
 
@@ -173,7 +173,7 @@ Voorbeelden van de huidige YAML-configuratie:
 | Taak | Planning / uitvoering |
 | --- | --- |
 | Generieke technicals | Dagelijks 21:00 UTC en handmatig |
-| Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python bouw_forward_returns.py build` |
+| Forward returns | Dagelijks 22:00 UTC en handmatig; commando `python -m scripts.bouw_forward_returns build` |
 | Kritische selectie | Maandag–vrijdag 19:45 UTC en handmatig; commando `python -m strats.bot_00kr live` |
 | LightGBM V2 | Handmatig |
 

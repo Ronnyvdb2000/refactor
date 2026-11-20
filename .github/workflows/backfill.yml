@@ -90,7 +90,7 @@ jobs:
           python -c "import pandas;   print('pandas',   pandas.__version__)"
           python -c "import yfinance; print('yfinance', yfinance.__version__)"
           python -c "import psycopg2; print('psycopg2 OK')"
-          python -c "import bouw_generieke_technicals; import maintenance.backfill_technische_features; print('live builder en backfill importeerbaar OK')"
+          python -c "import scripts.bouw_generieke_technicals; import maintenance.backfill_technische_features; print('live builder en backfill importeerbaar OK')"
 
       - name: Check secret
         run: |

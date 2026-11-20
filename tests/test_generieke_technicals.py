@@ -7,9 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import bouw_generieke_technicals as b
-
-
+from scripts import bouw_generieke_technicals as b
 def history(periods=280, end=None):
     end = end if end is not None else pd.Timestamp.now().normalize() - pd.Timedelta(days=1)
     close = 100 + np.arange(periods) * .01 + np.sin(np.arange(periods))

@@ -6,9 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import bouw_forward_returns as b
-
-
+from scripts import bouw_forward_returns as b
 def selection(ticker='A', day='2026-08-10', stored=None):
     return dict(ticker=ticker, datum=day, strategie='test', beurs='market',
                 koers=100., opgeslagen_instapkoers=stored)

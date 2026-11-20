@@ -36,7 +36,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           HORIZONS: "5,10,20,30,60"
           MAX_TICKERS_PER_RUN: "2000"
-        run: python bouw_forward_returns.py build
+        run: python -m scripts.bouw_forward_returns build
 
       - name: Bewaar forward-returndiagnose
         if: always()

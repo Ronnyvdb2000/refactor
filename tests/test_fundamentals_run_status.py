@@ -5,9 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 import pandas as pd
 
-import bouw_generieke_fundamentals as b
-
-
+from scripts import bouw_generieke_fundamentals as b
 @pytest.fixture
 def run(monkeypatch):
     monkeypatch.setattr(b, 'SUPABASE_DB_URL', 'offline')

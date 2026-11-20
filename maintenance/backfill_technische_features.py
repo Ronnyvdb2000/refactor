@@ -90,7 +90,7 @@ import yfinance as yf
 
 # Hergebruik de LIVE-berekening, zodat backfill en live identieke definities
 # hebben. Start als module vanuit de repository-root; de live builder blijft daar staan.
-from bouw_generieke_technicals import (
+from scripts.bouw_generieke_technicals import (
     bereken_indicatoren,
     download_index_returns,
     LOOKBACK_BUFFER_DAGEN,
