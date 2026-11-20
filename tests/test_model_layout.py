@@ -54,4 +54,5 @@ def test_patch_cli_uses_relocated_source_and_produces_importable_code(tmp_path):
     assert result.returncode == 0, result.stderr
     source = output.read_text()
     compile(source, str(output), 'exec')
-    assert 'from common.model_quality_gate import evaluate_candidate' in source
+    assert 'from common.model_publication import publication_gate' in source
+    assert source == (ROOT / 'models/xgboostV3.py').read_text()

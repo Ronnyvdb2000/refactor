@@ -49,6 +49,12 @@ NEW = '''    # Kwaliteitsgate: nooit een bestaand model overschrijven bij HOLD.
 
 
 def patch(source):
+    # Current production V3 already has the stricter incumbent-aware gate.
+    # Preserve it verbatim instead of replacing it with the older threshold patch.
+    if ('decision = publication_gate(' in source
+            and 'check_incumbents(decision)' in source
+            and 'if published:' in source):
+        return source
     if 'kwaliteitsadvies = evaluate_candidate({' in source:
         raise ValueError('Kwaliteitsgate lijkt al aanwezig; niet dubbel toepassen')
     if source.count(OLD) != 1:

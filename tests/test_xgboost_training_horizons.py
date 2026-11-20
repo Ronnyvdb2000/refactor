@@ -17,6 +17,7 @@ def dataset(days, horizon):
 
 @pytest.mark.parametrize('horizon', ['10d','30d','60d'])
 def test_actual_models_share_purged_date_split(monkeypatch, horizon):
+    monkeypatch.setattr(b, "publication_gate", MagicMock(return_value={"publish_advice": "PUBLISH", "incumbent_hashes": {}}))
     days = pd.date_range('2023-01-01', periods=100, freq='7D')
     raw = dataset(days, horizon).sample(frac=1, random_state=7)
     evaluate = MagicMock(return_value=(object(), .6, .65, 1.))
@@ -56,6 +57,7 @@ def test_twelve_dense_60d_dates_do_not_publish_new_model(monkeypatch, tmp_path):
 
 
 def test_training_excludes_exact_embargo_boundary(monkeypatch):
+    monkeypatch.setattr(b, "publication_gate", MagicMock(return_value={"publish_advice": "PUBLISH", "incumbent_hashes": {}}))
     days = pd.date_range('2024-01-01', periods=100)
     evaluate = MagicMock(return_value=(object(), .6, .65, 1.))
     monkeypatch.setattr(b, 'train_en_evalueer', evaluate)

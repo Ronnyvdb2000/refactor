@@ -56,6 +56,8 @@ Belangrijk:
 
 import os
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
+from common.model_publication import publication_gate, check_incumbents
+from pathlib import Path
 import smtplib
 import warnings
 import datetime as dt
@@ -644,43 +646,6 @@ def train_voor_horizon(df: pd.DataFrame, horizon: str) -> Dict:
 
     df_h["is_profitable"] = _target_voor_mode(df_h, target_column)
 
-    # ---- Dynamische feature-selectie ----
-    print()
-    print(f"[{horizon}] Feature-selectie op basis van dekking "
-          f"(min {MIN_FEATURE_DEKKING * 100:.0f}%)...")
-
-    tech_bruikbaar, tech_uit = selecteer_features(
-        df_h, FEATURE_TECHNISCH, target_column,
-    )
-    fund_bruikbaar, fund_uit = selecteer_features(
-        df_h, FEATURE_FUNDAMENTEEL, target_column,
-    )
-    rel_bruikbaar, _ = selecteer_features(
-        df_h, FEATURE_RELATIEF, target_column,
-    )
-
-    # Behoud de originele volgorde (handig voor feature_names_in_)
-    tech_bruikbaar = [f for f in FEATURE_TECHNISCH if f in tech_bruikbaar]
-    fund_bruikbaar = [f for f in FEATURE_FUNDAMENTEEL if f in fund_bruikbaar]
-    rel_bruikbaar = [f for f in FEATURE_RELATIEF if f in rel_bruikbaar]
-    alles_bruikbaar = tech_bruikbaar + fund_bruikbaar
-
-    if tech_uit:
-        print(f"[{horizon}] ⚠️  technische features uitgesloten: {tech_uit}")
-    if fund_uit:
-        print(f"[{horizon}] ⚠️  fundamentele features uitgesloten: {fund_uit}")
-
-    print(f"[{horizon}] Bruikbare features: "
-          f"tech={len(tech_bruikbaar)} fund={len(fund_bruikbaar)} "
-          f"totaal={len(alles_bruikbaar)}")
-
-    if len(tech_bruikbaar) < MIN_FEATURES_TECHNISCH:
-        return leeg_resultaat(
-            horizon, "geen_features",
-            f"te weinig bruikbare technische features "
-            f"({len(tech_bruikbaar)} < {MIN_FEATURES_TECHNISCH})"
-        )
-
     # ---- Basisset ----
     # WIJZIGING B: geen dropna meer op de technische features. XGBoost kan
     # NaN zelf aan; weggooien van rijen met één ontbrekende feature verkleint
@@ -743,6 +708,43 @@ def train_voor_horizon(df: pd.DataFrame, horizon: str) -> Dict:
     if train_df["is_profitable"].nunique() < 2:
         return leeg_resultaat(horizon, "een_klasse",
                               "trainingsset bevat maar 1 klasse")
+
+    # ---- Dynamische feature-selectie ----
+    print()
+    print(f"[{horizon}] Feature-selectie op basis van dekking "
+          f"(min {MIN_FEATURE_DEKKING * 100:.0f}%)...")
+
+    tech_bruikbaar, tech_uit = selecteer_features(
+        train_df, FEATURE_TECHNISCH, target_column,
+    )
+    fund_bruikbaar, fund_uit = selecteer_features(
+        train_df, FEATURE_FUNDAMENTEEL, target_column,
+    )
+    rel_bruikbaar, _ = selecteer_features(
+        train_df, FEATURE_RELATIEF, target_column,
+    )
+
+    # Behoud de originele volgorde (handig voor feature_names_in_)
+    tech_bruikbaar = [f for f in FEATURE_TECHNISCH if f in tech_bruikbaar]
+    fund_bruikbaar = [f for f in FEATURE_FUNDAMENTEEL if f in fund_bruikbaar]
+    rel_bruikbaar = [f for f in FEATURE_RELATIEF if f in rel_bruikbaar]
+    alles_bruikbaar = tech_bruikbaar + fund_bruikbaar
+
+    if tech_uit:
+        print(f"[{horizon}] ⚠️  technische features uitgesloten: {tech_uit}")
+    if fund_uit:
+        print(f"[{horizon}] ⚠️  fundamentele features uitgesloten: {fund_uit}")
+
+    print(f"[{horizon}] Bruikbare features: "
+          f"tech={len(tech_bruikbaar)} fund={len(fund_bruikbaar)} "
+          f"totaal={len(alles_bruikbaar)}")
+
+    if len(tech_bruikbaar) < MIN_FEATURES_TECHNISCH:
+        return leeg_resultaat(
+            horizon, "geen_features",
+            f"te weinig bruikbare technische features "
+            f"({len(tech_bruikbaar)} < {MIN_FEATURES_TECHNISCH})"
+        )
 
     n_top = max(1, int(len(test_df) * TOP_N_FRACTIE))
 
@@ -818,13 +820,19 @@ def train_voor_horizon(df: pd.DataFrame, horizon: str) -> Dict:
     # ---- Opslaan van het hoofdmodel ----
     # WIJZIGING E: variantnaam eerlijk als er geen fundamentele features zijn.
     variant = "tech_fund" if fund_bruikbaar else "tech"
-    try:
-        sla_model_veilig_op(
-            model_main, horizon, alles_bruikbaar, variant=variant,
-        )
-    except Exception as e:
-        print(f"[{horizon}] ❌ model niet gepubliceerd: {e}")
-        return leeg_resultaat(horizon, "opslag_fout", str(e))
+    decision = publication_gate(
+        model_main, version=MODEL_VERSIE, horizon=horizon, target_mode=TARGET_MODE,
+        features=alles_bruikbaar, train=train_df, test=test_df,
+        metrics=dict(auc=auc, auc_relative=auc_rel,
+                     top_model=top_main, top_baseline=top_baseline),
+        incumbent_paths=[*Path(MODEL_DIR).glob(f'{MODEL_VERSIE}_{horizon}_*.pkl'),
+                         Path(MODEL_DIR) / f'{MODEL_VERSIE}_{horizon}_tech.pkl',
+                         Path(MODEL_DIR) / f'{MODEL_VERSIE}_{horizon}_tech_fund.pkl'],
+    )
+    published = decision['publish_advice'] == 'PUBLISH'
+    if published:
+        check_incumbents(decision)
+        sla_model_veilig_op(model_main, horizon, alles_bruikbaar, variant=variant)
 
     print(
         f"[{horizon}] AUC {variant}={_f(auc)} | "
@@ -844,8 +852,8 @@ def train_voor_horizon(df: pd.DataFrame, horizon: str) -> Dict:
 
     return {
         "horizon": horizon,
-        "status": "getraind",
-        "opmerking": None,
+        "status": "getraind" if published else "kwaliteit_hold",
+        "opmerking": None if published else "HOLD: " + "; ".join(decision["issues"]),
         "n_train": int(len(train_df)),
         "n_test": int(len(test_df)),
         "split_datum": str(split_datum.date()),
@@ -1152,10 +1160,14 @@ def train_xgboost4() -> None:
     send_telegram(bericht)
     send_email(f"XGBoostV4 hertraining {datum}", bericht)
 
-    if n_getraind == 0:
+    if any(r["status"] in {"fout", "train_fout", "opslag_fout"} for r in resultaten):
+        raise SystemExit("Technische fout bij één of meer horizons; zie rapport.")
+
+    if n_getraind == 0 and not any(r["status"] == "kwaliteit_hold" for r in resultaten):
         raise SystemExit("Geen enkele horizon kon getraind worden.")
 
-    print(f"\n✅ XGBoostV4 training afgerond ({n_getraind} modellen)")
+    n_hold = sum(r["status"] == "kwaliteit_hold" for r in resultaten)
+    print(f"\nXGBoostV4 afgerond: {n_getraind} gepubliceerd, {n_hold} HOLD.")
 
 
 if __name__ == "__main__":

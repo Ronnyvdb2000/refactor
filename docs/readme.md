@@ -33,6 +33,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 - [Onderzoeksmandjes: opslag en opvolging](research_followup.md)
 
+- [V3/V4: kwaliteitsblokkade en vergelijking met bestaande modellen](model_publication.md)
+
 ## Controlerapporten
 
 Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigingen kunnen de bevindingen veranderen.

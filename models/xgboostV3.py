@@ -37,6 +37,7 @@ import xgboost as xgb
 
 from sklearn.metrics import roc_auc_score
 from common.horizons import calendar_embargo
+from common.model_publication import publication_gate, check_incumbents
 
 
 warnings.filterwarnings(
@@ -1195,33 +1196,22 @@ def train_voor_horizon(
         f"{_pr(top_relatief)}"
     )
 
-    # --------------------------------------------------------
-    # MODEL VEILIG OPSLAAN
-    # --------------------------------------------------------
-
-    try:
-
-        sla_model_veilig_op(
-            model,
-            horizon,
-            FEATURE_COLUMNS,
-        )
-
-    except Exception as e:
-
-        # Een nieuwe training mag nooit eindigen met
-        # een corrupt modelbestand.
-        print(
-            f"[{horizon}] ❌ "
-            f"Model niet gepubliceerd: {e}"
-        )
-
-        raise
+    decision = publication_gate(
+        model, version=MODEL_VERSIE, horizon=horizon, target_mode='abs',
+        features=FEATURE_COLUMNS, train=train_df, test=test_df,
+        metrics=dict(auc=auc, auc_relative=auc_relatief,
+                     top_model=top_model, top_baseline=top_baseline),
+        incumbent_paths=[os.path.join(MODEL_DIR, f'{MODEL_VERSIE}_{horizon}_model.pkl')],
+    )
+    published = decision['publish_advice'] == 'PUBLISH'
+    if published:
+        check_incumbents(decision)
+        sla_model_veilig_op(model, horizon, FEATURE_COLUMNS)
 
     return {
         "horizon": horizon,
-        "status": "getraind",
-        "opmerking": None,
+        "status": "getraind" if published else "kwaliteit_hold",
+        "opmerking": None if published else "HOLD: " + "; ".join(decision["issues"]),
         "n_train": int(len(train_df)),
         "n_test": int(len(test_df)),
         "split_datum": str(
@@ -1821,12 +1811,6 @@ def train_xgboost3() -> None:
         conn.close()
 
     # --------------------------------------------------------
-    # MODEL-CONTROLE
-    # --------------------------------------------------------
-
-    controleer_alle_modelbestanden()
-
-    # --------------------------------------------------------
     # BERICHTEN
     # --------------------------------------------------------
 
@@ -1846,10 +1830,10 @@ def train_xgboost3() -> None:
     )
 
     print("")
-    print(
-        "✅ XGBoostV3 training volledig "
-        "en succesvol afgerond."
-    )
+    controleer_alle_modelbestanden()
+
+    print(f"XGBoostV3 afgerond: {sum(r['status'] == 'getraind' for r in resultaten)} gepubliceerd, "
+          f"{sum(r['status'] == 'kwaliteit_hold' for r in resultaten)} HOLD.")
 
 
 # ============================================================

@@ -112,5 +112,6 @@ jobs:
           name: xgboostv4-models-${{ github.run_id }}
           path: |
             models/xgboostV4_*.pkl
+            results/model_candidates/
           retention-days: 90
           if-no-files-found: warn

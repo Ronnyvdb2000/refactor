@@ -17,6 +17,8 @@ on:
       - 'tests/test_feature_pipeline.py'
       - 'tests/test_generieke_technicals.py'
       - 'common/model_quality_gate.py'
+      - 'common/model_publication.py'
+      - 'tests/test_model_publication.py'
       - 'common/lightgbm_v2_preflight.py'
       - 'maintenance/patch_xgboost_quality.py'
       - 'tests/test_catboost.py'
@@ -58,7 +60,7 @@ jobs:
           tests/test_fundamentals_availability.py tests/test_json_reports.py
           tests/test_xgboost_training_horizons.py tests/test_model_quality_gate.py
           tests/test_lightgbm_v2_preflight.py tests/test_patch_xgboost_quality.py
-          tests/test_workflow_planning.py -q
+          tests/test_workflow_planning.py tests/test_model_publication.py -q
       - name: Test ticker data paths and filter persistence
         run: >-
           python -m pytest tests/test_ticker_data_layout.py tests/test_io.py

@@ -323,3 +323,12 @@ jobs:
         echo "✅ KLAAR"
         echo "========================================"
         echo "XGBoostV3 modelwijzigingen zijn naar GitHub gepusht."
+
+    - name: Bewaar kandidaatmodellen en kwaliteitsbesluiten
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: xgboostV3-candidates-${{ github.run_id }}-${{ github.run_attempt }}
+        path: results/model_candidates/
+        retention-days: 90
+        if-no-files-found: warn

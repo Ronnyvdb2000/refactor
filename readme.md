@@ -88,6 +88,8 @@ De handmatige technische opzoektool [A Top tickers](analyses/a_top_dist_sma50.py
 
 Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is. Veel tickers op weinig datums vervangen geen langere historie. Controleer ook dat koersaanpassingen, peildatums en rendementseenheden overeenkomen tussen builders en modellen.
 
+V3- en V4-training gebruiken een [kwaliteitsblokkade vóór modelpublicatie](docs/model_publication.md). Een zwakke of niet eerlijk vergelijkbare kandidaat krijgt `HOLD`; het bestaande model blijft behouden.
+
 ## LightGBM V2
 
 De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `models.xLightgbmV2` met Python 3.11. Deze workflow loopt wekelijks op zondag om 02:15 UTC en kan ook handmatig worden gestart. De bestaande Telegram- en e-mailrapportage blijft actief.
