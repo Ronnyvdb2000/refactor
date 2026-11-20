@@ -27,8 +27,7 @@ def haal_technische_parameters(hist, maandag, vrijdag):
     SMA50/SMA200, 20-daagse support/resistance, een ATR-gebaseerde stop).
 
     Dit zijn ONAFHANKELIJKE, standaardformules -- geen kopie van de exacte
-    (soms bot-specifieke) berekening in bijvoorbeeld bot_00kr.py of
-    bot_01xgboost.py. Voor deze correlatie-analyse maakt dat niet uit
+    (soms bot-specifieke) berekening in bijvoorbeeld bot_00kr.py. Voor deze correlatie-analyse maakt dat niet uit
     (consistentie tussen de 5 dagen is wat telt), maar de absolute waardes
     hoeven dus niet 1-op-1 overeen te komen met wat elders in het project
     gelogd wordt.

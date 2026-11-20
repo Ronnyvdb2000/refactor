@@ -30,3 +30,5 @@ YAML en shell-syntax van alle tien aangepaste bestaande workflows gecontroleerd.
 De nieuwe CI-workflow herhaalt deze offline tests, valideert de echte opgeslagen V3-bestanden en controleert de workflowcommando's op GitHub. Hij heeft alleen leesrechten en ontvangt geen Supabase- of Telegram-secrets. Een geslaagde controle is geen bewijs van de prestaties van toekomstige productietrainingen.
 
 Vervolg 20 november 2026: de hierboven vermelde `xgboostV2.py` en zijn hertrainingsworkflow zijn inmiddels verwijderd; zie [actuele modelindeling](../../models/README.md).
+
+Vervolg: ook de twee zelfstandige XGBoost-strategiebots, hun workflows en vier JSON-bestanden zijn verwijderd. Bovenstaande inventaris beschrijft de eerdere verplaatsing; de actuele toestand staat in `models/README.md`.

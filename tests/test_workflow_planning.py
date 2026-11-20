@@ -79,10 +79,7 @@ jobs:
     assert result['workflows'][0]['scope'] == 'weekly-apart'
 
 
-def test_paused_workflows_and_disabled_bridge_remain_paused():
-    for name in ['run_02xgboost.yml','run_02xgboostMeta.yml']:
-        d = yaml.load((ROOT/'.github/workflows'/name).read_text(),Loader=yaml.BaseLoader)
-        assert 'schedule' not in d['on']
+def test_disabled_bridge_remains_paused():
     d = yaml.load((ROOT/'.github/workflows/run_00vcp.yml').read_text(),Loader=yaml.BaseLoader)
     assert d['jobs']['tradingagents-analyse']['if'] == 'false'
 

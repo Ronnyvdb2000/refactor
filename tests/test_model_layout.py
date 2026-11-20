@@ -1,7 +1,6 @@
 """Offline checks of model storage paths, reloads and workflow publication targets."""
 from pathlib import Path
 import importlib
-import json
 import subprocess
 import sys
 
@@ -30,22 +29,6 @@ def test_atomic_publication_saves_and_reloads_in_models(module_name, tmp_path, m
         module.sla_model_veilig_op(model, '10d', ['wrong'])
     assert path.read_bytes() == before
     assert not list(tmp_path.glob('*.pkl'))
-
-
-@pytest.mark.parametrize('module_name', ['bot_01xgboost', 'bot_01xgboostMeta'])
-def test_json_models_and_metadata_share_models_directory(module_name, tmp_path, monkeypatch):
-    module = importlib.import_module('strats.' + module_name)
-    monkeypatch.chdir(tmp_path)
-    import xgboost
-    data = pd.DataFrame({'a': [0., 1., 2., 3.], 'b': [1., 2., 3., 4.]})
-    model = xgboost.XGBClassifier(n_estimators=1, max_depth=1, n_jobs=1).fit(data, [0, 1, 0, 1])
-    module.save_model(model, '2026-11-19', 4, {'auc': .5})
-    loaded, meta = module.load_model()
-    assert np.allclose(model.predict_proba(data), loaded.predict_proba(data))
-    assert meta['n_rows'] == 4
-    assert Path(module.MODEL_PATH).parent == Path('models')
-    assert Path(module.MODEL_META_PATH).exists()
-    assert not list(tmp_path.glob('*.json'))
 
 
 def test_production_scorer_and_controlled_trainer_share_v3_paths():

@@ -118,7 +118,6 @@ def test_cointegration_backtest_is_routed_away_from_daily_queue():
 
 def test_weekly_and_other_provider_jobs_are_not_budgeted_here():
     assert not any(name.startswith('weekly_') or name=='analyse_correlaties_weeklytop.yml' for name in JOB_LANES)
-    assert 'run_02xgboostMeta.yml' not in JOB_LANES  # Twelve Data, not Yahoo.
     assert 'run_02xgboostV3.yml' not in JOB_LANES   # Training on stored features/labels.
 
 

@@ -37,7 +37,6 @@ JOB_LANES = {
     'run_01marktsent.yml': {'bot-01marktsent': 'daily'},
     'run_01repititief.yml': {'seizoensbot': 'daily'},
     'run_01volatieledipscan.yml': {'bot-01volhunter': 'full'},
-    'run_02xgboost.yml': {'bot-01xgboost-live': 'daily', 'bot-01xgboost-train': 'full', 'bot-01xgboost-backtest': 'full'},
     'run__filtertickersmungerV2.yml': {'filter_tickers': 'full'},
     'run_generieke_technicals.yml': {'bouw-generieke-technicals': 'features'},
     'run_generieke_fundamentals.yml': {'bouw-generieke-fundamentals': 'features'},

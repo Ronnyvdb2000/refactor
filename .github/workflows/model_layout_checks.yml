@@ -79,8 +79,7 @@ jobs:
           import subprocess
           import yaml
           names = ['run_generieke_technicals.yml', 'a__meta_model_production.yml', 'lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
-                   'run_02XLightGBM V2 Trading.yml', 'run_02xgboost.yml',
-                   'run_02xgboostMeta.yml', 'run_02xgboostV3.yml',
+                   'run_02XLightGBM V2 Trading.yml', 'run_02xgboostV3.yml',
                    'run_02xgboostV4.yml', 'score_xgboost.yml', 'xgboostV3_gecontroleerd.yml']
           for name in names:
               data = yaml.load((Path('.github/workflows') / name).read_text(), Loader=yaml.BaseLoader)

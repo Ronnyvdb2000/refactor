@@ -38,8 +38,6 @@ Python-imports gebruiken bijvoorbeeld `from strats import bot_01kasstr`. De oude
 | [bot_01marktsent](bot_01marktsent.py) | [run_01marktsent.yml](../.github/workflows/run_01marktsent.yml) |
 | [bot_01repititief](bot_01repititief.py) | [run_01repititief.yml](../.github/workflows/run_01repititief.yml) |
 | [bot_01volhunter](bot_01volhunter.py) | [run_01volatieledipscan.yml](../.github/workflows/run_01volatieledipscan.yml) |
-| [bot_01xgboost](bot_01xgboost.py) | [run_02xgboost.yml](../.github/workflows/run_02xgboost.yml) |
-| [bot_01xgboostMeta](bot_01xgboostMeta.py) | [run_02xgboostMeta.yml](../.github/workflows/run_02xgboostMeta.yml) |
 
 ## Verplaatsing van 19 november 2026
 
