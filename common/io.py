@@ -36,10 +36,11 @@ BEURS_NAMEN = {
 
 
 def bouw_bestandslijst(suffix: str = "x", start: int = 41, eind: int = 59) -> List[str]:
-    return [f"tickers_{n:03d}{suffix}.txt" for n in range(start, eind + 1)]
+    return [f"data/tickers_{n:03d}{suffix}.txt" for n in range(start, eind + 1)]
 
 
 def label_voor(f_name: str) -> str:
+    f_name = os.path.basename(os.fspath(f_name))
     getal = f_name.replace("tickers_", "")[:3]
     return BEURS_NAMEN.get(f"tickers_{getal}x.txt", f_name.replace(".txt", ""))
 

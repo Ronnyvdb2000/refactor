@@ -264,7 +264,7 @@ def main():
     for nr, naam in sectoren.items():
         try: 
             logger.info(f"Verwerken sector: {naam}")
-            sector_bericht = voer_lijst_uit(f"tickers_{nr}.txt", nr, naam, download_cache=cache, status=status)
+            sector_bericht = voer_lijst_uit(f"data/tickers_{nr}.txt", nr, naam, download_cache=cache, status=status)
             verzamel_rapport += sector_bericht
         except Exception as e:
             status["fouten"] += 1

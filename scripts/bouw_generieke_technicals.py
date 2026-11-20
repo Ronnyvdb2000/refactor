@@ -155,7 +155,7 @@ INDEX_TICKER = "^GSPC"
 # Bestandslijst tickers
 # --------------------------------------------------------------------------
 def bouw_bestandslijst():
-    return [f"tickers_{n:03d}x.txt" for n in range(41, 60)]
+    return [f"data/tickers_{n:03d}x.txt" for n in range(41, 60)]
 
 
 def load_tickers_from_file(path):
@@ -521,7 +521,7 @@ def main():
 
     tickers = alle_tickers()
     if not tickers:
-        sys.exit("Geen tickers gevonden in tickers_*.txt")
+        sys.exit("Geen tickers gevonden in data/tickers_*.txt")
 
     print(f"Tickers: {len(tickers)}", flush=True)
     if datum_doel_ts is not None:

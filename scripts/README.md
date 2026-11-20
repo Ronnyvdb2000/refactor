@@ -15,7 +15,7 @@ Start vanuit de repository-root:
 python -m scripts.bot_041mV2
 ```
 
-Tickerbestanden blijven relatief aan de werkmap in de hoofdmap. De workflow behoudt zijn wekelijkse planning, handmatige start, Telegram-instellingen, Yahoo-wachtrij en publicatie van gegenereerde tickerlijsten. Importeren start geen scan; uitvoeren doet dat wel.
+Tickerbestanden staan onder `data/`, relatief aan de repository-root. De workflow behoudt zijn wekelijkse planning, handmatige start, Telegram-instellingen, Yahoo-wachtrij en publicatie van gegenereerde tickerlijsten. Importeren start geen scan; uitvoeren doet dat wel.
 
 
 De bouwscripts starten eveneens vanuit de hoofdmap:

@@ -6,7 +6,7 @@ Deze handleiding beschrijft de code op `main`. De repository `Ronnyvdb2000/refac
 
 ## Dataflow
 
-1. Tickerlijsten (`tickers_*.txt`) vormen het universum voor de scanners.
+1. Tickerlijsten (`data/tickers_*.txt`) vormen het universum voor de scanners.
 2. Strategieën (`strats/bot_*.py`) produceren selecties en rapporten.
 3. Feature-builders vullen technische en fundamentele gegevens in Supabase/PostgreSQL.
 4. `scripts/bouw_forward_returns.py` koppelt selecties aan latere rendementen.
@@ -30,6 +30,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 | `a_*.py` | Parameter- en meta-modellen |
 | `scripts/bouw_*.py` | Feature-stores en forward returns |
 | [weekly/](weekly/) | Weekrapporten a/x met gedeelde winnaaropslag, winnaarsanalyse en weekly-correlaties |
+| [data/](data/) | Tickeruniversums, filter-masterlijsten, actieve lijsten en delisted-caches |
 | [scripts/](scripts/) | Uitvoerbare tools voor tickerlijstvoorbereiding |
 | [maintenance/](maintenance/) | Handmatige backfills en onderhoud |
 | `analyse_*.py`, `analyseer_*.py` | Rendements-, parameter- en correlatieanalyses |

@@ -68,7 +68,7 @@ SUPER_CFG = {
 }
 
 def pad_export(g: str) -> str:
-    return f"tickers_{g}x.txt"
+    return f"data/tickers_{g}x.txt"
 
 # ============================================================
 # INDICATOREN & TREND TEMPLATE

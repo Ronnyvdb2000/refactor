@@ -193,10 +193,10 @@ DL_FOUT = "FOUT"
 
 
 # ── Bestandsnamen ─────────────────────────────────────────────────────────────
-def pad_bron(g): return f"tickers_{g}a.txt"
-def pad_master(g): return f"tickers_{g}m.txt"
-def pad_export(g): return f"tickers_{g}x.txt"
-def pad_delisted(g): return f"tickers_{g}d.txt"
+def pad_bron(g): return f"data/tickers_{g}a.txt"
+def pad_master(g): return f"data/tickers_{g}m.txt"
+def pad_export(g): return f"data/tickers_{g}x.txt"
+def pad_delisted(g): return f"data/tickers_{g}d.txt"
 
 
 # ── Ticker-normalisatie (Ierland) ─────────────────────────────────────────────

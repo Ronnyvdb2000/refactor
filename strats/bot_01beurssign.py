@@ -94,7 +94,7 @@ def analyse_with_cooldown(ticker, cfg, us):
 
 
 def is_us_beurs(f_name: str) -> bool:
-    getal = f_name.replace("tickers_", "")[:3]
+    getal = str(f_name).replace("\\", "/").rsplit("/", 1)[-1].replace("tickers_", "")[:3]
     return getal in US_BEURS_NUMMERS
 
 # ============================================================

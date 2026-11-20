@@ -354,8 +354,8 @@ def run_eod():
     deliver("eod",rows,reports,diagnostics,missing,errors)
 
 
-ORB_EXCHANGES={"048 Nasdaq/NYSE":"tickers_048x.txt","047 Toronto":"tickers_047x.txt",
-    "045 Londen":"tickers_045x.txt","041 Benelux Ierland":"tickers_041x.txt"}
+ORB_EXCHANGES={"048 Nasdaq/NYSE":"data/tickers_048x.txt","047 Toronto":"data/tickers_047x.txt",
+    "045 Londen":"data/tickers_045x.txt","041 Benelux Ierland":"data/tickers_041x.txt"}
 
 
 def run_orb():

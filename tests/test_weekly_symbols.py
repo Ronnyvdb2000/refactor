@@ -7,8 +7,9 @@ from weekly import symbols
 
 
 def test_aliases_deduplicate_same_listing_but_keep_unknown_sources(monkeypatch, tmp_path):
-    (tmp_path / 'tickers_051a.txt').write_text('CDPROJEKT.WA, CDR.WA, ONBEKEND.WA')
-    (tmp_path / 'tickers_054a.txt').write_text('KCR1V.HE, KCR.HE, 캐피탈.HE', encoding='utf-8')
+    (tmp_path / 'data').mkdir()
+    (tmp_path / 'data' / 'tickers_051a.txt').write_text('CDPROJEKT.WA, CDR.WA, ONBEKEND.WA')
+    (tmp_path / 'data' / 'tickers_054a.txt').write_text('KCR1V.HE, KCR.HE, 캐피탈.HE', encoding='utf-8')
     monkeypatch.setattr(w, 'ROOT', tmp_path)
     lists = w.laad_lijsten()
     assert lists['tickers_051a.txt'] == ['CDR.WA', 'ONBEKEND.WA']
@@ -33,9 +34,10 @@ def test_symbol_registry_has_provenance_and_no_conflicts_or_alias_chains():
 
 
 def test_additional_market_codes_are_scoped_and_keep_unresolved_sources(monkeypatch, tmp_path):
-    (tmp_path / 'tickers_041a.txt').write_text('CFE.BR, CELY.BR, NBB.BR, VPK.BR')
-    (tmp_path / 'tickers_054a.txt').write_text('EXL1V.HE, PONSSE.HE, TAALER.HE, OYJ.HE')
-    (tmp_path / 'tickers_059a.txt').write_text('BAWAG.VI, FREQ.VI, KRKG.LJ, 1TAT01DE')
+    (tmp_path / 'data').mkdir()
+    (tmp_path / 'data' / 'tickers_041a.txt').write_text('CFE.BR, CELY.BR, NBB.BR, VPK.BR')
+    (tmp_path / 'data' / 'tickers_054a.txt').write_text('EXL1V.HE, PONSSE.HE, TAALER.HE, OYJ.HE')
+    (tmp_path / 'data' / 'tickers_059a.txt').write_text('BAWAG.VI, FREQ.VI, KRKG.LJ, 1TAT01DE')
     monkeypatch.setattr(w, 'ROOT', tmp_path)
     lists = w.laad_lijsten()
     assert set(lists['tickers_041a.txt']) == {'CFEB.BR', 'CYAD.BR', 'BNB.BR', 'VPK.BR'}
@@ -71,7 +73,7 @@ def test_helsinki_source_matches_complete_official_snapshot():
     assert set(official.segment) == {'LARGE_CAP', 'MID_CAP', 'SMALL_CAP', 'FN'}
     assert official['isin'].str.fullmatch(r'[A-Z]{2}[A-Z0-9]{10}').all()
     assert official.bron_url.str.startswith('https://api.nasdaq.com/').all()
-    assert set(load_tickers_from_file(root / 'tickers_054a.txt')) == set(official.ticker)
+    assert set(load_tickers_from_file(root / 'data' / 'tickers_054a.txt')) == set(official.ticker)
     # Een officiële notering blijft meetellen, ook zonder Yahoo-koersdata.
     assert 'KESKOBN0126.HE' in official.ticker.tolist()
     assert not {'캐피탈.HE', 'OYJ.HE', 'ALMA2.HE'} & set(official.ticker)

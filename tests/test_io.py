@@ -3,13 +3,13 @@ from common.io import load_tickers_from_file, bouw_bestandslijst, label_voor
 
 def test_bouw_bestandslijst_default():
     lijst = bouw_bestandslijst()
-    assert lijst[0] == "tickers_041x.txt"
-    assert lijst[-1] == "tickers_059x.txt"
+    assert lijst[0] == "data/tickers_041x.txt"
+    assert lijst[-1] == "data/tickers_059x.txt"
     assert len(lijst) == 19
 
 def test_bouw_bestandslijst_andere_suffix():
     lijst = bouw_bestandslijst(suffix="a")
-    assert lijst[0] == "tickers_041a.txt"
+    assert lijst[0] == "data/tickers_041a.txt"
 
 def test_label_voor():
     assert label_voor("tickers_048x.txt") == "048 Nasdaq/NYSE"

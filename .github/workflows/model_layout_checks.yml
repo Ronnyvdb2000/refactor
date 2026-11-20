@@ -1,9 +1,14 @@
-name: Model layout and workflow checks
+name: Repository layout and workflow checks
 on:
   push:
     branches: [main]
     paths:
       - 'models/**'
+      - 'data/**'
+      - 'common/io.py'
+      - 'scripts/**'
+      - 'strats/**'
+      - 'weekly/**'
       - 'common/model_inputs.py'
       - 'common/model_quality_gate.py'
       - 'common/lightgbm_v2_preflight.py'
@@ -46,6 +51,10 @@ jobs:
           tests/test_xgboost_training_horizons.py tests/test_model_quality_gate.py
           tests/test_lightgbm_v2_preflight.py tests/test_patch_xgboost_quality.py
           tests/test_workflow_planning.py -q
+      - name: Test ticker data paths and filter persistence
+        run: >-
+          python -m pytest tests/test_ticker_data_layout.py tests/test_io.py
+          tests/test_weekly_symbols.py tests/test_00mr.py -q
       - name: Validate relocated production model files
         run: |
           python - <<'PY'

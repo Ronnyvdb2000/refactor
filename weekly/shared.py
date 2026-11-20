@@ -139,8 +139,8 @@ def normaliseer_lijstticker(naam, ticker):
 
 
 def laad_lijsten(suffix='a'):
-    return {naam: sorted({normaliseer_lijstticker(naam, t) for t in load_tickers_from_file(str(ROOT / naam))})
-            for naam in bestandslijst(suffix) if (ROOT / naam).exists()}
+    return {naam: sorted({normaliseer_lijstticker(naam, t) for t in load_tickers_from_file(str(ROOT / 'data' / naam))})
+            for naam in bestandslijst(suffix) if (ROOT / 'data' / naam).exists()}
 
 
 def controleer_dekking(naam, tickers, data):

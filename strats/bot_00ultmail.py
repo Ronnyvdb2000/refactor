@@ -260,7 +260,7 @@ def main():
     for nr, name in sectoren.items():
         try:
             logger.info("Verwerken sector: %s", name)
-            report += voer_lijst_uit(f"tickers_{nr}.txt", nr, name, download_cache=cache, status=status)
+            report += voer_lijst_uit(f"data/tickers_{nr}.txt", nr, name, download_cache=cache, status=status)
         except Exception as exc:
             status["fouten"] += 1
             logger.exception("Fout in sector %s", name)

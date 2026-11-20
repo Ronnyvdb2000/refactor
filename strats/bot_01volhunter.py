@@ -90,7 +90,7 @@ def yahoo_request(fn, gate):
 
 
 def bouw_bestandslijst_a():
-    return [f"tickers_{n:03d}a.txt" for n in range(41, 60)]
+    return [f"data/tickers_{n:03d}a.txt" for n in range(41, 60)]
 
 
 def _normalise(df, ticker):
