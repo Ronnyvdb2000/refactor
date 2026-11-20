@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from lightgbm_v2_preflight import diagnose, FEATURES
+from common.lightgbm_v2_preflight import diagnose, FEATURES
 
 class PreflightTests(unittest.TestCase):
     def data(self, days):

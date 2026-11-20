@@ -1,5 +1,5 @@
 import unittest
-from patch_xgboost_quality import patch, OLD
+from maintenance.patch_xgboost_quality import patch, OLD
 
 class PatchTests(unittest.TestCase):
     def test_patch_and_compile(self):

@@ -16,7 +16,7 @@ on:
     - cron: "0 4 * * 0"
   push:
     paths:
-      - "xgboostV4.py"
+      - "models/xgboostV4.py"
       - ".github/workflows/run_02xgboostV4.yml"
 
 permissions:
@@ -86,14 +86,14 @@ jobs:
       - name: Run XGBoostV4 training
         id: train
         run: |
-          python xgboostV4.py
+          python -m models.xgboostV4
 
       - name: Controle XGBoostV4 modellen
         if: always()
         run: |
           echo "Controle XGBoostV4 modellen:"
           shopt -s nullglob
-          modellen=(xgboostV4_*_*.pkl)
+          modellen=(models/xgboostV4_*_*.pkl)
           if [ ${#modellen[@]} -eq 0 ]; then
             echo "WAARSCHUWING: geen enkel XGBoostV4-model gegenereerd."
           else
@@ -103,7 +103,7 @@ jobs:
           fi
           echo ""
           echo "Bestanden in werkdirectory:"
-          ls -lh xgboostV4_*.pkl 2>/dev/null || echo "(geen .pkl bestanden)"
+          ls -lh models/xgboostV4_*.pkl 2>/dev/null || echo "(geen .pkl bestanden)"
 
       - name: Upload XGBoostV4 models
         if: always()
@@ -111,6 +111,6 @@ jobs:
         with:
           name: xgboostv4-models-${{ github.run_id }}
           path: |
-            xgboostV4_*.pkl
+            models/xgboostV4_*.pkl
           retention-days: 90
           if-no-files-found: warn

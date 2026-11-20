@@ -8,7 +8,7 @@ Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
 from common.horizons import calendar_embargo
-from model_inputs import canonical_selecties_sql, numeric_features, unique_snapshots, dates
+from common.model_inputs import canonical_selecties_sql, numeric_features, unique_snapshots, dates
 
 import os
 import sys

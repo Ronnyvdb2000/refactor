@@ -57,12 +57,12 @@ VERBETERINGEN IN DEZE VERSIE
 
 GEBRUIK
 -------
-    python xLightgbmV2.py
-    python xLightgbmV2.py --horizons 10d
-    python xLightgbmV2.py --target abs
-    python xLightgbmV2.py --exclude-strategie bot_00db
-    python xLightgbmV2.py --strict
-    python xLightgbmV2.py --geen-notify
+    python -m models.xLightgbmV2
+    python -m models.xLightgbmV2 --horizons 10d
+    python -m models.xLightgbmV2 --target abs
+    python -m models.xLightgbmV2 --exclude-strategie bot_00db
+    python -m models.xLightgbmV2 --strict
+    python -m models.xLightgbmV2 --geen-notify
 
 DATABASE
 --------
@@ -1239,8 +1239,9 @@ def train_horizon(
         "model_full": model_full,
     }
 
+    os.makedirs("models", exist_ok=True)
     model_filename = os.path.join(
-        RESULTS_DIR,
+        "models",
         f"{MODEL_VERSIE}_{horizon}_model.pkl",
     )
 

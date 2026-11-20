@@ -87,8 +87,8 @@ FEATURE_COLUMNS = [
     "ret_5d", "ret_20d", "ret_60d",
 ]
 
-MODEL_PATH      = "model_xgboostmeta.json"
-MODEL_META_PATH = "model_xgboostmeta_meta.json"
+MODEL_PATH      = "models/model_xgboostmeta.json"
+MODEL_META_PATH = "models/model_xgboostmeta_meta.json"
 
 BACKTEST_START = "2019-01-01"
 BACKTEST_END   = today_str()
@@ -232,6 +232,7 @@ def fit_model(train_df: pd.DataFrame, val_df: Optional[pd.DataFrame] = None) -> 
     return model
 
 def save_model(model, trained_until, n_rows, val_metrics):
+    os.makedirs("models", exist_ok=True)
     model.save_model(MODEL_PATH)
     meta = {"trained_at": today_str(), "trained_until": trained_until, "n_rows": n_rows, "feature_columns": FEATURE_COLUMNS, "config": XGB_CFG, "val_metrics": val_metrics}
     with open(MODEL_META_PATH, "w", encoding="utf-8") as f: json.dump(meta, f, indent=2)

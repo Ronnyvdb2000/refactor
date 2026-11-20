@@ -20,8 +20,9 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [backfill.yml](../.github/workflows/backfill.yml) | Handmatig/event | `maintenance/backfill_technische_features.py` | 180 | backfill-technische-features | refactor-yahoo-full | repo-planning |
 | [backfill_rank_kolommen.yml](../.github/workflows/backfill_rank_kolommen.yml) | Handmatig/event | `maintenance/backfill_rank_kolommen.py` | 90 | workflow-backfill_rank_kolommen-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [diag_koersen.yml](../.github/workflows/diag_koersen.yml) | Handmatig/event | `maintenance/diag_koersen.py` | 15 | workflow-diag_koersen-${{ github.ref }} | refactor-yahoo-features | repo-planning |
-| [lightgbmV2_gecontroleerd.yml](../.github/workflows/lightgbmV2_gecontroleerd.yml) | Handmatig/event | `xLightgbmV2_gecontroleerd.py` | 60 | workflow-lightgbmv2_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [patch_xgboost.yml](../.github/workflows/patch_xgboost.yml) | Handmatig/event | `patch_xgboost_quality.py` | 10 | workflow-patch_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [lightgbmV2_gecontroleerd.yml](../.github/workflows/lightgbmV2_gecontroleerd.yml) | Handmatig/event | `models/xLightgbmV2_gecontroleerd.py` | 60 | workflow-lightgbmv2_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [model_layout_checks.yml](../.github/workflows/model_layout_checks.yml) | Handmatig/event | `maintenance/audit_workflows.py` | 10 | model-layout-checks-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [patch_xgboost.yml](../.github/workflows/patch_xgboost.yml) | Handmatig/event | `maintenance/patch_xgboost_quality.py` | 10 | workflow-patch_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [research_simulation.yml](../.github/workflows/research_simulation.yml) | `17 7 * * *` | `research.py` | 5 | research-usd-refs/heads/feature/quantify-principles | Niet toegewezen | repo-planning |
 | [run_00cs.yml](../.github/workflows/run_00cs.yml) | `00 20 * * 1-5` | `strats/bot_00cs.py` | 300 | workflow-run_00cs-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
 | [run_00db.yml](../.github/workflows/run_00db.yml) | `55 19 * * 1-5` | `strats/bot_00db.py` | 300 | workflow-run_00db-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
@@ -48,19 +49,19 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [run_01marktsent.yml](../.github/workflows/run_01marktsent.yml) | `50 19 * * 1-5` | `strats/bot_01marktsent.py` | 180 | ${{ github.workflow }}-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
 | [run_01repititief.yml](../.github/workflows/run_01repititief.yml) | `15 7 * * 1-5` | `strats/bot_01repititief.py` | 180 | ${{ github.workflow }}-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
 | [run_01volatieledipscan.yml](../.github/workflows/run_01volatieledipscan.yml) | `10 23 * * 5` | `strats/bot_01volhunter.py` | 240 | ${{ github.workflow }}-${{ github.ref }} | refactor-yahoo-full | repo-planning |
-| [run_02XLightGBM V2 Trading.yml](../.github/workflows/run_02XLightGBM%20V2%20Trading.yml) | Handmatig/event | `xLightgbmV2.py` | 45 | workflow-run_02xlightgbm-v2-trading-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [run_02XLightGBM V2 Trading.yml](../.github/workflows/run_02XLightGBM%20V2%20Trading.yml) | Handmatig/event | `models/xLightgbmV2.py` | 45 | workflow-run_02xlightgbm-v2-trading-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run_02xgboost.yml](../.github/workflows/run_02xgboost.yml) | Handmatig/event | `strats/bot_01xgboost.py`, `maintenance/push_generated_commit.py` | 5, 300, 300, 300 | workflow-run_02xgboost-${{ github.ref }} | refactor-yahoo-daily, refactor-yahoo-full, refactor-yahoo-full | repo-planning |
 | [run_02xgboostMeta.yml](../.github/workflows/run_02xgboostMeta.yml) | Handmatig/event | `strats/bot_01xgboostMeta.py`, `maintenance/push_generated_commit.py` | 5, 30, 60, 60 | workflow-run_02xgboostmeta-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [run_02xgboostV2.yml](../.github/workflows/run_02xgboostV2.yml) | `0 2 * * 0` | `xgboostV2.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv2-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [run_02xgboostV3.yml](../.github/workflows/run_02xgboostV3.yml) | `0 23 * * *` | `xgboostV3.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv3-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [run_02xgboostV4.yml](../.github/workflows/run_02xgboostV4.yml) | `0 4 * * 0` | `xgboostV4.py` | 45 | workflow-run_02xgboostv4-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [run_02xgboostV2.yml](../.github/workflows/run_02xgboostV2.yml) | `0 2 * * 0` | `models/xgboostV2.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv2-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [run_02xgboostV3.yml](../.github/workflows/run_02xgboostV3.yml) | `0 23 * * *` | `models/xgboostV3.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv3-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [run_02xgboostV4.yml](../.github/workflows/run_02xgboostV4.yml) | `0 4 * * 0` | `models/xgboostV4.py` | 45 | workflow-run_02xgboostv4-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run__filtertickersmungerV2.yml](../.github/workflows/run__filtertickersmungerV2.yml) | `0 2 * * 0` | `scripts/bot_041mV2.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run__filtertickersmungerv2-${{ github.ref }} | refactor-yahoo-full | repo-planning |
 | [run_analyse_selecties.yml](../.github/workflows/run_analyse_selecties.yml) | `0 8 * * 6` | `analyses/analyse_selecties.py` | 30 | workflow-run_analyse_selecties-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_forward_returns.yml](../.github/workflows/run_forward_returns.yml) | `0 22 * * *` | `bouw_forward_returns.py` | 340 | forward-returns-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_generieke_fundamentals.yml](../.github/workflows/run_generieke_fundamentals.yml) | `30 21 * * *` | `bouw_generieke_fundamentals.py` | 90 | workflow-run_generieke_fundamentals-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_generieke_technicals.yml](../.github/workflows/run_generieke_technicals.yml) | `0 21 * * *` | `bouw_generieke_technicals.py` | 180 | workflow-run_generieke_technicals-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [run_top_dist_sma50.yml](../.github/workflows/run_top_dist_sma50.yml) | Handmatig/event | `analyses/a_top_dist_sma50.py` | 15 | workflow-run_top_dist_sma50-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [score_xgboost.yml](../.github/workflows/score_xgboost.yml) | `30 21 * * 1-5` | `score_xgboost.py` | 30 | workflow-score_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [score_xgboost.yml](../.github/workflows/score_xgboost.yml) | `30 21 * * 1-5` | `models/score_xgboost.py` | 30 | workflow-score_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [test_telegram.yml](../.github/workflows/test_telegram.yml) | Handmatig/event | `maintenance/check_telegram.py` | 5 | workflow-test_telegram-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [tradingagentsbridge.yml](../.github/workflows/tradingagentsbridge.yml) | `0 23 * * *` | `meta_models/a_par_model.py`, `tradingagents_bridge.py` | 90 | workflow-tradingagentsbridge-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [vergelijk_meta_par_10d.yml](../.github/workflows/vergelijk_meta_par_10d.yml) | Handmatig/event | `meta_models/vergelijk_meta_par_10d.py` | 40 | workflow-vergelijk_meta_par_10d-${{ github.ref }} | Niet toegewezen | repo-planning |
@@ -70,7 +71,7 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [weekly_run.yml](../.github/workflows/weekly_run.yml) | `0 23 * * 5` | `weekly/weekly_report.py` | 90 | weekly-json-main | Niet toegewezen | weekly-apart |
 | [weekly_runV2.yml](../.github/workflows/weekly_runV2.yml) | Handmatig/event | `weekly/weekly_rep_backtest.py` | 90 | weekly-backtest | Niet toegewezen | weekly-apart |
 | [weekly_run_x.yml](../.github/workflows/weekly_run_x.yml) | `15 23 * * 5` | `weekly/weekly_report_x.py` | 90 | weekly-json-main | Niet toegewezen | weekly-apart |
-| [xgboostV3_gecontroleerd.yml](../.github/workflows/xgboostV3_gecontroleerd.yml) | Handmatig/event | `xgboostV3_gecontroleerd.py` | 45 | workflow-xgboostv3_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [xgboostV3_gecontroleerd.yml](../.github/workflows/xgboostV3_gecontroleerd.yml) | Handmatig/event | `models/xgboostV3_gecontroleerd.py` | 45 | workflow-xgboostv3_gecontroleerd-${{ github.ref }} | Niet toegewezen | repo-planning |
 
 ## Entry points uit andere checkouts
 

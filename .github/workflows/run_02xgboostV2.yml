@@ -36,14 +36,14 @@ jobs:
       env:
         SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       run: |
-        python xgboostV2.py
+        python -m models.xgboostV2
 
     - name: Commit en push het nieuwe model naar de repo
       run: |
         git config --global user.name 'GitHub Actions Bot'
         git config --global user.email 'actions@github.com'
-        if [ -f xgboostV2_model.pkl ]; then
-          git add xgboostV2_model.pkl
+        if [ -f models/xgboostV2_model.pkl ]; then
+          git add models/xgboostV2_model.pkl
           git commit -m "Auto-update: xgboostV2 model hertraind op actuele data" || echo "Geen wijzigingen om te committeren"
           python -m maintenance.push_generated_commit
         else

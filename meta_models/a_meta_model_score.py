@@ -23,7 +23,7 @@ from common import (
 )
 
 from common.features import MODEL_HORIZON, MODEL_FEATURES
-from model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs, technical_day_sql
+from common.model_inputs import canonical_selecties_sql, InputUnavailable, scoring_inputs, technical_day_sql
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 

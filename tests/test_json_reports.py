@@ -89,7 +89,7 @@ def test_10d_comparison_writes_record_reports(empty, tmp_path, monkeypatch):
 
 
 def test_lightgbm_feature_importance_remains_sorted(tmp_path, monkeypatch):
-    import xLightgbmV2 as module
+    from models import xLightgbmV2 as module
     monkeypatch.setattr(module, 'RESULTS_DIR', str(tmp_path))
     booster = SimpleNamespace(feature_importance=lambda importance_type: [1, 9] if importance_type == 'gain' else [4, 5])
     module.save_feature_importance(SimpleNamespace(booster_=booster), ['A', 'B'], '10d')
@@ -100,7 +100,7 @@ def test_lightgbm_feature_importance_remains_sorted(tmp_path, monkeypatch):
 
 
 def test_lightgbm_correlations_preserve_missing_values(tmp_path, monkeypatch):
-    import xLightgbmV2 as module
+    from models import xLightgbmV2 as module
     monkeypatch.setattr(module, 'RESULTS_DIR', str(tmp_path))
     monkeypatch.setattr(module, 'FEATURE_COLUMNS', ['feature'])
     module.calculate_correlations(pd.DataFrame({'feature': [1., 2.], 'target': [3., 4.]}), 'target', '10d')

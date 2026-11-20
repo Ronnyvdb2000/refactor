@@ -24,7 +24,7 @@ def weekly_owned(path, source):
 def entrypoints(source):
     result = []
     for module, script in PYTHON_COMMAND.findall(source.replace('\\\n', ' ')):
-        if module == 'pip':
+        if module in {'pip', 'pytest'}:
             continue
         value = module.replace('.', '/') + '.py' if module else script
         if value not in result:

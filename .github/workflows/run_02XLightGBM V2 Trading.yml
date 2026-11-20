@@ -78,7 +78,7 @@ jobs:
 
       - name: Train LightGBM V2
         run: |
-          python xLightgbmV2.py
+          python -m models.xLightgbmV2
 
       - name: Verify LightGBM V2 results
         if: always()
@@ -88,7 +88,7 @@ jobs:
           echo "=========================================="
 
           shopt -s nullglob
-          modellen=(results/lightgbmV2_*_model.pkl)
+          modellen=(models/lightgbmV2_*_model.pkl)
 
           if [ ${#modellen[@]} -eq 0 ]; then
             echo "WAARSCHUWING: geen V2-modellen gevonden."
@@ -114,6 +114,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lightgbmV2-results-${{ github.run_id }}
-          path: results/
+          path: |
+            results/
+            models/lightgbmV2_*_model.pkl
           retention-days: 30
           if-no-files-found: warn

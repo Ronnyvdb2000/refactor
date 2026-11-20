@@ -21,6 +21,7 @@ Alle aanvullende documentatie staat in [docs/](docs/readme.md), met een overzich
 
 | Pad | Functie |
 | --- | --- |
+| [models/](models/) | XGBoost/LightGBM-training, scoring en opgeslagen modellen met metadata |
 | [common/](common/) | Gedeelde indicatoren, koersdownloads, notificaties, tekst- en positiegroottefuncties |
 | [common.py](common.py) | Compatibiliteitsbestand naast de package |
 | [tests/](tests/) | Tests voor gedeelde functies en verschillende bots |
@@ -70,8 +71,8 @@ Belangrijke vervolgstappen in de pipeline:
 | [a_par_model.py](meta_models/a_par_model.py) | Parametermodel |
 | [a_meta_model.py](meta_models/a_meta_model.py) | Evaluatie van het meta-model |
 | [a_meta_model_train.py](meta_models/a_meta_model_train.py), [a_meta_model_score.py](meta_models/a_meta_model_score.py) | Training en scoring van het meta-model |
-| [score_xgboost.py](score_xgboost.py) | XGBoost-scoring |
-| [xLightgbmV2.py](xLightgbmV2.py) | LightGBM V2-training |
+| [score_xgboost.py](models/score_xgboost.py) | XGBoost-scoring |
+| [xLightgbmV2.py](models/xLightgbmV2.py) | LightGBM V2-training |
 | [vergelijk_meta_par_horizons.py](meta_models/vergelijk_meta_par_horizons.py) | Vergelijking over rendementshorizonten |
 
 De meta-modellen en hun vergelijkingsscripts staan in [meta_models/](meta_models/README.md). Start ze vanuit de hoofdmap met `python -m meta_models.<scriptnaam>`; de workflows gebruiken deze moduleaanroep.
@@ -88,7 +89,7 @@ Forward returns zijn pas beschikbaar nadat de betreffende horizon verstreken is.
 
 ## LightGBM V2
 
-De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `xLightgbmV2.py` met Python 3.11. In deze workflow is alleen handmatige uitvoering (`workflow_dispatch`) actief; de wekelijkse planning staat uitgecommentarieerd.
+De workflow [XLightGBM V2 Trading Model](.github/workflows/run_02XLightGBM%20V2%20Trading.yml) start `models.xLightgbmV2` met Python 3.11. In deze workflow is alleen handmatige uitvoering (`workflow_dispatch`) actief; de wekelijkse planning staat uitgecommentarieerd.
 
 Het model:
 
@@ -104,16 +105,16 @@ De rendementsopmaak in dit script verwacht forward returns in procentpunten: `2.
 
 ### Eerst databeschikbaarheid controleren
 
-[lightgbm_v2_preflight.py](lightgbm_v2_preflight.py) controleert de buitenste train/test-split zonder training of schrijfacties naar Supabase:
+[lightgbm_v2_preflight.py](common/lightgbm_v2_preflight.py) controleert de buitenste train/test-split zonder training of schrijfacties naar Supabase:
 
 ```bash
-python lightgbm_v2_preflight.py --database --output preflight.json
+python -m common.lightgbm_v2_preflight --database --output preflight.json
 ```
 
 Of met een CSV met `ticker`, `datum`, de elf features en de drie forward-returnkolommen:
 
 ```bash
-python lightgbm_v2_preflight.py --csv trainingsdata.csv
+python -m common.lightgbm_v2_preflight --csv trainingsdata.csv
 ```
 
 `WAIT_DATA` betekent dat meer bruikbare historie nodig is. `READY` betekent alleen dat de gecontroleerde buitenste split uitvoerbaar is; interne validatie en modelkwaliteit moeten daarna nog worden beoordeeld. Een geslaagde workflow bewijst op zichzelf niet dat alle horizons een model hebben opgeleverd.
@@ -123,19 +124,19 @@ python lightgbm_v2_preflight.py --csv trainingsdata.csv
 Installeer eerst de dependencies uit de V2-workflow en stel `SUPABASE_DB_URL` in.
 
 ```bash
-python xLightgbmV2.py --horizons 10d --geen-notify
-python xLightgbmV2.py --geen-notify
+python -m models.xLightgbmV2 --horizons 10d --geen-notify
+python -m models.xLightgbmV2 --geen-notify
 ```
 
-Resultaten komen standaard in `results/` (aanpasbaar via `RESULTS_DIR`):
+Modelbundels komen in `models/`; rapporten standaard in `results/` (rapportmap aanpasbaar via `RESULTS_DIR`):
 
-- `lightgbmV2_<h>_model.pkl`
+- `models/lightgbmV2_<h>_model.pkl`
 - `lightgbmV2_<h>_feature_importance.json`
 - `lightgbmV2_<h>_correlations.json`
 - `lightgbmV2_<h>_test_predictions.json`
 - `lightgbmV2_summary.txt`
 
-Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De workflow uploadt `results/` als Actions-artifact met een bewaartermijn van 30 dagen. Controleer de samenvatting en bestanden per horizon.
+Een modelbundel bevat `model` voor evaluatie en `model_full` voor productie. De workflow uploadt de rapporten uit `results/` en de modelbundels uit `models/` als Actions-artifact met een bewaartermijn van 30 dagen. Controleer de samenvatting en bestanden per horizon.
 
 ## Installatie en configuratie
 
@@ -190,7 +191,7 @@ Installeer `pytest` en de dependencies voor de te testen modules.
 
 ```bash
 python -m pytest tests/ -v
-python -m pytest test_lightgbm_v2_preflight.py -v
+python -m pytest tests/test_lightgbm_v2_preflight.py -v
 ```
 
 De testverzameling groeit; deze handleiding legt geen vast aantal geslaagde tests vast. Een import of een live-run is geen vervanging voor tests en kan bij scripts met uitvoer op moduleniveau neveneffecten hebben.

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Read-only diagnose van LightGBM V2 splits, zonder training of modelwijzigingen.
 
-Gebruik: python lightgbm_v2_preflight.py --csv trainingsdata.csv
-    of: python lightgbm_v2_preflight.py --database
+Gebruik: python -m common.lightgbm_v2_preflight --csv trainingsdata.csv
+    of: python -m common.lightgbm_v2_preflight --database
 
 CSV vereist: ticker, datum, 11 FEATURE_COLUMNS en fwd_ret_10d/30d/60d.
 --database leest dezelfde technische indicatoren en gededupliceerde forward

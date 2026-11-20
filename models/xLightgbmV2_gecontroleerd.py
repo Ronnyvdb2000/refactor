@@ -3,7 +3,7 @@
 """Afzonderlijke LightGBM V2 kandidaatproef (geen productiewijzigingen).
 
 Gebruikt dezelfde 11 features, horizonlabels en standaard excess-target als
-xLightgbmV2.py. Schrijft uitsluitend naar results/lightgbmV2_controle/.
+xLightgbmV2.py. Schrijft uitsluitend naar models/lightgbmV2_controle/.
 Geen DB-writes, notificaties of vervanging van bestaande productie-PKL's.
 """
 import argparse
@@ -23,7 +23,7 @@ RELATIVE = ['atr14_pct','rsi14','ibs','pct_from_ma50','pct_from_ma200',
 HORIZONS = ('10d','30d','60d')
 MIN_TRAIN, MIN_TEST, MIN_DATES = 100, 30, 20
 MIN_PER_DATE = 10
-OUT = Path('results/lightgbmV2_controle')
+OUT = Path('models/lightgbmV2_controle')
 SQL = '''WITH fr AS (
  SELECT DISTINCT ON (ticker, datum) ticker, datum,
  fwd_ret_10d, fwd_ret_30d, fwd_ret_60d

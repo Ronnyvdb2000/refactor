@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pandas as pd
 import pytest
 
-import xgboostV3 as b
+from models import xgboostV3 as b
 from common.horizons import calendar_embargo
 
 
@@ -41,7 +41,8 @@ def test_actual_models_share_purged_date_split(monkeypatch, horizon):
 
 def test_twelve_dense_60d_dates_do_not_publish_new_model(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
-    model_path = tmp_path/'xgboostV3_60d_model.pkl'
+    model_path = tmp_path/'models'/'xgboostV3_60d_model.pkl'
+    model_path.parent.mkdir()
     model_path.write_bytes(b'existing model must survive')
     evaluate, publish = MagicMock(), MagicMock()
     monkeypatch.setattr(b, 'train_en_evalueer', evaluate)

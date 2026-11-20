@@ -1,5 +1,5 @@
 import unittest
-from model_quality_gate import evaluate_candidate
+from common.model_quality_gate import evaluate_candidate
 
 class TestQualityGate(unittest.TestCase):
     def test_weak_model_held(self):

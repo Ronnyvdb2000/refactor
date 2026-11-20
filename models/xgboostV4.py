@@ -82,6 +82,7 @@ warnings.filterwarnings("ignore", message="pandas only supports SQLAlchemy")
 # ============================================================
 
 MODEL_VERSIE = "xgboostV4"
+MODEL_DIR = "models"
 VORIGE_VERSIE_VERGELIJK = "xgboostV3"   # voor vergelijking in het bericht
 HORIZONS = ["10d", "30d", "60d"]
 
@@ -551,7 +552,8 @@ def valideer_modelbestand(bestandsnaam, features, horizon, stil=False) -> bool:
 
 
 def sla_model_veilig_op(model, horizon, features, variant="tech_fund") -> str:
-    bestandsnaam = f"{MODEL_VERSIE}_{horizon}_{variant}.pkl"
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    bestandsnaam = os.path.join(MODEL_DIR, f"{MODEL_VERSIE}_{horizon}_{variant}.pkl")
     tijdelijk = f"{bestandsnaam}.tmp"
 
     if os.path.exists(tijdelijk):

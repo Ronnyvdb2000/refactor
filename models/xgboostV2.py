@@ -73,8 +73,9 @@ def train_xgboost2():
   score = model.score(X_test, y_test)
   print(f"Model xgboostV2 succesvol getraind! Test-accuratesse: {score * 100:.2f}%")
 
-  joblib.dump(model, "xgboostV2_model.pkl")
-  print("Getraind model opgeslagen als xgboostV2_model.pkl")
+  os.makedirs("models", exist_ok=True)
+  joblib.dump(model, "models/xgboostV2_model.pkl")
+  print("Getraind model opgeslagen als models/xgboostV2_model.pkl")
 
 
 if __name__ == "__main__":

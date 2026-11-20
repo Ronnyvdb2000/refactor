@@ -18,6 +18,7 @@ def test_all_workflows_in_scope_have_existing_scripts_and_bounded_runs():
 
 def test_python_command_inventory_ignores_pip_and_inline_code():
     source = '''python -m pip install requests
+python -m pytest tests/test_example.py -q
 python -c "import bot"
 python -u one.py --mode live
 python -m maintenance.example \\

@@ -67,8 +67,8 @@ jobs:
           pip install pandas numpy requests psycopg2-binary xgboost scikit-learn yfinance
       - name: Controleer of model aanwezig is
         run: |
-          if [ ! -f model_xgboostmeta.json ] || [ ! -f model_xgboostmeta_meta.json ]; then
-            echo "::error::model_xgboostmeta.json/meta ontbreekt in de repo. Draai eerst deze workflow handmatig met mode=train."
+          if [ ! -f models/model_xgboostmeta.json ] || [ ! -f models/model_xgboostmeta_meta.json ]; then
+            echo "::error::models/model_xgboostmeta.json/meta ontbreekt in de repo. Draai eerst deze workflow handmatig met mode=train."
             exit 1
           fi
       - name: Run bot_01xgboostMeta (live)
@@ -107,7 +107,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add model_xgboostmeta.json model_xgboostmeta_meta.json
+          git add models/model_xgboostmeta.json models/model_xgboostmeta_meta.json
           if git diff --staged --quiet; then
             echo "Geen wijzigingen aan het model."
           else

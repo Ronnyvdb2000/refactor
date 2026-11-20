@@ -8,8 +8,8 @@ import pytest
 
 from meta_models import a_meta_model_score as meta
 from meta_models import a_meta_model_train as train
-import score_xgboost as xgb
-from model_inputs import InputUnavailable, scoring_inputs
+from models import score_xgboost as xgb
+from common.model_inputs import InputUnavailable, scoring_inputs
 
 TODAY = '2026-11-15'
 
@@ -263,7 +263,7 @@ def test_meta_weekend_query_requests_specific_friday_not_unbounded_asof():
 
 
 def test_xgboost_weekend_keeps_dates_through_prediction_to_notification():
-    from model_inputs import technical_day_sql
+    from common.model_inputs import technical_day_sql
     raw = inputs(day='2026-11-14').rename(columns={'datum': 'selectie_datum'})
     raw['technische_datum'] = '2026-11-13'
     raw['selectie_koers'] = 100.; raw['beurs'] = 'test'

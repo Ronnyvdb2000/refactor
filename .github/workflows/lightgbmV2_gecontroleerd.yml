@@ -28,12 +28,12 @@ jobs:
       - name: LightGBM kandidaat evalueren
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python xLightgbmV2_gecontroleerd.py
+        run: python -m models.xLightgbmV2_gecontroleerd
       - name: Rapport en kandidaten bewaren
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lightgbmV2-controle
-          path: results/lightgbmV2_controle/
+          path: models/lightgbmV2_controle/
           if-no-files-found: warn
           retention-days: 14

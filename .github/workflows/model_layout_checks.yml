@@ -1,0 +1,79 @@
+name: Model layout and workflow checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'models/**'
+      - 'common/model_inputs.py'
+      - 'common/model_quality_gate.py'
+      - 'common/lightgbm_v2_preflight.py'
+      - 'maintenance/patch_xgboost_quality.py'
+      - 'tests/test_model*.py'
+      - 'tests/test_lightgbm_v2_preflight.py'
+      - 'tests/test_patch_xgboost_quality.py'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'models/**'
+      - 'common/**'
+      - 'maintenance/patch_xgboost_quality.py'
+      - 'tests/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: model-layout-checks-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+jobs:
+  offline-model-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CSV_EXPORT_ENABLED: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline test dependencies
+        run: python -m pip install pytest pyyaml lightgbm xgboost-cpu -r requirements-analysis.txt
+      - name: Test imports, paths, serialization and model guards
+        run: >-
+          python -m pytest tests/test_model_layout.py tests/test_model_inputs.py
+          tests/test_fundamentals_availability.py tests/test_json_reports.py
+          tests/test_xgboost_training_horizons.py tests/test_model_quality_gate.py
+          tests/test_lightgbm_v2_preflight.py tests/test_patch_xgboost_quality.py
+          tests/test_workflow_planning.py -q
+      - name: Validate relocated production model files
+        run: |
+          python - <<'PY'
+          from models import xgboostV3 as model
+          for horizon in model.HORIZONS:
+              path = f'models/xgboostV3_{horizon}_model.pkl'
+              if not model.valideer_modelbestand(path, model.FEATURE_COLUMNS, horizon, stil=False):
+                  raise SystemExit(f'Model validation failed: {path}')
+          PY
+      - name: Audit workflow entrypoints and scheduling guards
+        run: python -m maintenance.audit_workflows --format json
+      - name: Check affected workflow shell commands
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          import yaml
+          names = ['lightgbmV2_gecontroleerd.yml', 'patch_xgboost.yml',
+                   'run_02XLightGBM V2 Trading.yml', 'run_02xgboost.yml',
+                   'run_02xgboostMeta.yml', 'run_02xgboostV2.yml', 'run_02xgboostV3.yml',
+                   'run_02xgboostV4.yml', 'score_xgboost.yml', 'xgboostV3_gecontroleerd.yml']
+          for name in names:
+              data = yaml.load((Path('.github/workflows') / name).read_text(), Loader=yaml.BaseLoader)
+              for job in data['jobs'].values():
+                  for step in job.get('steps', []):
+                      if 'run' in step:
+                          source = re.sub(r'\$\{\{.*?\}\}', 'placeholder', step['run'])
+                          subprocess.run(['bash', '-n'], input=source, text=True, check=True)
+              print(f'YAML/shell OK: {name}')
+          PY

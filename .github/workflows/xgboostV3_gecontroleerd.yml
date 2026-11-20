@@ -37,7 +37,7 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-        run: python xgboostV3_gecontroleerd.py
+        run: python -m models.xgboostV3_gecontroleerd
 
       - name: Modelbestanden bewaren als artifact
         if: always()
@@ -45,8 +45,8 @@ jobs:
         with:
           name: xgboostV3-gecontroleerd-modellen
           path: |
-            xgboostV3_10d_model.pkl
-            xgboostV3_30d_model.pkl
-            xgboostV3_60d_model.pkl
+            models/xgboostV3_10d_model.pkl
+            models/xgboostV3_30d_model.pkl
+            models/xgboostV3_60d_model.pkl
           if-no-files-found: warn
           retention-days: 14

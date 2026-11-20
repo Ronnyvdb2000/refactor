@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Maak een nieuwe xgboostV3.py met conservatieve kwaliteitsgate.
 
-Gebruik: python patch_xgboost_quality.py xgboostV3.py --output xgboostV3_gecontroleerd.py
-Het origineel wordt nooit overschreven. Zet model_quality_gate.py naast de output.
+Gebruik: python -m maintenance.patch_xgboost_quality models/xgboostV3.py --output models/xgboostV3_gecontroleerd.py
+Het origineel wordt nooit overschreven. De gegenereerde code gebruikt common.model_quality_gate.
 """
 import argparse
 from pathlib import Path
@@ -19,7 +19,7 @@ OLD = '''    try:
 NEW = '''    # Kwaliteitsgate: nooit een bestaand model overschrijven bij HOLD.
     # Dit is een absolute drempel, GEEN vergelijking met het vorige model:
     # die vereist dezelfde out-of-sample testperiode.
-    from model_quality_gate import evaluate_candidate
+    from common.model_quality_gate import evaluate_candidate
 
     kwaliteitsadvies = evaluate_candidate({
         "auc": auc,
@@ -71,12 +71,13 @@ def patch(source):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('source', type=Path)
-    ap.add_argument('--output', type=Path, default=Path('xgboostV3_gecontroleerd.py'))
+    ap.add_argument('--output', type=Path, default=Path('models/xgboostV3_gecontroleerd.py'))
     args = ap.parse_args()
     if args.source.resolve() == args.output.resolve():
         ap.error('Output mag niet hetzelfde zijn als de bron')
     result = patch(args.source.read_text(encoding='utf-8'))
     compile(result, str(args.output), 'exec')
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(result, encoding='utf-8')
     print(f'Veilig gegenereerd: {args.output}')
 

@@ -64,7 +64,7 @@ def embargo_dagen(horizon):
 
 
 def model_path(horizon):
-    return f'{MODEL_VERSIE}_{horizon}_model.pkl'
+    return os.path.join('models', f'{MODEL_VERSIE}_{horizon}_model.pkl')
 
 
 def leeg_resultaat(horizon, status, opmerking):
@@ -135,6 +135,7 @@ def quality_decision(candidate, baseline, relative_auc, test, incumbent=None):
 
 
 def save_atomic(model, horizon):
+    os.makedirs("models", exist_ok=True)
     target = model_path(horizon)
     tmp = target + '.tmp'
     try:

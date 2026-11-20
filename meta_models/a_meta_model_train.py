@@ -28,7 +28,7 @@ from common import (
 )
 
 from common.features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
-from model_inputs import canonical_selecties_sql, InputUnavailable, numeric_features, dates, unique_snapshots
+from common.model_inputs import canonical_selecties_sql, InputUnavailable, numeric_features, dates, unique_snapshots
 from common.horizons import calendar_embargo
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")

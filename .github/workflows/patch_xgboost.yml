@@ -27,10 +27,10 @@ jobs:
 
       - name: Patch uitvoeren
         run: |
-          python patch_xgboost_quality.py xgboostV3.py
+          python -m maintenance.patch_xgboost_quality models/xgboostV3.py
 
       - name: Bestand beschikbaar maken
         uses: actions/upload-artifact@v4
         with:
           name: xgboostV3-gecontroleerd
-          path: xgboostV3_gecontroleerd.py
+          path: models/xgboostV3_gecontroleerd.py

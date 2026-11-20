@@ -50,6 +50,7 @@ warnings.filterwarnings(
 # ============================================================
 
 MODEL_VERSIE = "xgboostV3"
+MODEL_DIR = "models"
 
 HORIZONS = [
     "10d",
@@ -636,8 +637,10 @@ def sla_model_veilig_op(
 ) -> str:
 
     bestandsnaam = (
-        f"{MODEL_VERSIE}_{horizon}_model.pkl"
+        os.path.join(MODEL_DIR, f"{MODEL_VERSIE}_{horizon}_model.pkl")
     )
+
+    os.makedirs(MODEL_DIR, exist_ok=True)
 
     tijdelijk_bestand = (
         f"{bestandsnaam}.tmp"
@@ -1449,7 +1452,7 @@ def model_status(
 ) -> str:
 
     bestandsnaam = (
-        f"{MODEL_VERSIE}_{horizon}_model.pkl"
+        os.path.join(MODEL_DIR, f"{MODEL_VERSIE}_{horizon}_model.pkl")
     )
 
     if valideer_modelbestand(
@@ -1560,7 +1563,7 @@ def controleer_alle_modelbestanden() -> bool:
     for horizon in HORIZONS:
 
         bestandsnaam = (
-            f"{MODEL_VERSIE}_{horizon}_model.pkl"
+            os.path.join(MODEL_DIR, f"{MODEL_VERSIE}_{horizon}_model.pkl")
         )
 
         print(
@@ -1632,7 +1635,7 @@ def verwijder_ongeldige_placeholders() -> None:
     for horizon in HORIZONS:
 
         bestandsnaam = (
-            f"{MODEL_VERSIE}_{horizon}_model.pkl"
+            os.path.join(MODEL_DIR, f"{MODEL_VERSIE}_{horizon}_model.pkl")
         )
 
         if not os.path.isfile(

@@ -8,9 +8,9 @@ score_xgboost.py
 Scoort NIEUWE selecties met de getrainde XGBoostV3-modellen.
 
 Modellen:
-    xgboostV3_10d_model.pkl
-    xgboostV3_30d_model.pkl
-    xgboostV3_60d_model.pkl
+    models/xgboostV3_10d_model.pkl
+    models/xgboostV3_30d_model.pkl
+    models/xgboostV3_60d_model.pkl
 
 Werking:
 - Beschikbare geldige modellen worden geladen.
@@ -89,7 +89,7 @@ import psycopg2.extras
 import requests
 import xgboost
 import numpy as np
-from model_inputs import InputUnavailable, scoring_inputs, technical_day_sql
+from common.model_inputs import InputUnavailable, scoring_inputs, technical_day_sql
 
 
 warnings.filterwarnings(
@@ -150,8 +150,8 @@ EMAIL_RECEIVER = os.getenv(
 
 MODEL_DIR = os.getenv(
     "XGBOOST_MODEL_DIR",
-    "."
-).strip() or "."
+    "models"
+).strip() or "models"
 
 MODEL_FILES = {
     horizon: os.path.join(

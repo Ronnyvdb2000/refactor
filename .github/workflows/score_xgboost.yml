@@ -78,9 +78,9 @@ jobs:
           geldig=0
 
           for f in \
-            xgboostV3_10d_model.pkl \
-            xgboostV3_30d_model.pkl \
-            xgboostV3_60d_model.pkl
+            models/xgboostV3_10d_model.pkl \
+            models/xgboostV3_30d_model.pkl \
+            models/xgboostV3_60d_model.pkl
           do
 
             if [ -f "$f" ]; then
@@ -148,9 +148,9 @@ jobs:
 
 
           modellen = [
-              "xgboostV3_10d_model.pkl",
-              "xgboostV3_30d_model.pkl",
-              "xgboostV3_60d_model.pkl",
+              "models/xgboostV3_10d_model.pkl",
+              "models/xgboostV3_30d_model.pkl",
+              "models/xgboostV3_60d_model.pkl",
           ]
 
 
@@ -340,4 +340,4 @@ jobs:
         run: |
           set -euo pipefail
 
-          python score_xgboost.py
+          python -m models.score_xgboost

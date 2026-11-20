@@ -69,9 +69,9 @@ jobs:
         echo "========================================"
 
         for f in \
-          xgboostV3_10d_model.pkl \
-          xgboostV3_30d_model.pkl \
-          xgboostV3_60d_model.pkl
+          models/xgboostV3_10d_model.pkl \
+          models/xgboostV3_30d_model.pkl \
+          models/xgboostV3_60d_model.pkl
         do
           if [ -f "$f" ]; then
 
@@ -97,7 +97,7 @@ jobs:
 
         echo ""
         echo "Modelbestanden na opschoning:"
-        ls -lah xgboostV3_*_model.pkl 2>/dev/null || true
+        ls -lah models/xgboostV3_*_model.pkl 2>/dev/null || true
 
     # ============================================================
     # 5. TRAINING
@@ -114,7 +114,7 @@ jobs:
         EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
 
       run: |
-        python xgboostV3.py
+        python -m models.xgboostV3
 
     # ============================================================
     # 6. MODEL VALIDATIE
@@ -133,9 +133,9 @@ jobs:
         import joblib
 
         modellen = [
-            "xgboostV3_10d_model.pkl",
-            "xgboostV3_30d_model.pkl",
-            "xgboostV3_60d_model.pkl",
+            "models/xgboostV3_10d_model.pkl",
+            "models/xgboostV3_30d_model.pkl",
+            "models/xgboostV3_60d_model.pkl",
         ]
 
         verwachte_features = [
@@ -242,7 +242,7 @@ jobs:
         echo "MODELFILES"
         echo "========================================"
 
-        ls -lah xgboostV3_*_model.pkl 2>/dev/null || true
+        ls -lah models/xgboostV3_*_model.pkl 2>/dev/null || true
 
         echo ""
         echo "========================================"
@@ -277,7 +277,7 @@ jobs:
         echo "MODELWIJZIGINGEN STAGEN"
         echo "========================================"
 
-        git add -A -- '*.pkl'
+        git add -A -- 'models/*.pkl'
 
         echo ""
         echo "========================================"
