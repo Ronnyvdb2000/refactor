@@ -52,7 +52,6 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [run_02XLightGBM V2 Trading.yml](../.github/workflows/run_02XLightGBM%20V2%20Trading.yml) | Handmatig/event | `models/xLightgbmV2.py` | 45 | workflow-run_02xlightgbm-v2-trading-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run_02xgboost.yml](../.github/workflows/run_02xgboost.yml) | Handmatig/event | `strats/bot_01xgboost.py`, `maintenance/push_generated_commit.py` | 5, 300, 300, 300 | workflow-run_02xgboost-${{ github.ref }} | refactor-yahoo-daily, refactor-yahoo-full, refactor-yahoo-full | repo-planning |
 | [run_02xgboostMeta.yml](../.github/workflows/run_02xgboostMeta.yml) | Handmatig/event | `strats/bot_01xgboostMeta.py`, `maintenance/push_generated_commit.py` | 5, 30, 60, 60 | workflow-run_02xgboostmeta-${{ github.ref }} | Niet toegewezen | repo-planning |
-| [run_02xgboostV2.yml](../.github/workflows/run_02xgboostV2.yml) | `0 2 * * 0` | `models/xgboostV2.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv2-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run_02xgboostV3.yml](../.github/workflows/run_02xgboostV3.yml) | `0 23 * * *` | `models/xgboostV3.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run_02xgboostv3-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run_02xgboostV4.yml](../.github/workflows/run_02xgboostV4.yml) | `0 4 * * 0` | `models/xgboostV4.py` | 45 | workflow-run_02xgboostv4-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run__filtertickersmungerV2.yml](../.github/workflows/run__filtertickersmungerV2.yml) | `0 2 * * 0` | `scripts/bot_041mV2.py`, `maintenance/push_generated_commit.py` | 300 | workflow-run__filtertickersmungerv2-${{ github.ref }} | refactor-yahoo-full | repo-planning |
@@ -88,7 +87,6 @@ Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart.
 
 | Dagen | UTC | Workflows |
 | --- | --- | --- |
-| zo | 02:00 | run_02xgboostV2.yml, run__filtertickersmungerV2.yml |
 | zo | 05:00 | a__parameter_model_production.yml, a_meta_labeling_classifier.yml, a_trade_combi.yml, analyse_parameter_ic.yml |
 | ma, di, wo, do, vr, za | 05:00 | a__parameter_model_production.yml, a_trade_combi.yml |
 | ma, di, wo, do, vr | 19:30 | run_00mail.yml, run_00mrEOD.yml |

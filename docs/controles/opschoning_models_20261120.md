@@ -28,3 +28,5 @@ De drie verplaatste productie-V3-PKL's zijn daadwerkelijk geladen en door de bes
 YAML en shell-syntax van alle tien aangepaste bestaande workflows gecontroleerd. De statische audit omvat nu 67 workflows, inclusief de nieuwe **Model layout and workflow checks**. De audit herkent pytest als extern testgereedschap in plaats van een ontbrekend lokaal script.
 
 De nieuwe CI-workflow herhaalt deze offline tests, valideert de echte opgeslagen V3-bestanden en controleert de workflowcommando's op GitHub. Hij heeft alleen leesrechten en ontvangt geen Supabase- of Telegram-secrets. Een geslaagde controle is geen bewijs van de prestaties van toekomstige productietrainingen.
+
+Vervolg 20 november 2026: de hierboven vermelde `xgboostV2.py` en zijn hertrainingsworkflow zijn inmiddels verwijderd; zie [actuele modelindeling](../../models/README.md).
