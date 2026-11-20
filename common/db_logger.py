@@ -1,12 +1,12 @@
 """
-db_logger.py
+common/db_logger.py
 ------------
 Herbruikbare module om bot-selecties naar de Supabase-tabel `selecties`
 te loggen, naast de bestaande Telegram/e-mail-notificaties.
 
 Gebruik in een bot:
 
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 
     log_selectie(
         ticker="AAPL",

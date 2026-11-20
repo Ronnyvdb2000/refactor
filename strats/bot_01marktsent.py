@@ -26,7 +26,7 @@ from common import (
     send_email, trade_cost, SLIPPAGE_PCT,
 )
 try:
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 except ImportError:
     def log_selectie(*args, **kwargs):
         return False

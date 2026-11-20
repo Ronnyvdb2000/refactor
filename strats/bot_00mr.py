@@ -21,7 +21,7 @@ from common import (today_str,safe_float,yahoo_link,download_history,
     load_tickers_from_file,bouw_bestandslijst,label_voor,
     compute_rsi_series,compute_ibs,compute_atr_series,send_email,send_telegram)
 try:
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 except ImportError as exc:
     print(f"[WARN] db_logger niet beschikbaar: {exc}")
     def log_selectie(*args,**kwargs):return False

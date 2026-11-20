@@ -47,3 +47,8 @@ Optioneel voor de verbindingstests: installeer `pgserver` naast de testdependenc
 ## Vervolg
 
 Controleer na runs met de nieuwe code of de teller per natuurlijke sleutel gelijk blijft bij herhaling. Stel daarna een afzonderlijk herstelvoorstel voor historische dubbels en ontbrekende koersbasis op; verwijder nooit blind alle rijen met dezelfde ticker/datum/strategie.
+
+
+## Modulepad
+
+De gedeelde logger staat in `common/db_logger.py`. Gebruik `from common.db_logger import log_selectie` of `from common import db_logger`. Alle interne imports zijn aangepast; het oude rootbestand is verwijderd. De opslaglogica, validatie, locks, savepoints en controles tegen dubbele selecties zijn bij deze verplaatsing behouden.

@@ -35,7 +35,7 @@ from strats import bot_00Fisher as fisher
 from strats import bot_01repititief as repititief
 from strats import bot_00vcp as vcp
 from strats import bot_01hoogl as hoogl
-import db_logger
+from common import db_logger
 from .shared import finite
 
 # ============================================================

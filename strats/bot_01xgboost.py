@@ -32,7 +32,7 @@ from common import (
 )
 
 try:
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 except Exception as _e:
     print(f"[WARN] db_logger niet beschikbaar ({_e}) — DB-logging wordt overgeslagen")
     def log_selectie(*args, **kwargs):

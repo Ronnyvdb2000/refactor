@@ -30,7 +30,7 @@ from common import (
 )
 
 try:
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 except ImportError as exc:
     print(f"[WARN] db_logger niet beschikbaar: {exc}")
     def log_selectie(*args, **kwargs):

@@ -16,7 +16,7 @@ from common import (today_str, yahoo_link, load_tickers_from_file, label_voor,
 from common.yahoo import stop_on_throttle, YahooRateLimited
 
 try:
-    from db_logger import log_selectie
+    from common.db_logger import log_selectie
 except Exception as exc:
     print(f"[WARN] db_logger niet beschikbaar ({type(exc).__name__})")
     def log_selectie(*args, **kwargs):

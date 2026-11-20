@@ -66,7 +66,7 @@ import sys
 import argparse
 import html
 import math
-import db_logger
+from common import db_logger
 
 import numpy as np
 import pandas as pd

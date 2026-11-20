@@ -4,7 +4,7 @@ import argparse
 import os
 from datetime import date
 from common import today_str, send_telegram, send_email, esc
-from db_logger import log_selectie
+from common.db_logger import log_selectie
 from .shared import fetch_selections, group_signals, costs, report, check_delivery
 
 LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "3"))
