@@ -70,12 +70,14 @@ def load_basket(*, today=None, max_age_days=7):
                     AND datum=(SELECT MAX(datum) FROM selecties
                                WHERE beurs=%s AND strategie=%s AND datum<=%s)
                     ORDER BY id DESC LIMIT 1001""",
-                    (MARKET, STRATEGY, MARKET, STRATEGY, today))
+                    (MARKET, STRATEGY, MARKET, STRATEGY, today.isoformat()))
                 rows = cur.fetchall()
         finally:
             conn.close()
-    except Exception:
-        raise RuntimeError('Supabase lezen mislukt; controleer verbinding en tabelrechten') from None
+    except Exception as exc:
+        code = getattr(exc, 'pgcode', None)
+        safe_code = code if isinstance(code, str) and len(code) == 5 and code.isalnum() else 'connection'
+        raise RuntimeError(f'Supabase lezen mislukt (code {safe_code}); controleer verbinding en tabelrechten') from None
     if len(rows) > 1000:
         raise ValueError('Meer dan 1000 rijen; mandje wordt niet stilzwijgend afgekapt')
     return basket_from_rows(rows, today=today, max_age_days=max_age_days)
