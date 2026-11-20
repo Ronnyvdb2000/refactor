@@ -260,7 +260,8 @@ def maak_rapport(suffix='a'):
         send_email(f'Weekrapport {suffix} onvolledig {vrijdag}', tekst)
         raise RuntimeError('Onvoldoende weekdata: geen beurs haalt de 80%-norm')
     # Voldoende data zonder stijgers schrijft []; oude winnaars verdwijnen ook dan.
-    pad = ROOT / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
+    pad = ROOT / 'weekly' / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
+    pad.parent.mkdir(parents=True, exist_ok=True)
     tijdelijk = pad.with_suffix('.tmp')
     tijdelijk.write_text(json.dumps(toppers, ensure_ascii=False, indent=2), encoding='utf-8')
     tijdelijk.replace(pad)

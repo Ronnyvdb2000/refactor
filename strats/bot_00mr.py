@@ -26,7 +26,7 @@ except ImportError as exc:
     print(f"[WARN] db_logger niet beschikbaar: {exc}")
     def log_selectie(*args,**kwargs):return False
 
-PORTFOLIO_FILE="mr_portfolio.json"
+PORTFOLIO_FILE="strats/mr_portfolio.json"
 CFG = {
     "ibs_entry":            0.20,
     "ibs_exit":             0.70,

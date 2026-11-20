@@ -133,6 +133,7 @@ class Runs(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.old=Path.cwd();os.chdir(self.tmp.name)
         self.addCleanup(self.restore)
+        Path('strats').mkdir()
         p=patch.object(b,'today_str',return_value='2026-11-13');p.start();self.addCleanup(p.stop)
         p=patch.dict(os.environ,{},clear=True);p.start();self.addCleanup(p.stop)
     def restore(self):os.chdir(self.old);self.tmp.cleanup()
@@ -151,12 +152,12 @@ class Runs(unittest.TestCase):
     def test_success_logs_and_emails_no_telegram(self):
         r=self.run_eod();self.assertIsNone(r['error']);self.assertEqual(r['payload']['database']['saved'],1);self.assertEqual(r['telegram'],0)
     def test_state_is_not_mutated(self):
-        Path('mr_portfolio.json').write_text(json.dumps(dict(cash=50015.8,positions={},daily_start='old',daily_pnl=-10)))
-        before=Path('mr_portfolio.json').read_bytes();self.run_eod();self.run_eod()
-        self.assertEqual(before,Path('mr_portfolio.json').read_bytes())
+        Path('strats/mr_portfolio.json').write_text(json.dumps(dict(cash=50015.8,positions={},daily_start='old',daily_pnl=-10)))
+        before=Path('strats/mr_portfolio.json').read_bytes();self.run_eod();self.run_eod()
+        self.assertEqual(before,Path('strats/mr_portfolio.json').read_bytes())
     def test_corrupt_state_reported_not_reset(self):
-        Path('mr_portfolio.json').write_text('broken');r=self.run_eod()
-        self.assertIsNotNone(r['error']);self.assertEqual(Path('mr_portfolio.json').read_text(),'broken')
+        Path('strats/mr_portfolio.json').write_text('broken');r=self.run_eod()
+        self.assertIsNotNone(r['error']);self.assertEqual(Path('strats/mr_portfolio.json').read_text(),'broken')
     def test_no_candidates_still_emails(self):
         r=self.run_eod(entry=False);self.assertIsNone(r['error']);self.assertIsNotNone(r['email'])
     def test_no_data_fails_after_report(self):self.assertIsNotNone(self.run_eod(pd.DataFrame())['error'])

@@ -119,7 +119,7 @@ def test_partial_parameters_complete_report_and_keep_database_writes(monkeypatch
     assert {r['ticker'] for r in selected}=={'A','B'}
     assert [r['ticker'] for r in parameters]==['A']
     assert all(r['bronselectie']==suffix for r in selected)
-    path=tmp_path/('laatste_toppers_x.json' if suffix=='x' else 'laatste_toppers.json')
+    path=tmp_path/('weekly/laatste_toppers_x.json' if suffix=='x' else 'weekly/laatste_toppers.json')
     assert {r['ticker'] for r in json.loads(path.read_text())}=={'A','B'}
     assert 'beschikbare parameters opgeslagen' in messages[-1]
     assert 'ontbreken voor: B' in messages[-1] and 'run is geslaagd' in messages[-1]

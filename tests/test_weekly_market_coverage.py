@@ -53,7 +53,8 @@ def test_partial_report_publishes_only_sufficient_markets(monkeypatch, tmp_path,
     messages, emails = [], []
     monkeypatch.setattr(w, 'meld', messages.append)
     monkeypatch.setattr(w, 'send_email', lambda *args: emails.append(args))
-    snapshot = tmp_path / ('laatste_toppers_x.json' if suffix == 'x' else 'laatste_toppers.json')
+    snapshot = tmp_path / ('weekly/laatste_toppers_x.json' if suffix == 'x' else 'weekly/laatste_toppers.json')
+    snapshot.parent.mkdir(parents=True, exist_ok=True)
     snapshot.write_text('oude snapshot')
     w.maak_rapport(suffix)
     rows = json.loads(snapshot.read_text())

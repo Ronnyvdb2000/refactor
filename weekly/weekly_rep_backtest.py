@@ -10,7 +10,7 @@ vroeger al kunnen zien aankomen?
 
 Werking:
   De tickerlijst komt niet hardcoded in dit bestand te staan, maar wordt
-  ingelezen uit laatste_toppers.json — het bestand dat weekly_report.py
+  ingelezen uit weekly/laatste_toppers.json — het bestand dat weekly_report.py
   bij elke run wegschrijft. Dat bestand wordt dus elke week volledig
   OVERSCHREVEN met de nieuwste top 5 per lijst; deze backtest test
   daardoor automatisch altijd de meest recente winnaars, nooit een
@@ -58,7 +58,7 @@ import yfinance as yf
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # Rapportage via Actions-log en Telegram.
-TOPPERS_BESTAND = ROOT / "laatste_toppers.json"
+TOPPERS_BESTAND = ROOT / "weekly" / "laatste_toppers.json"
 
 
 def laad_toppers():

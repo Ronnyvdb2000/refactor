@@ -69,3 +69,6 @@ Het par-model gebruikt JSON-picks en -gewichten onder `results/`; de
 TradingAgents-consument en workflow lezen diezelfde JSON-bestanden. Dit start
 geen LLM-analyse. Diagnosebestanden, statische invoer en de interne weekly-
 hervatcache vallen buiten de CSV-rapportexport van de strategiebots.
+
+
+De bestaande MR-portefeuilletoestand staat in `strats/mr_portfolio.json`. De MR-bot leest dit bestand voor de bestaande uitstapsignalen; de verplaatsing voegt geen portefeuillewijzigingen of orderuitvoering toe.

@@ -62,7 +62,7 @@ def test_bad_coverage_cannot_publish_json(monkeypatch,tmp_path):
     messages=[]
     monkeypatch.setattr(w,'meld',messages.append)
     monkeypatch.setattr(w,'send_email',lambda *a:True)
-    old=tmp_path/'laatste_toppers.json';old.write_text('old snapshot')
+    old=tmp_path/'weekly/laatste_toppers.json';old.parent.mkdir(parents=True,exist_ok=True);old.write_text('old snapshot')
     with pytest.raises(RuntimeError,match='80%'):
         w.maak_rapport()
     assert old.read_text()=='old snapshot'
@@ -77,7 +77,7 @@ def test_report_rate_limit_keeps_snapshot_and_notifies(monkeypatch,tmp_path):
     monkeypatch.setattr(w.WeekKoersen,'laad',abort)
     messages=[];monkeypatch.setattr(w,'meld',messages.append)
     with pytest.raises(d.DownloadOnderbroken):w.maak_rapport()
-    assert not (tmp_path/'laatste_toppers.json').exists()
+    assert not (tmp_path/'weekly/laatste_toppers.json').exists()
     assert messages and 'ONVOLLEDIG' in messages[0]
 
 

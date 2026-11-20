@@ -4,8 +4,8 @@ De weekly scripts staan in `weekly/`. Start vanuit de repository-root als module
 
 | Script | Workflow | Functie |
 | --- | --- | --- |
-| `weekly/weekly_report.py` | `weekly_run.yml` | Rapport voor 01–09 en 041a–059a; `laatste_toppers.json` |
-| `weekly/weekly_report_x.py` | `weekly_run_x.yml` | Rapport voor 01–09 en 041x–059x; `laatste_toppers_x.json` |
+| `weekly/weekly_report.py` | `weekly_run.yml` | Rapport voor 01–09 en 041a–059a; `weekly/laatste_toppers.json` |
+| `weekly/weekly_report_x.py` | `weekly_run_x.yml` | Rapport voor 01–09 en 041x–059x; `weekly/laatste_toppers_x.json` |
 | `weekly/selection_storage.py` | Via beide a/x-rapporten | Eigen topvijf >10% en parameters vóór de week naar Supabase |
 | `weekly/weekly_report_opvolg.py` | Geen; losse scan vervallen | Herbruikbare indicatorfuncties voor historische parameters |
 | `weekly/weekly_db_opvolg.py` | Via a/x-rapporten en correlaties | Opslag en ranks op peildatum; geen zelfstandige workflow |
@@ -100,3 +100,6 @@ Validatie van deze uitbreiding: 60 weekly-tests geslaagd, inclusief uitvoering v
 ## Ontbrekende parameters blokkeren het rapport niet — 15 november 2026
 
 Run 43749559756 verwerkte 89 selecties en 83 pre-week-snapshots, maar eindigde rood door zes ontbrekende historische parameterreeksen. Beide rapportbots behandelen dat nu als waarschuwing. Telegram bevestigt de geslaagde opslag van selecties en beschikbare parameters, met de ontbrekende tickers. Het proces eindigt normaal zodat de workflow de nieuwe toppers-JSON commit. Er worden geen parameters verzonnen of ongeldig bevonden koersreeksen toch gebruikt. Een volgende run kan ontbrekende parameters aanvullen. Echte databasefouten en onvoldoende dekking voor publicatie blijven fouten.
+
+
+De twee topperssnapshots staan onder `weekly/`. Rapportpublicatie, de retrospectieve backtest en de git-publicatiestappen gebruiken dezelfde nieuwe paden. Tickerlijsten, koerscaches en overige rapportpaden zijn niet verplaatst. De snapshots worden nog steeds pas na de bestaande dekkingscontroles atomair vervangen.

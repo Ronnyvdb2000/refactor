@@ -25,7 +25,8 @@ def test_interrupted_report_preserves_completed_data_and_unknown_status(monkeypa
     monkeypatch.setattr(w, 'download_history', download)
     monkeypatch.setattr(w.time, 'sleep', lambda *_: None)
     monkeypatch.setattr(w, 'meld', messages.append)
-    snapshot = tmp_path / 'laatste_toppers.json'
+    snapshot = tmp_path / 'weekly/laatste_toppers.json'
+    snapshot.parent.mkdir(parents=True, exist_ok=True)
     snapshot.write_text('oude snapshot')
 
     with pytest.raises(DownloadOnderbroken):

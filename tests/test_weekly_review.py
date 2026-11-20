@@ -81,6 +81,7 @@ def test_peak_first_search_day_included():
 
 def test_old_json_rejected(monkeypatch,tmp_path):
     path=tmp_path/'top.json'
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps([{'beurs':'X','ticker':'A','week_perf':1}]))
     monkeypatch.setattr(back,'TOPPERS_BESTAND',path)
     with pytest.raises(ValueError,match='Ongedateerde'):
@@ -162,7 +163,7 @@ def test_report_writes_dated_json_and_keeps_notifications(monkeypatch,tmp_path,s
     monkeypatch.setattr(w,'meld',messages.append)
     monkeypatch.setattr(w,'send_email',lambda *a,**kw:True)
     w.maak_rapport(suffix)
-    pad=tmp_path/('laatste_toppers_x.json' if suffix=='x' else 'laatste_toppers.json')
+    pad=tmp_path/('weekly/laatste_toppers_x.json' if suffix=='x' else 'weekly/laatste_toppers.json')
     result=json.loads(pad.read_text())
     assert result[0]['data_version']==3
     assert result[0]['week_startdatum']==str(MON)
