@@ -48,14 +48,12 @@ jobs:
             exit 1
           fi
 
-      - name: test_telegram.py
+      - name: Telegram-bot controleren
         if: ${{ inputs.test == 'test_telegram' || inputs.test == 'beide' }}
         run: |
-          python test_telegram.py | tee out_telegram.txt
-          grep -q "SUCCES" out_telegram.txt
+          python -m maintenance.check_telegram --message bot
 
-      - name: test_verbinding.py
+      - name: Telegram-verbinding controleren
         if: ${{ !cancelled() && (inputs.test == 'test_verbinding' || inputs.test == 'beide') }}
         run: |
-          python test_verbinding.py | tee out_verbinding.txt
-          grep -q '"ok":true' out_verbinding.txt
+          python -m maintenance.check_telegram --message verbinding

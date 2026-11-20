@@ -97,3 +97,48 @@ jobs: {}
 ''')
     result = audit(tmp_path)
     assert result['simultaneous_starts'] == [dict(days=['ma','di','wo','do','vr'],utc='19:50',workflows=['one.yml','two.yml'])]
+
+
+def test_external_checkout_is_explicitly_reported_and_not_checked_against_main(tmp_path):
+    directory = tmp_path / '.github/workflows'
+    directory.mkdir(parents=True)
+    (directory / 'research.yml').write_text('''on:
+  workflow_dispatch:
+concurrency:
+  group: research
+  queue: max
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/research
+      - run: python -m research --supabase
+''')
+    result = audit(tmp_path)
+    assert result['errors'] == []
+    assert result['workflows'][0]['external_entrypoints'] == [
+        dict(script='research.py', ref='feature/research', job='run')]
+    from maintenance.audit_workflows import markdown
+    assert 'niet tegen de lokale hoofdbranch gevalideerd' in markdown(result)
+
+
+def test_nested_checkout_does_not_hide_missing_root_script(tmp_path):
+    directory = tmp_path / '.github/workflows'
+    directory.mkdir(parents=True)
+    (directory / 'demo.yml').write_text('''on:
+  workflow_dispatch:
+jobs:
+  run:
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/external
+          path: vendor
+      - run: python missing.py
+''')
+    result = audit(tmp_path)
+    assert any('missing entrypoint missing.py' in error for error in result['errors'])

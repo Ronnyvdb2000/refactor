@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
 concurrency:
+  queue: max
   group: research-usd-refs/heads/feature/quantify-principles
   cancel-in-progress: false
 jobs:

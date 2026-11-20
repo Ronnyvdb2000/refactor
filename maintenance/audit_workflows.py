@@ -78,7 +78,7 @@ def audit(root):
         triggers = triggers if isinstance(triggers, dict) else {str(triggers): {}}
         crons = [item['cron'] for item in triggers.get('schedule', [])]
         row = dict(file=path.name, name=data.get('name', path.stem), scope=scope,
-                   crons=crons, scripts=[], jobs=[], group=None)
+                   crons=crons, scripts=[], jobs=[], group=None, external_entrypoints=[])
         guard = data.get('concurrency')
         if isinstance(guard, dict):
             row['group'] = guard.get('group')
@@ -93,10 +93,23 @@ def audit(root):
                 timeout = job.get('timeout-minutes', '')
                 if not str(timeout).isdigit() or not 1 <= int(timeout) <= 360:
                     errors.append(f'{path.name}/{job_id}: bounded job timeout missing')
+            checkout_ref = None
             for step in job.get('steps', []):
+                if str(step.get('uses', '')).startswith('actions/checkout@'):
+                    settings = step.get('with') or {}
+                    # Only a checkout into the working root changes command sources.
+                    if settings.get('path', '.') in ('.', ''):
+                        checkout_ref = settings.get('ref')
+                        if settings.get('repository'):
+                            checkout_ref = str(settings['repository']) + '@' + str(checkout_ref or 'default')
                 for script in entrypoints(step.get('run', '')):
                     if script not in row['scripts']:
                         row['scripts'].append(script)
+                    if checkout_ref and checkout_ref not in ('main', '${{ github.ref }}', '${{ github.sha }}'):
+                        external = dict(script=script, ref=checkout_ref, job=job_id)
+                        if external not in row['external_entrypoints']:
+                            row['external_entrypoints'].append(external)
+                        continue
                     if not (root / script).is_file() and not (root / script[:-3] / '__init__.py').is_file():
                         (errors if scope == 'repo-planning' else warnings).append(f'{path.name}: missing entrypoint {script}')
         push = triggers.get('push') or {}
@@ -138,6 +151,11 @@ def markdown(report):
             ', '.join(str(j['timeout'] or 'ontbreekt') for j in row['jobs']),
             str(row['group'] or ', '.join(j['group'] or 'ontbreekt' for j in row['jobs'])),
             ', '.join(j['group'] for j in row['jobs'] if j['group'] and 'refactor-yahoo-' in j['group']) or 'Niet toegewezen', row['scope']]) + ' |')
+    external = [(row['file'], item) for row in report['workflows'] for item in row.get('external_entrypoints', [])]
+    if external:
+        lines += ['', '## Entry points uit andere checkouts', '',
+                  'Deze paden worden uit een andere ref/repository uitgevoerd en zijn niet tegen de lokale hoofdbranch gevalideerd.', '']
+        lines += [f"- `{name}` / `{item['job']}`: `{item['script']}` uit `{item['ref']}`." for name, item in external]
     lines += ['', '## Gelijke geplande startminuten', '',
               'Dit zijn mogelijke pieken, geen bewijs dat runs werkelijk tegelijk zijn gestart. Looptijden kunnen ook tussen verschillende startminuten overlappen.', '',
               '| Dagen | UTC | Workflows |', '| --- | --- | --- |']
@@ -147,8 +165,8 @@ def markdown(report):
     lines += [f'- FOUT: {s}' for s in report['errors']]
     lines += [f'- Open: {s}' for s in report['warnings']]
     if not report['errors']:
-        lines.append('- Alle workflows binnen scope hebben een runbeveiliging, meerdere wachtplaatsen en begrensde jobduur; hun gevonden entrypoints bestaan.')
-    return '\n'.join(lines) + '\n'
+        lines.append('- Alle workflows binnen scope hebben een runbeveiliging, meerdere wachtplaatsen en begrensde jobduur; hun lokaal gecontroleerde entrypoints bestaan. Afwijkende checkouts staan afzonderlijk vermeld.')
+    return '\n'.join(lines).rstrip() + '\n'
 
 
 def main():
@@ -157,7 +175,8 @@ def main():
     parser.add_argument('--format', choices=['json', 'markdown'], default='json')
     args = parser.parse_args()
     report = audit(args.root)
-    print(markdown(report) if args.format == 'markdown' else json.dumps(report, ensure_ascii=False, indent=2))
+    print(markdown(report) if args.format == 'markdown' else json.dumps(report, ensure_ascii=False, indent=2),
+          end='' if args.format == 'markdown' else '\n')
     return int(bool(report['errors']))
 
 

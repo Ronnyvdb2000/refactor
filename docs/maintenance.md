@@ -1,4 +1,4 @@
-# Maintenance — handmatige backfills
+# Maintenance — backfills en handmatige controles
 
 De twee backfills staan in `maintenance/` in `Ronnyvdb2000/refactor`. Start ze als Python-module vanuit de repository-root. De bestaande workflows blijven handmatig beschikbaar onder `.github/workflows/`.
 
@@ -42,3 +42,16 @@ Eén Yahoo-koersbalk levert bij EMA en MACD startwaarden op, geen bruikbare hist
 Ongeldige OHLCV-balken en onderbrekingen langer dan zeven kalenderdagen starten de opwarming opnieuw. Dubbele koersdatums geven een fout. De bestaande MA50 en RSI worden vóór iedere update gecontroleerd: minstens één vergelijkbare controle is vereist; alle aanwezige controles moeten berekenbaar zijn en binnen 2% (MA50) respectievelijk 3 punten (RSI) overeenkomen. Anders blijft de rij onaangeroerd. Bestaande niet-NULL-waarden blijven behouden.
 
 Het log toont ontvangen koershistorie, geblokkeerde controles en ontbrekende opwarming. Download- en SQL-fouten maken de workflow na de samenvatting rood. Ontbrekende historie wordt afzonderlijk gerapporteerd. Python-uitvoer verschijnt direct, ook via de logpipeline.
+
+
+## Handmatige verbinding- en koerscontroles
+
+De vroegere losse `test_telegram.py` en `test_verbinding.py` zijn samengevoegd in `maintenance/check_telegram.py`. Het waren handmatige berichttests, geen offline unittests. Importeren en `--help` versturen geen berichten. Alleen expliciete uitvoering stuurt één bericht; ontbrekende instellingen, time-outs, HTTP-fouten en een negatieve Telegram-respons leveren exitcode 1 op. Tokens en chat-ID's worden niet afgedrukt. De bestaande workflow **Test Telegram** behoudt zijn keuzes `test_telegram`, `test_verbinding` en `beide`, maar gebruikt modulecommando's en de exitcode in plaats van zoeken in logtekst.
+
+```bash
+python -m maintenance.check_telegram --message bot
+python -m maintenance.check_telegram --message verbinding
+python -m maintenance.diag_koersen MOL.WA AAPL --start 2026-08-01
+```
+
+De koersdiagnose is uit de hoofdmap naar `maintenance/` verplaatst. De workflow **Diag koersen** is aangepast. Importeren start geen Yahoo-downloads. De bestaande begindatum blijft de standaard en kan nu met `--start` worden veranderd.
