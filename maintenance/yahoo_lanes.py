@@ -7,6 +7,7 @@ from pathlib import Path
 
 LANES = {name: 'refactor-yahoo-' + name for name in ('daily', 'full', 'features', 'timed')}
 JOB_LANES = {
+    'research_evaluation.yml': {'evaluate': 'features'},
     'a_trade_combi.yml': {'bot-combi-volatiel': 'daily'},
     'analyse_forward_correlaties.yml': {'forward-correlatie-analyse': 'features'},
     'run_analyse_selecties.yml': {'analyse': 'features'},

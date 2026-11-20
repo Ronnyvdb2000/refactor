@@ -26,6 +26,7 @@ Workflowguards begrenzen herstarts; de afzonderlijke Yahoo-jobgroepen delen dage
 | [model_layout_checks.yml](../.github/workflows/model_layout_checks.yml) | Handmatig/event | `maintenance/audit_workflows.py` | 10 | model-layout-checks-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [patch_xgboost.yml](../.github/workflows/patch_xgboost.yml) | Handmatig/event | `maintenance/patch_xgboost_quality.py` | 10 | workflow-patch_xgboost-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [research_checks.yml](../.github/workflows/research_checks.yml) | Handmatig/event | `research/__main__.py`, `research/telegram.py` | 5 | research-checks-${{ github.ref }} | Niet toegewezen | repo-planning |
+| [research_evaluation.yml](../.github/workflows/research_evaluation.yml) | `47 7 * * *` | `research/evaluate.py` | 120 | research-evaluation-${{ github.ref }} | refactor-yahoo-features | repo-planning |
 | [research_simulation.yml](../.github/workflows/research_simulation.yml) | `17 7 * * *` | `research/__main__.py` | 5 | research-usd-${{ github.ref }} | Niet toegewezen | repo-planning |
 | [run_00cs.yml](../.github/workflows/run_00cs.yml) | `00 20 * * 1-5` | `strats/bot_00cs.py` | 300 | workflow-run_00cs-${{ github.ref }} | refactor-yahoo-daily | repo-planning |
 | [run_00db.yml](../.github/workflows/run_00db.yml) | `55 19 * * 1-5` | `strats/bot_00db.py` | 300 | workflow-run_00db-${{ github.ref }} | refactor-yahoo-daily | repo-planning |

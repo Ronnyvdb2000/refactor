@@ -18,6 +18,8 @@ def main():
     parser.add_argument("--max-age-days", type=int, default=7)
     parser.add_argument("--config", type=Path, default=Path("config/research.json"))
     parser.add_argument("--telegram", action="store_true", help="Stuur simulatie naar Telegram")
+    parser.add_argument("--archive", action="store_true", help="Leg mandje vast in apart Supabase-logboek")
+    parser.add_argument("--output", type=Path, help="Bewaar ook een lokaal JSON-snapshot")
     args = parser.parse_args()
     if args.supabase:
         from .database import load_basket
@@ -43,6 +45,12 @@ def main():
     run_id = hashlib.sha256(canonical.encode()).hexdigest()
     result = {"run_id": run_id, "manifest": manifest,
               "simulation": allocate(signals, policy)}
+    if args.archive:
+        from .journal import archive
+        result['archive'] = archive(result)
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(result, indent=2, allow_nan=False), encoding='utf-8')
     print(json.dumps(result, indent=2, allow_nan=False))
     if args.telegram:
         from .telegram import format_result, send_text

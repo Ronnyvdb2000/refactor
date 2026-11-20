@@ -2,9 +2,9 @@ name: Research principles checks
 on:
   push:
     branches: [main]
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research_followup.py', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml', '.github/workflows/research_simulation.yml', '.github/workflows/research_evaluation.yml']
   pull_request:
-    paths: ['research/**', 'config/research.json', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml']
+    paths: ['research/**', 'config/research.json', 'tests/test_research_followup.py', 'tests/test_research.py', 'tests/test_research_telegram.py', 'tests/test_research_database.py', 'tests/test_research_integration.py', 'combiners/a_trade_combi.py', 'tests/test_combiners.py', '.github/workflows/research_checks.yml', '.github/workflows/research_simulation.yml', '.github/workflows/research_evaluation.yml']
   workflow_dispatch:
     inputs:
       signals_json:
@@ -29,7 +29,7 @@ jobs:
       - run: pip install pytest pyyaml numpy pandas scipy requests psycopg2-binary yfinance python-dotenv
       - name: Offline tests
         id: tests
-        run: python -m pytest tests/test_research.py tests/test_research_telegram.py tests/test_research_database.py tests/test_research_integration.py tests/test_combiners.py -q
+        run: python -m pytest tests/test_research.py tests/test_research_telegram.py tests/test_research_database.py tests/test_research_integration.py tests/test_research_followup.py tests/test_combiners.py -q
       - name: Simulatie naar Telegram
         if: success() && github.event_name == 'workflow_dispatch' && inputs.signals_json != ''
         env:

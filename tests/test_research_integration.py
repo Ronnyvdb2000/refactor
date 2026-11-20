@@ -18,7 +18,7 @@ def test_daily_simulation_uses_integrated_main_and_existing_schedule():
     checkout = next(s for s in steps if s.get('uses', '').startswith('actions/checkout@'))
     assert checkout['with']['ref'] == 'main'
     assert (ROOT / 'research/__main__.py').is_file()
-    training = next(s for s in steps if s.get('run') == 'python -m research --supabase --telegram')
+    training = next(s for s in steps if s.get('run') == 'python -m research --supabase --archive --output results/research_basket.json --telegram')
     assert set(training['env']) == {'SUPABASE_DB_URL', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID'}
     assert 'feature/quantify-principles' not in str(data)
     assert any(s.get('if') == 'failure()' and 'ONVOLLEDIG' in s.get('run', '') for s in steps)
@@ -45,3 +45,13 @@ def test_workflow_inventory_points_at_real_research_module():
     research = next(w for w in result['workflows'] if w['file'] == 'research_simulation.yml')
     assert research['scripts'] == ['research/__main__.py']
     assert research['external_entrypoints'] == []
+
+
+def test_followup_workflow_is_daily_readonly_and_reports_to_telegram():
+    data = workflow('research_evaluation.yml')
+    assert data['on']['schedule'] == [{'cron': '47 7 * * *'}]
+    assert data['permissions'] == {'contents': 'read'}
+    job = data['jobs']['evaluate']
+    assert job['concurrency']['group'] == 'refactor-yahoo-features'
+    assert any(s.get('run') == 'python -m research.evaluate --telegram' for s in job['steps'])
+    assert any(s.get('uses') == 'actions/upload-artifact@v4' and s['if'] == 'always()' for s in job['steps'])

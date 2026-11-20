@@ -35,6 +35,11 @@ def format_result(result):
              f"Geschat totaal stopverlies incl. kosten: {simulation['estimated_stop_loss']:,.2f}",
              "Stops bieden geen garantie bij koersgaten."]
     provenance = manifest.get("data_provenance")
+    if result.get('archive'):
+        archive = result['archive']
+        lines.append(f"Mandje opgeslagen: {archive['basket_id']} | eerste vastlegging: {archive['recorded_at']}")
+        if not archive['new']:
+            lines.append('Herhaald mandje; oorspronkelijke vastlegging blijft gelden.')
     if isinstance(provenance, dict):
         lines.append(f"Bron: {provenance.get('source', 'onbekend')} | markt: {provenance.get('market', 'onbekend')} | koersdatum: {provenance.get('signal_date', 'onbekend')}")
     if not simulation["positions"]:

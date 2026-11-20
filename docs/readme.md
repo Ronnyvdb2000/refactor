@@ -31,6 +31,8 @@ Aanvullende documentatie voor `Ronnyvdb2000/refactor`. Zie de [hoofdhandleiding]
 
 - [Onderzoekslaag: signalen, risico en USD-allocatiesimulatie](quantify_principles.md)
 
+- [Onderzoeksmandjes: opslag en opvolging](research_followup.md)
+
 ## Controlerapporten
 
 Deze rapporten beschrijven de controle op de vermelde datum. Latere codewijzigingen kunnen de bevindingen veranderen.

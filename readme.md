@@ -145,7 +145,7 @@ De wekelijkse [CatBoost V1-proef](docs/catboost.md) evalueert kandidaten voor 10
 
 ## Onderzoekslaag
 
-De [onderzoekslaag](docs/quantify_principles.md) scheidt signalen van fictieve portefeuille-allocatie, met ATR-stops, kosten en blootstellingslimieten. De dagelijkse USD-simulatie leest Supabase alleen-lezen en rapporteert naar Telegram om 07:17 UTC. Code, configuratie en tests staan op `main`; er is geen afhankelijkheid meer van de onderzoeksbranch. Er worden geen orders uitgevoerd.
+De [onderzoekslaag](docs/quantify_principles.md) scheidt signalen van fictieve portefeuille-allocatie, met ATR-stops, kosten en blootstellingslimieten. De dagelijkse USD-simulatie leest selecties alleen-lezen, bewaart mandjes in een apart logboek en rapporteert naar Telegram om 07:17 UTC. [Opvolging na 10/30/60 handelsdagen](docs/research_followup.md) draait dagelijks om 07:47 UTC. Code, configuratie en tests staan op `main`; er is geen afhankelijkheid meer van de onderzoeksbranch. Er worden geen orders uitgevoerd.
 
 ## Installatie en configuratie
 

@@ -43,7 +43,7 @@ python -m research invoer.json --config config/research.json
 python -m pytest tests/test_research.py -q
 ```
 
-Uitvoer is uitsluitend JSON op stdout. Geen automatische bestanden, downloads, databasewijzigingen of notificaties. De combinerpayload bevat ook `schema_version` en `direction`; neem bij CLI-invoer de velden uit bovenstaand voorbeeld over. De databronbeschrijving moet ook eventuele FX-conversie en koersaanpassingen vastleggen.
+Zonder extra vlaggen is de uitvoer uitsluitend JSON op stdout. `--archive` bewaart het mandje in het aparte Supabase-logboek, `--output` bewaart een lokaal JSON-snapshot en `--telegram` verstuurt een bericht. De combinerpayload bevat ook `schema_version` en `direction`; neem bij CLI-invoer de velden uit bovenstaand voorbeeld over. De databronbeschrijving moet ook eventuele FX-conversie en koersaanpassingen vastleggen.
 
 Een run start met een leeg, fictief cashmandje. Rangschikking gebeurt op ruwe score binnen één strategie en datum; gemengde strategieën/datums en dubbele tickers worden geweigerd. Gelijke scores worden op ticker gesorteerd. Koersen worden niet opgehaald of naar een andere valuta geconverteerd. De caller is verantwoordelijk voor een uniforme valuta; de combiner levert daarom nog geen automatische portefeuille-allocatie over verschillende beurzen.
 
@@ -64,10 +64,10 @@ De workflow **Research principles checks** stuurt voortaan de teststatus met een
 
 ## Automatisch mandje uit Supabase
 
-Workflow **Research USD simulation to Telegram** op `main` leest uitsluitend uit `selecties` en stuurt de berekening via de bestaande Telegram-secrets. De workflow loopt dagelijks om 07:17 UTC (08:17 Belgische wintertijd, 09:17 zomertijd) en blijft handmatig startbaar. Een push start offline tests en teststatusrapportage; de databasesimulatie start alleen via cron of handmatige uitvoering. CLI: `python -m research --supabase --telegram`.
+Workflow **Research USD simulation to Telegram** op `main` leest uitsluitend uit `selecties` en stuurt de berekening via de bestaande Telegram-secrets. De workflow loopt dagelijks om 07:17 UTC (08:17 Belgische wintertijd, 09:17 zomertijd) en blijft handmatig startbaar. Een push start offline tests en teststatusrapportage; de databasesimulatie start alleen via cron of handmatige uitvoering. De workflow gebruikt `python -m research --supabase --archive --output results/research_basket.json --telegram`.
 
 De eerste adapter ondersteunt alleen `bot_combi_volatiel` / `048 Nasdaq/NYSE`. Het USD-label volgt de marktconventie van deze lijst; er is geen FX-conversie of onafhankelijke valutaverificatie per ticker. Een expliciet afwijkende valuta in parameters wordt geweigerd. Andere beurzen worden niet bijgemengd. Zorg dat deze lijst uitsluitend USD-genoteerde symbolen bevat.
 
 Er wordt één recentste koersdatum gebruikt (maximaal zeven kalenderdagen oud), met één rij per ticker en de hoogste rij-ID bij duplicaten. Oude rijen worden niet gebruikt om ontbrekende nieuwe gegevens op te vullen. De adapter accepteert ook bestaande combinerparameters (ATR, gewogen score, prijsbasis en signaaldatum); de nieuwe research-payload is niet verplicht. De verbinding is read-only met connect- en querytimeout. Ontbrekende of ongeldige data laat de run falen en veroorzaakt een ONVOLLEDIG-melding. De bronkoersdatum verschijnt in het Telegram-rapport. Dit is geen koersactualisatie en geen bewijs dat een volledige bronscan slaagde.
 
-Geen databasewrites, downloads van actuele koersen, CSV-bestanden of orders. Het fictieve kapitaal wordt voor elke simulatie opnieuw gebruikt; er wordt geen echte portefeuille gevolgd.
+De bronselecties blijven alleen-lezen. Met `--archive` schrijft de simulator uitsluitend naar het aparte `research_basket_log`; er worden geen CSV-bestanden of orders gemaakt. Het fictieve kapitaal wordt voor elke simulatie opnieuw gebruikt; er wordt geen echte portefeuille gevolgd. Zie [opslag en opvolging](research_followup.md).

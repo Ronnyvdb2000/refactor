@@ -1,5 +1,5 @@
 # Daily simulation uses the integrated research code on main.
-# Supabase connection is read-only; results are sent to Telegram.
+# Source selections are read-only; baskets are inserted into a separate journal.
 name: Research USD simulation to Telegram
 on:
   schedule:
@@ -29,7 +29,15 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python -m research --supabase --telegram
+        run: python -m research --supabase --archive --output results/research_basket.json --telegram
+      - name: Bewaar vastgelegd mandje
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-basket-${{ github.run_id }}-${{ github.run_attempt }}
+          path: results/research_basket.json
+          if-no-files-found: warn
+          retention-days: 90
       - name: Report incomplete simulation
         if: failure()
         env:
