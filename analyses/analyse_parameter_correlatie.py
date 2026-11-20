@@ -27,7 +27,7 @@ from common import (
     send_telegram, send_email
 )
 
-from features import ANALYSE_WHITELIST
+from common.features import ANALYSE_WHITELIST
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")

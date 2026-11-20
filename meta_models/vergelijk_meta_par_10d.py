@@ -2,7 +2,7 @@
 """Read-only 10d walk-forward comparison of existing a_par_model and meta-label approach.
 
 No database writes, notifications, or production model updates. Requires the
-repository root as working directory (meta_models.a_par_model and shared features.py).
+repository root as working directory (meta_models.a_par_model and shared common/features.py).
 """
 import argparse
 from common.reports import write_json
@@ -21,7 +21,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score
 
 from meta_models.a_par_model import bereken_ic_per_parameter, NIET_FACTOR
-from features import MODEL_FEATURES
+from common.features import MODEL_FEATURES
 
 TECH = ["atr14", "atr14_pct", "rsi14", "ibs", "ma50", "ma200", "pct_from_ma50",
         "pct_from_ma200", "vol_ratio_20d", "high52w", "pct_from_high52w"]

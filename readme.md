@@ -44,6 +44,7 @@ Importeer gedeelde functies via `from common import ...`. Deze exports worden pa
 - [io.py](common/io.py): tickerlijsten en `download_history`.
 - [notify.py](common/notify.py): Telegram en e-mail.
 - [sizing.py](common/sizing.py): positiegrootte, ATR-stops en transactiekosten.
+- [features.py](common/features.py): gedeelde featurelijsten, modelhorizon en doelkolom voor analyses en meta-modellen.
 - [db_logger.py](common/db_logger.py): gedeelde opslag van selecties in Supabase, inclusief controles tegen dubbele invoer.
 - [fundamentals.py](common/fundamentals.py): beschikbaarheidscontrole voor opgeslagen fundamentals.
 - [horizons.py](common/horizons.py): horizons en kalenderembargo.

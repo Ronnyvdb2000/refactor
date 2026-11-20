@@ -1,6 +1,6 @@
 # Meta-modellen
 
-Deze map groepeert het parametermodel, de Ridge-meta-modellen, meta-labelclassifiers en vergelijkingen van meta- en parameterscores. Start vanuit de hoofdmap van de repository met `python -m meta_models.<module>`; zo blijven gedeelde imports uit `common`, `features`, `common.horizons` en `model_inputs` bereikbaar.
+Deze map groepeert het parametermodel, de Ridge-meta-modellen, meta-labelclassifiers en vergelijkingen van meta- en parameterscores. Start vanuit de hoofdmap van de repository met `python -m meta_models.<module>`; zo blijven gedeelde imports uit `common`, `common.features`, `common.horizons` en `model_inputs` bereikbaar.
 
 | Module | Functie | Workflow |
 | --- | --- | --- |

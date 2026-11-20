@@ -27,7 +27,7 @@ from common import (
     send_telegram, send_email
 )
 
-from features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
+from common.features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
 from model_inputs import canonical_selecties_sql, InputUnavailable, numeric_features, dates, unique_snapshots
 from common.horizons import calendar_embargo
 

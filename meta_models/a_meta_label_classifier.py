@@ -72,7 +72,7 @@ from sklearn.metrics import roc_auc_score
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from features import MODEL_FEATURES
+from common.features import MODEL_FEATURES
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")

@@ -28,7 +28,7 @@ from common import (
     send_telegram, send_email
 )
 
-from features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
+from common.features import MODEL_FEATURES, MODEL_TARGET, MODEL_HORIZON
 
 SUPABASE_DB_URL = os.environ.get("SUPABASE_DB_URL")
 
