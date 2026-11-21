@@ -228,12 +228,11 @@ class Tests(unittest.TestCase):
             download_batch=MagicMock(side_effect=download),
             evaluate_history=MagicMock(side_effect=lambda t,g:(True,signal(t) if candidate else None)),
             log_selectie=MagicMock(return_value=db),send_email=MagicMock(return_value=email),
-            send_telegram=MagicMock(return_value=telegram)),patch.object(b.time,'sleep'),contextlib.redirect_stdout(io.StringIO()):
+            send_telegram=MagicMock(return_value=telegram), create=True),patch.object(b.time,'sleep'),contextlib.redirect_stdout(io.StringIO()):
             error=None
             try:b.run_live()
             except RuntimeError as exc:error=exc
-            self.assertEqual(''.join(c.args[0] for c in b.send_telegram.call_args_list), b.send_email.call_args.args[1])
-            self.assertTrue(all(c.kwargs['parse_mode'] is None for c in b.send_telegram.call_args_list))
+            b.send_telegram.assert_not_called()
             return b.send_email,b.log_selectie,b.evaluate_history,b.download_batch,error
 
     def test_live_cache_and_stable_ties(self):
@@ -256,21 +255,13 @@ class Tests(unittest.TestCase):
     def test_live_db_failure_red(self):self.assertIsNotNone(self.live(db=False)[-1])
     def test_live_mail_failure_red(self):self.assertIsNotNone(self.live(email=False)[-1])
 
-    def test_live_telegram_failure_red_still_emails(self):
+    def test_live_telegram_disabled_still_emails(self):
         mail,_,_,_,error=self.live(telegram=False)
-        self.assertIsNotNone(error);mail.assert_called_once()
-
-    def test_telegram_long_report_keeps_all_text_after_failed_part(self):
-        body='📊'*4000+'A_B [ticker]'
-        with patch.object(b,'send_telegram',side_effect=[False,True,True]) as send:
-            self.assertFalse(b.notify_telegram(body))
-        self.assertEqual(send.call_count,3)
-        self.assertEqual(''.join(c.args[0] for c in send.call_args_list),body)
-        self.assertTrue(all(len(c.args[0].encode('utf-16-le'))//2<=3900 for c in send.call_args_list))
+        self.assertIsNone(error);mail.assert_called_once()
 
     def test_workflow_repair_and_services(self):
         s=Path('.github/workflows/run_01volatieledipscan.yml').read_text()
         for item in ['scikit-learn','DBSCAN','EMAIL_USER','SUPABASE_DB_URL','PYTHONUNBUFFERED','BATCH_SIZE: "50"']:self.assertIn(item,s)
-        for item in ['TELEGRAM_TOKEN','TELEGRAM_CHAT_ID']:self.assertIn(item,s)
+        for item in ['TELEGRAM_TOKEN','TELEGRAM_CHAT_ID']:self.assertNotIn(item,s)
 
 if __name__=='__main__':unittest.main()

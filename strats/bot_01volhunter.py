@@ -12,7 +12,7 @@ import pandas as pd
 import yfinance as yf
 from yfinance.exceptions import YFRateLimitError
 from common import (today_str, yahoo_link, load_tickers_from_file, label_voor,
-                    compute_rsi_series, compute_atr_series, compute_ibs, send_email, send_telegram)
+                    compute_rsi_series, compute_atr_series, compute_ibs, send_email)
 from common.yahoo import stop_on_throttle, YahooRateLimited
 
 try:
@@ -273,26 +273,6 @@ def format_bericht(exchange_name, signalen, universum_grootte, hoge_atr_grootte,
     return "\n\n".join(lines)
 
 
-def notify_telegram(body):
-    """Send plain-text report parts within Telegram's UTF-16 length limit."""
-    parts, current, units = [], [], 0
-    for char in body:
-        width = 2 if ord(char) > 0xFFFF else 1
-        if units + width > 3900:
-            parts.append(''.join(current))
-            current, units = [], 0
-        current.append(char)
-        units += width
-    if current:
-        parts.append(''.join(current))
-    success = True
-    for number, part in enumerate(parts, 1):
-        if not send_telegram(part, parse_mode=None):
-            print(f"::warning::Dip-Scan Telegram deel {number}/{len(parts)} niet verzonden", flush=True)
-            success = False
-    return success
-
-
 def run_live():
     validate_config()
     gate = RequestGate(deadline=time.monotonic()+225*60)
@@ -360,13 +340,12 @@ def run_live():
     summary = f"{len(cache)}/{len(requested)} unieke tickers geanalyseerd. Database {stored}/{selected} selecties opgeslagen."
     body = "\n\n".join([summary]+reports+["Databeperkingen:"]+issues+["Fouten:"]+errors)
     print(body,flush=True)
-    if not notify_telegram(body):
-        errors.append("Telegram niet volledig verzonden")
+    print("[INFO] Telegram-verzending uitgeschakeld voor bot_01volhunter.", flush=True)
     if not send_email(("[ONVOLLEDIG] " if issues or errors else "")+"Volatiele Dip-Scan "+today_str(),body):
         errors.append("E-mail niet verzonden")
     if errors:
         raise RuntimeError(f"{len(errors)} fout(en): "+"; ".join(errors[:5]))
-    print("Klaar — Telegram en e-mail verzonden.",flush=True)
+    print("Klaar — e-mail verzonden; Telegram uitgeschakeld.",flush=True)
 
 
 if __name__ == "__main__":
