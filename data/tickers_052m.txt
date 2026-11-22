@@ -1,12 +1,18 @@
 # MASTERLIJST 052 — Oslo
-# Laatste update: 08/11/2026
+# Laatste update: 22/11/2026
 # Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
+BOUV.OL          | opname:2026-08-22 | ROE:89.0% | Debt:91.1 | Marge:8.3% | Vol:31.2% | Omzet:7,849,167 | Trend:boven | actief
 CADLR.OL         | opname:2026-07-19 | ROE:18.7% | Debt:94.8 | Marge:39.9% | Vol:34.9% | Omzet:34,658,526 | Trend:? | actief
 FRO.OL           | opname:2026-07-19 | ROE:35.0% | Debt:92.6 | Marge:40.2% | Vol:41.2% | Omzet:342,532,716 | Trend:? | actief
+GOD.OL           | opname:2026-08-22 | ROE:13.2% | Debt:21.9 | Marge:5.3% | Vol:36.8% | Omzet:962,951 | Trend:boven | actief
+LINK.OL          | opname:2026-11-22 | ROE:4.4% | Debt:52.6 | Marge:3.6% | Vol:42.1% | Omzet:40,339,136 | Trend:onder | actief
+ODL.OL           | opname:2026-08-22 | ROE:15.4% | Debt:65.8 | Marge:19.8% | Vol:27.2% | Omzet:29,215,238 | Trend:boven | actief
 SUBC.OL          | opname:2026-07-19 | ROE:14.2% | Debt:19.5 | Marge:8.2% | Vol:31.5% | Omzet:100,452,731 | Trend:? | actief
+WWI.OL           | opname:2026-11-22 | ROE:15.2% | Debt:11.2 | Marge:42.8% | Vol:26.2% | Omzet:15,308,017 | Trend:boven | actief
+ZAP.OL           | opname:2026-07-19 | ROE:20.7% | Debt:7.9 | Marge:7.4% | Vol:53.1% | Omzet:18,178,943 | Trend:boven | actief
 AKER.OL          | opname:2026-07-19 | ROE:45.1% | Debt:63.6 | Marge:69.3% | Vol:32.9% | Omzet:101,060,158 | Trend:? | zwakker | weken_buiten:2
 AKRBP.OL         | opname:2026-07-19 | ROE:12.1% | Debt:83.4 | Marge:11.9% | Vol:34.0% | Omzet:386,892,703 | Trend:? | zwakker | weken_buiten:2
 AKSO.OL          | opname:2026-07-19 | ROE:35.7% | Debt:32.6 | Marge:5.5% | Vol:31.4% | Omzet:25,847,362 | Trend:? | zwakker | weken_buiten:2
@@ -35,12 +41,10 @@ APR.OL           | opname:2026-08-22 | ROE:18.3% | Debt:10.6 | Marge:11.5% | Vol
 ARR.OL           | opname:2026-08-22 | ROE:11.4% | Debt:9.9 | Marge:4.9% | Vol:46.5% | Omzet:2,313,588 | Trend:? | verwijderd | verwijderd:2026-09-13
 BAKKA.OL         | opname:2026-08-22 | ROE:7.6% | Debt:47.0 | Marge:10.9% | Vol:29.2% | Omzet:48,885,474 | Trend:? | verwijderd | verwijderd:2026-09-06
 BONHR.OL         | opname:2026-08-22 | ROE:14.0% | Debt:64.3 | Marge:8.0% | Vol:24.1% | Omzet:7,377,496 | Trend:? | verwijderd | verwijderd:2026-09-06
-BOUV.OL          | opname:2026-08-22 | ROE:114.4% | Debt:119.8 | Marge:8.6% | Vol:31.9% | Omzet:7,984,155 | Trend:boven | verwijderd | verwijderd:2026-09-06
 BWO.OL           | opname:2026-07-26 | ROE:-2.5% | Debt:136.3 | Marge:-5.9% | Vol:33.6% | Omzet:5,953,470 | Trend:? | verwijderd | verwijderd:2026-09-13
 DOFG.OL          | opname:2026-08-22 | ROE:23.3% | Debt:82.0 | Marge:21.8% | Vol:25.9% | Omzet:44,470,310 | Trend:? | verwijderd | verwijderd:2026-09-06
 ELO.OL           | opname:2026-08-22 | ROE:19.5% | Debt:125.1 | Marge:5.6% | Vol:35.0% | Omzet:13,126,165 | Trend:? | verwijderd | verwijderd:2026-09-06
 GJF.OL           | opname:2026-08-22 | ROE:27.2% | Debt:23.0 | Marge:14.2% | Vol:19.0% | Omzet:88,986,452 | Trend:? | verwijderd | verwijderd:2026-09-06
-GOD.OL           | opname:2026-08-22 | ROE:14.0% | Debt:20.1 | Marge:5.4% | Vol:36.0% | Omzet:907,271 | Trend:boven | verwijderd | verwijderd:2026-11-08
 IWS.OL           | opname:2026-08-22 | ROE:13.6% | Debt:86.6 | Marge:16.8% | Vol:28.1% | Omzet:405,147 | Trend:? | verwijderd | verwijderd:2026-09-06
 KCC.OL           | opname:2026-08-22 | ROE:16.0% | Debt:90.3 | Marge:21.1% | Vol:28.4% | Omzet:9,512,835 | Trend:? | verwijderd | verwijderd:2026-09-06
 KOA.OL           | opname:2026-07-19 | ROE:7.9% | Debt:98.9 | Marge:2.1% | Vol:31.2% | Omzet:4,835,732 | Trend:? | verwijderd | verwijderd:2026-11-01
@@ -50,7 +54,6 @@ MULTI.OL         | opname:2026-08-22 | ROE:22.8% | Debt:118.8 | Marge:4.7% | Vol
 NHY.OL           | opname:2026-08-09 | ROE:9.4% | Debt:32.0 | Marge:4.8% | Vol:32.2% | Omzet:350,887,424 | Trend:? | verwijderd | verwijderd:2026-10-11
 NORBT.OL         | opname:2026-08-22 | ROE:38.2% | Debt:59.5 | Marge:15.8% | Vol:37.0% | Omzet:29,130,265 | Trend:? | verwijderd | verwijderd:2026-09-06
 NORCO.OL         | opname:2026-08-22 | ROE:22.4% | Debt:81.7 | Marge:4.9% | Vol:23.7% | Omzet:13,076,146 | Trend:? | verwijderd | verwijderd:2026-09-06
-ODL.OL           | opname:2026-08-22 | ROE:15.7% | Debt:67.1 | Marge:20.5% | Vol:27.8% | Omzet:29,984,799 | Trend:boven | verwijderd | verwijderd:2026-09-06
 ORK.OL           | opname:2026-08-22 | ROE:15.1% | Debt:49.4 | Marge:9.6% | Vol:21.2% | Omzet:163,467,100 | Trend:? | verwijderd | verwijderd:2026-09-06
 PROT.OL          | opname:2026-08-22 | ROE:30.6% | Debt:31.6 | Marge:14.5% | Vol:25.8% | Omzet:63,401,045 | Trend:? | verwijderd | verwijderd:2026-09-06
 SALM.OL          | opname:2026-08-22 | ROE:11.9% | Debt:111.5 | Marge:7.3% | Vol:29.0% | Omzet:118,202,204 | Trend:? | verwijderd | verwijderd:2026-09-06
@@ -60,4 +63,3 @@ TEL.OL           | opname:2026-08-22 | ROE:25.0% | Debt:128.1 | Marge:15.7% | Vo
 TOM.OL           | opname:2026-08-22 | ROE:14.8% | Debt:115.7 | Marge:5.8% | Vol:41.1% | Omzet:71,423,681 | Trend:? | verwijderd | verwijderd:2026-09-06
 VISTN.OL         | opname:2026-08-22 | ROE:22.9% | Debt:5.1 | Marge:16.3% | Vol:24.4% | Omzet:377,045 | Trend:? | verwijderd | verwijderd:2026-09-06
 YAR.OL           | opname:2026-07-19 | ROE:17.9% | Debt:41.7 | Marge:9.3% | Vol:33.5% | Omzet:248,556,410 | Trend:? | verwijderd | verwijderd:2026-11-01
-ZAP.OL           | opname:2026-07-19 | ROE:16.5% | Debt:8.4 | Marge:6.3% | Vol:53.2% | Omzet:17,562,749 | Trend:boven | verwijderd | verwijderd:2026-11-08

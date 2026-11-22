@@ -1,72 +1,72 @@
 # MASTERLIJST 046 — Milaan
-# Laatste update: 08/11/2026
+# Laatste update: 22/11/2026
 # Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
-A2A.MI           | opname:2026-05-08 | ROE:11.3% | Debt:113.8 | Marge:4.4% | Vol:22.7% | Omzet:22,499,805 | Trend:boven | actief
-ACE.MI           | opname:2026-11-08 | ROE:12.4% | Debt:169.5 | Marge:25.2% | Vol:23.7% | Omzet:3,936,962 | Trend:boven | actief
-ARIS.MI          | opname:2026-08-30 | ROE:7.4% | Debt:82.6 | Marge:3.9% | Vol:43.7% | Omzet:1,819,133 | Trend:onder | actief
-AVIO.MI          | opname:2026-11-01 | ROE:4.1% | Debt:137.2 | Marge:3.5% | Vol:53.7% | Omzet:31,490,657 | Trend:onder | actief
-AZM.MI           | opname:2026-05-10 | ROE:27.4% | Debt:12.5 | Marge:32.5% | Vol:26.2% | Omzet:23,924,424 | Trend:boven | actief
-BAMI.MI          | opname:2026-11-08 | ROE:12.6% | Debt:n.v.t. | Marge:36.1% | Vol:27.0% | Omzet:80,811,767 | Trend:onder | actief
-BDB.MI           | opname:2026-11-08 | ROE:9.0% | Debt:n.v.t. | Marge:23.0% | Vol:34.8% | Omzet:1,628,462 | Trend:boven | actief
-BGN.MI           | opname:2026-11-08 | ROE:36.5% | Debt:n.v.t. | Marge:46.1% | Vol:24.5% | Omzet:12,650,685 | Trend:boven | actief
-BMED.MI          | opname:2026-11-08 | ROE:30.1% | Debt:n.v.t. | Marge:51.4% | Vol:24.6% | Omzet:22,558,329 | Trend:boven | actief
+A2A.MI           | opname:2026-05-08 | ROE:10.7% | Debt:118.6 | Marge:3.7% | Vol:20.8% | Omzet:21,969,594 | Trend:onder | actief
+ACE.MI           | opname:2026-11-08 | ROE:10.1% | Debt:179.6 | Marge:19.6% | Vol:24.2% | Omzet:4,081,068 | Trend:onder | actief
+AMP.MI           | opname:2026-08-09 | ROE:6.0% | Debt:116.0 | Marge:3.1% | Vol:43.2% | Omzet:23,400,838 | Trend:onder | actief
+ARIS.MI          | opname:2026-08-30 | ROE:7.4% | Debt:82.6 | Marge:3.9% | Vol:43.5% | Omzet:1,826,753 | Trend:onder | actief
+AVIO.MI          | opname:2026-11-01 | ROE:4.1% | Debt:137.2 | Marge:3.5% | Vol:54.2% | Omzet:33,456,350 | Trend:boven | actief
+AZM.MI           | opname:2026-05-10 | ROE:27.4% | Debt:12.5 | Marge:32.5% | Vol:24.1% | Omzet:20,582,045 | Trend:onder | actief
+BAMI.MI          | opname:2026-11-08 | ROE:12.4% | Debt:n.v.t. | Marge:34.5% | Vol:28.5% | Omzet:79,803,270 | Trend:onder | actief
+BDB.MI           | opname:2026-11-08 | ROE:8.8% | Debt:n.v.t. | Marge:22.3% | Vol:34.5% | Omzet:1,618,012 | Trend:boven | actief
+BGN.MI           | opname:2026-11-08 | ROE:33.7% | Debt:n.v.t. | Marge:44.5% | Vol:24.9% | Omzet:13,481,132 | Trend:onder | actief
+BMED.MI          | opname:2026-11-08 | ROE:29.1% | Debt:n.v.t. | Marge:52.8% | Vol:24.9% | Omzet:22,446,422 | Trend:onder | actief
 BRE.MI           | opname:2026-05-08 | ROE:10.1% | Debt:58.7 | Marge:6.1% | Vol:34.0% | Omzet:4,572,998 | Trend:? | actief
-BZU.MI           | opname:2026-05-04 | ROE:12.3% | Debt:6.8 | Marge:19.0% | Vol:34.7% | Omzet:23,846,286 | Trend:onder | actief
-CE.MI            | opname:2026-11-08 | ROE:12.2% | Debt:n.v.t. | Marge:29.9% | Vol:22.3% | Omzet:2,648,844 | Trend:boven | actief
+BZU.MI           | opname:2026-05-04 | ROE:12.3% | Debt:6.8 | Marge:19.0% | Vol:34.6% | Omzet:23,694,513 | Trend:onder | actief
+CE.MI            | opname:2026-11-08 | ROE:12.2% | Debt:n.v.t. | Marge:29.9% | Vol:22.2% | Omzet:2,600,948 | Trend:boven | actief
 CEM.MI           | opname:2026-10-31 | ROE:10.2% | Debt:7.5 | Marge:11.9% | Vol:35.8% | Omzet:2,477,836 | Trend:boven | actief
-CMB.MI           | opname:2026-08-11 | ROE:24.1% | Debt:19.4 | Marge:20.2% | Vol:32.7% | Omzet:902,538 | Trend:onder | actief
-CPR.MI           | opname:2026-05-08 | ROE:6.7% | Debt:70.3 | Marge:8.9% | Vol:31.9% | Omzet:39,477,571 | Trend:boven | actief
-CRL.MI           | opname:2026-08-11 | ROE:19.6% | Debt:23.3 | Marge:13.4% | Vol:38.2% | Omzet:3,023,127 | Trend:onder | actief
-DAN.MI           | opname:2026-05-08 | ROE:8.0% | Debt:29.4 | Marge:6.0% | Vol:40.3% | Omzet:3,656,244 | Trend:onder | actief
-DANR.MI          | opname:2026-08-11 | ROE:8.0% | Debt:29.4 | Marge:6.0% | Vol:40.6% | Omzet:3,327,495 | Trend:onder | actief
-DIA.MI           | opname:2026-05-08 | ROE:9.2% | Debt:68.2 | Marge:11.9% | Vol:33.1% | Omzet:19,756,569 | Trend:boven | actief
+CMB.MI           | opname:2026-08-11 | ROE:24.2% | Debt:16.5 | Marge:20.4% | Vol:34.3% | Omzet:904,884 | Trend:onder | actief
+CPR.MI           | opname:2026-05-08 | ROE:6.7% | Debt:70.3 | Marge:8.9% | Vol:31.7% | Omzet:39,420,457 | Trend:boven | actief
+CRL.MI           | opname:2026-08-11 | ROE:21.1% | Debt:28.7 | Marge:14.0% | Vol:37.9% | Omzet:2,986,257 | Trend:onder | actief
+DAN.MI           | opname:2026-05-08 | ROE:8.0% | Debt:29.4 | Marge:6.0% | Vol:40.7% | Omzet:3,709,663 | Trend:onder | actief
+DANR.MI          | opname:2026-08-11 | ROE:8.0% | Debt:29.4 | Marge:6.0% | Vol:40.9% | Omzet:3,355,217 | Trend:onder | actief
+DIA.MI           | opname:2026-05-08 | ROE:9.2% | Debt:53.3 | Marge:12.0% | Vol:33.4% | Omzet:19,026,763 | Trend:boven | actief
 DIS.MI           | opname:2026-05-04 | ROE:16.6% | Debt:26.2 | Marge:36.0% | Vol:44.0% | Omzet:3,178,545 | Trend:? | actief
-DLG.MI           | opname:2026-05-04 | ROE:17.8% | Debt:22.2 | Marge:8.8% | Vol:33.4% | Omzet:6,117,328 | Trend:boven | actief
-ENAV.MI          | opname:2026-08-11 | ROE:10.0% | Debt:45.5 | Marge:10.4% | Vol:20.1% | Omzet:2,633,369 | Trend:boven | actief
-ENEL.MI          | opname:2026-11-08 | ROE:12.3% | Debt:147.7 | Marge:5.7% | Vol:20.9% | Omzet:200,143,188 | Trend:boven | actief
-ENI.MI           | opname:2026-08-11 | ROE:13.1% | Debt:69.2 | Marge:7.9% | Vol:28.2% | Omzet:213,076,227 | Trend:boven | actief
-ERG.MI           | opname:2026-11-08 | ROE:4.1% | Debt:137.0 | Marge:6.6% | Vol:27.0% | Omzet:6,149,365 | Trend:boven | actief
-FBK.MI           | opname:2026-11-08 | ROE:28.0% | Debt:n.v.t. | Marge:48.7% | Vol:25.6% | Omzet:42,290,862 | Trend:boven | actief
-FILA.MI          | opname:2026-08-22 | ROE:11.0% | Debt:66.7 | Marge:10.7% | Vol:26.8% | Omzet:1,695,981 | Trend:onder | actief
-GVS.MI           | opname:2026-08-11 | ROE:9.3% | Debt:57.2 | Marge:9.6% | Vol:31.7% | Omzet:635,489 | Trend:boven | actief
-IF.MI            | opname:2026-11-08 | ROE:12.9% | Debt:n.v.t. | Marge:36.8% | Vol:51.0% | Omzet:6,955,901 | Trend:onder | actief
-IG.MI            | opname:2026-11-08 | ROE:18.1% | Debt:271.7 | Marge:19.5% | Vol:21.3% | Omzet:30,064,127 | Trend:onder | actief
-IP.MI            | opname:2026-05-04 | ROE:10.3% | Debt:31.2 | Marge:10.2% | Vol:37.6% | Omzet:9,278,035 | Trend:boven | actief
-ISP.MI           | opname:2026-11-08 | ROE:14.7% | Debt:n.v.t. | Marge:37.5% | Vol:24.7% | Omzet:304,226,004 | Trend:boven | actief
-ITM.MI           | opname:2026-11-08 | ROE:4.6% | Debt:36.4 | Marge:7.9% | Vol:24.6% | Omzet:705,991 | Trend:onder | actief
-LDO.MI           | opname:2026-05-10 | ROE:15.5% | Debt:39.9 | Marge:5.9% | Vol:37.5% | Omzet:135,655,743 | Trend:onder | actief
-MOL.MI           | opname:2026-11-08 | ROE:12.3% | Debt:181.2 | Marge:6.0% | Vol:38.0% | Omzet:1,792,899 | Trend:boven | actief
-MONC.MI          | opname:2026-05-04 | ROE:18.1% | Debt:33.9 | Marge:20.0% | Vol:31.4% | Omzet:51,596,551 | Trend:onder | actief
-PHN.MI           | opname:2026-08-11 | ROE:31.6% | Debt:26.4 | Marge:14.4% | Vol:35.2% | Omzet:1,230,618 | Trend:boven | actief
-PIRC.MI          | opname:2026-05-08 | ROE:8.9% | Debt:44.8 | Marge:7.2% | Vol:22.0% | Omzet:15,119,629 | Trend:boven | actief
-PRY.MI           | opname:2026-05-08 | ROE:16.8% | Debt:67.1 | Marge:5.5% | Vol:43.8% | Omzet:131,969,189 | Trend:onder | actief
-RACE.MI          | opname:2026-05-04 | ROE:43.8% | Debt:79.7 | Marge:22.5% | Vol:30.5% | Omzet:163,297,110 | Trend:boven | actief
-REVO.MI          | opname:2026-08-11 | ROE:9.4% | Debt:5.2 | Marge:5.6% | Vol:34.4% | Omzet:1,333,978 | Trend:onder | actief
+DLG.MI           | opname:2026-05-04 | ROE:18.2% | Debt:21.7 | Marge:9.0% | Vol:30.0% | Omzet:6,194,677 | Trend:boven | actief
+ENAV.MI          | opname:2026-08-11 | ROE:10.5% | Debt:52.1 | Marge:11.2% | Vol:21.3% | Omzet:2,690,106 | Trend:boven | actief
+ENEL.MI          | opname:2026-11-08 | ROE:12.4% | Debt:153.8 | Marge:5.5% | Vol:20.9% | Omzet:199,981,690 | Trend:boven | actief
+ENI.MI           | opname:2026-08-11 | ROE:13.1% | Debt:69.2 | Marge:7.9% | Vol:28.5% | Omzet:214,596,978 | Trend:boven | actief
+ERG.MI           | opname:2026-11-08 | ROE:5.3% | Debt:113.9 | Marge:9.5% | Vol:26.9% | Omzet:6,122,617 | Trend:onder | actief
+FBK.MI           | opname:2026-11-08 | ROE:28.0% | Debt:n.v.t. | Marge:48.7% | Vol:25.9% | Omzet:42,190,776 | Trend:onder | actief
+FILA.MI          | opname:2026-08-22 | ROE:10.0% | Debt:60.7 | Marge:9.2% | Vol:27.1% | Omzet:1,646,165 | Trend:onder | actief
+GVS.MI           | opname:2026-08-11 | ROE:9.6% | Debt:57.3 | Marge:9.8% | Vol:31.6% | Omzet:634,946 | Trend:boven | actief
+IG.MI            | opname:2026-11-08 | ROE:18.1% | Debt:271.7 | Marge:19.5% | Vol:21.4% | Omzet:29,766,964 | Trend:onder | actief
+IP.MI            | opname:2026-05-04 | ROE:10.5% | Debt:30.3 | Marge:10.6% | Vol:37.7% | Omzet:9,187,192 | Trend:onder | actief
+ISP.MI           | opname:2026-11-08 | ROE:14.7% | Debt:n.v.t. | Marge:37.5% | Vol:24.4% | Omzet:302,537,837 | Trend:onder | actief
+ITM.MI           | opname:2026-11-08 | ROE:4.6% | Debt:36.4 | Marge:7.9% | Vol:24.0% | Omzet:692,725 | Trend:onder | actief
+LDO.MI           | opname:2026-05-10 | ROE:13.0% | Debt:39.9 | Marge:5.9% | Vol:37.5% | Omzet:133,523,637 | Trend:onder | actief
+LUVE.MI          | opname:2026-09-06 | ROE:19.0% | Debt:138.5 | Marge:8.0% | Vol:40.7% | Omzet:1,693,874 | Trend:boven | actief
+MOL.MI           | opname:2026-11-08 | ROE:12.4% | Debt:189.0 | Marge:5.9% | Vol:39.0% | Omzet:1,785,379 | Trend:onder | actief
+MONC.MI          | opname:2026-05-04 | ROE:18.1% | Debt:33.9 | Marge:20.0% | Vol:31.6% | Omzet:51,703,503 | Trend:onder | actief
+PHN.MI           | opname:2026-08-11 | ROE:32.4% | Debt:26.5 | Marge:15.4% | Vol:33.7% | Omzet:1,221,985 | Trend:boven | actief
+PIRC.MI          | opname:2026-05-08 | ROE:8.9% | Debt:44.8 | Marge:7.2% | Vol:22.5% | Omzet:15,793,887 | Trend:onder | actief
+PRY.MI           | opname:2026-05-08 | ROE:16.8% | Debt:67.1 | Marge:5.5% | Vol:44.3% | Omzet:133,011,806 | Trend:onder | actief
+RACE.MI          | opname:2026-05-04 | ROE:43.8% | Debt:79.7 | Marge:22.5% | Vol:30.4% | Omzet:161,332,230 | Trend:boven | actief
+REVO.MI          | opname:2026-08-11 | ROE:9.4% | Debt:5.2 | Marge:5.6% | Vol:34.2% | Omzet:1,354,413 | Trend:onder | actief
 REY.MI           | opname:2026-08-11 | ROE:18.1% | Debt:11.9 | Marge:10.2% | Vol:38.1% | Omzet:11,843,286 | Trend:boven | actief
-SES.MI           | opname:2026-09-20 | ROE:15.4% | Debt:103.0 | Marge:2.0% | Vol:33.5% | Omzet:2,883,616 | Trend:onder | actief
-SL.MI            | opname:2026-05-04 | ROE:22.8% | Debt:28.6 | Marge:10.4% | Vol:28.5% | Omzet:1,669,797 | Trend:boven | actief
-SOL.MI           | opname:2026-08-11 | ROE:15.6% | Debt:71.0 | Marge:9.2% | Vol:29.5% | Omzet:2,402,421 | Trend:boven | actief
-STMMI.MI         | opname:2026-07-26 | ROE:3.0% | Debt:18.7 | Marge:3.8% | Vol:55.5% | Omzet:194,162,471 | Trend:onder | actief
-TEN.MI           | opname:2026-05-04 | ROE:11.9% | Debt:2.8 | Marge:16.2% | Vol:30.1% | Omzet:40,931,265 | Trend:boven | actief
-TXT.MI           | opname:2026-05-08 | ROE:8.2% | Debt:146.5 | Marge:2.8% | Vol:39.5% | Omzet:1,556,524 | Trend:boven | actief
-UCG.MI           | opname:2026-11-08 | ROE:15.8% | Debt:n.v.t. | Marge:44.0% | Vol:32.0% | Omzet:379,043,086 | Trend:boven | actief
+SES.MI           | opname:2026-09-20 | ROE:15.4% | Debt:103.0 | Marge:2.0% | Vol:33.7% | Omzet:2,819,617 | Trend:onder | actief
+SL.MI            | opname:2026-05-04 | ROE:21.5% | Debt:27.0 | Marge:10.4% | Vol:27.5% | Omzet:1,604,998 | Trend:boven | actief
+SOL.MI           | opname:2026-08-11 | ROE:15.6% | Debt:71.0 | Marge:9.2% | Vol:29.8% | Omzet:2,468,314 | Trend:boven | actief
+STMMI.MI         | opname:2026-07-26 | ROE:3.0% | Debt:18.7 | Marge:3.8% | Vol:56.9% | Omzet:198,154,474 | Trend:onder | actief
+TEN.MI           | opname:2026-05-04 | ROE:11.9% | Debt:2.8 | Marge:16.2% | Vol:30.4% | Omzet:41,210,783 | Trend:boven | actief
+TXT.MI           | opname:2026-05-08 | ROE:10.1% | Debt:149.9 | Marge:3.4% | Vol:39.1% | Omzet:1,588,356 | Trend:boven | actief
+UCG.MI           | opname:2026-11-08 | ROE:16.1% | Debt:n.v.t. | Marge:45.1% | Vol:32.1% | Omzet:382,864,203 | Trend:boven | actief
 UNI.MI           | opname:2026-05-04 | ROE:16.9% | Debt:40.8 | Marge:15.3% | Vol:27.7% | Omzet:34,072,826 | Trend:boven | actief
-YACHT.MI         | opname:2026-08-11 | ROE:9.1% | Debt:3.2 | Marge:6.5% | Vol:29.6% | Omzet:1,848,005 | Trend:onder | actief
-ZV.MI            | opname:2026-08-11 | ROE:10.0% | Debt:66.6 | Marge:7.9% | Vol:28.5% | Omzet:760,620 | Trend:onder | actief
-COM.MI           | opname:2026-08-11 | ROE:13.0% | Debt:35.1 | Marge:6.3% | Vol:38.4% | Omzet:483,156 | Trend:onder | zwakker | weken_buiten:1
-ADB.MI           | opname:2026-05-04 | ROE:10.8% | Debt:45.4 | Marge:12.5% | Vol:29.2% | Omzet:138,271 | Trend:onder | verwijderd | verwijderd:2026-09-13
-AGP.MI           | opname:2026-05-04 | ROE:9.1% | Debt:74.7 | Marge:26.8% | Vol:30.2% | Omzet:334,459 | Trend:onder | verwijderd | verwijderd:2026-11-01
-AMP.MI           | opname:2026-08-09 | ROE:5.7% | Debt:117.7 | Marge:3.0% | Vol:42.8% | Omzet:23,248,035 | Trend:? | verwijderd | verwijderd:2026-11-01
-ANIM.MI          | opname:2026-10-31 | ROE:14.8% | Debt:31.1 | Marge:18.7% | Vol:18.8% | Omzet:1,925,663 | Trend:boven | verwijderd | verwijderd:2026-11-01
-BEC.MI           | opname:2026-08-11 | ROE:20.5% | Debt:48.2 | Marge:11.1% | Vol:27.0% | Omzet:204,745 | Trend:onder | verwijderd | verwijderd:2026-11-01
-CALT.MI          | opname:2026-08-11 | ROE:7.8% | Debt:6.7 | Marge:6.8% | Vol:29.6% | Omzet:352,626 | Trend:onder | verwijderd | verwijderd:2026-11-01
+YACHT.MI         | opname:2026-08-11 | ROE:9.1% | Debt:3.2 | Marge:6.5% | Vol:29.8% | Omzet:1,813,661 | Trend:onder | actief
+ZV.MI            | opname:2026-08-11 | ROE:9.6% | Debt:65.5 | Marge:7.7% | Vol:27.7% | Omzet:735,542 | Trend:onder | actief
+COM.MI           | opname:2026-08-11 | ROE:13.0% | Debt:35.1 | Marge:6.3% | Vol:38.4% | Omzet:487,772 | Trend:onder | zwakker | weken_buiten:2
+IF.MI            | opname:2026-11-08 | ROE:-6.4% | Debt:n.v.t. | Marge:-22.0% | Vol:51.3% | Omzet:6,798,126 | Trend:onder | zwakker | weken_buiten:1
+ADB.MI           | opname:2026-05-04 | ROE:11.0% | Debt:43.1 | Marge:12.8% | Vol:29.4% | Omzet:132,591 | Trend:onder | verwijderd | verwijderd:2026-09-13
+AGP.MI           | opname:2026-05-04 | ROE:1.6% | Debt:0.0 | Marge:6.9% | Vol:35.2% | Omzet:334,184 | Trend:onder | verwijderd | verwijderd:2026-11-01
+ANIM.MI          | opname:2026-10-31 | ROE:14.5% | Debt:28.6 | Marge:18.8% | Vol:19.4% | Omzet:1,926,548 | Trend:onder | verwijderd | verwijderd:2026-11-01
+BEC.MI           | opname:2026-08-11 | ROE:16.1% | Debt:44.4 | Marge:9.7% | Vol:27.5% | Omzet:206,107 | Trend:onder | verwijderd | verwijderd:2026-11-01
+CALT.MI          | opname:2026-08-11 | ROE:7.8% | Debt:6.7 | Marge:6.8% | Vol:29.9% | Omzet:345,849 | Trend:onder | verwijderd | verwijderd:2026-11-01
 ELN.MI           | opname:2026-05-04 | ROE:13.0% | Debt:7.4 | Marge:7.9% | Vol:28.0% | Omzet:1,009,731 | Trend:? | verwijderd | verwijderd:2026-07-19
-G.MI             | opname:2026-05-08 | ROE:15.1% | Debt:118.9 | Marge:7.7% | Vol:18.7% | Omzet:96,489,966 | Trend:boven | verwijderd | verwijderd:2026-11-01
+G.MI             | opname:2026-05-08 | ROE:15.1% | Debt:118.9 | Marge:7.7% | Vol:18.6% | Omzet:97,566,406 | Trend:boven | verwijderd | verwijderd:2026-11-01
 GE.MI            | opname:2026-05-08 | ROE:10.0% | Debt:17.3 | Marge:7.0% | Vol:30.5% | Omzet:157,359 | Trend:? | verwijderd | verwijderd:2026-07-19
 IRE.MI           | opname:2026-05-08 | ROE:8.6% | Debt:129.5 | Marge:4.8% | Vol:20.8% | Omzet:3,513,406 | Trend:? | verwijderd | verwijderd:2026-07-19
-LUVE.MI          | opname:2026-09-06 | ROE:17.8% | Debt:150.4 | Marge:7.6% | Vol:40.2% | Omzet:1,619,795 | Trend:boven | verwijderd | verwijderd:2026-09-27
-REC.MI           | opname:2026-05-08 | ROE:24.9% | Debt:108.6 | Marge:18.4% | Vol:15.9% | Omzet:18,274,579 | Trend:boven | verwijderd | verwijderd:2026-07-19
-SPM.MI           | opname:2026-05-08 | ROE:10.9% | Debt:129.0 | Marge:1.7% | Vol:35.5% | Omzet:101,567,209 | Trend:boven | verwijderd | verwijderd:2026-08-11
+REC.MI           | opname:2026-05-08 | ROE:24.6% | Debt:94.4 | Marge:19.0% | Vol:14.6% | Omzet:19,303,453 | Trend:boven | verwijderd | verwijderd:2026-07-19
+SPM.MI           | opname:2026-05-08 | ROE:11.9% | Debt:42.7 | Marge:1.9% | Vol:35.7% | Omzet:101,246,544 | Trend:boven | verwijderd | verwijderd:2026-08-11
