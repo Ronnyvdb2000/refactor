@@ -28,6 +28,13 @@ Env:
   TELEGRAM_CHAT_ID         optioneel
 
 WIJZIGINGEN:
+  v1.7 (performance & timeout-fix):
+    - Datumfilter in `get_data` op basis van benodigd trainingsvenster + embargo
+      + buffer, zodat `sel_par` niet over de volledige historie wordt uitgepakt.
+    - Dure `LATERAL JOIN` op `selecties` vervangen door eenmalige `DISTINCT ON`
+      CTE (`sel`) voor een snellere hash/merge join.
+    - Sessie `statement_timeout` verhoogd (default 10 min, instelbaar via
+      `--statement-timeout`).
   v1.6 (refactor):
     - Vectoriële scoring in `score_voor_datum` i.p.v. `df.apply(..., axis=1)`
       voor snellere berekening bij grotere universums met behoud van neutrale
@@ -40,7 +47,7 @@ WIJZIGINGEN:
     - Kalenderembargo met handelsdagconversie: max(EMBARGO, ceil(horizon*7/5)+2).
     - Training begrensd vanaf de echte scoredatum; targets worden niet tweemaal teruggeschoven.
   v1.1 (2026-10-11):
-    - Koers meegenomen per pick (uit selecties via LATERAL JOIN).
+    - Koers meegenomen per pick (uit selecties via join).
     - Telegram toont koers + klikbare Yahoo-grafiek-link.
   v1.2 (2026-10-11):
     - Effectieve score_datum per horizon = min(score_datum, laatste target-datum).
@@ -106,7 +113,8 @@ IC_MAX_ABS_DEFAULT = 0.15
 MIN_DATUMS_IC_DEFAULT = 10
 MIN_TICKERS_PER_DATUM = 20
 MIN_PARAMS_VOOR_MODEL = 5
-MAX_DATA_LEEFTIJD_DEFAULT = 5   # v1.4: max leeftijd (dagen) van de nieuwste data
+MAX_DATA_LEEFTIJD_DEFAULT = 5       # v1.4: max leeftijd (dagen) van de nieuwste data
+STATEMENT_TIMEOUT_MS_DEFAULT = 600_000  # v1.7: 10 minuten DB query-timeout
 
 MODEL_VERSIE = "a_par_model_v1"
 
@@ -145,6 +153,7 @@ class ModelConfig:
     ic_max_abs: float = IC_MAX_ABS_DEFAULT
     min_datums_ic: int = MIN_DATUMS_IC_DEFAULT
     max_data_leeftijd: int = MAX_DATA_LEEFTIJD_DEFAULT
+    statement_timeout_ms: int = STATEMENT_TIMEOUT_MS_DEFAULT
     datum: str | None = None
     geen_db_write: bool = False
     geen_notify: bool = False
@@ -180,6 +189,34 @@ def _horizon_naar_dagen(horizon: str) -> int:
         return int(str(horizon).strip().lower().rstrip("d"))
     except ValueError:
         return 0
+
+
+def _bereken_benodigde_startdatum(cfg: ModelConfig) -> pd.Timestamp:
+    """
+    Berekent de vroegste datum die nodig is voor IC-training over alle
+    gevraagde horizons en fallback-windows, inclusief een ruime veiligheidsmarge.
+    Zo hoeft PostgreSQL niet de volledige meerjarige historie te verwerken.
+    """
+    anker = pd.Timestamp(cfg.datum) if cfg.datum else pd.Timestamp.now().normalize()
+    max_horizon = max((_horizon_naar_dagen(h) for h in cfg.horizons), default=60)
+    max_embargo = calendar_embargo(max_horizon, minimum=cfg.embargo_dagen)
+    max_window = max([cfg.rolling_dagen, cfg.fallback_dagen, *EXTRA_FALLBACK_STAPPEN])
+    buffer_dagen = 30
+    totaal_terug = max_embargo + max_window + buffer_dagen
+    return (anker - pd.Timedelta(days=totaal_terug)).normalize()
+
+
+def _set_session_timeout(conn, timeout_ms: int) -> None:
+    """Verhoogt de statement_timeout op de actieve database-sessie."""
+    if timeout_ms <= 0:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SET statement_timeout = %s;", (int(timeout_ms),))
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        print(f"[DB] Waarschuwing: kon statement_timeout niet aanpassen ({exc}).")
 
 
 def data_is_vers(
@@ -228,11 +265,44 @@ def send_telegram(tekst: str) -> bool:
 # DATA OPHALEN
 # ============================================================
 
-def get_data(conn) -> pd.DataFrame:
+def get_data(
+    conn,
+    min_datum: pd.Timestamp | None = None,
+    max_datum: pd.Timestamp | None = None,
+) -> pd.DataFrame:
     """
     Haalt technische indicatoren, fundamentele data, forward returns en de
     meest recente geldige koers per (ticker, datum) op uit de database.
+
+    v1.7:
+    - Filtert op [min_datum, max_datum] om onnodige historie over te slaan.
+    - Vervangt de rij-voor-rij `LATERAL JOIN` door een eenmalige `DISTINCT ON`
+      CTE (`sel`) om statement timeouts op grote datasets te voorkomen.
     """
+    filters_tech = []
+    filters_fund = [f"({KNOWN_FUNDAMENTALS_SQL})"]
+    filters_fr = []
+    filters_sel = ["koers > 0", "koers < 'Infinity'::real"]
+
+    if min_datum is not None:
+        min_str = min_datum.strftime("%Y-%m-%d")
+        filters_tech.append(f"datum::date >= DATE '{min_str}'")
+        filters_fund.append(f"datum::date >= DATE '{min_str}'")
+        filters_fr.append(f"datum::date >= DATE '{min_str}'")
+        filters_sel.append(f"datum::date >= DATE '{min_str}'")
+
+    if max_datum is not None:
+        max_str = max_datum.strftime("%Y-%m-%d")
+        filters_tech.append(f"datum::date <= DATE '{max_str}'")
+        filters_fund.append(f"datum::date <= DATE '{max_str}'")
+        filters_fr.append(f"datum::date <= DATE '{max_str}'")
+        filters_sel.append(f"datum::date <= DATE '{max_str}'")
+
+    where_tech = f"WHERE {' AND '.join(filters_tech)}" if filters_tech else ""
+    where_fund = f"WHERE {' AND '.join(filters_fund)}" if filters_fund else ""
+    where_fr = f"WHERE {' AND '.join(filters_fr)}" if filters_fr else ""
+    where_sel = f"WHERE {' AND '.join(filters_sel)}" if filters_sel else ""
+
     query = f"""
     WITH tech AS (
         SELECT DISTINCT ON (ticker, datum)
@@ -244,6 +314,7 @@ def get_data(conn) -> pd.DataFrame:
             dagen_sinds_low52w, vol_ratio_50d,
             ema8, ema20, pct_from_ema8, pct_from_ema20, ema8_minus_ema20
         FROM generieke_technicals
+        {where_tech}
         ORDER BY ticker, datum
     ),
     fund AS (
@@ -253,7 +324,7 @@ def get_data(conn) -> pd.DataFrame:
             net_debt_ebitda, payout_pct, analisten_count,
             piotroski_score, eps_growth_pct, eps_cagr_pct, peg_ratio
         FROM generieke_fundamentals
-        WHERE {KNOWN_FUNDAMENTALS_SQL}
+        {where_fund}
         ORDER BY ticker, datum DESC
     ),
     fr AS (
@@ -261,7 +332,15 @@ def get_data(conn) -> pd.DataFrame:
             ticker, datum,
             fwd_ret_5d, fwd_ret_10d, fwd_ret_20d, fwd_ret_30d, fwd_ret_60d
         FROM forward_returns
+        {where_fr}
         ORDER BY ticker, datum
+    ),
+    sel AS (
+        SELECT DISTINCT ON (ticker, datum)
+            ticker, datum, koers
+        FROM selecties
+        {where_sel}
+        ORDER BY ticker, datum, created_at ASC NULLS LAST, id ASC
     )
     SELECT
         t.ticker, t.datum,
@@ -282,17 +361,18 @@ def get_data(conn) -> pd.DataFrame:
     FROM tech t
     LEFT JOIN fund f ON f.ticker = t.ticker AND f.datum = t.datum
     LEFT JOIN fr ON fr.ticker = t.ticker AND fr.datum = t.datum
-    LEFT JOIN LATERAL (
-        SELECT koers
-        FROM selecties s
-        WHERE s.ticker = t.ticker
-          AND s.datum = t.datum
-          AND s.koers > 0 AND s.koers < 'Infinity'::real
-        ORDER BY s.created_at ASC NULLS LAST, s.id ASC
-        LIMIT 1
-    ) sel ON TRUE;
+    LEFT JOIN sel ON sel.ticker = t.ticker AND sel.datum = t.datum;
     """
-    df = pd.read_sql(sel_par_query(query), conn)
+    sql = sel_par_query(query)
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        rows = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+
+    df = pd.DataFrame(rows, columns=columns)
+    if df.empty:
+        return df
+
     df["datum"] = pd.to_datetime(df["datum"], errors="coerce")
     return df.dropna(subset=["datum"])
 
@@ -711,6 +791,12 @@ def parse_args(argv: list[str] | None = None) -> ModelConfig:
             "(0 = controle uit). Niet van toepassing bij een expliciete --datum."
         ),
     )
+    parser.add_argument(
+        "--statement-timeout",
+        type=int,
+        default=STATEMENT_TIMEOUT_MS_DEFAULT,
+        help="PostgreSQL statement_timeout in milliseconden (default 600000 = 10 min).",
+    )
     parser.add_argument("--datum", default=None)
     parser.add_argument("--geen-db-write", action="store_true")
     parser.add_argument("--geen-notify", action="store_true")
@@ -728,6 +814,7 @@ def parse_args(argv: list[str] | None = None) -> ModelConfig:
         ic_max_abs=raw.ic_max_abs,
         min_datums_ic=raw.min_datums_ic,
         max_data_leeftijd=raw.max_data_leeftijd,
+        statement_timeout_ms=raw.statement_timeout,
         datum=raw.datum,
         geen_db_write=raw.geen_db_write,
         geen_notify=raw.geen_notify,
@@ -768,9 +855,17 @@ def main(argv: list[str] | None = None) -> int:
     conn = None
     try:
         conn = psycopg2.connect(SUPABASE_DB_URL)
+        _set_session_timeout(conn, cfg.statement_timeout_ms)
 
-        print("\nData ophalen...")
-        df = get_data(conn)
+        min_datum = _bereken_benodigde_startdatum(cfg)
+        max_datum = pd.Timestamp(cfg.datum).normalize() if cfg.datum else None
+
+        print(f"\nData ophalen (vanaf {min_datum.date()})...")
+        df = get_data(conn, min_datum=min_datum, max_datum=max_datum)
+        if df.empty:
+            print("FOUT: Geen data teruggekregen uit de database.")
+            return 1
+
         print(
             f"{len(df):,} rijen | {df['datum'].nunique()} datums | "
             f"{df['ticker'].nunique()} tickers"
