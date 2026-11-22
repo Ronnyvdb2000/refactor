@@ -61,7 +61,7 @@ jobs:
           tests/test_xgboost_training_horizons.py tests/test_model_quality_gate.py
           tests/test_lightgbm_v2_preflight.py tests/test_patch_xgboost_quality.py
           tests/test_workflow_planning.py tests/test_model_publication.py
-          tests/test_sel_par_refresh.py -q
+          tests/test_sel_par_refresh.py tests/test_sel_par_direct.py -q
       - name: Test ticker data paths and filter persistence
         run: >-
           python -m pytest tests/test_ticker_data_layout.py tests/test_io.py

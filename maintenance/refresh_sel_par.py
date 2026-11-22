@@ -18,10 +18,7 @@ from maintenance.audit_workflows import weekly_slots
 
 ROOT = Path(__file__).resolve().parents[1]
 EXTRA_SOURCES = {
-    'run_forward_returns.yml', 'run_generieke_technicals.yml',
-    'run_generieke_fundamentals.yml', 'run_02xgboostV3.yml',
     'weekly_run.yml', 'weekly_run_x.yml', 'a_trade.yml', 'a_trade_q.yml',
-    'a_meta_model.yml', 'score_xgboost.yml', 'a__meta_model_production.yml',
 }
 
 
@@ -114,6 +111,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--force', action='store_true')
     parser.add_argument('--wait-minutes', type=int, default=120)
+    parser.add_argument('--max-tickers', type=int, default=2000)
     args = parser.parse_args()
     # Workflow-created time is fixed so waiting across midnight cannot change cutoff.
     started = os.environ.get('REFRESH_STARTED_AT')
@@ -132,9 +130,28 @@ def main():
         with conn.cursor() as cursor:
             cursor.execute("SET LOCAL statement_timeout = '15min'")
             cursor.execute("SET LOCAL lock_timeout = '30s'")
-            cursor.execute('SELECT public.ververs_sel_par(%s,%s,%s)',
+            cursor.execute('SELECT public.zaai_sel_par(%s,%s,%s)',
                            (cutoff, args.force, Json(report)))
             result = cursor.fetchone()[0]
+    from maintenance.sel_par_direct import enrich
+    with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
+        # A session-level lock spans per-ticker commits and all provider calls.
+        with conn.cursor() as cursor:
+            cursor.execute('SELECT pg_try_advisory_lock(741206,11)')
+            if not cursor.fetchone()[0]:
+                raise RuntimeError('Een directe sel_par-verrijking is al bezig')
+        try:
+            result['enrichment'] = enrich(conn, cutoff, max_tickers=args.max_tickers)
+            result['pipeline_version'] = 2
+            with conn.cursor() as cursor:
+                cursor.execute('UPDATE public.sel_par_runs SET voltooid_op=clock_timestamp(), '
+                               'resultaat=%s WHERE selecties_tot=%s', (Json(result),cutoff))
+            conn.commit()
+        finally:
+            conn.rollback()
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT pg_advisory_unlock(741206,11)')
+            conn.commit()
     output = Path('results/sel_par_refresh.json')
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(result, indent=2, default=str) + '\n')
@@ -143,6 +160,8 @@ def main():
     if summary:
         with open(summary, 'a') as stream:
             stream.write('### sel_par\n\n```json\n' + json.dumps(result, indent=2, default=str) + '\n```\n')
+    if not result['enrichment']['complete_execution']:
+        raise SystemExit('Onvolledige verrijking; opgeslagen voortgang blijft behouden, zie rapport')
 
 
 if __name__ == '__main__':

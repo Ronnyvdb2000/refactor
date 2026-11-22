@@ -1,62 +1,80 @@
-# Dagelijkse onderzoekstabel sel_par
+# Centrale onderzoekstabel sel_par
 
-`public.sel_par` in project `fantasie` bevat één rij per aandeel (`ticker`) en
-selectiedatum (`datum`). `strategieen` bewaart alle selecterende strategieën.
-De dagelijkse verversing start om 04:45 UTC: 05:45 Belgische wintertijd,
-06:45 zomertijd. De selectiegrens is de vorige UTC-dag; lopende beursdagen
-worden niet meegenomen. GitHub kan geplande runs later starten.
+`public.sel_par` bevat één rij per aandeel en selectiedatum. `strategieen`
+bewaart alle selecterende strategieën. De dagelijkse workflow start om
+04:45 UTC (05:45 Belgische wintertijd, 06:45 zomertijd). GitHub en de gedeelde
+Yahoo-wachtrij kunnen de werkelijke start uitstellen.
 
-## Uitvoering
+## Directe keten
 
-Workflow `.github/workflows/refresh_sel_par.yml` gebruikt het bestaande
-`SUPABASE_DB_URL`-secret en een GitHub-token met alleen leesrechten voor Actions.
-Er is geen koppeling met TradingAgents Bridge en er worden geen berichten verzonden.
+1. De strategiebots schrijven hun oorspronkelijke signalen naar `selecties`.
+2. `public.zaai_sel_par` zet de selecties tot en met de vorige UTC-dag over.
+   Gelijke waarden worden samengevoegd; tegenstrijdige waarden worden gemarkeerd.
+3. `maintenance.sel_par_direct` vult ontbrekende technische kenmerken en
+   fundamentele waarnemingen rechtstreeks in `sel_par` aan.
+4. Dezelfde module vult ontbrekende vervolgkoersen en rendementen voor
+   5/10/20/30/60 waargenomen beurssessies aan, inclusief de werkelijke koersdatums.
 
-Vóór de overzetting controleert de workflow of de geplande scans van de vorige
-selectiedag daadwerkelijk zijn gestart en voltooid. Ook de featurebouw,
-koersopvolging en relevante avondmodellen/weekly-runs worden gecontroleerd.
-Een ontbrekende, wachtende of lopende bronrun blokkeert de overzetting; de
-workflow wacht maximaal twee uur en faalt daarna zichtbaar zonder datawijziging.
-Een voltooide maar mislukte bronrun wordt gemeld en opgenomen in het rapport:
-beschikbare gedeeltelijke selecties mogen wel mee, maar zijn geen bewijs van
-een volledige scan. Nieuwe intraday- of handmatige runs die na de laatste
-controle starten vallen buiten die controle; de volgende dag haalt ze alsnog op.
+De nieuwe keten leest geen `generieke_technicals`, `generieke_fundamentals` of
+`forward_returns`. De rekencode van de bestaande indicator- en fundamentalbuilders
+wordt hergebruikt zonder hun databasebouwers uit te voeren. Eén koersdownload
+per benodigd aandeel wordt voor technische kenmerken en koersopvolging hergebruikt;
+één fundamentele opvraag wordt gedeeld tussen de ontbrekende selectierijen van dat aandeel.
+TradingAgents Bridge maakt geen deel uit van de keten.
 
-`public.ververs_sel_par` voert de databasewijzigingen atomair uit. Een
-transactieslot voorkomt gelijktijdige verversingen. `public.sel_par_runs`
-registreert de succesvol verwerkte selectiegrens en de bronrunstatussen.
-Een herhaling voor dezelfde grens wordt overgeslagen. Handmatige uitvoering
-met `force=true` kan dezelfde dag opnieuw verwerken, met dezelfde broncontrole.
+## Overgang voor bestaande modellen
 
-## Samenvoeging en herkomst
+De bestaande modellen en analyses lezen nog uit de drie oude featuretabellen.
+Hun bestaande workflows blijven daarom actief. Die produceren tijdens de overgang
+nog hun eigen datasets en kunnen extra providerverzoeken veroorzaken. Ze worden
+pas uitgezet wanneer hun consumenten afzonderlijk op `sel_par` zijn overgezet en
+getest. Deze PR schakelt geen bestaand handelsmodel over.
 
-- Bron: `selecties`, `generieke_technicals`, `generieke_fundamentals`, `forward_returns`.
-- Per strategie blijft de vroegste selectie (`created_at`, daarna `id`) leidend.
-  Herhaalde bronselecties blijven in `selectie_dubbele_bronrijen` van
-  `selecties_onderzoek_strategie_bron` bewaard.
-- De strategiebron wordt tijdens elke verversing bijgewerkt. De hoofdtabel voegt
-  strategieën samen. Gelijke niet-lege waarden worden eenmaal opgeslagen;
-  ontbrekende waarden kunnen uit andere strategieën komen. Verschillende
-  niet-lege waarden worden NULL en staan in `conflicterende_kolommen`.
-  `strategie_bron_ids` verwijst naar de volledige bronwaarden.
-- Ook oudere selectiedatums worden opnieuw verwerkt om nieuw beschikbare
-  5/10/20/30/60-daagse koersen en rendementen aan te vullen.
-- De verversing verwijdert geen bestaande historische onderzoekrijen en schrijft
-  niets naar de vier oorspronkelijke brontabellen.
-- Een wijziging in het selecties-schema stopt de verversing: de expliciete mapping
-  moet dan worden bijgewerkt zodat nieuwe parameters niet stilzwijgend ontbreken.
+## Planning en herstarts
 
-## Grenzen voor onderzoek
+De workflow controleert eerst of de geplande strategieruns van de vorige
+selectiedag zijn gestart en voltooid. Oude featurebuilders zijn geen inhoudelijke
+afhankelijkheid. De Yahoo-aanvragen delen wel de bestaande `features`-wachtrij.
+Ontbrekende of nog actieve strategieruns blokkeren de overzetting; er wordt maximaal
+twee uur gewacht. Afgeronde mislukte scans staan expliciet in het rapport;
+hun eventueel opgeslagen gedeeltelijke selecties worden wel meegenomen.
 
-De vervolgkoersen zijn uit `forward_returns` gekopieerd, niet opnieuw opgehaald.
-De bron bewaart geen werkelijke vervolgkoersdatums: hun horizons zijn niet door
-deze overzetting onafhankelijk geverifieerd. Rendementen gebruiken de opgeslagen
-selectiekoers; bij conflicten blijven de betreffende hoofdkolommen leeg.
-`fundamentals_tijdig_bekend` is alleen de bestaande controle op dagniveau.
-De historische beschikbaarheid van alle overige kenmerken is niet gegarandeerd.
-Gebruik toekomstige koersen, rendementen, bronmetadata en modeluitkomsten niet
-automatisch als invoer voor regressie. De tabel voert zelf geen regressie uit.
+De selectieoverzetting gebeurt atomair en eenmaal per selectiedag. Bestaande
+verrijking wordt niet door lege seedvelden overschreven. De oorspronkelijke
+strategiebron en dubbele bronselecties blijven behouden. Verandert de instapkoers,
+dan worden de gekoppelde labels ongeldig gemaakt. Floatkoersen worden zonder
+JSON-omzetting overgenomen, zodat hun oorspronkelijke precisie behouden blijft.
 
-De databasestructuur en functie staan in
-`maintenance/sql/20261122_sel_par_refresh.sql`; de bestaande onderzoekstabellen
-moeten aanwezig zijn voordat deze migratie wordt toegepast.
+De verrijking bewaart voortgang per aandeel. Begrenzing: 2000 aandelen en 150 minuten
+per uitvoering. Providerstops, fouten en resterend werk maken de uitvoering zichtbaar
+onvolledig. Een herstart vult verder aan; bestaande labels worden niet herberekend.
+`sel_par_runs` en het workflowartifact bevatten de overzetting en verrijkingsstatus.
+`force=true` herhaalt zo nodig ook de selectieoverzetting.
+
+## Datums en historische betrouwbaarheid
+
+- Technische kenmerken gebruiken alleen afgesloten historische bars op of vóór de
+  selectiedatum, met voldoende opwarmhistorie. `tech_koersdatum` bewaart de echte bar;
+  bij weekendselecties kan dat de voorgaande beursdag zijn (maximaal zeven dagen oud).
+- Nieuwe fundamentals behouden de echte ophaaldatum in `fund_observatiedatum`.
+  Een actuele waarneming bij een oudere selectie krijgt
+  `fundamentals_tijdig_bekend=false`: niet als historische modelinvoer gebruiken.
+  De keten verzint geen historische fundamentals en overschrijft bestaande snapshots niet.
+- Vervolgkoersen tellen beschikbare waargenomen sessies vanaf de laatste koersbar
+  op of vóór selectie. Ze zijn geen onafhankelijke controle op een formele beurskalender.
+  Ontbrekende dagen en verdachte eenheids- of splitverschillen kunnen beoordeling vereisen.
+- De splitgecorrigeerde rendementsbasis staat in `rendement_basis_koers`; de originele
+  selectiekoers blijft intact. Een latere wijziging van die basis blokkeert het mengen
+  van oude en nieuwe labels. Oorspronkelijk gekopieerde labels hebben niet automatisch
+  een geverifieerde basis of vervolgkoersdatum.
+- Toekomstige koersen, rendementen, modeluitkomsten en bronmetadata zijn geen
+  automatische invoerkenmerken. De historische beschikbaarheid van alle oorspronkelijke
+  selectieparameters is door deze overzetting niet bewezen.
+
+## Installatie
+
+De bestaande tabellen `sel_par`, `selecties_onderzoek_strategie_bron` en
+`sel_par_runs` moeten aanwezig zijn. `maintenance/sql/20261122_sel_par_direct.sql`
+installeert de seedfunctie en de extra herkomstkolommen. De eerdere kopieerfunctie
+`ververs_sel_par` wordt niet meer door de workflow gebruikt. De productieomgeving
+`fantasie` is gemigreerd; de SQL in git is de reproduceerbare definitie.

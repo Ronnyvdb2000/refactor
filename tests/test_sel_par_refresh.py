@@ -53,8 +53,9 @@ def test_source_delayed_until_after_refresh_start_can_still_complete():
     assert not readiness(config, rows, date(2026, 11, 20))['missing']
 
 
-def test_bridge_excluded_but_scans_and_feature_sources_included():
+def test_bridge_and_legacy_builders_excluded_but_scans_included():
     config = sources()
     assert 'tradingagentsbridge.yml' not in config
-    assert {'run_00vcp.yml', 'run_01hoogl_full.yml', 'run_forward_returns.yml',
-            'run_generieke_technicals.yml', 'run_generieke_fundamentals.yml'} <= config.keys()
+    assert {'run_00vcp.yml', 'run_01hoogl_full.yml'} <= config.keys()
+    assert not {'run_forward_returns.yml','run_generieke_technicals.yml',
+                'run_generieke_fundamentals.yml'} & config.keys()
