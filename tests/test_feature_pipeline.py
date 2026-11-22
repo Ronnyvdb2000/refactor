@@ -140,7 +140,7 @@ def test_builder_includes_selected_symbols_outside_x_lists():
 
 
 def test_consumers_follow_successful_trusted_build_and_pin_its_manifest():
-    producer = yaml.load((ROOT/'.github/workflows/run_generieke_technicals.yml').read_text(), Loader=yaml.BaseLoader)
+    producer = yaml.load((ROOT/'.github/workflows/refresh_sel_par.yml').read_text(), Loader=yaml.BaseLoader)
     for filename in ['score_xgboost.yml', 'a__meta_model_production.yml']:
         data = yaml.load((ROOT/'.github/workflows'/filename).read_text(), Loader=yaml.BaseLoader)
         assert data['on']['workflow_run']['workflows'] == [producer['name']]

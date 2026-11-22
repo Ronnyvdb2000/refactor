@@ -7,6 +7,8 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Toont de tickers met de laagste pct_from_ma50 uit generieke_technicals.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import argparse
 import os
 import sys
@@ -37,7 +39,7 @@ def haal_recente_technicals(conn, dagen: int) -> pd.DataFrame:
         WHERE datum >= %s AND pct_from_ma50 IS NOT NULL
         ORDER BY ticker, datum DESC
     """
-    return pd.read_sql(query, conn, params=(sinds,))
+    return pd.read_sql(sel_par_query(query), conn, params=(sinds,))
 
 def haal_recente_strategieen(conn, tickers, dagen: int) -> dict:
     if not tickers:
@@ -48,7 +50,7 @@ def haal_recente_strategieen(conn, tickers, dagen: int) -> dict:
         FROM selecties
         WHERE ticker = ANY(%s) AND datum >= %s
     """
-    df = pd.read_sql(query, conn, params=(list(tickers), sinds.isoformat()))
+    df = pd.read_sql(sel_par_query(query), conn, params=(list(tickers), sinds.isoformat()))
     resultaat = {}
     for ticker, groep in df.groupby("ticker"):
         resultaat[ticker] = sorted(groep["strategie"].tolist())

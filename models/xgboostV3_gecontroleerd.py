@@ -11,6 +11,8 @@ LET OP: bij een eerste publicatie wordt het model op de embargo-veilige
 trainingsperiode getraind. De testperiode wordt NIET in het productiemodel
 opgenomen. Vergelijking met het bestaande model gebruikt exact dezelfde test.
 """
+
+from common.sel_par_inputs import sel_par_query
 import datetime as dt
 import math
 import os
@@ -224,7 +226,7 @@ def log_runs(conn, resultaten):
             params = {**result, 'model_versie': MODEL_VERSIE}
             params = {k: (None if isinstance(v, (float, np.floating)) and
                                    not np.isfinite(v) else v) for k, v in params.items()}
-            cur.execute(query, params)
+            cur.execute(sel_par_query(query), params)
     conn.commit()
 
 
@@ -267,7 +269,7 @@ def main():
     import psycopg2
     conn = psycopg2.connect(url)
     try:
-        df = pd.read_sql(JOIN_QUERY, conn)
+        df = pd.read_sql(sel_par_query(JOIN_QUERY), conn)
         print(f'Dataset: {len(df)} rijen, {df.datum.nunique()} datums')
         results = []
         for horizon in HORIZONS:

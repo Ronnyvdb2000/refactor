@@ -40,6 +40,8 @@ Env vars:
                         als bot_01repititief na de verstrenging)
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import sys
 import argparse
@@ -114,7 +116,7 @@ def haal_gelabelde_data(conn) -> pd.DataFrame:
         WHERE f.fwd_ret_5d IS NOT NULL OR f.fwd_ret_10d IS NOT NULL OR f.fwd_ret_20d IS NOT NULL;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(sel_par_query(query))
         rows = cur.fetchall()
     return pd.DataFrame(rows)
 

@@ -1,8 +1,6 @@
 name: "Feature Store: Generieke Fundamentals — vult FCF/P.E/Piotroski/PEG voor nieuwe selecties — dagelijks"
 
 on:
-  schedule:
-    - cron: "30 21 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -34,4 +32,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           MAX_TICKERS_PER_RUN: "200"
           RECENTE_DAGEN_LIMIET: "5"
-        run: python -m scripts.bouw_generieke_fundamentals build
+        run: python -m maintenance.retired_feature_builder build

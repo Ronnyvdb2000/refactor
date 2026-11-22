@@ -8,6 +8,8 @@ Haalt de data op, traint de Ridge-regressie en schrijft de scaler
 en coëfficiënten naar Supabase (tabel meta_model_models).
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import sys
 import argparse
@@ -63,7 +65,7 @@ def haal_training_data(conn, features):
               <= GREATEST(0.000001, abs(f.entry_koers) * 0.000001);
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(sel_par_query(query))
         return pd.DataFrame(cur.fetchall())
 
 def cross_sectionele_rank(df, kolommen):
@@ -138,7 +140,7 @@ def main():
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         with conn.cursor() as cur:
-            cur.execute(insert, (
+            cur.execute(sel_par_query(insert), (
                 versie, MODEL_HORIZON, features, coefs, mean, std,
                 args.alpha, len(df), int(df["datum"].nunique()),
                 datetime.now(timezone.utc), args.notities or None,

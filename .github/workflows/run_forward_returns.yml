@@ -1,8 +1,6 @@
 name: "Feature Store: Forward Returns — koppelt selecties aan latere rendementen — dagelijks"
 
 on:
-  schedule:
-    - cron: "0 22 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -36,7 +34,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           HORIZONS: "5,10,20,30,60"
           MAX_TICKERS_PER_RUN: "2000"
-        run: python -m scripts.bouw_forward_returns build
+        run: python -m maintenance.retired_feature_builder
 
       - name: Bewaar forward-returndiagnose
         if: always()

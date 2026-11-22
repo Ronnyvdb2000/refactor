@@ -250,12 +250,12 @@ def _sql_datum(d):
 # --------------------------------------------------------------------------
 def haal_te_vullen_rijen(conn) -> pd.DataFrame:
     """(ticker, datum) waar minstens één doel-feature NULL is."""
-    where = " OR ".join(f"{f} IS NULL" for f in DOEL_FEATURES)
+    where = " OR ".join(f"tech_{f} IS NULL" for f in DOEL_FEATURES)
     # position('/' in ticker) = 0: sluit pairs-tickers uit (zoals de live
     # builder), zonder %-teken in de query.
     query = f"""
         SELECT ticker, datum
-        FROM generieke_technicals
+        FROM public.sel_par
         WHERE ({where})
           AND position('/' in ticker) = 0
         ORDER BY ticker, datum
@@ -276,14 +276,14 @@ def update_features(conn, ticker, datum, waarden: dict) -> int:
     if not te_setten:
         return 0
 
-    null_voorwaarde = " OR ".join(f"{k} IS NULL" for k in te_setten)
+    null_voorwaarde = " OR ".join(f"tech_{k} IS NULL" for k in te_setten)
 
     if DRY_RUN:
         # Zelfde WHERE als de echte UPDATE, maar als SELECT: er wordt niets
         # geschreven, maar het script controleert wel dat de rij gevonden
         # wordt en dat het datumtype klopt.
         query = (
-            "SELECT count(*) FROM generieke_technicals "
+            "SELECT count(*) FROM public.sel_par "
             "WHERE ticker = %s AND datum = %s "
             f"AND ({null_voorwaarde})"
         )
@@ -291,10 +291,10 @@ def update_features(conn, ticker, datum, waarden: dict) -> int:
             cur.execute(query, [ticker, datum])
             return int(cur.fetchone()[0])
 
-    set_delen = [f"{k} = COALESCE({k}, %s)" for k in te_setten]
+    set_delen = [f"tech_{k} = COALESCE(tech_{k}, %s)" for k in te_setten]
     params = list(te_setten.values()) + [ticker, datum]
     query = f"""
-        UPDATE generieke_technicals
+        UPDATE public.sel_par
         SET {', '.join(set_delen)}
         WHERE ticker = %s AND datum = %s
           AND ({null_voorwaarde})
@@ -306,7 +306,7 @@ def update_features(conn, ticker, datum, waarden: dict) -> int:
 
 def haal_controlewaarden(conn, ticker, datums):
     with conn.cursor() as cur:
-        cur.execute("SELECT datum, ma50, rsi14 FROM generieke_technicals "
+        cur.execute("SELECT datum, tech_ma50 AS ma50, tech_rsi14 AS rsi14 FROM public.sel_par "
                     "WHERE ticker = %s AND datum = ANY(%s)",
                     (ticker, [_sql_datum(d) for d in datums]))
         return {_sql_datum(r[0]): r[1:] for r in cur.fetchall()}

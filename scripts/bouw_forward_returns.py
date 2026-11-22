@@ -395,6 +395,8 @@ def run_build():
 
 
 if __name__ == "__main__":
+    import runpy
+    runpy.run_module("maintenance.retired_feature_builder",run_name="__main__")
     try:
         run_build()
     except Exception:

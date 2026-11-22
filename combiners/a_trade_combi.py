@@ -7,6 +7,8 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Heuristische gewichten uit gemiddelde/spreiding van forward returns per selectiedatum.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import argparse
 import time
@@ -243,7 +245,7 @@ def herbereken_gewichten() -> Dict[str, float]:
     try:
         with psycopg2.connect(db_url, connect_timeout=15) as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(query, {"strats": db_namen, "cutoff": cutoff})
+                cur.execute(sel_par_query(query), {"strats": db_namen, "cutoff": cutoff})
                 rows = cur.fetchall()
     except Exception as e:
         print(f"[gewichten] DB-query faalde: {e} — statische fallback gebruikt.")

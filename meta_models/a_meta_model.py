@@ -7,6 +7,8 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 from common.horizons import calendar_embargo
 from common.model_inputs import canonical_selecties_sql, numeric_features, unique_snapshots, dates
 
@@ -63,7 +65,7 @@ def haal_data(conn, features: List[str]) -> pd.DataFrame:
               <= GREATEST(0.000001, abs(f.entry_koers) * 0.000001);
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(sel_par_query(query))
         rows = cur.fetchall()
     return pd.DataFrame(rows)
 

@@ -767,4 +767,6 @@ def main():
 
 
 if __name__ == "__main__":
+    import runpy
+    runpy.run_module("maintenance.retired_feature_builder",run_name="__main__")
     main()

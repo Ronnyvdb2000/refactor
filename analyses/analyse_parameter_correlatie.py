@@ -9,6 +9,8 @@ t-toets van de IC-reeks. Dit corrigeert voor de overlappende forward
 returns (autocorrelatie), die de p-waarden anders te optimistisch maakt.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import sys
 import argparse
@@ -69,14 +71,8 @@ def bh_correctie(p_waarden: List[float], alpha: float) -> List[bool]:
     return mask
 
 def haal_feature_kolommen(conn) -> Tuple[List[str], List[str]]:
-    query = """
-        SELECT column_name, data_type
-        FROM information_schema.columns
-        WHERE table_name = 'selecties';
-    """
-    with conn.cursor() as cur:
-        cur.execute(query)
-        rows = cur.fetchall()
+    from common.sel_par_inputs import SCHEMAS
+    rows = SCHEMAS['selecties']
 
     numeriek, boolean = [], []
     for naam, dtype in rows:
@@ -105,7 +101,7 @@ def haal_gelabelde_data(conn, kolommen: List[str]) -> pd.DataFrame:
           ON s.ticker = g.ticker AND s.datum = g.datum;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(sel_par_query(query))
         rows = cur.fetchall()
     return pd.DataFrame(rows)
 

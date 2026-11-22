@@ -133,6 +133,10 @@ def main():
             cursor.execute('SELECT public.zaai_sel_par(%s,%s,%s)',
                            (cutoff, args.force, Json(report)))
             result = cursor.fetchone()[0]
+            # Preserve strategy-specific inputs inside sel_par for all readers.
+            # This is ordinary row enrichment; no production function/schema change.
+            snapshot_sql = ROOT / 'maintenance/sql/20261122_sel_par_selection_snapshots.sql'
+            cursor.execute(snapshot_sql.read_text())
     from maintenance.sel_par_direct import enrich
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
         # A session-level lock spans per-ticker commits and all provider calls.
@@ -162,6 +166,14 @@ def main():
             stream.write('### sel_par\n\n```json\n' + json.dumps(result, indent=2, default=str) + '\n```\n')
     if not result['enrichment']['complete_execution']:
         raise SystemExit('Onvolledige verrijking; opgeslagen voortgang blijft behouden, zie rapport')
+    from maintenance.sel_par_direct import publish_input_manifest
+    with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
+        publish_input_manifest(conn,cutoff)
+        with conn.cursor() as cursor:
+            cursor.execute("UPDATE public.sel_par SET verrijking_status=verrijking_status || "
+                           "'{\"invoer_vrijgegeven\":true}'::jsonb WHERE selectiedatum<=%s "
+                           "AND coalesce(verrijking_status->>'invoer_vrijgegeven','false')<>'true'",
+                           (cutoff,))
 
 
 if __name__ == '__main__':

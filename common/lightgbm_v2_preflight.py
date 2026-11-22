@@ -9,6 +9,8 @@ CSV vereist: ticker, datum, 11 FEATURE_COLUMNS en fwd_ret_10d/30d/60d.
 --database leest dezelfde technische indicatoren en gededupliceerde forward
 returns als xLightgbmV2.py. Geen schrijfacties naar Supabase.
 """
+
+from common.sel_par_inputs import sel_par_query
 import argparse
 import json
 import math
@@ -102,7 +104,7 @@ def main():
         if not url:
             parser.error("SUPABASE_DB_URL ontbreekt")
         with psycopg2.connect(url) as conn:
-            df = pd.read_sql_query(SQL, conn)
+            df = pd.read_sql_query(sel_par_query(SQL), conn)
     report = {"source_rows": len(df), "horizons": [diagnose(df, h, args.target) for h in HORIZONS]}
     output = json.dumps(report, ensure_ascii=False, indent=2)
     print(output)

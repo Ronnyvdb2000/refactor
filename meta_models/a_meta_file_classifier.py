@@ -49,6 +49,8 @@ Env:
   EMAIL_USER/EMAIL_PASS/EMAIL_RECEIVER (optioneel).
 """
 
+from common.sel_par_inputs import sel_par_query
+
 from common.horizons import calendar_embargo
 
 import os
@@ -164,7 +166,7 @@ def haal_data(conn, features: List[str], horizon: int) -> pd.DataFrame:
         WHERE f.{target} IS NOT NULL;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query)
+        cur.execute(sel_par_query(query))
         rows = cur.fetchall()
     return pd.DataFrame(rows)
 

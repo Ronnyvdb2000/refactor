@@ -24,6 +24,8 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 330
+    env:
+      FEATURE_BUILD_MANIFEST: results/feature_build.json
     concurrency:
       group: refactor-yahoo-features
       cancel-in-progress: false
@@ -52,3 +54,9 @@ jobs:
           name: sel-par-refresh-${{ github.run_id }}-${{ github.run_attempt }}
           path: results/sel_par_refresh.json
           if-no-files-found: warn
+      - name: Publiceer bevestigde sel_par-invoer voor scoring
+        uses: actions/upload-artifact@v4
+        with:
+          name: feature-build-manifest
+          path: results/feature_build.json
+          if-no-files-found: error

@@ -6,6 +6,8 @@ Gebruikt dezelfde 11 features, horizonlabels en standaard excess-target als
 xLightgbmV2.py. Schrijft uitsluitend naar models/lightgbmV2_controle/.
 Geen DB-writes, notificaties of vervanging van bestaande productie-PKL's.
 """
+
+from common.sel_par_inputs import sel_par_query
 import argparse
 import json
 import math
@@ -189,7 +191,7 @@ def main():
             parser.error('SUPABASE_DB_URL ontbreekt')
         conn = psycopg2.connect(db_url)
         try:
-            df = pd.read_sql_query(SQL, conn)
+            df = pd.read_sql_query(sel_par_query(SQL), conn)
         finally:
             conn.close()
     report = run(df, horizons, args.target, OUT)
