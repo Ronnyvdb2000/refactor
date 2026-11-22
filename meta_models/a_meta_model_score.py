@@ -8,6 +8,8 @@ Leest het laatste model, scoort de laatste selectiedatum en schrijft
 naar meta_model_scores. Stuurt een Telegram-bericht met de top 10.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import sys
 import argparse
@@ -110,7 +112,7 @@ def haal_laatste_model(conn):
         LIMIT 1;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query, (MODEL_HORIZON,))
+        cur.execute(sel_par_query(query), (MODEL_HORIZON,))
         row = cur.fetchone()
     return row
 
@@ -144,10 +146,10 @@ def haal_selecties(conn, features, datum=None):
     if datum is None:
         with conn.cursor() as cur:
             if context:
-                cur.execute("SELECT MAX(datum::date)::text FROM selecties WHERE datum::date <= %s::date;",
+                cur.execute(sel_par_query("SELECT MAX(datum::date)::text FROM selecties WHERE datum::date <= %s::date;"),
                             (context["selection_cutoff"],))
             else:
-                cur.execute("SELECT MAX(datum) FROM selecties;")
+                cur.execute(sel_par_query("SELECT MAX(datum) FROM selecties;"))
             datum = cur.fetchone()[0]
     if context and datum is None:
         raise InputUnavailable("Geen selecties binnen de bevestigde feature-peildatum")
@@ -161,7 +163,7 @@ def haal_selecties(conn, features, datum=None):
         WHERE s.datum = %s;
     """
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query, (datum,))
+        cur.execute(sel_par_query(query), (datum,))
         frame = pd.DataFrame(cur.fetchall())
         frame.attrs["feature_context"] = context
         return frame, datum

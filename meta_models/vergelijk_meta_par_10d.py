@@ -4,6 +4,8 @@
 No database writes, notifications, or production model updates. Requires the
 repository root as working directory (meta_models.a_par_model and shared common/features.py).
 """
+
+from common.sel_par_inputs import sel_par_query
 import argparse
 from common.reports import write_json
 import json
@@ -59,7 +61,7 @@ def load_data(conn):
     FROM s JOIN f ON (s.ticker=f.ticker AND s.datum=f.datum AND s.strategie=f.strategie)
     LEFT JOIN g ON (s.ticker=g.ticker AND s.datum=g.datum)
     """
-    return pd.read_sql_query(query, conn, params=(STRATEGIES,))
+    return pd.read_sql_query(sel_par_query(query), conn, params=(STRATEGIES,))
 
 
 def normalize(df):

@@ -22,13 +22,32 @@ per benodigd aandeel wordt voor technische kenmerken en koersopvolging hergebrui
 één fundamentele opvraag wordt gedeeld tussen de ontbrekende selectierijen van dat aandeel.
 TradingAgents Bridge maakt geen deel uit van de keten.
 
-## Overgang voor bestaande modellen
+## Modelinvoer uit één tabel
 
-De bestaande modellen en analyses lezen nog uit de drie oude featuretabellen.
-Hun bestaande workflows blijven daarom actief. Die produceren tijdens de overgang
-nog hun eigen datasets en kunnen extra providerverzoeken veroorzaken. Ze worden
-pas uitgezet wanneer hun consumenten afzonderlijk op `sel_par` zijn overgezet en
-getest. Deze PR schakelt geen bestaand handelsmodel over.
+Alle bestaande modellen, meta-classifiers en analyses die de drie featuretabellen
+lazen, gebruiken nu `common.sel_par_inputs.sel_par_query`. De SQL-projecties geven
+hun bestaande kolomnamen terug, maar iedere fysieke gegevensscan leest uitsluitend
+`public.sel_par`. Er is geen fallback naar de oude featuretabellen of `selecties`.
+De bronstrategieën en hun oorspronkelijke parameters staan als snapshots in
+`strategie_details` binnen dezelfde centrale rij. De dagelijkse seedstap bewaart
+ze met gewone rij-updates; de databasefunctie en toegangsrechten blijven ongewijzigd.
+
+Alleen rijen met `verrijking_status.invoer_vrijgegeven=true` zijn zichtbaar voor
+modelinvoer. Nieuwe rijen worden pas na afgeronde verrijking en manifestcontrole
+vrijgegeven. Bestaande technische snapshots worden op hun echte koersdatum
+ontdubbeld; weekendscoring behoudt de expliciete vrijdagregel. Fundamentals die
+na de selectiedatum zijn opgehaald blijven uitgesloten van historische invoer.
+
+De drie oude builderworkflows hebben geen cron meer. Hun handmatige en CLI-ingang
+meldt dat de centrale keten ze vervangt. De tabellen zelf blijven bewaard als archief.
+Rekenfuncties en historische onderhoudsfuncties blijven beschikbaar voor tests;
+ze worden niet meer als productiebuilders uitgevoerd. Technische backfill leest
+en schrijft voortaan de `tech_`-kolommen in `sel_par`.
+
+De twee dagelijkse scorers volgen een geslaagde `sel_par`-workflow en downloaden
+het manifest van exact die bronrun. Hun bestaande score- en modeluitvoertabellen
+blijven behouden. Losstaande trainings- en analyseworkflows gebruiken eveneens
+de centrale invoer, maar behouden hun bestaande kalenderplanning.
 
 ## Planning en herstarts
 

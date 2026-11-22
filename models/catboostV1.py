@@ -1,4 +1,6 @@
 """Manual CatBoost candidate evaluation; no production scoring or DB writes."""
+
+from common.sel_par_inputs import sel_par_query
 import argparse
 import hashlib
 import json
@@ -182,8 +184,8 @@ def load_database(db_url):
     try:
         conn.set_session(readonly=True)
         with conn.cursor() as cursor:
-            cursor.execute("SET LOCAL statement_timeout = '300s'")
-        return pd.read_sql_query(SQL, conn)
+            cursor.execute(sel_par_query("SET LOCAL statement_timeout = '300s'"))
+        return pd.read_sql_query(sel_par_query(SQL), conn)
     finally:
         conn.rollback()
         conn.close()

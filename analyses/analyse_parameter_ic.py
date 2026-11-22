@@ -24,6 +24,8 @@ Output:
   Console: top-10 per horizon
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 from common.reports import write_json
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
@@ -98,7 +100,7 @@ def get_data(conn) -> pd.DataFrame:
     LEFT JOIN fund f ON f.ticker = t.ticker AND f.datum = t.datum
     LEFT JOIN fr ON fr.ticker = t.ticker AND fr.datum = t.datum;
     """
-    return pd.read_sql(query, conn)
+    return pd.read_sql(sel_par_query(query), conn)
 
 
 def ic_voor_parameter(df: pd.DataFrame, parameter: str, target: str) -> dict:

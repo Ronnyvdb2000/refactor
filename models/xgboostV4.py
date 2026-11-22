@@ -54,6 +54,8 @@ Belangrijk:
 - De run faalt alleen als GEEN enkele horizon een model oplevert.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 from common.model_publication import publication_gate, check_incumbents
@@ -306,7 +308,7 @@ def send_email(onderwerp: str, tekst: str) -> None:
 # ============================================================
 
 def get_training_data(conn) -> pd.DataFrame:
-    return pd.read_sql(JOIN_QUERY, conn)
+    return pd.read_sql(sel_par_query(JOIN_QUERY), conn)
 
 
 def toon_data_diagnose(df: pd.DataFrame) -> None:
@@ -895,7 +897,7 @@ def haal_vorige_runs(conn, model_versie: str) -> Dict[str, Dict]:
     """
     for h in HORIZONS:
         with conn.cursor() as cur:
-            cur.execute(query, {"mv": model_versie, "h": h})
+            cur.execute(sel_par_query(query), {"mv": model_versie, "h": h})
             rij = cur.fetchone()
         if rij:
             vorige[h] = {
@@ -940,7 +942,7 @@ def log_runs(conn, resultaten: List[Dict]) -> None:
                     f"target={res.get('target_mode')}"
                 )
                 params["opmerking"] = extra
-            cur.execute(query, params)
+            cur.execute(sel_par_query(query), params)
     conn.commit()
 
 

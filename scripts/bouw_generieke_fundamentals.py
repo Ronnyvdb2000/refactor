@@ -429,4 +429,6 @@ def run_build():
     meld_resultaat(bericht)
 
 if __name__ == "__main__":
+    import runpy
+    runpy.run_module("maintenance.retired_feature_builder",run_name="__main__")
     run_build()

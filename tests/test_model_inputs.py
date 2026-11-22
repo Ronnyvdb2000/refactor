@@ -258,8 +258,9 @@ def test_meta_weekend_query_requests_specific_friday_not_unbounded_asof():
     meta.haal_selecties(conn, meta.MODEL_FEATURES, '2026-11-14')
     query = conn.cursor.return_value.__enter__.return_value.execute.call_args.args[0]
     assert 'WHEN 6 THEN 1 WHEN 7 THEN 2 ELSE 0 END' in query
-    assert 'LEFT JOIN generieke_technicals' in query
-    assert 'LATERAL' not in query
+    assert 'LEFT JOIN __sp_technicals' in query
+    assert 'FROM public.sel_par' in query
+    assert 'LEFT JOIN LATERAL' not in query  # JSON strategy expansion is allowed; no as-of feature search.
 
 
 def test_xgboost_weekend_keeps_dates_through_prediction_to_notification():

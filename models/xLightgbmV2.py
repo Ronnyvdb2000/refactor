@@ -77,6 +77,8 @@ OUTPUT (results/)
     lightgbmV2_summary.txt
 """
 
+from common.sel_par_inputs import sel_par_query, input_columns
+
 import argparse
 import datetime as dt
 import html
@@ -235,10 +237,13 @@ def embargo_kalenderdagen(horizon):
 # ============================================================
 
 def heeft_kolom(conn, tabel, kolom):
+    projection = input_columns(tabel)
+    if projection is not None:
+        return kolom in projection
     with conn.cursor() as cur:
         cur.execute(
-            "SELECT 1 FROM information_schema.columns "
-            "WHERE table_name = %s AND column_name = %s LIMIT 1",
+            sel_par_query("SELECT 1 FROM information_schema.columns "
+            "WHERE table_name = %s AND column_name = %s LIMIT 1"),
             (tabel, kolom),
         )
 
@@ -327,7 +332,7 @@ def get_training_data(conn, uitsluiten):
     query, params = bouw_query(met_strategie, uitsluiten)
 
     df = pd.read_sql(
-        query,
+        sel_par_query(query),
         conn,
         params=params,
     )

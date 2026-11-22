@@ -2,6 +2,8 @@
 """Read-only walk-forward: strategy-meta vs parameter IC vs MA50, per horizon.
 No DB writes. Each horizon trains only on mature, embargoed outcomes.
 """
+
+from common.sel_par_inputs import sel_par_query
 import argparse
 from common.reports import write_json
 import json
@@ -48,7 +50,7 @@ def load(conn):
     LEFT JOIN g ON s.ticker=g.ticker AND s.datum=g.datum
     '''
     with conn.cursor() as cur:
-        cur.execute(query, (STRATEGIES,))
+        cur.execute(sel_par_query(query), (STRATEGIES,))
         cols = [d[0] for d in cur.description]
         records = cur.fetchall()
     df = pd.DataFrame.from_records(records, columns=cols)

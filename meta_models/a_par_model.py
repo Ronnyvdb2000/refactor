@@ -57,6 +57,8 @@ WIJZIGINGEN:
       toepassing bij een expliciete --datum (backtest). 0 = uitgeschakeld.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 from common.horizons import calendar_embargo
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 
@@ -249,7 +251,7 @@ def get_data(conn) -> pd.DataFrame:
         LIMIT 1
     ) sel ON TRUE;
     """
-    df = pd.read_sql(query, conn)
+    df = pd.read_sql(sel_par_query(query), conn)
     df["datum"] = pd.to_datetime(df["datum"], errors="coerce")
     df = df.dropna(subset=["datum"])
     return df
@@ -546,7 +548,7 @@ def schrijf_model_metrics(
 
     try:
         with conn.cursor() as cur:
-            cur.execute(insert, [
+            cur.execute(sel_par_query(insert), [
                 run_datum,
                 MODEL_VERSIE,
                 _horizon_naar_dagen(horizon),

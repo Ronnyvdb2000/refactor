@@ -2,7 +2,7 @@ name: XGBoostV3 Scoring — top nieuwe selecties naar Telegram en mail — dagel
 
 on:
   workflow_run:
-    workflows: ["Feature Store: Generieke Technicals (ATR/RSI/MA/volume, strategie-onafhankelijk) — dagelijks"]
+    workflows: ["sel_par - dagelijkse onderzoekstabel"]
     types: [completed]
     branches: [main]
 

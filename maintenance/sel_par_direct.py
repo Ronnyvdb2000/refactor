@@ -90,6 +90,8 @@ def labels(history, row, cutoff):
         dates[str(h)] = hist.index[end].date().isoformat()
     if values:
         values['rendement_basis_koers'] = basis
+        values['forward_bron_aanwezig'] = True
+        values['forward_bijgewerkt_op'] = datetime.now(timezone.utc).replace(tzinfo=None)
     return values, dates
 
 
@@ -227,3 +229,27 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
     report['deferred'] = max(0,len(grouped)-report['tickers_processed'])
     report['complete_execution'] = not report['errors'] and not report['deferred']
     return report
+
+
+def publish_input_manifest(conn, cutoff):
+    """Release scoring only for sufficiently covered, correctly dated sel_par rows."""
+    import os
+    from psycopg2.extras import RealDictCursor
+    from common.feature_pipeline import write_feature_manifest
+    from common.model_inputs import technical_day
+    if not os.environ.get('FEATURE_BUILD_MANIFEST'):
+        return
+    columns=','.join('tech_'+name for name in REQUIRED)
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute('SELECT ticker,datum,coalesce(tech_koersdatum::text,datum) bar_datum,'+
+                    columns+' FROM public.sel_par WHERE selectiedatum BETWEEN %s AND %s',
+                    (cutoff-timedelta(days=3),cutoff))
+        rows=cur.fetchall()
+    diagnosis=[]
+    for row in rows:
+        ready=all(finite(row['tech_'+key]) is not None for key in REQUIRED)
+        ready=ready and str(technical_day(row['datum']).date())==row['bar_datum']
+        diagnosis.append(dict(status='geschreven' if ready else 'ontbreekt',
+                              koersdatum=row['bar_datum']))
+    os.environ['FEATURE_SELECTION_CUTOFF']=cutoff.isoformat()
+    write_feature_manifest(diagnosis,.80)

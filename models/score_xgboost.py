@@ -69,6 +69,8 @@ Wijzigingen v1.3 (2026-10-06):
   van het verzenden.
 """
 
+from common.sel_par_inputs import sel_par_query, input_columns
+
 import os
 import html
 from urllib.parse import quote
@@ -443,14 +445,14 @@ def haal_kolommen_op(
         with conn.cursor() as cur:
 
             cur.execute(
-                """
+                sel_par_query("""
                 SELECT
                     column_name
                 FROM information_schema.columns
                 WHERE table_schema = 'public'
                   AND table_name = %s
                 ORDER BY ordinal_position
-                """,
+                """),
                 (tabel,),
             )
 
@@ -477,8 +479,7 @@ def controleer_database_schema(
 ) -> Dict[str, List[str]]:
 
     vereiste_tabellen = [
-        "generieke_technicals",
-        "selecties",
+        "sel_par",
         "xgboost_scores",
         "xgboost_runs",
     ]
@@ -490,14 +491,14 @@ def controleer_database_schema(
     with conn.cursor() as cur:
 
         cur.execute(
-            """
+            sel_par_query("""
             SELECT
                 table_name
             FROM information_schema.tables
             WHERE table_schema = 'public'
               AND table_name = ANY(%s)
             ORDER BY table_name
-            """,
+            """),
             (vereiste_tabellen,),
         )
 
@@ -542,6 +543,13 @@ def controleer_database_schema(
             tabel,
         )
 
+    required = {'ticker', 'datum', 'strategie_details',
+                *('tech_' + name for name in VERWACHTE_FEATURES)}
+    missing = required - set(schema['sel_par'])
+    if missing:
+        raise RuntimeError('sel_par mist invoerkolommen: ' + ', '.join(sorted(missing)))
+    schema['selecties'] = input_columns('selecties')
+    schema['generieke_technicals'] = input_columns('generieke_technicals')
     return schema
 
 
@@ -867,7 +875,7 @@ def haal_nieuwe_selecties_op(conn) -> pd.DataFrame:
         ORDER BY s.datum::timestamptz DESC, s.ticker, s.created_at ASC NULLS LAST, s.id
     """
     try:
-        raw = pd.read_sql_query(query, conn, params=(grensdatum,))
+        raw = pd.read_sql_query(sel_par_query(query), conn, params=(grensdatum,))
     except Exception as exc:
         conn.rollback()
         raise RuntimeError("Ophalen van nieuwe selecties mislukt") from exc
@@ -919,7 +927,7 @@ def haal_bestaande_scores_op(
         with conn.cursor() as cur:
 
             cur.execute(
-                query,
+                sel_par_query(query),
                 (min_datum,),
             )
 
@@ -1352,9 +1360,9 @@ def sla_scores_op(
         journal = prepare_journal({h: MODEL_FILES[h] for h in {r['horizon'] for r in resultaten}})
         werkelijk_opgeslagen = 0
         with conn.cursor() as cur:
-            cur.execute(DDL)
+            cur.execute(sel_par_query(DDL))
             for record in insert_resultaten:
-                cur.execute(query, record)
+                cur.execute(sel_par_query(query), record)
                 if cur.fetchone() is not None:
                     journal_record(cur, record, journal)
                     werkelijk_opgeslagen += 1
@@ -1534,7 +1542,7 @@ def registreer_run(
         with conn.cursor() as cur:
 
             cur.execute(
-                query,
+                sel_par_query(query),
                 waarden,
             )
 

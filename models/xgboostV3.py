@@ -20,6 +20,8 @@ Belangrijk:
 - Horizonafhankelijke wachtruimte scheidt trainingslabels van de testperiode.
 """
 
+from common.sel_par_inputs import sel_par_query
+
 import os
 import smtplib
 import warnings
@@ -314,7 +316,7 @@ def get_training_data(
 ) -> pd.DataFrame:
 
     return pd.read_sql(
-        JOIN_QUERY,
+        sel_par_query(JOIN_QUERY),
         conn,
     )
 
@@ -1254,7 +1256,7 @@ def haal_vorige_runs(
         with conn.cursor() as cur:
 
             cur.execute(
-                query,
+                sel_par_query(query),
                 {
                     "model_versie": MODEL_VERSIE,
                     "horizon": horizon,
@@ -1333,7 +1335,7 @@ def log_runs(
             params["model_versie"] = MODEL_VERSIE
 
             cur.execute(
-                query,
+                sel_par_query(query),
                 params,
             )
 
