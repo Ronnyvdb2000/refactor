@@ -148,10 +148,11 @@ def test_meta_walk_forward_uses_only_mature_training_outcomes(monkeypatch):
 
 
 def test_parameter_model_does_not_subtract_horizon_twice(monkeypatch):
-    args = SimpleNamespace(
-        horizons='60d', top_n=10, min_ic=.02, rolling_dagen=28, fallback_dagen=90,
+    args = par.ModelConfig(
+        horizons=['60d'], top_n=10, min_ic=.02, rolling_dagen=28, fallback_dagen=90,
         embargo_dagen=25, ic_max_abs=.15, min_datums_ic=2,
-        max_data_leeftijd=5, datum='2026-11-13', geen_db_write=True, geen_notify=True)
+        max_data_leeftijd=5, statement_timeout_ms=0, datum='2026-11-13',
+        geen_db_write=True, geen_notify=True)
     df = pd.DataFrame(dict(ticker=['A', 'A'], datum=pd.to_datetime(['2026-08-10','2026-11-13']),
                            koers=[100.,110.], fwd_ret_60d=[5.,np.nan]))
     monkeypatch.setattr(par, 'SUPABASE_DB_URL', 'offline')
