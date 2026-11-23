@@ -50,7 +50,7 @@ WIJZIGINGEN:
     - Koers meegenomen per pick (uit selecties via join).
     - Telegram toont koers + klikbare Yahoo-grafiek-link.
   v1.2 (2026-10-11):
-    - Effectieve score_datum per horizon = min(score_datum, laatste target-datum).
+    -  score_datum per horizon = min(score_datum, laatste target-datum).
     - Horizon-afhankelijke embargo (max(EMBARGO, horizon + 5)).
     - Extra fallback-windows (180d, 365d) voor trage horizons.
     - Uitgebreide logging per horizon in de console.
@@ -919,7 +919,9 @@ def main(argv: list[str] | None = None) -> int:
             laatste_target_datum = target_series["datum"].max()
             # Bij een expliciete backtestdatum begrenzen we de embargo-basis op de
             # laatste beschikbare target-datum zodat toekomstige returns niet lekken.
-            effectieve_score = min(score_datum, laatste_target_datum) if cfg.datum else score_datum
+            # Embargo-basis is altijd de scoredatum: laatste_target_datum ligt al ~horizon
+            # achter, een extra begrenzing hier trekt de horizon twee keer af.
+            effectieve_score = score_datum
 
             horizon_dagen = _horizon_naar_dagen(horizon)
             effectieve_embargo = calendar_embargo(horizon_dagen, minimum=cfg.embargo_dagen)
