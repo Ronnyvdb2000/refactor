@@ -95,6 +95,21 @@ def _captured_sql(module):
     return read.call_args.args[0]
 
 
+def _captured_sql(module):
+    """Geeft de SQL terug die `module.get_data` naar de database stuurt."""
+    if module is par:  # a_par_model gebruikt sinds v1.7 conn.cursor() i.p.v. pd.read_sql
+        cur = MagicMock()
+        cur.fetchall.return_value = []
+        cur.description = []
+        conn = MagicMock()
+        conn.cursor.return_value.__enter__.return_value = cur
+        module.get_data(conn)
+        return cur.execute.call_args.args[0]
+    with patch.object(module.pd, 'read_sql', return_value=pd.DataFrame({'datum': []})) as read:
+        module.get_data(None)
+    return read.call_args.args[0]
+
+
 def test_all_fundamental_consumers_apply_daily_availability_guard():
     queries = [xgb.JOIN_QUERY] + [_captured_sql(module) for module in (par, ic)]
     guard = re.compile(r'WHERE\s*\(?\s*' + re.escape(KNOWN_FUNDAMENTALS_SQL))
