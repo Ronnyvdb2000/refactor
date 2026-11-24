@@ -10,7 +10,7 @@ from combiners import a_trade_combi as b
 
 
 def history(ticker):
-    return pd.DataFrame(dict(Ticker=ticker, Date=pd.bdate_range(end='2026-11-13', periods=400),
+    return pd.bdate_range(end=pd.Timestamp.now().normalize() - pd.offsets.BDay(1), periods=400),
                              Open=20., High=22., Low=18., Close=20., Volume=100.))
 
 
