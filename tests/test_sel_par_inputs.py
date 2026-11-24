@@ -52,6 +52,9 @@ def test_every_active_consumer_routes_sql_through_central_input_layer():
                 if (isinstance(node,ast.Call) and isinstance(node.func,ast.Attribute)
                         and node.func.attr in ('execute','read_sql','read_sql_query') and node.args):
                     argument=node.args[0]
+                    if (isinstance(argument,ast.Constant) and isinstance(argument.value,str)
+                            and not re.search(r'\b(?:generieke_technicals|generieke_fundamentals|forward_returns)\b',argument.value,re.I)):
+                        continue  # vaste SQL zonder legacy-relatie, bv. SET statement_timeout
                     assert isinstance(argument,ast.Call) and getattr(argument.func,'id',None)=='sel_par_query',path
 
 
