@@ -1,9 +1,9 @@
 name: "A trade volatiel: Q score x volatiliteit"
 
 on:
-  schedule:
-    - cron: "0 5 * * *"   # Dagelijks 05:00 UTC
-  workflow_dispatch:
+  * schedule:
+  *   - cron: "0 5 * * *"   # Dagelijks 05:00 UTC
+  * workflow_dispatch:
 
 concurrency:
   queue: max
