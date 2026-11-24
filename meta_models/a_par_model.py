@@ -366,7 +366,7 @@ def get_data(
     sql = sel_par_query(query)
     with conn.cursor() as cur:
         cur.execute(sql)
-        rows = cur.fetchall()
+        rows = cur.execute(sel_par_query(query))
         columns = [desc[0] for desc in cur.description]
 
     df = pd.DataFrame(rows, columns=columns)
