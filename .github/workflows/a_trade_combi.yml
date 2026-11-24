@@ -1,9 +1,9 @@
 name: "A trade volatiel: Q score x volatiliteit"
 
 on:
-  * schedule:
-  *   - cron: "0 5 * * *"   # Dagelijks 05:00 UTC
-  * workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *"   # Dagelijks 05:00 UTC
+  workflow_dispatch:
 
 concurrency:
   queue: max
@@ -34,8 +34,8 @@ jobs:
 
       - name: Run combiners.a_trade_combi
         env:
-          TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        *  TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
+        *  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_USER:       ${{ secrets.EMAIL_USER }}
           EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER:   ${{ secrets.EMAIL_RECEIVER }}
