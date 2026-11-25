@@ -8,9 +8,8 @@ Werkwijze:
   1. Voor elke horizon (5d, 10d, 20d, 30d, 60d): bereken per parameter de IC
      over de laatste ROLLING_DAGEN kalenderdagen tot
      EFFECTIEVE_SCORE_DATUM - EMBARGO_DAGEN.
-     Bij backtesting (--datum) wordt de scorebasis voor het embargo begrensd op
-     min(score_datum, laatste datum met target-data) zodat er niet over de
-     beschikbare target-data heen wordt gekeken.
+     De embargo-basis is altijd de scoredatum (ook bij --datum): de embargo
+     trekt de horizon er al eenmalig van af.
      Fallback naar FALLBACK_DAGEN / 180d / 365d als er te weinig datums zijn.
   2. Winsorize de IC's op ±IC_MAX_ABS.
   3. Filter op |IC| >= MIN_IC_ABS. Parameters met minder dan MIN_DATUMS_IC
@@ -28,6 +27,12 @@ Env:
   TELEGRAM_CHAT_ID         optioneel
 
 WIJZIGINGEN:
+  v1.8 (2026-11-25):
+    - Embargo-basis is weer altijd de scoredatum (de beperking op de laatste
+      target-datum trok de horizon twee keer af bij --datum).
+    - Eerste run wint: voor een horizon waarvoor al picks bestaan (zelfde
+      scoredatum en modelversie) worden geen picks meer toegevoegd.
+    - `get_data` leest de rijen weer met `cur.fetchall()`.
   v1.7 (performance & timeout-fix):
     - Datumfilter in `get_data` op basis van benodigd trainingsvenster + embargo
       + buffer, zodat `sel_par` niet over de volledige historie wordt uitgepakt.
@@ -50,7 +55,7 @@ WIJZIGINGEN:
     - Koers meegenomen per pick (uit selecties via join).
     - Telegram toont koers + klikbare Yahoo-grafiek-link.
   v1.2 (2026-10-11):
-    -  score_datum per horizon = min(score_datum, laatste target-datum).
+    - Effectieve score_datum per horizon = min(score_datum, laatste target-datum).
     - Horizon-afhankelijke embargo (max(EMBARGO, horizon + 5)).
     - Extra fallback-windows (180d, 365d) voor trage horizons.
     - Uitgebreide logging per horizon in de console.
@@ -363,10 +368,9 @@ def get_data(
     LEFT JOIN fr ON fr.ticker = t.ticker AND fr.datum = t.datum
     LEFT JOIN sel ON sel.ticker = t.ticker AND sel.datum = t.datum;
     """
-    sql = sel_par_query(query)
     with conn.cursor() as cur:
-        cur.execute(sql)
-        rows = cur.execute(sel_par_query(query))
+        cur.execute(sel_par_query(query))
+        rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
 
     df = pd.DataFrame(rows, columns=columns)
@@ -615,6 +619,7 @@ def schrijf_rapporten(picks: pd.DataFrame, gewichten: pd.DataFrame, horizon: str
 # ============================================================
 # DB-WRITE
 # ============================================================
+
 def _bestaande_horizons(conn, datum_str: str) -> set[str]:
     """Horizons waarvoor al picks bestaan voor deze scoredatum en modelversie."""
     with conn.cursor() as cur:
@@ -624,6 +629,8 @@ def _bestaande_horizons(conn, datum_str: str) -> set[str]:
             (MODEL_VERSIE, datum_str),
         )
         return {r[0] for r in cur.fetchall() if r[0]}
+
+
 def schrijf_naar_selecties(
     conn,
     picks_per_horizon: dict[str, pd.DataFrame],
@@ -633,16 +640,18 @@ def schrijf_naar_selecties(
     Slaat picks met een geldige positieve koers op in `selecties` via bulk-insert.
     Eerste run wint: voor een horizon waarvoor al picks bestaan (zelfde scoredatum
     en modelversie) wordt niets toegevoegd, zodat een herrun de opgeslagen picks
-    niet vermengt met een andere versie van de uitkomst.    """
+    niet vermengt met een andere versie van de uitkomst.
+    """
     rows = []
     datum_str = score_datum.strftime("%Y-%m-%d")
     bestaand = _bestaande_horizons(conn, datum_str)
+
     for horizon, picks in picks_per_horizon.items():
         if picks is None or picks.empty:
-               if horizon in bestaand:
-                   print(f"[DB] {horizon}: er bestaan al picks voor {datum_str}; "
+            continue
+        if horizon in bestaand:
+            print(f"[DB] {horizon}: er bestaan al picks voor {datum_str}; "
                   "niet overschreven of aangevuld.")
-               continue
             continue
         for _, row in picks.iterrows():
             ticker = _clean_ticker(row["ticker"])
@@ -930,10 +939,6 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             laatste_target_datum = target_series["datum"].max()
-            # Bij een expliciete backtestdatum begrenzen we de embargo-basis op de
-            # laatste beschikbare target-datum zodat toekomstige returns niet lekken.
-            # Embargo-basis is altijd de scoredatum: laatste_target_datum ligt al ~horizon
-            # achter, een extra begrenzing hier trekt de horizon twee keer af.
             # Embargo-basis is altijd de scoredatum: laatste_target_datum ligt al ~horizon
             # achter, een extra begrenzing hier trekt de horizon twee keer af.
             effectieve_score = score_datum
