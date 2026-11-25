@@ -615,21 +615,34 @@ def schrijf_rapporten(picks: pd.DataFrame, gewichten: pd.DataFrame, horizon: str
 # ============================================================
 # DB-WRITE
 # ============================================================
-
+def _bestaande_horizons(conn, datum_str: str) -> set[str]:
+    """Horizons waarvoor al picks bestaan voor deze scoredatum en modelversie."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT DISTINCT parameters->>'horizon' FROM public.selecties "
+            "WHERE strategie = %s AND datum::date = %s::date",
+            (MODEL_VERSIE, datum_str),
+        )
+        return {r[0] for r in cur.fetchall() if r[0]}
 def schrijf_naar_selecties(
     conn,
     picks_per_horizon: dict[str, pd.DataFrame],
     score_datum: pd.Timestamp,
 ) -> int:
     """
-    Slaat picks met een geldige positieve koers op in `selecties` via bulk-insert,
-    waarbij bestaande picks behouden blijven.
-    """
+    Slaat picks met een geldige positieve koers op in `selecties` via bulk-insert.
+    Eerste run wint: voor een horizon waarvoor al picks bestaan (zelfde scoredatum
+    en modelversie) wordt niets toegevoegd, zodat een herrun de opgeslagen picks
+    niet vermengt met een andere versie van de uitkomst.    """
     rows = []
     datum_str = score_datum.strftime("%Y-%m-%d")
-
+    bestaand = _bestaande_horizons(conn, datum_str)
     for horizon, picks in picks_per_horizon.items():
         if picks is None or picks.empty:
+               if horizon in bestaand:
+                   print(f"[DB] {horizon}: er bestaan al picks voor {datum_str}; "
+                  "niet overschreven of aangevuld.")
+               continue
             continue
         for _, row in picks.iterrows():
             ticker = _clean_ticker(row["ticker"])
@@ -919,6 +932,8 @@ def main(argv: list[str] | None = None) -> int:
             laatste_target_datum = target_series["datum"].max()
             # Bij een expliciete backtestdatum begrenzen we de embargo-basis op de
             # laatste beschikbare target-datum zodat toekomstige returns niet lekken.
+            # Embargo-basis is altijd de scoredatum: laatste_target_datum ligt al ~horizon
+            # achter, een extra begrenzing hier trekt de horizon twee keer af.
             # Embargo-basis is altijd de scoredatum: laatste_target_datum ligt al ~horizon
             # achter, een extra begrenzing hier trekt de horizon twee keer af.
             effectieve_score = score_datum
