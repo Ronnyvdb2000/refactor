@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import uuid
 
+from common.db_security import lockdown_sql
+
 DDL = '''CREATE TABLE IF NOT EXISTS public.xgboost_prediction_log (
     run_key text NOT NULL,
     ticker text NOT NULL,
@@ -14,7 +16,8 @@ DDL = '''CREATE TABLE IF NOT EXISTS public.xgboost_prediction_log (
     source_sha text NOT NULL,
     predicted_at timestamptz NOT NULL DEFAULT clock_timestamp(),
     PRIMARY KEY (run_key, ticker, selection_date, horizon)
-)'''
+);
+''' + lockdown_sql('public.xgboost_prediction_log')
 INSERT = '''INSERT INTO public.xgboost_prediction_log
     (run_key,ticker,selection_date,horizon,score,model_sha256,source_sha)
     VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING'''
