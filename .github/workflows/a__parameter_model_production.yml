@@ -163,8 +163,8 @@ jobs:
             ARGS="$ARGS --geen-notify"
           fi
 
-          echo "Command: python -m meta_models.a_par_model $ARGS"
-          python -m meta_models.a_par_model $ARGS
+          echo "Command: python -m maintenance.score_once a_par $ARGS"
+          python -m maintenance.score_once a_par $ARGS
 
       - name: Controle output
         if: always()

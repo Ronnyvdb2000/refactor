@@ -367,4 +367,4 @@ jobs:
         run: |
           set -euo pipefail
 
-          python -m models.score_xgboost
+          python -m maintenance.score_once xgboost
