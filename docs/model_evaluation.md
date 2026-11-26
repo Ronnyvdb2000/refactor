@@ -68,7 +68,8 @@ N). Minder gemeenschappelijke aandelen dan N geeft geen volledige vergelijking.
 `Modelbeoordeling - Supabase` volgt succesvolle modelruns en draait dagelijks
 om 17:30 UTC (18:30 Belgische wintertijd). Na wijzigingen aan de archiefcode op
 main wordt ook een actuele a_par-berekening zonder notificaties uitgevoerd om
-de nieuwe opslag direct te controleren. Deze krijgt de echte nieuwe opslagtijd;
+de nieuwe opslag direct te controleren. Ook een historische meta-label-proef
+voor bot_01kasstr/10 sessies wordt dan zonder notificaties gearchiveerd. Deze krijgt de echte nieuwe opslagtijd;
 het is geen achteraf gereconstrueerde oorspronkelijke voorspelling. Handmatig: `python -m
 analyses.evaluate_models --cost-bps 20`. Standaard is 20 basispunten voor een
 volledige koop/verkoop samen een expliciet scenario, geen gemeten brokerkosten.
@@ -89,3 +90,27 @@ Het archief begint bij de eerste uitvoering met deze wijziging.
 Voor een echte vergelijkende walk-forward-proef moeten alle vier bovendien in
 één vooraf vastgelegd protocol dezelfde trainings-/testdatums doorlopen. Deze
 opslag bewaart de daarvoor benodigde brongegevens en verbergt verschillen niet.
+
+## Meta-labeling classifier
+
+`a_meta_label_classifier` archiveert nu iedere succesvolle historische fold,
+gecombineerd en per strategie, in dezelfde tabellen. `ml_params.kind=coefficient`
+bewaart getekende logistische coëfficiënten; XGBoost-varianten bewaren importance.
+Trainingsgrenzen, scaler, intercept, strategie, rendementsdrempel en modelhash
+blijven bij de betreffende fold. Meerdere strategiescores voor één aandeel/datum
+worden expliciet gemiddeld; het bestaande `meta_label_scores` blijft de oorspronkelijke
+scores per signaal bewaren. `--geen-db-write` schakelt beide opslagvormen uit.
+
+De bestaande console-evaluatie sluit de middenzone van gerealiseerde rendementen
+uit en blijft als afzonderlijk conditioneel rapport behouden. Voor het nieuwe
+archief scoort dezelfde uitsluitend op het verleden getrainde fold óók de volledige
+beschikbare testset, inclusief de middenzone. De testfeatures worden gerangschikt
+zonder selectie op testuitkomsten. Het archief heet daarom `*_full_test` en kan
+op dezelfde gemeenschappelijke aandelen met andere historische modellen worden
+vergeleken. Trainingsdata mag nog wel op historische extreme labels worden
+gefilterd: dat is de leeropdracht van de classifier, geen testfilter.
+
+Folds zonder voldoende conditionele testlabels kunnen toch een volledige
+archiefvoorspelling krijgen, mits de trainingsset en volledige testset voldoende
+groot zijn. Oude conditionele cohorten krijgen `comparison_eligible=false`.
+Deze wijziging maakt geen dagelijkse toekomstige classifier-signalen.
