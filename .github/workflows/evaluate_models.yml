@@ -1,0 +1,50 @@
+name: Modelbeoordeling - Supabase
+on:
+  push:
+    branches: [main]
+    paths: ['common/model_archive.py', 'analyses/evaluate_models.py']
+  schedule:
+    - cron: '30 17 * * *'
+  workflow_run:
+    workflows: ['A A Parameter-model', 'XGBoostV3 Scoring — top nieuwe selecties naar Telegram en mail — dagelijks', 'CatBoost V1 - wekelijkse kandidaat-evaluatie', 'XLightGBM V2 Trading Model', 'LightGBM V2 gecontroleerd - handmatige proefrun']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      cost_bps:
+        description: 'Round-trip kostenscenario in basispunten'
+        type: number
+        default: 20
+permissions:
+  contents: read
+concurrency:
+  group: model-evaluation
+  cancel-in-progress: false
+  queue: max
+jobs:
+  evaluate:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: refactor-yahoo-features
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-analysis.txt
+      - name: Controleer archief met een actuele parameterberekening na codewijziging
+        if: github.event_name == 'push'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m meta_models.a_par_model --geen-notify
+      - name: Bewaar beoordeling in Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          COST_BPS: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.cost_bps) || '20' }}
+        run: python -m analyses.evaluate_models --cost-bps "$COST_BPS"

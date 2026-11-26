@@ -3,8 +3,8 @@
 """Afzonderlijke LightGBM V2 kandidaatproef (geen productiewijzigingen).
 
 Gebruikt dezelfde 11 features, horizonlabels en standaard excess-target als
-xLightgbmV2.py. Schrijft uitsluitend naar models/lightgbmV2_controle/.
-Geen DB-writes, notificaties of vervanging van bestaande productie-PKL's.
+xLightgbmV2.py. Bewaart kandidaatbestanden in models/lightgbmV2_controle/ en testvoorspellingen
+in het Supabase-modelarchief. Geen notificaties of productiepromotie.
 """
 
 from common.sel_par_inputs import sel_par_query
@@ -134,6 +134,11 @@ def run(df, horizons, target_mode, outdir):
             ctrl = model_fit(train, RELATIVE)
             probabilities = model.predict_proba(test[FEATURES])[:,1]
             relative_prob = ctrl.predict_proba(test[RELATIVE])[:,1]
+            from common.model_archive import archive_candidate
+            archive_candidate(test.assign(score=probabilities), model='lightgbm',
+                              version='lightgbmV2_controlled', horizon=horizon,
+                              target=target_mode, train=train, features=FEATURES, estimator=model,
+                              config={'embargo_days': embargo_days(horizon), 'candidate_only': True})
             full_auc = auc(test.target, probabilities)
             relative_auc = auc(test.target, relative_prob)
             top, base, n = top_return(test, probabilities, horizon)
