@@ -12,7 +12,7 @@ DAY = date(2026, 11, 25)
 def db(result, locked=True):
     conn = MagicMock()
     cur = conn.cursor.return_value.__enter__.return_value
-    cur.fetchone.side_effect = [(locked,), (result,)]
+    cur.fetchone.side_effect = [(locked,), (True,), (result,)]
     cur.rowcount = 1
     return conn, cur
 
@@ -131,7 +131,7 @@ def test_partial_enrichment_can_resume_then_release(monkeypatch, tmp_path):
             cur.fetchone.return_value = ({'scoring': {}},)
         elif 'zaai_sel_par' in sql:
             cur.fetchone.return_value = ({'status': 'al_ververst'},)
-        elif 'pg_try_advisory_lock' in sql:
+        elif 'pg_try_advisory' in sql:
             cur.fetchone.return_value = (True,)
     cur.execute.side_effect = execute
     monkeypatch.setattr(psycopg2, 'connect', lambda *a, **kw: conn)
@@ -147,3 +147,13 @@ def test_partial_enrichment_can_resume_then_release(monkeypatch, tmp_path):
     refresh.main()
     assert enrich.call_count == 2
     release.assert_called_once_with(conn.__enter__.return_value, DAY)
+
+
+def test_refresh_and_scoring_cannot_overlap():
+    conn, cur = db({'input_released': True})
+    cur.fetchone.side_effect = [(True,), (False,)]
+    runner = MagicMock()
+    with pytest.raises(RuntimeError, match='wordt nog bijgewerkt'):
+        score_once.score(conn, DAY, 'a_par', ['cmd'], runner)
+    runner.assert_not_called()
+    assert 'pg_advisory_unlock' in cur.execute.call_args.args[0]

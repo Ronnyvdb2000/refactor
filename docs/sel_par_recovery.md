@@ -37,7 +37,8 @@ gebruiken bij workflow_run maintenance.score_once. De registratie staat onder
 sel_par_runs.resultaat.scoring.a_par / a_meta / xgboost. De sleutel is de
 selection_cutoff van het gecontroleerde manifest; de bestaande parameters en
 horizons blijven behouden. Een sessie-advisory-lock voorkomt gelijktijdige
-uitvoering van hetzelfde model. Registratie van verschillende modellen wordt
+uitvoering van hetzelfde model. Een gedeelde lock voorkomt dat de refresh
+ondertussen de invoer wijzigt; verschillende modellen kunnen wel parallel lezen. Registratie van verschillende modellen wordt
 atomair samengevoegd en overschrijft elkaar niet.
 
 Na exitcode 0 staat de status op completed. Herhaalde opvolgruns slaan dan de

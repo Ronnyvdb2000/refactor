@@ -24,8 +24,13 @@ def score(conn, cutoff, model, command, runner=subprocess.run):
         cur.execute('SELECT pg_try_advisory_lock(741206,%s)', (lock,))
         if not cur.fetchone()[0]:
             raise RuntimeError('Scoring voor dit model is al bezig; probeer later opnieuw')
+    shared = False
     try:
         with conn.cursor() as cur:
+            cur.execute('SELECT pg_try_advisory_lock_shared(741206,11)')
+            shared = cur.fetchone()[0]
+            if not shared:
+                raise RuntimeError('sel_par wordt nog bijgewerkt; probeer later opnieuw')
             cur.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s', (cutoff,))
             row = cur.fetchone()
         if not row or row[0].get('input_released') is not True:
@@ -55,6 +60,8 @@ def score(conn, cutoff, model, command, runner=subprocess.run):
     finally:
         conn.rollback()
         with conn.cursor() as cur:
+            if shared:
+                cur.execute('SELECT pg_advisory_unlock_shared(741206,11)')
             cur.execute('SELECT pg_advisory_unlock(741206,%s)', (lock,))
         conn.commit()
 

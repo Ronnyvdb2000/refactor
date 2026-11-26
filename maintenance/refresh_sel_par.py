@@ -176,6 +176,9 @@ def main():
         with conn.cursor() as cursor:
             cursor.execute("SET LOCAL statement_timeout = '15min'")
             cursor.execute("SET LOCAL lock_timeout = '30s'")
+            cursor.execute('SELECT pg_try_advisory_xact_lock(741206,11)')
+            if not cursor.fetchone()[0]:
+                raise RuntimeError('Scoring of verrijking is nog bezig; sel_par niet gewijzigd')
             cursor.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s FOR UPDATE', (cutoff,))
             previous = cursor.fetchone()
             scoring = previous[0].get('scoring', {}) if previous else {}
