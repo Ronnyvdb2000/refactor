@@ -1,6 +1,10 @@
 name: A A Parameter-model
 
 on:
+  workflow_run:
+    workflows: ["sel_par - dagelijkse onderzoekstabel"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       horizons:
@@ -44,17 +48,9 @@ on:
         default: false
         type: boolean
 
-  schedule:
-    # Dagelijks 05:00 UTC
-    - cron: "0 5 * * *"
-
-  push:
-    paths:
-      - "meta_models/a_par_model.py"
-      - ".github/workflows/a__parameter_model_production.yml"
-
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: workflow-a__parameter_model_production-${{ github.ref }}
@@ -63,11 +59,17 @@ concurrency:
 
 jobs:
   run-par-model:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     name: run-par-model
     runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     env:
+      FEATURE_BUILD_MANIFEST: ${{ github.event_name == 'workflow_run' && 'feature-build/feature_build.json' || '' }}
+      FEATURE_BUILD_REQUIRED: ${{ github.event_name == 'workflow_run' && '1' || '0' }}
+      FEATURE_EXPECTED_RUN_ID: ${{ github.event.workflow_run.id }}
+      FEATURE_EXPECTED_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+      FEATURE_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
       SUPABASE_DB_URL:  ${{ secrets.SUPABASE_DB_URL }}
       TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -76,6 +78,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -92,6 +97,18 @@ jobs:
             scipy==1.14.1 \
             psycopg2-binary==2.9.10 \
             requests==2.32.3
+
+      - name: Download manifest van de geslaagde sel_par-run
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: feature-build-manifest
+          path: feature-build
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Controleer herkomst van de invoer
+        run: python -c "from common.feature_pipeline import load_feature_context; load_feature_context()"
 
       - name: Verify versions
         run: |

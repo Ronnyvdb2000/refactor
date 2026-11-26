@@ -78,10 +78,10 @@ def test_manifest_accepts_weekend_friday_snapshot_but_rejects_missing_features(m
     conn=MagicMock()
     good=dict(ticker='A',datum='2026-11-21',bar_datum='2026-11-20',**{'tech_'+k:1. for k in REQUIRED})
     bad={**good,'ticker':'B','tech_rsi14':None}
-    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[good,bad]
+    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[good]*4+[bad]
     publish_input_manifest(conn,date(2026,11,21))
     rows,ratio=captured[0]
-    assert [r['status'] for r in rows]==['geschreven','ontbreekt']
+    assert [r['status'] for r in rows]==['geschreven']*4+['ontbreekt']
     assert ratio==.80
 
 
@@ -93,3 +93,33 @@ def test_snapshot_step_and_release_do_not_rewrite_database_function():
     snapshot=(root/'maintenance/sql/20261122_sel_par_selection_snapshots.sql').read_text()
     assert 'UPDATE public.sel_par' in snapshot
     assert 'FUNCTION' not in snapshot and 'REVOKE' not in snapshot
+
+
+def test_latest_date_must_have_coverage_even_when_older_rows_are_complete(monkeypatch):
+    from datetime import date
+    from unittest.mock import MagicMock
+    import pytest
+    from maintenance.sel_par_direct import publish_input_manifest,REQUIRED
+    monkeypatch.setenv('FEATURE_BUILD_MANIFEST','unused.json')
+    conn=MagicMock()
+    good=dict(ticker='A',datum='2026-11-23',bar_datum='2026-11-23',
+              **{'tech_'+k:1. for k in REQUIRED})
+    bad={**good,'datum':'2026-11-24','bar_datum':'2026-11-24','tech_rsi14':None}
+    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[good]*20+[bad]
+    with pytest.raises(ValueError,match='Nieuwste selectiedatum'):
+        publish_input_manifest(conn,date(2026,11,24))
+
+
+def test_parameter_model_waits_for_verified_successful_central_run():
+    import yaml
+    source=Path('.github/workflows/a__parameter_model_production.yml').read_text()
+    data=yaml.load(source,Loader=yaml.BaseLoader)
+    assert 'schedule' not in data['on'] and 'push' not in data['on']
+    assert data['on']['workflow_run']['workflows']==['sel_par - dagelijkse onderzoekstabel']
+    job=data['jobs']['run-par-model']
+    assert "conclusion == 'success'" in job['if']
+    assert 'head_repository.full_name == github.repository' in job['if']
+    assert 'FEATURE_EXPECTED_RUN_ID' in job['env']
+    assert 'FEATURE_EXPECTED_RUN_ATTEMPT' in job['env']
+    assert 'FEATURE_EXPECTED_SHA' in job['env']
+    assert 'load_feature_context()' in source

@@ -102,6 +102,7 @@ from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 from common.horizons import calendar_embargo
 from common.reports import write_csv
 from common.sel_par_inputs import sel_par_query
+from common.feature_pipeline import load_feature_context, context_summary
 
 
 # ============================================================
@@ -880,7 +881,14 @@ def main(argv: list[str] | None = None) -> int:
         _set_session_timeout(conn, cfg.statement_timeout_ms)
 
         min_datum = _bereken_benodigde_startdatum(cfg)
+        context = load_feature_context()
         max_datum = pd.Timestamp(cfg.datum).normalize() if cfg.datum else None
+        if context:
+            cutoff = pd.Timestamp(context['selection_cutoff'])
+            if max_datum is not None and max_datum > cutoff:
+                raise ValueError('Gevraagde datum ligt na de bevestigde sel_par-peildatum')
+            max_datum = cutoff if max_datum is None else max_datum
+            print('[pipeline] ' + context_summary(context))
 
         print(f"\nData ophalen (vanaf {min_datum.date()})...")
         df = get_data(conn, min_datum=min_datum, max_datum=max_datum)
@@ -907,7 +915,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(
                     f"\n⛔ Data is te oud: nieuwste datum {score_datum.date()} "
                     f"is {leeftijd} dagen geleden (max {cfg.max_data_leeftijd}). "
-                    f"Gestopt zonder picks. Controleer de job bouw_generieke_technicals."
+                    f"Gestopt zonder picks. Controleer de sel_par-verversing (refresh_sel_par)."
                 )
                 if not cfg.geen_notify:
                     send_telegram(
@@ -915,7 +923,7 @@ def main(argv: list[str] | None = None) -> int:
                         f"Nieuwste data: <b>{_esc(score_datum.date())}</b> "
                         f"({leeftijd} dagen geleden, max {cfg.max_data_leeftijd}).\n"
                         "Er zijn geen picks verstuurd. Controleer de job "
-                        "<code>bouw_generieke_technicals</code>."
+                        "<code>refresh_sel_par</code>."
                     )
                 return 1
 

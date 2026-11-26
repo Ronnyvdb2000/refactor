@@ -97,7 +97,40 @@ def test_fundamentals_observation_is_never_backdated():
     assert out['fund_fcf_growing'] is True
 
 
-def test_direct_pipeline_reuses_one_history_and_fund_snapshot_per_ticker(monkeypatch):
+def test_labels_produce_native_python_numbers_for_psycopg2():
+    from psycopg2.extensions import adapt
+    values,_=labels(history(),row(),date(2026,4,30))
+    for key,value in values.items():
+        if key.startswith(('koers_','rendement_')):
+            assert type(value) is float,(key,type(value))
+            assert b'np.' not in adapt(value).getquoted()
+
+
+def test_database_boundary_normalizes_numpy_scalars_without_changing_bool_or_dates():
+    import numpy as np
+    from maintenance.sel_par_direct import database_value,update_row
+    from psycopg2.extensions import adapt
+    assert type(database_value(np.float64(1.5))) is float
+    assert type(database_value(np.int64(3))) is int
+    assert database_value(np.bool_(True)) is True
+    assert database_value(np.float64('nan')) is None
+    assert database_value(float('inf')) is None
+    captured=[]
+    class Cursor:
+        def __enter__(self):return self
+        def __exit__(self,*a):pass
+        def execute(self,query,args):captured.extend(args)
+    class Conn:
+        def cursor(self):return Cursor()
+    update_row(Conn(),{'ticker':'TEST','datum':'2026-11-20'},
+               {'rendement_5d_pct':np.float64(3.5),'technicals_aanwezig':np.bool_(True)})
+    assert captured==[3.5,True,'TEST','2026-11-20']
+    assert all(not isinstance(v,np.generic) for v in captured)
+    assert all(b'np.' not in adapt(v).getquoted() for v in captured)
+
+
+@pytest.mark.parametrize("label_review", [False, True])
+def test_direct_pipeline_reuses_one_history_and_fund_snapshot_per_ticker(monkeypatch,label_review):
     import yfinance
     import maintenance.sel_par_direct as direct
     from scripts import bouw_generieke_technicals as technicals
@@ -130,9 +163,13 @@ def test_direct_pipeline_reuses_one_history_and_fund_snapshot_per_ticker(monkeyp
     writes=[]
     monkeypatch.setattr(direct,'update_row',lambda conn,row,values,dates,status:writes.append(values))
     monkeypatch.setattr(direct.time,'sleep',lambda _:None)
+    if label_review:
+        def needs_review(*args): raise direct.LabelReview('splitbasis')
+        monkeypatch.setattr(direct,'labels',needs_review)
     report=direct.enrich(Conn(),date(2026,11,20))
     assert report['complete_execution'] is True
     assert report['technical_rows']==2 and report['fundamental_rows']==2
-    assert report['label_rows']==2
+    assert report['label_rows']==(0 if label_review else 2)
+    assert len(report['review'])==(2 if label_review else 0)
     assert calls==['^GSPC','TEST'] and fundcalls==['TEST']
     assert all(w['fundamentals_tijdig_bekend'] is False for w in writes)
