@@ -138,3 +138,13 @@ def test_archive_workflow_names_and_guards_match_real_producers():
     assert "conclusion == 'success'" in data['jobs']['evaluate']['if']
     assert 'head_repository.full_name == github.repository' in data['jobs']['evaluate']['if']
     assert data['concurrency']['queue']=='max'
+
+
+def test_published_parameter_picks_match_archived_tie_ranking():
+    from meta_models.a_par_model import score_voor_datum
+    df=pd.DataFrame(dict(ticker=['B','A','C'],datum=pd.to_datetime(['2026-11-25']*3),
+                         koers=[100]*3,rsi=[1,1,1]))
+    weights=pd.DataFrame(dict(parameter=['rsi'],ic=[.1]))
+    scored=score_voor_datum(df,pd.Timestamp('2026-11-25'),weights,3)
+    assert list(scored.ticker)==['A','B','C']
+    assert [r['ticker'] for r in ranked_scores(scored,2) if r['picked']]==list(scored.head(2).ticker)

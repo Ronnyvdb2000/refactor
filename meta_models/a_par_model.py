@@ -544,7 +544,8 @@ def score_voor_datum(
     if "koers" in dag.columns:
         kolommen.append("koers")
 
-    return dag.dropna(subset=["score"]).nlargest(top_n, "score")[kolommen]
+    return dag.dropna(subset=["score"]).sort_values(
+        ["score", "ticker"], ascending=[False, True]).head(top_n)[kolommen]
 
 
 # ============================================================
