@@ -173,6 +173,8 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None, budget_minutes=70):
             assessments.append(metrics)
             # First publication wins per version/target/date; reruns are not new
             # independent observations. Modes stay separate.
+            if meta.get('config', {}).get('comparison_eligible') is False:
+                continue  # An outcome-conditioned test is not an ordinary candidate universe.
             key=(datum,basis,meta['horizon'],meta['mode'])
             candidates.setdefault(key,{}) .setdefault((meta['model'],meta['version'],meta['target']),group)
         compared=0

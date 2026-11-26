@@ -1,9 +1,9 @@
 name: Modelarchief checks
 on:
   push:
-    paths: ['common/model_archive.py', 'analyses/evaluate_models.py', 'tests/test_model_archive.py', 'meta_models/a_par_model.py', 'models/catboostV1.py', 'models/xLightgbmV2*.py', 'models/score_xgboost.py', '.github/workflows/model_archive_checks.yml']
+    paths: ['common/model_archive.py', 'analyses/evaluate_models.py', 'tests/test_model_archive.py', 'tests/test_meta_label_archive.py', 'meta_models/a_meta_label_classifier.py', 'meta_models/a_par_model.py', 'models/catboostV1.py', 'models/xLightgbmV2*.py', 'models/score_xgboost.py', '.github/workflows/model_archive_checks.yml']
   pull_request:
-    paths: ['common/model_archive.py', 'analyses/evaluate_models.py', 'tests/test_model_archive.py', 'meta_models/a_par_model.py', 'models/catboostV1.py', 'models/xLightgbmV2*.py', 'models/score_xgboost.py', '.github/workflows/model_archive_checks.yml']
+    paths: ['common/model_archive.py', 'analyses/evaluate_models.py', 'tests/test_model_archive.py', 'tests/test_meta_label_archive.py', 'meta_models/a_meta_label_classifier.py', 'meta_models/a_par_model.py', 'models/catboostV1.py', 'models/xLightgbmV2*.py', 'models/score_xgboost.py', '.github/workflows/model_archive_checks.yml']
 permissions:
   contents: read
 concurrency:
@@ -20,4 +20,4 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -r requirements-catboost.txt PyYAML==6.0.3 scipy==1.14.1 yfinance pytest==8.3.5 xgboost-cpu==2.1.4
-      - run: python -m pytest -q tests/test_model_archive.py tests/test_a_par_model_picks_first_run_wins.py tests/test_catboost.py tests/test_xgboost_evaluation.py
+      - run: python -m pytest -q tests/test_model_archive.py tests/test_meta_label_archive.py tests/test_a_par_model_picks_first_run_wins.py tests/test_catboost.py tests/test_xgboost_evaluation.py

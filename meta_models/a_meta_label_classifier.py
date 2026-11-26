@@ -211,7 +211,8 @@ def maak_features(df: pd.DataFrame, base_features: List[str]) -> pd.DataFrame:
 def walk_forward(df: pd.DataFrame, feature_cols: List[str],
                  embargo_dagen: int, min_train: int, min_test: int,
                  model_type: str,
-                 train_tot: Optional[pd.Timestamp] = None
+                 train_tot: Optional[pd.Timestamp] = None,
+                 archive_fold=None, evaluation_candidates=None
                  ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     df = df.copy()
     df["datum"] = pd.to_datetime(df["datum"], errors="coerce", utc=True)
@@ -221,11 +222,18 @@ def walk_forward(df: pd.DataFrame, feature_cols: List[str],
     df = df.sort_values("datum").reset_index(drop=True)
     datums = sorted(df["datum"].unique())
 
+    if evaluation_candidates is not None:
+        evaluation_candidates = evaluation_candidates.copy()
+        evaluation_candidates['datum'] = pd.to_datetime(evaluation_candidates['datum'], utc=True).dt.tz_localize(None).dt.normalize()
+        candidate_dates = sorted(evaluation_candidates.datum.unique())
+    else:
+        candidate_dates = datums
+
     # v1.8: welke datums worden getest?
     if train_tot is not None:
-        test_datums = [d for d in datums if d > train_tot]
+        test_datums = [d for d in candidate_dates if d > train_tot]
     else:
-        test_datums = datums  # rolling: alles testen
+        test_datums = candidate_dates  # rolling: alles testen
 
     resultaten = []
     coef_lijst = []
@@ -247,14 +255,15 @@ def walk_forward(df: pd.DataFrame, feature_cols: List[str],
         train = df[df["datum"].isin(train_datums)].dropna(subset=feature_cols + ["label"])
         test = df[df["datum"] == test_datum].dropna(subset=feature_cols + ["label"])
 
-        if len(train) < min_train or len(test) < min_test:
+        audit_test = (evaluation_candidates[evaluation_candidates.datum == test_datum].dropna(subset=feature_cols)
+                      if evaluation_candidates is not None else test)
+        if len(train) < min_train or len(audit_test) < min_test:
             continue
         if train["label"].nunique() < 2:
             continue
 
         scaler = StandardScaler()
         X_tr = scaler.fit_transform(train[feature_cols].values)
-        X_te = scaler.transform(test[feature_cols].values)
 
         if model_type == "xgb":
             from xgboost import XGBClassifier
@@ -269,7 +278,12 @@ def walk_forward(df: pd.DataFrame, feature_cols: List[str],
                                        class_weight="balanced", solver="lbfgs")
             model.fit(X_tr, train["label"].values)
 
-        proba = model.predict_proba(X_te)[:, 1]
+        if archive_fold is not None:
+            audit_proba = model.predict_proba(scaler.transform(audit_test[feature_cols].values))[:, 1]
+            archive_fold(audit_test.assign(proba=audit_proba), train, model, scaler, feature_cols)
+        if len(test) < min_test:
+            continue  # Existing conditional report remains separate from the full test archive.
+        proba = model.predict_proba(scaler.transform(test[feature_cols].values))[:, 1]
         if len(np.unique(proba)) < 2:
             continue
 
@@ -314,7 +328,8 @@ def walk_forward(df: pd.DataFrame, feature_cols: List[str],
 def walk_forward_per_strategie(df: pd.DataFrame, feature_cols: List[str],
                                 embargo_dagen: int, min_train: int, min_test: int,
                                 model_type: str,
-                                train_tot: Optional[pd.Timestamp] = None
+                                train_tot: Optional[pd.Timestamp] = None,
+                                archive_factory=None, evaluation_candidates=None
                                 ) -> Tuple[Dict[str, pd.DataFrame],
                                           Dict[str, pd.DataFrame]]:
     """v1.7: aparte walk-forward per strategie, strat_*-dummies eruit."""
@@ -325,7 +340,10 @@ def walk_forward_per_strategie(df: pd.DataFrame, feature_cols: List[str],
         sub = df[df["strategie"] == strat].copy()
         print(f"\n  --- strategie {strat} (n={len(sub)}) ---")
         res, cf = walk_forward(sub, sf, embargo_dagen, min_train, min_test,
-                               model_type, train_tot)
+                               model_type, train_tot,
+                               archive_fold=archive_factory(strat) if archive_factory else None,
+                               evaluation_candidates=(evaluation_candidates[evaluation_candidates.strategie==strat]
+                                                      if evaluation_candidates is not None else None))
         if res.empty:
             print(f"  {strat}: geen folds met resultaat.")
         else:
@@ -547,6 +565,7 @@ def main():
         df = df[df["strategie"].isin(strategieen)].copy()
         print(f"{len(df)} rijen na strategie-filter.")
 
+        full_candidates = df.copy()
         df = bouw_labels(df, args.threshold)
         print(f"{len(df)} rijen met label (middenzone uitgesloten).")
         if df.empty:
@@ -559,7 +578,23 @@ def main():
         feature_cols = list(X.columns)
         df = pd.concat([df.reset_index(drop=True), X], axis=1)
 
+        full_candidates = cross_sectionele_rank(full_candidates, base_features)
+        full_X = maak_features(full_candidates, base_features).reindex(columns=feature_cols, fill_value=0.0)
+        full_candidates = pd.concat([full_candidates.reset_index(drop=True), full_X], axis=1)
         print(f"Features: {len(feature_cols)} kolommen.")
+
+        batch_id = (f"{os.getenv('GITHUB_RUN_ID', uuid.uuid4().hex)}:"
+                    f"{os.getenv('GITHUB_RUN_ATTEMPT', '1')}")
+        def archive_factory(scope):
+            if args.geen_db_write:
+                return None
+            from common.model_archive import archive_meta_fold
+            def archive(test, train, estimator, scaler, features):
+                return archive_meta_fold(conn, test, train, estimator, scaler, features,
+                                         horizon=args.horizon, threshold=args.threshold,
+                                         model_type=args.model, scope=scope, batch_id=batch_id,
+                                         outcome_conditioned=False)
+            return archive
 
         oos_label = "OOS" if train_tot is not None else "rolling"
 
@@ -571,7 +606,8 @@ def main():
         print("============================================================")
         res_all, coefs_all = walk_forward(
             df, feature_cols, embargo, args.min_train, args.min_test,
-            args.model, train_tot,
+            args.model, train_tot, archive_fold=archive_factory("combined"),
+            evaluation_candidates=full_candidates if not args.geen_db_write else None,
         )
         if res_all.empty:
             print("Geen folds met resultaat (gecombineerd).")
@@ -597,7 +633,8 @@ def main():
         print("============================================================")
         res_per_strat, coefs_per_strat = walk_forward_per_strategie(
             df, feature_cols, embargo, args.min_train, args.min_test,
-            args.model, train_tot,
+            args.model, train_tot, archive_factory=archive_factory,
+            evaluation_candidates=full_candidates if not args.geen_db_write else None,
         )
 
         geldige_strats = [s for s, r in res_per_strat.items() if not r.empty]

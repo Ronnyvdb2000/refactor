@@ -11,7 +11,7 @@ CREATE TABLE public.ml_runs (
 );
 CREATE TABLE public.ml_params (
  run_id uuid NOT NULL REFERENCES public.ml_runs(id), parameter text NOT NULL,
- kind text NOT NULL CHECK(kind IN ('signed_ic','importance')), selected boolean NOT NULL,
+ kind text NOT NULL CHECK(kind IN ('signed_ic','importance','coefficient')), selected boolean NOT NULL,
  weight double precision, ic double precision, ic_raw double precision, ir double precision,
  n_dates integer, n_obs integer, PRIMARY KEY(run_id,parameter)
 );

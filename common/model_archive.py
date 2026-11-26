@@ -63,7 +63,7 @@ def parameter_rows(frame, kind='signed_ic', selected=None):
     for r in frame.to_dict('records'):
         used=r['parameter'] in chosen
         ic=number(r.get('ic'))
-        weight=(ic/denom if used and denom and ic is not None else None) if kind=='signed_ic' else number(r.get('importance'))
+        weight=(ic/denom if used and denom and ic is not None else None) if kind=='signed_ic' else number(r.get('coefficient' if kind=='coefficient' else 'importance'))
         rows.append(dict(parameter=r['parameter'],kind=kind,selected=used,weight=weight,
                          ic=ic,ic_raw=number(r.get('ic_raw')),ir=number(r.get('ic_ir')),
                          n_dates=number(r.get('n_datums')),n_obs=number(r.get('n_obs'))))
@@ -151,3 +151,37 @@ def archive_xgboost(conn, results, model_files):
                mode='prospective',target='model_score',model_hash=fingerprint,
                config={'training_provenance':'existing model file; training cutoff not inferred',
                        'cohort':'newly scored candidates; existing-score exclusions retained'})
+
+
+def archive_meta_fold(conn, test, train, estimator, scaler, features, *, horizon,
+                      threshold, model_type, scope, batch_id, outcome_conditioned=True):
+    """Archive the existing outcome-conditioned historical meta-label experiment.
+
+    Multiple strategies for one stock/date become one explicitly averaged score.
+    The original per-signal probabilities remain in meta_label_scores.
+    """
+    import pickle
+    grouped=test.groupby(['ticker','datum'],as_index=False).agg(score=('proba','mean'))
+    with conn.cursor() as cur:
+        cur.execute('SELECT ticker,selectiedatum,koers_selectiedatum FROM public.sel_par '
+                    'WHERE ticker=ANY(%s) AND selectiedatum BETWEEN %s AND %s',
+                    (list(grouped.ticker.unique()),day(grouped.datum.min()),day(grouped.datum.max())))
+        prices={(t,day(d)):p for t,d,p in cur.fetchall()}
+    grouped['koers']=[prices.get((r.ticker,day(r.datum))) for r in grouped.itertuples()]
+    kind='importance' if model_type=='xgb' else 'coefficient'
+    values=estimator.feature_importances_ if model_type=='xgb' else estimator.coef_[0]
+    params=pd.DataFrame({'parameter':features,kind:values})
+    fold=day(test.datum.min())
+    config={'scope':scope,'threshold_pct':float(threshold),'outcome_conditioned':outcome_conditioned,
+            'training_extremes_only':True,
+            'comparison_eligible':not outcome_conditioned,'aggregation':'mean probability per ticker/date',
+            'n_strategy_signals':len(test),'features':list(features),
+            'scaler_mean':scaler.mean_.tolist(),'scaler_scale':scaler.scale_.tolist(),
+            'intercept':estimator.intercept_.tolist() if hasattr(estimator,'intercept_') else None}
+    ident=record(conn,grouped,model='meta_label',version=f'meta_label_{model_type}_{scope}'+('_full_test' if not outcome_conditioned else '_extremes_test'),
+                 horizon=horizon,mode='backtest',target=f'extremes_±{threshold}pct',
+                 parameters=params,kind=kind,train_start=train.datum.min(),train_end=train.datum.max(),
+                 model_hash=hashlib.sha256(pickle.dumps(estimator,protocol=5)).hexdigest(),config=config,
+                 run_key=f'{batch_id}:meta_label:{model_type}:{scope}:{horizon}:{threshold}:{fold}:{outcome_conditioned}')
+    conn.commit()
+    return ident
