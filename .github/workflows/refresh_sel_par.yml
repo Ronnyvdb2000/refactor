@@ -3,6 +3,8 @@ name: sel_par - dagelijkse onderzoekstabel
 on:
   schedule:
     - cron: '45 4 * * *'
+    # Herstel na late bronruns of een tijdelijke providerstoring (UTC).
+    - cron: '15 8,12,16 * * *'
   workflow_dispatch:
     inputs:
       force:
@@ -45,11 +47,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          SOURCE_WAIT: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.source_wait_minutes) || '120' }}
+          SOURCE_WAIT: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.source_wait_minutes) || '0' }}
           FORCE_REFRESH: ${{ inputs.force || false }}
         run: |
           export REFRESH_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           args=(--wait-minutes "$SOURCE_WAIT")
+          if [ "${{ github.event_name }}" = "schedule" ]; then args+=(--require-sources); fi
           if [ "$FORCE_REFRESH" = "true" ]; then args+=(--force); fi
           python -m maintenance.refresh_sel_par "${args[@]}"
       - name: Bewaar verversingsrapport

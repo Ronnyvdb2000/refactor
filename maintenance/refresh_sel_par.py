@@ -115,9 +115,32 @@ def wait_for_sources(repository, token, cutoff, wait_minutes):
         time.sleep(30)
 
 
+def completed_refresh(conn, cutoff):
+    """A seeded day is not necessarily enriched AND released."""
+    with conn.cursor() as cur:
+        cur.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s', (cutoff,))
+        row = cur.fetchone()
+    result = row[0] if row else {}
+    return result if (result.get('enrichment', {}).get('complete_execution') is True
+                      and result.get('input_released') is True) else None
+
+
+def release_input(conn, cutoff):
+    from maintenance.sel_par_direct import publish_input_manifest
+    publish_input_manifest(conn, cutoff)  # Recheck existing quality/provenance gates.
+    with conn.cursor() as cursor:
+        cursor.execute("UPDATE public.sel_par SET verrijking_status=verrijking_status || "
+                       "'{\"invoer_vrijgegeven\":true}'::jsonb WHERE selectiedatum<=%s "
+                       "AND coalesce(verrijking_status->>'invoer_vrijgegeven','false')<>'true'",
+                       (cutoff,))
+        cursor.execute("UPDATE public.sel_par_runs SET resultaat=resultaat || "
+                       "'{\"input_released\":true}'::jsonb WHERE selecties_tot=%s", (cutoff,))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--force', action='store_true')
+    parser.add_argument('--require-sources', action='store_true')
     parser.add_argument('--wait-minutes', type=int, default=120)
     parser.add_argument('--max-tickers', type=int, default=2000)
     args = parser.parse_args()
@@ -127,24 +150,40 @@ def main():
     started = os.environ.get('REFRESH_STARTED_AT')
     now = datetime.fromisoformat(started.replace('Z', '+00:00')) if started else datetime.now(timezone.utc)
     cutoff = now.astimezone(timezone.utc).date() - timedelta(days=1)
+    import psycopg2
+    if not args.force:
+        with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
+            if completed_refresh(conn, cutoff):
+                release_input(conn, cutoff)
+                output = Path('results/sel_par_refresh.json')
+                output.parent.mkdir(exist_ok=True)
+                output.write_text(json.dumps({'status': 'already_completed', 'selecties_tot': cutoff.isoformat()}) + '\n')
+                print('Selectiedag al volledig verwerkt; alleen bevestigd manifest opnieuw gepubliceerd', flush=True)
+                return
     report = wait_for_sources(os.environ['GITHUB_REPOSITORY'], os.environ['GH_TOKEN'],
                               cutoff, args.wait_minutes)
+    if args.require_sources and report['missing']:
+        raise RuntimeError('Bronruns ontbreken nog; volgende herstelpoging wacht op dezelfde selectiedag')
     # A completed but failed strategy can have stored partial selections. Preserve
     # those; record its failure rather than claiming the dataset is complete.
     for failure in report['failed_sources']:
         print('::warning::Bronrun niet geslaagd: ' + json.dumps(failure), flush=True)
     for missing in report['missing']:
         print('::warning::Bronrun ontbreekt: '+missing+'; alleen beschikbare selecties worden verwerkt',flush=True)
-    import psycopg2
     from psycopg2.extras import Json
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
         conn.set_session(isolation_level='REPEATABLE READ')
         with conn.cursor() as cursor:
             cursor.execute("SET LOCAL statement_timeout = '15min'")
             cursor.execute("SET LOCAL lock_timeout = '30s'")
+            cursor.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s FOR UPDATE', (cutoff,))
+            previous = cursor.fetchone()
+            scoring = previous[0].get('scoring', {}) if previous else {}
             cursor.execute('SELECT public.zaai_sel_par(%s,%s,%s)',
                            (cutoff, args.force, Json(report)))
             result = cursor.fetchone()[0]
+            cursor.execute("UPDATE public.sel_par_runs SET resultaat=resultaat || %s WHERE selecties_tot=%s",
+                           (Json({'input_released': False, 'scoring': scoring}), cutoff))
             # Preserve strategy-specific inputs inside sel_par for all readers.
             # This is ordinary row enrichment; no production function/schema change.
             snapshot_sql = ROOT / 'maintenance/sql/20261122_sel_par_selection_snapshots.sql'
@@ -161,7 +200,7 @@ def main():
             result['pipeline_version'] = 2
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE public.sel_par_runs SET voltooid_op=clock_timestamp(), '
-                               'resultaat=%s WHERE selecties_tot=%s', (Json(result),cutoff))
+                               'resultaat=resultaat || %s WHERE selecties_tot=%s', (Json(result),cutoff))
             conn.commit()
         finally:
             conn.rollback()
@@ -178,14 +217,8 @@ def main():
             stream.write('### sel_par\n\n```json\n' + json.dumps(result, indent=2, default=str) + '\n```\n')
     if not result['enrichment']['complete_execution']:
         raise SystemExit('Onvolledige verrijking; opgeslagen voortgang blijft behouden, zie rapport')
-    from maintenance.sel_par_direct import publish_input_manifest
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
-        publish_input_manifest(conn,cutoff)
-        with conn.cursor() as cursor:
-            cursor.execute("UPDATE public.sel_par SET verrijking_status=verrijking_status || "
-                           "'{\"invoer_vrijgegeven\":true}'::jsonb WHERE selectiedatum<=%s "
-                           "AND coalesce(verrijking_status->>'invoer_vrijgegeven','false')<>'true'",
-                           (cutoff,))
+        release_input(conn, cutoff)
 
 
 if __name__ == '__main__':

@@ -89,7 +89,7 @@ def test_snapshot_step_and_release_do_not_rewrite_database_function():
     root=Path(__file__).resolve().parents[1]
     source=(root/'maintenance/refresh_sel_par.py').read_text()
     assert source.index('zaai_sel_par')<source.index('snapshot_sql.read_text')
-    assert source.index('publish_input_manifest(conn,cutoff)')<source.index('invoer_vrijgegeven')
+    assert source.index('publish_input_manifest(conn, cutoff)')<source.index('invoer_vrijgegeven')
     snapshot=(root/'maintenance/sql/20261122_sel_par_selection_snapshots.sql').read_text()
     assert 'UPDATE public.sel_par' in snapshot
     assert 'FUNCTION' not in snapshot and 'REVOKE' not in snapshot
