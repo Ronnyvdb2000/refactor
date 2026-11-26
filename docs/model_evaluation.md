@@ -49,7 +49,9 @@ publicatie. Reeds bestaande labels worden niet vervangen om resultaten te verbet
 **next_open** is uitsluitend voor nieuw gearchiveerde toekomstige voorspellingen:
 Yahoo aangepaste opening van de eerste waargenomen sessie strikt na de UTC-
 publicatiedag, tot de aangepaste slotkoers van sessie H (inclusief instapsessie).
-De huidige dag wordt uitgesloten. Dit hergebruikt dezelfde definitie als de
+De huidige dag wordt uitgesloten. De providerfase heeft een budget van 70 minuten;
+bij uitstel of providerstop wordt de bereikte voortgang opgeslagen en blijft de
+workflow zichtbaar onvolledig. Volgende runs slaan reeds voltooide uitkomsten over. Dit hergebruikt dezelfde definitie als de
 bestaande XGBoost-beoordeling. Gaten, providerfouten en nog niet verstreken
 termijnen blijven als status bewaard. Voltooide next_open-uitkomsten blijven
 bevroren; bij een latere providerrevisie is een afzonderlijke controle nodig.

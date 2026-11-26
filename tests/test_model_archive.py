@@ -148,3 +148,19 @@ def test_published_parameter_picks_match_archived_tie_ranking():
     scored=score_voor_datum(df,pd.Timestamp('2026-11-25'),weights,3)
     assert list(scored.ticker)==['A','B','C']
     assert [r['ticker'] for r in ranked_scores(scored,2) if r['picked']]==list(scored.head(2).ticker)
+
+
+def test_provider_budget_defers_without_discarding_archive_progress(monkeypatch):
+    from datetime import datetime,timezone
+    from analyses import evaluate_models as evaluation
+    row=dict(id='00000000-0000-0000-0000-000000000001',model='a_par',version='v1',target='rank',
+             horizon=5,mode='prospective',recorded_at=datetime(2026,11,1,tzinfo=timezone.utc),
+             datum=date(2026,10,31),top_n=10,ticker='TEST',score=.3)
+    monkeypatch.setattr(evaluation,'load',lambda c:[row])
+    conn=MagicMock();conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[]
+    fetch=MagicMock(side_effect=AssertionError('Budget exhausted'))
+    with patch.object(evaluation,'execute_values') as bulk:
+        result=evaluation.run(conn,as_of=date(2026,11,26),fetch=fetch,budget_minutes=0)
+    assert result['deferred']==1 and result['complete']==0
+    assert [r[4] for r in bulk.call_args.args[2]]==['pending','deferred']
+    fetch.assert_not_called()

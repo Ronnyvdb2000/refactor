@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from itertools import combinations
 import math
 import os
+import time
 
 import pandas as pd
 from psycopg2.extras import RealDictCursor, execute_values
@@ -100,7 +101,7 @@ def load(conn):
         return [dict(r) for r in cur.fetchall()]
 
 
-def run(conn, *, as_of=None, cost_bps=20, fetch=None):
+def run(conn, *, as_of=None, cost_bps=20, fetch=None, budget_minutes=70):
     as_of=as_of or datetime.now(timezone.utc).date()
     rows=load(conn)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -114,6 +115,9 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None):
                 return yf.Ticker(ticker).history(start=start,end=end,auto_adjust=True,repair=False,
                                                   raise_errors=True,timeout=20)
     cache={}; grouped={}; writes=[]
+    deadline=time.monotonic()+budget_minutes*60
+    provider_stopped=False
+    deferred=0
     for row in rows:
         results={'selection_close':selection_outcome(row,as_of)}
         if row['mode']=='prospective':
@@ -122,6 +126,9 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None):
                 results['next_open']=saved[key]
             elif (as_of-row['recorded_at'].astimezone(timezone.utc).date()).days<row['horizon']:
                 results['next_open']=dict(status='pending')
+            elif provider_stopped or time.monotonic()>=deadline:
+                results['next_open']=dict(status='provider_stop' if provider_stopped else 'deferred')
+                deferred+=1
             else:
                 start=row['recorded_at'].astimezone(timezone.utc).date().isoformat()
                 ck=(row['ticker'],start)
@@ -137,7 +144,7 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None):
                 except Exception as exc:
                     from common.yahoo import YahooRateLimited
                     if isinstance(exc,YahooRateLimited):
-                        raise
+                        provider_stopped=True
                     cache[ck]=RuntimeError('provider_error')
                     results['next_open']=dict(status='provider_error')
         for basis,value in results.items():
@@ -181,8 +188,11 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None):
                     ','.join(f'{c}=EXCLUDED.{c}' for c in cols)+',checked_at=clock_timestamp()',
                     (a[0]['id'],b[0]['id'],datum,basis,cost_bps,*result.values()))
                 compared+=1
-    return dict(scores=len(rows),cohorts=len(grouped),complete=sum(m['status']=='complete' for m in assessments),
+    result=dict(scores=len(rows),cohorts=len(grouped),complete=sum(m['status']=='complete' for m in assessments),
                 comparisons=compared,cost_bps=cost_bps)
+    if deferred or provider_stopped:
+        result.update(deferred=deferred,provider_stop=provider_stopped)
+    return result
 
 
 def main():
@@ -201,6 +211,8 @@ def main():
             f.write('## Modelbeoordeling in Supabase\n\n'+str(result)+'\n\n'
                     'selectiekoers = signaalonderzoek; next_open = na publicatie. '
                     'Overlappende dagelijkse mandjes zijn geen onafhankelijke portefeuille.\n')
+    if result.get('deferred') or result.get('provider_stop'):
+        raise SystemExit('Beoordeling gedeeltelijk; voortgang opgeslagen, volgende run vult verder aan')
 
 
 if __name__=='__main__':
