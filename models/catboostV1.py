@@ -1,4 +1,4 @@
-"""Manual CatBoost candidate evaluation; no production scoring or DB writes."""
+"""Manual CatBoost candidate evaluation; no production scoring; test archive in Supabase."""
 
 from common.sel_par_inputs import sel_par_query
 import argparse
@@ -147,6 +147,11 @@ def run(df, horizons, target_mode, outdir=OUT):
                 test, model.predict_proba(test[FEATURES])[:, 1],
                 relative.predict_proba(test[RELATIVE])[:, 1], horizon,
             )
+            from common.model_archive import archive_candidate
+            archive_candidate(scored, model='catboost', version='catboostV1',
+                              horizon=horizon, target=target_mode, train=train,
+                              features=FEATURES, estimator=model,
+                              config={'embargo_days': embargo_days(horizon), 'candidate_only': True})
             assessment = evaluate_candidate(metrics)
             result.update(
                 status='EVALUATED', **assessment, n_train=len(train),

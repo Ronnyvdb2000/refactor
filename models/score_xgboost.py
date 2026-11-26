@@ -1367,6 +1367,9 @@ def sla_scores_op(
                     journal_record(cur, record, journal)
                     werkelijk_opgeslagen += 1
 
+        if os.getenv('ML_ARCHIVE_REQUIRED') == '1':
+            from common.model_archive import archive_xgboost
+            archive_xgboost(conn, resultaten, MODEL_FILES)
         conn.commit()
 
         print(

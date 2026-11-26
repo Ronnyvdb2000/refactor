@@ -350,6 +350,7 @@ jobs:
       - name: Run score_xgboost
         env:
 
+          ML_ARCHIVE_REQUIRED: '1'
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}

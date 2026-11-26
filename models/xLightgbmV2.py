@@ -1142,6 +1142,12 @@ def train_horizon(
         embargo,
     )
 
+    from common.model_archive import archive_candidate
+    archive_candidate(test_predictions.assign(score=test_predictions['model_probability']),
+                      model='lightgbm', version=MODEL_VERSIE, horizon=horizon,
+                      target=target_mode, train=train_df, features=FEATURE_COLUMNS, estimator=model,
+                      config={'embargo': embargo, 'candidate_only': True})
+
     n_top = max(
         1,
         int(

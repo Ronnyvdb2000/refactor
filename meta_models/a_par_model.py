@@ -544,7 +544,8 @@ def score_voor_datum(
     if "koers" in dag.columns:
         kolommen.append("koers")
 
-    return dag.dropna(subset=["score"]).nlargest(top_n, "score")[kolommen]
+    return dag.dropna(subset=["score"]).sort_values(
+        ["score", "ticker"], ascending=[False, True]).head(top_n)[kolommen]
 
 
 # ============================================================
@@ -1023,7 +1024,8 @@ def main(argv: list[str] | None = None) -> int:
                     f"IR={row['ic_ir']:+.2f} n={row['n_datums']}"
                 )
 
-            picks = score_voor_datum(df, score_datum, gewichten, cfg.top_n)
+            all_scores = score_voor_datum(df, score_datum, gewichten, len(df))
+            picks = all_scores.head(cfg.top_n).copy()
             if picks.empty:
                 print(
                     f"[{horizon}] geen picks op score_datum {score_datum.date()} "
@@ -1054,6 +1056,15 @@ def main(argv: list[str] | None = None) -> int:
                     f"score={row['score']:+.4f}  koers={_format_koers(row.get('koers'))}"
                 )
 
+            if not cfg.geen_db_write:
+                from common.model_archive import record
+                record(conn, all_scores, model='a_par', version=MODEL_VERSIE,
+                       horizon=horizon, mode='prospective', target='forward_return_rank',
+                       top_n=cfg.top_n, parameters=gewichten_ruw,
+                       selected=gewichten.parameter, train_start=train_start, train_end=train_einde,
+                       config={'window': window, 'embargo_days': effectieve_embargo,
+                               'min_ic': cfg.min_ic, 'selection_cutoff': str(score_datum.date())})
+                conn.commit()
             schrijf_rapporten(picks, gewichten, horizon)
 
             # === Metrics wegschrijven ===
