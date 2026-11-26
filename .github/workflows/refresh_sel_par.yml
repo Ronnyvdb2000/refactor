@@ -9,6 +9,10 @@ on:
         description: 'Dezelfde selectiedag opnieuw verversen'
         type: boolean
         default: false
+      source_wait_minutes:
+        description: 'Maximale wachttijd op bronruns; 0 voor gecontroleerd herstel'
+        type: number
+        default: 120
 
 permissions:
   contents: read
@@ -41,10 +45,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SOURCE_WAIT: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.source_wait_minutes) || '120' }}
           FORCE_REFRESH: ${{ inputs.force || false }}
         run: |
           export REFRESH_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          args=()
+          args=(--wait-minutes "$SOURCE_WAIT")
           if [ "$FORCE_REFRESH" = "true" ]; then args+=(--force); fi
           python -m maintenance.refresh_sel_par "${args[@]}"
       - name: Bewaar verversingsrapport

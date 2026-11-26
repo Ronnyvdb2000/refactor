@@ -57,12 +57,16 @@ def readiness(config, runs, cutoff):
             next_day_starts = expected_starts(crons, cutoff + timedelta(days=1))
             until = min(following) if following else (
                 min(next_day_starts) if next_day_starts else day_end + timedelta(days=1))
-            candidates = [r for r in rows if r.get('event') == 'schedule'
+            candidates = [r for r in rows if r.get('event') in ('schedule','workflow_dispatch')
                           and due <= datetime.fromisoformat(r['created_at'].replace('Z', '+00:00')) < until]
             if not candidates:
                 missing.append(f'{name}@{due.isoformat()}')
         for run in rows:
             created = datetime.fromisoformat(run['created_at'].replace('Z', '+00:00'))
+            next_starts=expected_starts(crons,cutoff+timedelta(days=1))
+            cycle_end=min(next_starts) if next_starts else day_end+timedelta(hours=4,minutes=45)
+            if created>=cycle_end:
+                continue  # Next selection day's scans do not belong to this batch.
             if created < day_start:
                 # An older still-active source also blocks; completed old runs don't.
                 if run['status'] == 'completed':
@@ -103,7 +107,11 @@ def wait_for_sources(repository, token, cutoff, wait_minutes):
             return report
         print(json.dumps(report), flush=True)
         if time.monotonic() >= deadline:
-            raise RuntimeError('Bronruns ontbreken of zijn nog bezig; sel_par niet gewijzigd')
+            if report['active']:
+                raise RuntimeError('Bronruns zijn nog bezig; sel_par niet gewijzigd')
+            # GitHub schedules can be skipped. Keep missing sources visible, just
+            # like failed completed scans, while processing actual stored selections.
+            return report
         time.sleep(30)
 
 
@@ -113,6 +121,8 @@ def main():
     parser.add_argument('--wait-minutes', type=int, default=120)
     parser.add_argument('--max-tickers', type=int, default=2000)
     args = parser.parse_args()
+    if args.wait_minutes<0 or args.max_tickers<1:
+        parser.error('Wachttijd moet >=0 zijn en max-tickers moet positief zijn')
     # Workflow-created time is fixed so waiting across midnight cannot change cutoff.
     started = os.environ.get('REFRESH_STARTED_AT')
     now = datetime.fromisoformat(started.replace('Z', '+00:00')) if started else datetime.now(timezone.utc)
@@ -123,6 +133,8 @@ def main():
     # those; record its failure rather than claiming the dataset is complete.
     for failure in report['failed_sources']:
         print('::warning::Bronrun niet geslaagd: ' + json.dumps(failure), flush=True)
+    for missing in report['missing']:
+        print('::warning::Bronrun ontbreekt: '+missing+'; alleen beschikbare selecties worden verwerkt',flush=True)
     import psycopg2
     from psycopg2.extras import Json
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:

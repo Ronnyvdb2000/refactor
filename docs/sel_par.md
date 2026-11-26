@@ -44,7 +44,7 @@ Rekenfuncties en historische onderhoudsfuncties blijven beschikbaar voor tests;
 ze worden niet meer als productiebuilders uitgevoerd. Technische backfill leest
 en schrijft voortaan de `tech_`-kolommen in `sel_par`.
 
-De twee dagelijkse scorers volgen een geslaagde `sel_par`-workflow en downloaden
+De dagelijkse scorers en `a_par_model` volgen een geslaagde `sel_par`-workflow en downloaden
 het manifest van exact die bronrun. Hun bestaande score- en modeluitvoertabellen
 blijven behouden. Losstaande trainings- en analyseworkflows gebruiken eveneens
 de centrale invoer, maar behouden hun bestaande kalenderplanning.
@@ -97,3 +97,19 @@ De bestaande tabellen `sel_par`, `selecties_onderzoek_strategie_bron` en
 installeert de seedfunctie en de extra herkomstkolommen. De eerdere kopieerfunctie
 `ververs_sel_par` wordt niet meer door de workflow gebruikt. De productieomgeving
 `fantasie` is gemigreerd; de SQL in git is de reproduceerbare definitie.
+
+## Herstel en vrijgave
+
+Ontbrekende geplande bronruns blijven als waarschuwing in het rapport staan. Na
+de ingestelde wachttijd verwerkt de keten beschikbare selecties; actieve bronruns
+van deze cyclus blijven blokkeren. Een handmatige succesvolle scan kan een
+planningsslot invullen. Scans van de volgende cyclus blokkeren deze batch niet.
+Bij handmatig herstel kan `source_wait_minutes=0` worden gebruikt.
+
+NumPy-getallen worden vóór databaseopslag naar gewone Python-getallen omgezet.
+Ontbrekende historie en verdachte splitlabels worden per aandeel/rij gemarkeerd,
+zonder goede kenmerken terug te draaien. Opslagfouten, providerstops en resterend
+werk blokkeren de vrijgave. Zowel het recente venster als de nieuwste selectiedatum
+moeten minimaal 80% correct gedateerde technische snapshots bevatten.
+`a_par_model` controleert het manifest van exact de geslaagde bronrun en gebruikt
+geen selecties na de bevestigde peildatum. De maximale data-leeftijd blijft vijf dagen.

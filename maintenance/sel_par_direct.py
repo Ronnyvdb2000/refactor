@@ -4,6 +4,7 @@ import math
 import time
 
 import pandas as pd
+import numpy as np
 
 HORIZONS = (5, 10, 20, 30, 60)
 TECH = ('atr14 atr14_pct rsi14 ibs ma50 ma200 pct_from_ma50 pct_from_ma200 '
@@ -12,6 +13,23 @@ TECH = ('atr14 atr14_pct rsi14 ibs ma50 ma200 pct_from_ma50 pct_from_ma200 '
         'dagen_sinds_low52w vol_ratio_50d ema8 ema20 pct_from_ema8 pct_from_ema20 '
         'ema8_minus_ema20').split()
 REQUIRED = TECH[:11]
+
+
+class DataUnavailable(ValueError):
+    """A source instrument has no usable history; not a database/system failure."""
+
+
+class LabelReview(ValueError):
+    """Preserve existing targets and flag their split basis for review."""
+
+
+def database_value(value):
+    """psycopg2 must receive native values, never NumPy 2 scalar reprs."""
+    if isinstance(value,np.generic):
+        value=value.item()
+    if isinstance(value,float) and not math.isfinite(value):
+        return None
+    return value
 
 
 def finite(value):
@@ -35,7 +53,7 @@ def closed_history(history, cutoff):
     out = history.copy()
     out.index = pd.to_datetime(out.index).tz_localize(None).normalize()
     if out.index.has_duplicates or out.index.hasnans:
-        raise ValueError('Dubbele of ongeldige koersdatums')
+        raise DataUnavailable('Dubbele of ongeldige koersdatums')
     out = out.sort_index()
     return out.loc[out.index <= pd.Timestamp(cutoff)]
 
@@ -54,17 +72,17 @@ def labels(history, row, cutoff):
     # convention and stop on suspect unit changes rather than guess a correction.
     splits = hist.get('Stock Splits', pd.Series(0.0, index=hist.index))
     subsequent = pd.to_numeric(splits.iloc[pos+1:], errors='coerce')
-    factor = subsequent.loc[subsequent > 0].prod()
+    factor = float(subsequent.loc[subsequent > 0].prod())
     if not math.isfinite(factor) or factor <= 0:
         return {}, {}
     basis = entry / factor
     existing_basis = finite(row.get('rendement_basis_koers'))
     if existing_basis is None and factor != 1 and any(row.get(f'koers_{h}d') is not None for h in HORIZONS):
-        raise ValueError('Gekopieerde labels met onbekende splitbasis vereisen controle')
+        raise LabelReview('Gekopieerde labels met onbekende splitbasis vereisen controle')
     # A later split changes the scale of downloaded history. Never mix that new
     # scale with earlier stored targets; flag for explicit review instead.
     if existing_basis and not math.isclose(existing_basis, basis, rel_tol=1e-6):
-        raise ValueError('Splitbasis gewijzigd; bestaande labels vereisen controle')
+        raise LabelReview('Splitbasis gewijzigd; bestaande labels vereisen controle')
     values, dates = {}, {}
     for h in HORIZONS:
         if row.get(f'koers_{h}d') is not None and row.get(f'rendement_{h}d_pct') is not None:
@@ -125,14 +143,14 @@ def update_row(conn, row, values, dates=None, status=None):
             assignments.append(sql.SQL('{0}=COALESCE({0},%s)').format(sql.Identifier(key)))
         else:
             assignments.append(sql.SQL('{}=%s').format(sql.Identifier(key)))
-        args.append(value)
+        args.append(database_value(value))
     if dates:
         assignments.append(sql.SQL('koersdatums=koersdatums || %s'))
         args.append(Json(dates))
     if status:
         assignments.append(sql.SQL('verrijking_status=verrijking_status || %s'))
         args.append(Json(status))
-    args.extend([row['ticker'], row['datum']])
+    args.extend([database_value(row['ticker']), database_value(row['datum'])])
     with conn.cursor() as cur:
         cur.execute(sql.SQL('UPDATE public.sel_par SET {} WHERE ticker=%s AND datum=%s')
                     .format(sql.SQL(',').join(assignments)), args)
@@ -159,7 +177,7 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
     for row in rows:
         grouped.setdefault(row['ticker'], []).append(dict(row))
     report = dict(tickers_pending=len(grouped), tickers_processed=0, technical_rows=0,
-                  fundamental_rows=0, label_rows=0, errors=[], deferred=0)
+                  fundamental_rows=0, label_rows=0, errors=[], review=[], deferred=0)
     if not grouped:
         report['complete_execution'] = True
         return report
@@ -180,11 +198,11 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
         changed = dict(technical_rows=0, fundamental_rows=0, label_rows=0)
         try:
             if '/' in ticker:
-                raise ValueError('Ongeldig symbool')
+                raise DataUnavailable('Pairsymbool: geen afzonderlijk aandeel')
             with stop_on_throttle():
                 hist = yf.Ticker(ticker).history(start=start,end=end,auto_adjust=False,timeout=20)
             if hist is None or hist.empty:
-                raise ValueError('Geen koershistorie')
+                raise DataUnavailable('Geen koershistorie')
             hist = closed_history(hist, cutoff)
             adjusted = hist.copy()
             if 'Adj Close' in hist:
@@ -211,7 +229,14 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
                         values.update(fundamental_values(fund,row['datum'],observed))
                         changed['fundamental_rows'] += 1
                     status['fundamentals'] = fund_status
-                newlabels, dates = labels(hist, row, cutoff)
+                try:
+                    newlabels, dates = labels(hist, row, cutoff)
+                except LabelReview as exc:
+                    # A historical target requiring review must not roll back valid
+                    # technical/fundamental snapshots or unrelated stocks.
+                    newlabels, dates = {}, {}
+                    status['labels_review'] = str(exc)
+                    report['review'].append({'ticker':ticker,'datum':row['datum'],'reason':str(exc)})
                 values.update(newlabels)
                 changed['label_rows'] += bool(newlabels)
                 update_row(conn,row,values,dates,status)
@@ -222,6 +247,13 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
             conn.rollback()
             report['errors'].append({'ticker':ticker,'reason':'providerstop'})
             break
+        except DataUnavailable as exc:
+            conn.rollback()
+            report['review'].append({'ticker':ticker,'reason':str(exc)})
+            for row in selections:
+                update_row(conn,row,{},status={'data_review':str(exc),
+                           'geprobeerd_op':datetime.now(timezone.utc).isoformat()})
+            conn.commit()
         except Exception as exc:
             conn.rollback()
             report['errors'].append({'ticker':ticker,'reason':str(exc)[:180]})
@@ -242,14 +274,25 @@ def publish_input_manifest(conn, cutoff):
     columns=','.join('tech_'+name for name in REQUIRED)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute('SELECT ticker,datum,coalesce(tech_koersdatum::text,datum) bar_datum,'+
-                    columns+' FROM public.sel_par WHERE selectiedatum BETWEEN %s AND %s',
+                    columns+" FROM public.sel_par WHERE position('/' in ticker)=0 "
+                    'AND selectiedatum BETWEEN %s AND %s',
                     (cutoff-timedelta(days=3),cutoff))
         rows=cur.fetchall()
     diagnosis=[]
+    coverage={}
     for row in rows:
         ready=all(finite(row['tech_'+key]) is not None for key in REQUIRED)
         ready=ready and str(technical_day(row['datum']).date())==row['bar_datum']
         diagnosis.append(dict(status='geschreven' if ready else 'ontbreekt',
                               koersdatum=row['bar_datum']))
+        counts=coverage.setdefault(row['datum'],[0,0])
+        counts[0]+=int(ready)
+        counts[1]+=1
+    if not coverage:
+        raise ValueError('Geen recente selecties voor vrijgave van sel_par')
+    latest=max(coverage)
+    good,total=coverage[latest]
+    if good/total < .80:
+        raise ValueError(f'Nieuwste selectiedatum {latest}: slechts {good}/{total} bruikbare technische snapshots; geen vrijgave')
     os.environ['FEATURE_SELECTION_CUTOFF']=cutoff.isoformat()
     write_feature_manifest(diagnosis,.80)
