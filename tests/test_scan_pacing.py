@@ -30,7 +30,7 @@ def test_dipscan_visits_every_batch_and_only_waits_between_batches():
     with patch.multiple(vol, bouw_bestandslijst_a=MagicMock(return_value=['a']),
         load_tickers_from_file=MagicMock(return_value=tickers), BATCH_SIZE=50, BATCH_PAUSE_SEC=5,
         download_batch=MagicMock(side_effect=fetch), evaluate_history=MagicMock(return_value=(False, None)),
-        send_email=MagicMock(return_value=True), send_telegram=MagicMock(return_value=True)), patch.object(vol, 'pause') as pause, \
+        send_email=MagicMock(return_value=True)), patch.object(vol, 'pause') as pause, \
         contextlib.redirect_stdout(io.StringIO()):
         vol.run_live()
         visited = [t for call in vol.download_batch.call_args_list for t in call.args[0]]

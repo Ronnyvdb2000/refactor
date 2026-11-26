@@ -252,7 +252,7 @@ class Tests(unittest.TestCase):
             b.run_engine('full')
             self.assertIn(30, [c.args[0] for c in sleep.call_args_list])
 
-    def test_workflows_keep_services_and_telegram_enabled(self):
+    def test_workflows_keep_email_and_database_without_telegram_secrets(self):
         from pathlib import Path
         import yaml
         for name,mode in [('run_01beurssign.yml','live'),('run_01beurssignfull.yml','full')]:
@@ -265,7 +265,8 @@ class Tests(unittest.TestCase):
             preflight = [step for step in job['steps'] if step.get('name') == 'Controleer Yahoo-repair dependency']
             self.assertEqual(preflight[0]['run'], 'python -c "from sklearn.cluster import DBSCAN"')
 
-            self.assertEqual(env['TELEGRAM_TOKEN'], '${{ secrets.TELEGRAM_TOKEN }}')
+            self.assertNotIn('TELEGRAM_TOKEN', env)
+            self.assertNotIn('TELEGRAM_CHAT_ID', env)
             self.assertEqual(step['run'],f'python -m strats.bot_01beurssign {mode}')
             self.assertFalse(doc['concurrency']['cancel-in-progress'])
 

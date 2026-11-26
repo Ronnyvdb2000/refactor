@@ -184,13 +184,15 @@ class Tests(unittest.TestCase):
         db,_,_,error=self.run_bot(mode='full');self.assertIsNone(error)
         self.assertEqual(db.call_args.kwargs['strategie'],'bot_01hoogl_full')
 
-    def test_workflow_services_and_modes(self):
+    def test_workflow_services_and_modes_without_telegram_secrets(self):
         import yaml
         for filename,mode in [('run_01hoogl.yml','live'),('run_01hoogl_full.yml','full')]:
             doc=yaml.safe_load((Path(__file__).resolve().parents[1]/'.github/workflows'/filename).read_text())
             job=next(iter(doc['jobs'].values()));step=job['steps'][-1]
             self.assertEqual(step['run'],f'python -m strats.bot_01hoogl {mode}')
             self.assertIn('SUPABASE_DB_URL',step['env']);self.assertIn('EMAIL_PASS',step['env'])
-            self.assertEqual(step['env']['TELEGRAM_TOKEN'], '${{ secrets.TELEGRAM_TOKEN }}');self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
+            self.assertNotIn('TELEGRAM_TOKEN', step['env'])
+            self.assertNotIn('TELEGRAM_CHAT_ID', step['env'])
+            self.assertEqual(step['env']['PYTHONUNBUFFERED'],'1')
 
 if __name__=='__main__':unittest.main()
