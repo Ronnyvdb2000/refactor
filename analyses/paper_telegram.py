@@ -10,7 +10,7 @@ import os
 import requests
 from psycopg2.extras import RealDictCursor
 
-TRIAL = 'paper_10d_usd_v1'
+from analyses.paper_trial import TRIAL
 LABELS = {'equal_universe': 'Gelijkgewogen kandidaten', 'benchmark': 'SPY',
           'a_par:a_par_model_v1': 'A Parameter-model'}
 
@@ -59,6 +59,9 @@ def milestones(protocol, batches, nav):
                 equity = number(row['equity'])
                 peak = max(peak, equity)
                 worst = min(worst, 100*(equity/peak-1))
+            allocation = result.get('allocations', {}).get(book)
+            if allocation:
+                lines.append(f"{LABELS.get(book,book)}: {allocation['purchased']}/{allocation['planned']} aandelen; belegd ${allocation['invested_budget']:,.0f}")
             lines.extend(['', LABELS.get(book, book),
                           f"Netto periode: {period[book]:+.2f}%",
                           f"Cumulatief: {100*(ending[book]/protocol['initial_cash']-1):+.2f}%",
@@ -66,6 +69,8 @@ def milestones(protocol, batches, nav):
             if book not in ('equal_universe', 'benchmark'):
                 lines.extend([f"Verschil periode vs kandidaten: {period[book]-period['equal_universe']:+.2f} procentpunt",
                               f"Verschil periode vs SPY: {period[book]-period['benchmark']:+.2f} procentpunt"])
+        if result.get('skipped_entries'):
+            lines.append('Overgeslagen bij instap: '+', '.join(sorted(result['skipped_entries'])))
         lines.extend(['', f"Kosten per zijde: {protocol['commission_bps']} bp commissie + {protocol['slippage_bps']} bp koersafwijking.",
                       'Virtuele resultaten onder vaste aannames. Rendement is nog niet bewezen.'])
         events.append((f"closed:{batch['id']}", batch['id'], '\n'.join(lines)))

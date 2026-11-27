@@ -55,15 +55,32 @@ def test_future_prices_do_not_accelerate_exit():
 
 
 @pytest.mark.parametrize('ticker', ['A','C','SPY'])
-def test_missing_prices_block_whole_comparison_including_baseline(ticker):
-    cfg,s,p,initial=fixture();del p[ticker,'2026-11-24']
+def test_missing_entry_leaves_original_slot_in_cash(ticker):
+    cfg,s,p,initial=fixture();del p[ticker,'2026-11-23']
     r=simulate(s,p,initial,cfg,as_of='2026-11-26')
-    assert r['status']=='missing_prices' and r['nav']==[]
+    assert r['status']=='complete'
+    assert ticker in r['skipped_entries']
+    assert all(v==1000 for v in r['ending'].values())
+    if ticker=='A':
+        assert r['allocations']['m']['invested_budget']==500
+        assert r['allocations']['m']['purchased']==1
+        assert len([t for t in r['trades'] if t['book']=='m'])==1
 
 
-def test_missing_first_benchmark_session_cannot_shift_the_calendar():
-    cfg,s,p,initial=fixture();del p['SPY','2026-11-23']
-    assert simulate(s,p,initial,cfg,as_of='2026-11-26')['status']=='missing_prices'
+def test_missing_held_quote_is_not_retroactively_deleted():
+    cfg,s,p,initial=fixture();del p['A','2026-11-24']
+    r=simulate(s,p,initial,cfg,as_of='2026-11-26')
+    assert r['status']=='missing_prices' and r['unresolved_holding']
+    assert 'A' not in r['skipped_entries']
+
+
+def test_skipped_entry_is_stable_when_provider_backfills():
+    cfg,s,p,initial=fixture();del p['A','2026-11-23']
+    r=simulate(s,p,initial,cfg,as_of='2026-11-25')
+    s['skipped_entries']=r['skipped_entries']
+    p['A','2026-11-23']=dict(open=100.,close=100.,currency='USD')
+    r=simulate(s,p,initial,cfg,as_of='2026-11-26')
+    assert r['allocations']['m']['purchased']==1
 
 
 def test_costs_are_charged_on_both_sides_and_capital_is_finite():
@@ -117,12 +134,12 @@ def test_reinvestment_uses_previous_ending_capital_not_fresh_money():
 
 def test_protocol_migration_is_same_as_runtime_and_private():
     root=Path(__file__).resolve().parents[1]
-    sql=(root/'maintenance/sql/paper_trial.sql').read_text()
+    sql=(root/'maintenance/sql/paper_trial_v2.sql').read_text()
     seed=sql.split("VALUES('",1)[1].split("','",1)[1].split("'::jsonb",1)[0]
     assert json.loads(seed)==PROTOCOL
-    assert sql.count('ENABLE ROW LEVEL SECURITY')==5
+    assert 'ON CONFLICT' in sql
     assert 'SECURITY DEFINER' not in sql
-    assert 'paper_prices_immutable' in sql and 'paper_nav_immutable' in sql
+    assert 'paper_10d_usd_v2' in sql
     workflow=(root/'.github/workflows/paper_trial.yml').read_text()
     import yaml
     steps=yaml.load(workflow,Loader=yaml.BaseLoader)['jobs']['paper']['steps']

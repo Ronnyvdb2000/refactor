@@ -62,16 +62,18 @@ def test_insufficient_universe_does_not_select_using_available_outcomes(monkeypa
     assert all(r['reason']=='insufficient_US_universe' for r in result['skipped'])
 
 
-def test_missing_baseline_stops_all_compounding():
+def test_missing_baseline_keeps_cash_and_completes():
     snapshot=dict(selection_date='2026-11-01',decided_at='2026-11-02T06:00:00+00:00',
                   sessions=['2026-11-03','2026-11-04','2026-11-05','2026-11-06','2026-11-09',
                             '2026-11-10','2026-11-11','2026-11-12','2026-11-13','2026-11-16'],
                   universe=['A','B'],books={'a_par:a_par_model_v1':['A'],'equal_universe':['A','B'],'benchmark':['SPY']})
     saved={t:dict(currency='USD',bars=[dict(day=d,open=100.,close=110.) for d in snapshot['sessions']]) for t in ['A','SPY']}
-    r=bt.evaluate([snapshot,snapshot],saved,date(2026,11,20))
-    assert len(r['periods'])==1 and r['closed_batches']==0
-    assert r['stopped_at']=='missing_prices'
-    assert r['books']=={} and not r['profitability_proven']
+    r=bt.evaluate([snapshot],saved,date(2026,11,20))
+    assert len(r['periods'])==1 and r['closed_batches']==1
+    assert r['stopped_at']=='complete'
+    assert 'B' in r['periods'][0]['skipped_entries']
+    assert r['periods'][0]['allocations']['equal_universe']['invested_budget']==50000
+    assert r['books'] and not r['profitability_proven']
 
 
 def test_backtest_workflow_and_storage_are_separate_from_live_paper():
@@ -82,7 +84,7 @@ def test_backtest_workflow_and_storage_are_separate_from_live_paper():
     assert 'model.main(' not in source
     assert 'auto_adjust=True' in source
     workflow=(root/'.github/workflows/backtest_parameter.yml').read_text()
-    assert 'TELEGRAM' not in workflow and 'schedule:' not in workflow
+    assert 'python -m analyses.backtest_telegram' in workflow and 'schedule:' not in workflow
     assert "ON CONFLICT" not in (root/'maintenance/sql/research_backtests.sql').read_text()
 
 

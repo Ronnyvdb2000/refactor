@@ -2,8 +2,14 @@ name: Backtest A Parameter-model - historische reconstructie
 on:
   push:
     branches: [main]
-    paths: ['analyses/backtest_parameter.py', '.github/workflows/backtest_parameter.yml']
+    paths: ['analyses/backtest_parameter.py', 'analyses/backtest_replay.py', 'analyses/backtest_telegram.py', 'maintenance/sql/backtest_notices.sql', '.github/workflows/backtest_parameter.yml']
   workflow_dispatch:
+    inputs:
+      source:
+        description: 'cached: herbereken vastgelegde selecties/koersen; fresh: haal nieuwe data op'
+        type: choice
+        default: cached
+        options: [cached, fresh]
 permissions:
   contents: read
 concurrency:
@@ -28,6 +34,15 @@ jobs:
           python-version: '3.11'
       - run: python -m pip install -r requirements-paper.txt
       - name: Herbereken selecties en historische virtuele portefeuilles
+        id: backtest
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKTEST_SOURCE: ${{ inputs.source || 'cached' }}
         run: python -m analyses.backtest_parameter
+      - name: Verstuur backtestresultaat via Telegram
+        if: ${{ !cancelled() && (steps.backtest.outcome == 'success' || steps.backtest.outcome == 'failure') }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m analyses.backtest_telegram

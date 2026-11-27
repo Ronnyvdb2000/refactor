@@ -10,13 +10,14 @@ import uuid
 
 from psycopg2.extras import Json, RealDictCursor, execute_values
 
-PROTOCOL = dict(version=1, horizon=10, top_n=10, initial_cash=100000.0,
+PROTOCOL = dict(version=2, horizon=10, top_n=10, initial_cash=100000.0,
                 currency='USD', benchmark='SPY', commission_bps=5, slippage_bps=10,
                 max_prediction_age_days=3, minimum_closed_batches=12,
                 models=[dict(model='a_par', version='a_par_model_v1')],
                 execution='next_session_after_snapshot_utc_date',
                 rebalance='nonoverlapping_10_sessions', fractional_shares=True,
                 split_policy='block_entire_batch_for_review',
+                missing_entry_policy='skip_fixed_slot_to_cash',
                 dividend_policy='gross_ex_date_cash_proxy_no_tax_or_payment_lag',
                 benchmark_policy='SPY_same_entry_exit_and_costs_not_continuous_buy_hold',
                 evidence='descriptive_only_no_automatic_promotion',
@@ -28,7 +29,7 @@ from common.model_archive import implementation_hash
 
 PROTOCOL['implementation_hash'] = implementation_hash()
 PROTOCOL['engine_hash'] = hashlib.sha256(__import__('pathlib').Path(__file__).read_bytes()).hexdigest()
-TRIAL = 'paper_10d_usd_v1'
+TRIAL = 'paper_10d_usd_v2'
 
 
 def digest(value):
@@ -60,7 +61,8 @@ def plan(candidates, models, top_n):
 def simulate(snapshot, prices, initial, config=PROTOCOL, as_of=None):
     """One shared capital pool per book, no new basket until the prior one closes.
 
-    Missing quotes block the whole matched batch. Splits require review rather
+    Missing entry quotes leave their original slot in cash. Quotes missing after
+    purchase remain unresolved holdings. Splits require review rather
     than silently mixing Yahoo's split-adjusted history with frozen real prices.
     """
     as_of = as_of or datetime.now(timezone.utc).date().isoformat()
@@ -71,14 +73,22 @@ def simulate(snapshot, prices, initial, config=PROTOCOL, as_of=None):
         return dict(status='corporate_action_review', nav=[], ending=initial)
     if not calendar:
         return dict(status='pending', nav=[], ending=initial)
+    skipped = dict(snapshot.get('skipped_entries', {}))
     tickers = set(t for book in snapshot['books'].values() for t in book)
+    for t in sorted(tickers):
+        bar = prices.get((t, calendar[0]))
+        if (not bar or bar.get('currency') != 'USD' or not positive(bar.get('open'))
+                or not positive(bar.get('close'))):
+            skipped.setdefault(t, dict(day=calendar[0], reason='missing_entry_price'))
+    active = tickers - set(skipped)
     for d in calendar:
-        for t in tickers:
+        for t in active:
             bar = prices.get((t, d))
             if (not bar or bar.get('currency') != 'USD' or not positive(bar.get('open'))
                     or not positive(bar.get('close')) or not math.isfinite(bar.get('dividend', float('nan')))
                     or bar['dividend'] < 0):
-                return dict(status='missing_prices', ticker=t, day=d, nav=[], ending=initial)
+                return dict(status='missing_prices', ticker=t, day=d, nav=[], ending=initial,
+                            skipped_entries=skipped, unresolved_holding=True)
             if bar.get('split', 0) != 0:
                 return dict(status='corporate_action_review', ticker=t, day=d, nav=[], ending=initial)
     fee = config['commission_bps'] / 10000
@@ -86,10 +96,12 @@ def simulate(snapshot, prices, initial, config=PROTOCOL, as_of=None):
     nav, ending, trades = [], {}, []
     complete = len(calendar) == config['horizon']
     for book, members in snapshot['books'].items():
+        planned_members = members
+        members = [t for t in members if t not in skipped]
         capital = initial[book]
-        if not positive(capital) or len(members) != len(set(members)) or not members:
+        if not positive(capital) or len(planned_members) != len(set(planned_members)) or not planned_members:
             raise ValueError('Ongeldig kapitaal of mandje')
-        slot = capital / (config['top_n'] if book not in ('equal_universe', 'benchmark') else len(members))
+        slot = capital / (config['top_n'] if book not in ('equal_universe', 'benchmark') else len(planned_members))
         if slot > capital + 1e-8:
             raise ValueError('Meer kapitaal gevraagd dan beschikbaar')
         quantities, buy_cost, turnover = {}, {}, 0.0
@@ -126,7 +138,11 @@ def simulate(snapshot, prices, initial, config=PROTOCOL, as_of=None):
             for t in trades_for_book:
                 t['turnover_notional_book'] = turnover
     return dict(status='complete' if complete else 'open', nav=nav, ending=ending,
-                entry=calendar[0], exit=calendar[-1] if complete else None, trades=trades)
+                entry=calendar[0], exit=calendar[-1] if complete else None, trades=trades,
+                skipped_entries=skipped, allocations={book: dict(planned=len(members),
+                    purchased=sum(t not in skipped for t in members),
+                    invested_budget=initial[book] / (config['top_n'] if book not in ('equal_universe','benchmark') else len(members)) * sum(t not in skipped for t in members))
+                    for book,members in snapshot['books'].items()})
 
 
 def metrics(nav, trades, initial_cash, closed_batches, minimum=12):
@@ -227,7 +243,10 @@ def freeze_batch(conn, trial, now, fetch=provider):
     for t in tickers:
         currency = None
         if re.fullmatch(r'[A-Z][A-Z0-9-]{0,11}', t):
-            _, currency = fetch(t, (now.date()-timedelta(days=5)).isoformat(), now.date().isoformat())
+            try:
+                _, currency = fetch(t, (now.date()-timedelta(days=5)).isoformat(), now.date().isoformat())
+            except Exception:
+                currency = None
         eligibility[t] = currency
     for rows in candidates.values():
         for r in rows:
@@ -258,7 +277,10 @@ def refresh_prices(conn, batch, now, fetch=provider):
     start = datetime.fromisoformat(snapshot['decided_at']).date()
     tickers = sorted({t for v in snapshot['books'].values() for t in v})
     for t in tickers:
-        bars, currency = fetch(t, start.isoformat(), now.date().isoformat())
+        try:
+            bars, currency = fetch(t, start.isoformat(), now.date().isoformat())
+        except Exception:
+            continue  # One unavailable symbol must not prevent refreshing the others.
         if currency != 'USD' or bars is None or bars.empty:
             continue
         values = []
@@ -305,7 +327,8 @@ def run(conn, now=None, fetch=provider):
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute('SELECT * FROM public.paper_prices WHERE batch_id=%s', (batch['id'],))
                 prices = {(r['ticker'], str(r['day'])):dict(r) for r in cur.fetchall()}
-            value = simulate(batch['snapshot'], prices, capital, as_of=now.date())
+            snapshot = {**batch['snapshot'], 'skipped_entries': batch['result'].get('skipped_entries', {})}
+            value = simulate(snapshot, prices, capital, as_of=now.date())
             with conn.cursor() as cur:
                 cur.execute('UPDATE public.paper_batches SET status=%s,result=%s WHERE id=%s',
                             (value['status'], Json(value), batch['id']))
@@ -349,8 +372,7 @@ def main():
     if summary:
         with open(summary, 'a') as f:
             f.write('## Vaste paperproef 10d\n\n```json\n'+json.dumps(report, indent=2)+'\n```\n')
-    if report['active_status'] in ('missing_prices','corporate_action_review'):
-        raise SystemExit('Vergelijking geblokkeerd; geen ontbrekende aandelen weggelaten')
+    # Missing held-position quotes are reported and retried without failing the workflow.
 
 
 if __name__ == '__main__':
