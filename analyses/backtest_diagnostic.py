@@ -13,11 +13,11 @@ from psycopg2.extras import Json, RealDictCursor
 from analyses.backtest_parameter import evaluate
 
 
-def selected_market_view(plans, cache, as_of):
+def selected_market_view(plans, cache, as_of, horizon=10):
     limited=deepcopy(plans)
     for p in limited:
         p['books']={k:v for k,v in p['books'].items() if k!='equal_universe'}
-    result=evaluate(limited,cache,as_of)
+    result=evaluate(limited,cache,as_of,horizon)
     result['evidence_status']=result.pop('status')
     result.update(comparison_scope='historical_model_vs_SPY_only',
                   equal_universe_comparison='unavailable_in_this_view',
@@ -32,14 +32,14 @@ def run(conn, key=None):
         if key:
             cur.execute(query+' WHERE run_key=%s',(key,))
         else:
-            cur.execute(query+' ORDER BY created_at DESC LIMIT 1')
+            cur.execute(query+" WHERE config->>'horizon'='10' ORDER BY created_at DESC LIMIT 1")
         row=cur.fetchone()
         if not row or not row['plans']:
             raise ValueError('Nog geen vastgelegde historische selecties')
         tickers=sorted({t for p in row['plans'] for k,book in p['books'].items() if k!='equal_universe' for t in book})
         cur.execute('SELECT ticker,data FROM public.research_backtest_cache WHERE run_key=%s AND ticker=ANY(%s)', (row['run_key'],tickers))
         cache={r['ticker']:r['data'] for r in cur.fetchall()}
-    result=selected_market_view(row['plans'],cache,row['config']['as_of'])
+    result=selected_market_view(row['plans'],cache,row['config']['as_of'],row['config']['horizon'])
     result.update(parent_run=row['run_key'],source_sha=os.getenv('GITHUB_SHA'),
                   diagnostic_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                   limitations=row['config']['limitations'])

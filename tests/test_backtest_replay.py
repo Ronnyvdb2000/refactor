@@ -18,7 +18,7 @@ def test_replay_uses_exact_frozen_ranking_and_cache_without_provider_or_training
     conn=MagicMock();cur=conn.cursor.return_value.__enter__.return_value
     cur.fetchone.side_effect=[{'locked':True},parent,None]
     cur.fetchall.return_value=[dict(ticker='A',data={'bars':[]})]
-    def evaluate(plans,cache,as_of):
+    def evaluate(plans,cache,as_of,horizon=10):
         assert plans==parent['selection_snapshot']['plans'] and cache=={'A':{'bars':[]}}
         assert as_of=='2026-11-27'
         return dict(status='insufficient_history',closed_batches=1,planned_batches=1,stopped_at='complete')

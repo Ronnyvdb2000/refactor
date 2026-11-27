@@ -18,6 +18,14 @@ concurrency:
   queue: max
 jobs:
   backtest:
+    name: Backtest ${{ matrix.horizon }} handelsdagen
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        horizon: [5, 10, 20, 30, 60]
+    env:
+      BACKTEST_HORIZON: ${{ matrix.horizon }}
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 55

@@ -6,6 +6,7 @@ from pathlib import Path
 from psycopg2.extras import RealDictCursor
 
 from analyses.paper_telegram import deliver, number, LABELS
+from common.horizons import horizon_days
 
 
 def message(row):
@@ -18,7 +19,11 @@ def message(row):
     if result.get('data_start'):
         lines.append(f"Selectiedata: {result['data_start']} t/m {result.get('data_end', '?')}")
     if result.get('parent_run'):
-        lines.append(f"Herberekening van vastgelegde selecties en koersen t/m {config['as_of']}; geen nieuwe koersophaling.")
+        selection = ('Nieuwe walk-forwardselecties voor deze horizon op bewaarde brondata' if result.get('selection_changed')
+                     else 'Herberekening van vastgelegde selecties')
+        lines.append(f"{selection}; koersen t/m {config['as_of']}; geen nieuwe koersophaling.")
+    if result.get('valuation_start'):
+        lines.append(f"Werkelijke beleggingsperiode: {result['valuation_start']} t/m {result['valuation_end']}")
     for book, value in result.get('books', {}).items():
         lines.extend(['', LABELS.get(book, book),
                       f"Netto rendement incl. cash: {number(value['net_return_pct']):+.2f}%",
@@ -40,6 +45,8 @@ def message(row):
             lines.append(', '.join(excluded[:20]) + (' …' if len(excluded) > 20 else ''))
     if not result.get('books'):
         lines.append('Nog geen berekend rendement; deze melding bevestigt alleen de voortgang.')
+    if row['status']=='insufficient_history':
+        lines.append('Te weinig bruikbare trainingshistorie voor deze horizon; geen geldige backtestselecties.')
     if row['status'] != 'complete':
         lines.append('Onvolledige run: bovenstaande cijfers zijn tussentijds.')
     lines.extend(['', 'Historisch onderzoek; geen echte aankopen. Rendement is nog niet bewezen.',
@@ -96,7 +103,8 @@ def notify(conn, key, token, chat_id, sender=deliver):
 
 def main():
     import psycopg2
-    key = os.getenv('BACKTEST_RUN_KEY') or 'a_par_10d:' + os.environ['GITHUB_RUN_ID']
+    horizon=horizon_days(os.getenv('BACKTEST_HORIZON','10'))
+    key = os.getenv('BACKTEST_RUN_KEY') or f'a_par_{horizon}d:' + os.environ['GITHUB_RUN_ID']
     token, chat = os.getenv('TELEGRAM_TOKEN', ''), os.getenv('TELEGRAM_CHAT_ID', '')
     if not token or not chat:
         raise SystemExit('Telegraminstellingen ontbreken; backtestresultaten blijven in Supabase')
