@@ -145,9 +145,12 @@ def reconstruct_targets(frame, metadata, quotes, horizon=10):
     return work,info
 
 
-def evaluate(plans, saved, as_of, horizon=10):
+def evaluate(plans, saved, as_of, horizon=10, model_books=None):
     horizon=horizon_days(horizon)
-    names=['a_par:a_par_model_v1','equal_universe','benchmark']
+    if model_books is None:
+        model_books=([name for name in plans[0]['books'] if name not in ('equal_universe','benchmark')]
+                     if plans else ['a_par:a_par_model_v1'])
+    names=[*model_books,'equal_universe','benchmark']
     capital=dict.fromkeys(names,100000.)
     nav=[];trades=[];periods=[];closed=0
     config={**PROTOCOL,'horizon':horizon,'top_n':10,'commission_bps':5,'slippage_bps':10}
@@ -168,7 +171,8 @@ def evaluate(plans, saved, as_of, horizon=10):
         value=simulate(snapshot,prices,capital,config,as_of=as_of)
         periods.append(dict(selection_date=snapshot['selection_date'],planned_entry=snapshot['sessions'][0],
                             planned_exit=snapshot['sessions'][-1],universe=len(snapshot['universe']),
-                            top=snapshot['books']['a_par:a_par_model_v1'],status=value['status'],
+                            top=snapshot['books'][model_books[0]],status=value['status'],
+                            tops={name:snapshot['books'][name] for name in model_books},
                             skipped_entries=value.get('skipped_entries',{}),
                             allocations=value.get('allocations',{}),
                             starting_capital=capital,ending=value['ending']))

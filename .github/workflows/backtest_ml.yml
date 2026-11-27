@@ -1,0 +1,46 @@
+name: Backtest ML-modellen - gematchte historische vergelijking
+on:
+  push:
+    branches: [main]
+    paths: ['analyses/backtest_ml.py', '.github/workflows/backtest_ml.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: matched-historical-ml-backtest
+  cancel-in-progress: false
+  queue: max
+jobs:
+  comparison:
+    name: ML-vergelijking ${{ matrix.horizon }} handelsdagen
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        horizon: [5, 10, 20, 30, 60]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      BACKTEST_HORIZON: ${{ matrix.horizon }}
+      BACKTEST_RUN_KEY: ml_compare_${{ matrix.horizon }}d:${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-paper.txt -r requirements-catboost.txt xgboost-cpu lightgbm
+      - name: Train uitsluitend op bekende historie en vergelijk dezelfde portefeuilles
+        id: backtest
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m analyses.backtest_ml
+      - name: Verstuur modelvergelijking via Telegram
+        if: ${{ !cancelled() && (steps.backtest.outcome == 'success' || steps.backtest.outcome == 'failure') }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m analyses.backtest_telegram

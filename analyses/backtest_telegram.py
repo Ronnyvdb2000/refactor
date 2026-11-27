@@ -8,6 +8,10 @@ from psycopg2.extras import RealDictCursor
 from analyses.paper_telegram import deliver, number, LABELS
 from common.horizons import horizon_days
 
+LABELS={**LABELS,'xgboostV3:walk_forward_abs':'XGBoost V3 (onderzoek)',
+        'lightgbmV2:walk_forward_abs':'LightGBM V2 (onderzoek)',
+        'catboostV1:walk_forward_abs':'CatBoost V1 (onderzoek)'}
+
 
 def message(row):
     result, config = row['result'], row['config']
@@ -24,6 +28,11 @@ def message(row):
         lines.append(f"{selection}; koersen t/m {config['as_of']}; geen nieuwe koersophaling.")
     if result.get('valuation_start'):
         lines.append(f"Werkelijke beleggingsperiode: {result['valuation_start']} t/m {result['valuation_end']}")
+    if result.get('comparison_scope')=='matched_common_feature_universe':
+        lines.append('Zelfde instapdatums en kandidaten; ML gebruikt 11 technische kenmerken, A Parameter behoudt zijn eigen factoren.')
+        lines.append('ML opnieuw getraind op bekende historie; doel positief rendement. A Parameter hier op hetzelfde universum.')
+        if result.get('skipped_cohorts'):
+            lines.append(f"Overgeslagen instapmomenten wegens onvoldoende bekende invoer: {len(result['skipped_cohorts'])}.")
     for book, value in result.get('books', {}).items():
         lines.extend(['', LABELS.get(book, book),
                       f"Netto rendement incl. cash: {number(value['net_return_pct']):+.2f}%",
