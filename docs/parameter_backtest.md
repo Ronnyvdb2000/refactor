@@ -60,3 +60,18 @@ SELECT run_key,created_at,status,
        result->'quote_errors' AS missing_quotes
 FROM public.research_backtests ORDER BY created_at DESC LIMIT 1;
 ```
+
+## Beperkte diagnose bij ontbrekende kandidatenkoersen
+
+Als de volledige kandidatenbaseline niet te reconstrueren is, kan de
+ongewijzigde top 10 afzonderlijk met SPY worden vergeleken. Dat resultaat staat
+onder result.diagnostic_model_vs_SPY. De oorspronkelijke status en uitkomst van
+de volledige vergelijking blijven behouden. Er worden geen modelposities of
+meetperioden verwijderd. Een ontbrekende koers van een modelpositie blokkeert
+ook deze beperkte vergelijking. Dit is geen gerepareerde kandidatenbaseline
+en geen bewijs dat het model beter kiest dan het hele selectie-universum.
+
+```sql
+SELECT result->'diagnostic_model_vs_SPY' AS limited_comparison
+FROM public.research_backtests ORDER BY created_at DESC LIMIT 1;
+```
