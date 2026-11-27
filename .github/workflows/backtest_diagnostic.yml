@@ -1,0 +1,34 @@
+name: Backtest - beperkte model-SPY vergelijking
+on:
+  push:
+    branches: [main]
+    paths: ['analyses/backtest_diagnostic.py', '.github/workflows/backtest_diagnostic.yml']
+  workflow_run:
+    workflows: ['Backtest A Parameter-model - historische reconstructie']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: historical-backtest-diagnostic
+  cancel-in-progress: false
+  queue: max
+jobs:
+  diagnostic:
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-paper.txt
+      - name: Vergelijk uitsluitend de ongewijzigde modelposities met SPY
+        env:
+          BACKTEST_RUN_KEY: ${{ github.event_name == 'workflow_run' && format('a_par_10d:{0}', github.event.workflow_run.id) || '' }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m analyses.backtest_diagnostic
