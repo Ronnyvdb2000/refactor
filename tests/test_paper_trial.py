@@ -124,7 +124,13 @@ def test_protocol_migration_is_same_as_runtime_and_private():
     assert 'SECURITY DEFINER' not in sql
     assert 'paper_prices_immutable' in sql and 'paper_nav_immutable' in sql
     workflow=(root/'.github/workflows/paper_trial.yml').read_text()
-    assert 'TELEGRAM' not in workflow and 'EMAIL' not in workflow
+    import yaml
+    steps=yaml.load(workflow,Loader=yaml.BaseLoader)['jobs']['paper']['steps']
+    calculate=next(s for s in steps if s.get('run')=='python -m analyses.paper_dispatch')
+    notify=next(s for s in steps if s.get('run')=='python -m analyses.paper_telegram')
+    assert not any(k.startswith('TELEGRAM') for k in calculate.get('env',{}))
+    assert notify['env']['TELEGRAM_TOKEN']=='${{ secrets.TELEGRAM_TOKEN }}'
+    assert 'EMAIL' not in workflow
 
 
 def test_no_forecast_ever_starts_from_before_trial_start():

@@ -1,8 +1,8 @@
 # Vaste prospectieve paperproef: paper_10d_usd_v1
 
 Deze proef is een virtuele portefeuillevergelijking, geen handelsbot en geen
-bewijs van rendement. Er worden geen orders, Telegramberichten of e-mails
-verstuurd. Alleen refactor en zijn bestaande Supabase-database worden gebruikt.
+bewijs van rendement. Er worden geen orders of e-mails verstuurd. Telegram meldt uitsluitend
+de start en afgeronde meetperioden; de berekening verandert daardoor niet. Alleen refactor en zijn bestaande Supabase-database worden gebruikt.
 
 ## Vooraf vastgelegde regels
 
@@ -100,3 +100,25 @@ WHERE trial_id='paper_10d_usd_v1' ORDER BY checked_at DESC LIMIT 1;
 Bij review: corrigeer niet stilzwijgend de snapshots of koershistorie. Onderzoek
 koersgaten/corporate actions, bewaar de blokkade en start zo nodig een gedocumenteerde
 nieuwe proefversie. Bestaande voorspellingen en sel_par blijven behouden.
+
+## Telegrammeldingen
+
+De bestaande TELEGRAM_TOKEN en TELEGRAM_CHAT_ID worden uitsluitend in de
+meldingsstap gebruikt. Eenmalig volgt een startbevestiging; daarna één bericht
+per afgesloten meetperiode met netto perioderendement, cumulatief rendement,
+maximale terugval en verschil met de gelijkgewogen kandidaten en SPY. Geen
+dagelijkse berichten zolang er geen nieuwe afgeronde periode is.
+
+paper_notices is een afzonderlijke private bezorgregistratie. De claim wordt
+vóór de HTTP-aanroep vastgelegd; na bevestiging wordt het Telegram message_id
+bewaard. Reeds verzonden berichten worden overgeslagen. Een expliciete
+API-afwijzing kan bij een volgende geslaagde workflow opnieuw worden geprobeerd.
+Bij timeout, onbekende serverrespons of een crash na de claim is bezorging
+onzeker: controleer Telegram eerst handmatig. Er is geen blinde herhaling en
+geen garantie op exact-eenmaalbezorging tussen PostgreSQL en Telegram.
+
+De berekening en het vastgelegde proefprotocol blijven ongewijzigd. Een
+operationele datumcontrole slaat alleen het ophalen van uitvoeringskoersen over
+zolang de eerste instapsessie nog niet is afgesloten. De meldingsstap kan dan
+wel de startbevestiging versturen. Bij ontbrekende Telegramsecrets of onzekere
+bezorging faalt de meldingsstap zichtbaar; de meetresultaten blijven in Supabase.

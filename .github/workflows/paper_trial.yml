@@ -2,7 +2,7 @@ name: Paperproef 10d - vaste virtuele portefeuille
 on:
   push:
     branches: [main]
-    paths: ['analyses/paper_trial.py', '.github/workflows/paper_trial.yml', 'requirements-paper.txt']
+    paths: ['analyses/paper_trial.py', 'analyses/paper_telegram.py', 'analyses/paper_dispatch.py', '.github/workflows/paper_trial.yml', 'requirements-paper.txt']
   schedule:
     - cron: '30 1 * * *'
   workflow_run:
@@ -36,4 +36,10 @@ jobs:
       - name: Leg beslissing vast en volg virtuele portefeuilles
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python -m analyses.paper_trial
+        run: python -m analyses.paper_dispatch
+      - name: Meld nieuwe meetresultaten via Telegram
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m analyses.paper_telegram
