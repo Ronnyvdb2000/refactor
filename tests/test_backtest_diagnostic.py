@@ -24,8 +24,10 @@ def test_limited_view_keeps_all_model_positions_and_original_full_plan():
     assert not r['profitability_proven']
 
 
-def test_missing_held_stock_is_not_dropped_to_make_view_complete():
+def test_missing_historical_stock_leaves_cash_and_reports_exclusion():
     plans,cache=inputs();del cache['A0']
     r=selected_market_view(plans,cache,'2026-11-20')
-    assert r['closed_batches']==0 and r['stopped_at']=='missing_prices'
-    assert r['books']=={}
+    assert r['closed_batches']==1 and r['stopped_at']=='complete'
+    assert r['periods'][0]['allocations']['a_par:a_par_model_v1']['invested_budget']==90000
+    assert 'A0' in r['periods'][0]['skipped_entries']
+    assert r['coverage_bias']

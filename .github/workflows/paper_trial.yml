@@ -33,6 +33,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install -r requirements-paper.txt
+      - name: Initialiseer afzonderlijk protocol met cashplaatsen
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python - <<'PYTHON'
+          import os
+          from pathlib import Path
+          import psycopg2
+          with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=20) as conn:
+              with conn.cursor() as cur:
+                  cur.execute(Path('maintenance/sql/paper_trial_v2.sql').read_text())
+          PYTHON
       - name: Leg beslissing vast en volg virtuele portefeuilles
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

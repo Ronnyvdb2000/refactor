@@ -1,7 +1,7 @@
 """A limited model-vs-SPY view of FROZEN historical decisions.
 
-Does not repair/replace the blocked full-universe comparison. Never reselects
-stocks using outcomes. A missing held-stock price blocks this view as well.
+Keeps frozen rankings. Unavailable historical stocks retain their slots as cash;
+complete-case availability bias is explicitly reported by the evaluator.
 """
 from copy import deepcopy
 import hashlib

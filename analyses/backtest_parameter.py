@@ -146,6 +146,12 @@ def evaluate(plans, saved, as_of):
     nav=[];trades=[];periods=[];closed=0
     config={**PROTOCOL,'horizon':10,'top_n':10,'commission_bps':5,'slippage_bps':10}
     for snapshot in plans:
+        # Explicit research-only complete-case filter; never used for prospective entry.
+        snapshot = {**snapshot, 'skipped_entries': {t: dict(reason='incomplete_historical_prices')
+            for book in snapshot['books'].values() for t in book
+            if any(not any(r['day']==d and all(math.isfinite(float(r[k])) and float(r[k])>0 for k in ('open','close'))
+                           for r in saved.get(t,{}).get('bars',[]))
+                   for d in snapshot['sessions'] if d < str(as_of))}}
         members={t for book in snapshot['books'].values() for t in book}
         prices={}
         for t in members:
@@ -157,6 +163,8 @@ def evaluate(plans, saved, as_of):
         periods.append(dict(selection_date=snapshot['selection_date'],planned_entry=snapshot['sessions'][0],
                             planned_exit=snapshot['sessions'][-1],universe=len(snapshot['universe']),
                             top=snapshot['books']['a_par:a_par_model_v1'],status=value['status'],
+                            skipped_entries=value.get('skipped_entries',{}),
+                            allocations=value.get('allocations',{}),
                             starting_capital=capital,ending=value['ending']))
         nav.extend(value['nav']);trades.extend(value.get('trades',[]))
         if value['status']!='complete':
@@ -165,7 +173,9 @@ def evaluate(plans, saved, as_of):
     report=metrics(nav,trades,100000.,closed)
     report.update(mode='historical_reconstruction',periods=periods,closed_batches=closed,
                   planned_batches=len(plans),stopped_at=periods[-1]['status'] if periods else 'no_plans',
-                  capital=capital,profitability_proven=False)
+                  capital=capital,profitability_proven=False,
+                  missing_price_policy='historical_complete_case_fixed_slots_cash',
+                  coverage_bias='Historical exclusions use later quote availability; descriptive research only')
     return report
 
 
