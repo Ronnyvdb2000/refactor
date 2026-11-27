@@ -1,0 +1,33 @@
+name: Backtest A Parameter-model - historische reconstructie
+on:
+  push:
+    branches: [main]
+    paths: ['analyses/backtest_parameter.py', '.github/workflows/backtest_parameter.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: parameter-historical-backtest
+  cancel-in-progress: false
+  queue: max
+jobs:
+  backtest:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    concurrency:
+      group: refactor-yahoo-features
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-paper.txt
+      - name: Herbereken selecties en historische virtuele portefeuilles
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m analyses.backtest_parameter
