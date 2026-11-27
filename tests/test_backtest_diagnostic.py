@@ -31,3 +31,10 @@ def test_missing_historical_stock_leaves_cash_and_reports_exclusion():
     assert r['periods'][0]['allocations']['a_par:a_par_model_v1']['invested_budget']==90000
     assert 'A0' in r['periods'][0]['skipped_entries']
     assert r['coverage_bias']
+
+
+def test_explicit_other_horizon_uses_its_own_execution_calendar():
+    plans,cache=inputs()
+    plans[0]['sessions']=plans[0]['sessions'][:5]
+    r=selected_market_view(plans,cache,'2026-11-20',horizon=5)
+    assert r['horizon']==5 and r['closed_batches']==1

@@ -1,4 +1,4 @@
-# Historische reconstructie A Parameter-model (10d)
+# Historische reconstructie A Parameter-model (5d, 10d, 20d, 30d, 60d)
 
 Dit is een aparte verkennende backtest. De lopende paperproef en haar vaste
 selectie worden niet aangepast. Resultaten staan uitsluitend in
@@ -6,10 +6,10 @@ public.research_backtests en research_backtest_cache, niet in ml_runs of de pape
 
 Het model berekent op iedere kandidaat-instapdatum zijn gewichten opnieuw met
 de bestaande instellingen: minimaal 10 trainingsdatums, minimaal 20 aandelen
-per trainingsdatum, 28 dagen rollend venster met bestaande fallbacks, minimaal
-25 kalenderdagen embargo, |IC|>=0.02 en winsorisatie van IC op 0.15.
+per trainingsdatum, 28 dagen rollend venster met bestaande fallbacks, een horizonafhankelijk kalenderembargo van minimaal
+25 dagen, |IC|>=0.02 en winsorisatie van IC op 0.15.
 Een trainingsuitkomst wordt bovendien pas zichtbaar als de werkelijke datum van
-haar tiende handelsdag vóór de aangenomen beslissing ligt. Ongeverifieerde of
+haar horizon-einddag vóór de aangenomen beslissing ligt. Ongeverifieerde of
 ter controle gemarkeerde labels worden niet voor training gebruikt. Scoring
 ziet geen toekomstige uitkomsten.
 
@@ -19,13 +19,13 @@ lijst van tien aandelen. Daarna wordt een top 10 en een gelijkgewogen baseline
 uit hetzelfde historische universum vastgelegd. SPY is de marktvergelijking.
 Alle historische bronrijen worden vóór koersophalen bewaard. Trainingslabels
 worden apart uit de koershistorie gereconstrueerd: vanaf de laatste koersdag op
-of vóór de selectiedag tot de werkelijk tiende volgende handelsdag. Vervolgens
+of vóór de selectiedag tot de werkelijk vijfde, tiende, twintigste, dertigste of zestigste volgende handelsdag, afhankelijk van de horizon. Vervolgens
 worden de selectie en gewichten vastgelegd voordat de uitvoeringsevaluator
 toekomstige koersen gebruikt. De training maskeert iedere nog niet afgelopen
 uitkomst. Dit is een causale codecontrole, geen destijds gepubliceerd archief.
 
 Aangenomen beslismoment: de kalenderdag na de selectiedag om 06:00 UTC. Instap:
-eerste XNYS-sessie strikt na die UTC-datum. Uitstap: slot van sessie 10, inclusief
+eerste XNYS-sessie strikt na die UTC-datum. Uitstap: slot van sessie 5, 10, 20, 30 of 60, inclusief
 instapsessie. De eerstvolgende selectie ligt na die uitstap. Geen overlappende
 kapitaalpotjes. Begin met $100.000 per portefeuille; herbeleg het vorige
 berekende eindsaldo. Per zijde 5 bp commissie en 10 bp nadelige koersafwijking.
@@ -60,9 +60,11 @@ behoudt zijn oorspronkelijke peildatum, beslissingen en instellingen. Een
 gewijzigde definitie vereist een nieuwe run.
 
 De workflow biedt twee bronnen: `cached` (standaard) herberekent ongewijzigde,
-eerder vastgelegde selecties en koersen in een afzonderlijke run met een verwijzing
-naar het origineel. Het model en de koersbasis moeten overeenkomen. Er worden
-geen nieuwe koersen opgehaald of selecties opnieuw gerangschikt. `fresh` maakt
+eerder vastgelegde brondata en koersen in een afzonderlijke run per horizon met een verwijzing
+naar het origineel. Voor dezelfde horizon blijven de bestaande selecties bevroren;
+voor een andere horizon worden trainingslabels, gewichten en rangschikkingen
+opnieuw walk-forward opgebouwd, met alleen op de beslisdatum bekende labels. Het model en de koersbasis moeten overeenkomen. Er worden
+geen nieuwe koersen opgehaald. De oorspronkelijke selecties en resultaten worden niet overschreven. `fresh` maakt
 een nieuwe bronselectie en haalt koersen op. Bij een push wordt `cached` gebruikt.
 
 Alleen de notificatiestap ontvangt Telegramsecrets. Zij initialiseert idempotent
@@ -93,3 +95,24 @@ en geen bewijs dat het model beter kiest dan het hele selectie-universum.
 SELECT result->'diagnostic_model_vs_SPY' AS limited_comparison
 FROM public.research_backtests ORDER BY created_at DESC LIMIT 1;
 ```
+
+
+## Vergelijking van horizons
+
+De workflow voert 5, 10, 20, 30 en 60 handelsdagen afzonderlijk uit, met $100.000
+per portefeuille en dezelfde kosten, cashplaatsen, SPY en gelijkgewogen baseline.
+Iedere horizon heeft een eigen runsleutel (`a_par_5d:<Actions-ID>`, enzovoort) en
+een eigen Telegrammelding. Een probleem bij één horizon annuleert de andere
+horizons niet. De berekeningen lopen na elkaar om database- en koerslocks te
+respecteren. De live paperproef en haar horizon veranderen niet.
+
+Een langere horizon krijgt een passend embargo en pas trainingslabels nadat de
+werkelijke horizon-einddag verstreken is. Ontbreekt daardoor voldoende training,
+dan luidt de uitkomst `insufficient_history`; er wordt geen rendement van 0%
+verzonnen. Een nog lopende beleggingsperiode blijft als zodanig herkenbaar.
+
+De beschikbare trainings- en beleggingsperioden kunnen per horizon verschillen.
+Telegram toont daarom ook de werkelijke beleggingsperiode. Vergelijk losse
+rendementspercentages niet alsof alle horizons op dezelfde datum begonnen en
+evenveel onafhankelijke perioden hadden. Er wordt geen beste horizon automatisch
+gekozen en geen productie-instelling gewijzigd.
