@@ -34,9 +34,11 @@ Voor deze reconstructie worden Yahoo OHLC met auto_adjust=True gebruikt. Dit is
 een historische total-returnproxy waarin dividenden en splitsingen verwerkt
 zijn, geen letterlijk destijds uitvoerbare prijs. Daarom worden dividenden en
 splitsingen niet nog eens toegevoegd. Dit verschilt van de live paperproef met
-rauwe OHLC en een dividendkasproxy. Een ontbrekende prijs of niet-USD-valuta
-blokkeert de hele gematchte periode; geen aandelen achteraf weglaten. Er wordt
-niet doorgerekend over zo'n onopgeloste periode. Een laatste nog lopende periode
+rauwe OHLC en een dividendkasproxy. Onvolledige historische koersen leveren een
+cashplaats op: de overige aandelen krijgen geen groter budget en er worden geen
+vervangers gekozen. Deze uitsluiting gebruikt achteraf bekende koersbeschikbaarheid
+en kan de uitslag vertekenen. De uitgesloten aandelen en budgetten staan per
+periode in het resultaat. Een laatste nog lopende periode
 blijft open en wordt niet als afgesloten resultaat geteld.
 
 Beperkingen: de historische kenmerken/selecties kunnen achteraf zijn
@@ -47,11 +49,27 @@ onafhankelijk gekozen experiment. Er is slechts enkele maanden historie, waarvan
 een deel nodig is voor training. Daarom blijft profitability_proven=false.
 
 De workflow is handmatig uitvoerbaar en draait één keer na wijziging van zijn
-code. Geen terugkerende optimalisatie en geen Telegramberichten. Voortgang van
+code. Geen terugkerende optimalisatie. Na de berekening volgt een Telegrammelding
+met status, netto rendement inclusief cash, maximale terugval, laatste belegde
+budgetten en overgeslagen aandelen. Ook een tussentijds resultaat wordt als
+onvolledig gemeld als de berekeningsstap niet slaagt. De melding hoort bij precies
+deze Actions-run en pakt nooit stilzwijgend een oudere uitslag. Voortgang van
 koersophalen wordt per ticker in research_backtest_cache bewaard; de hele
 prijsverzameling wordt niet bij ieder aandeel opnieuw weggeschreven. Een herhaling van dezelfde Actions-run
 behoudt zijn oorspronkelijke peildatum, beslissingen en instellingen. Een
-gewijzigde definitie vereist een nieuwe run. Er is geen runtime-DDL.
+gewijzigde definitie vereist een nieuwe run.
+
+De workflow biedt twee bronnen: `cached` (standaard) herberekent ongewijzigde,
+eerder vastgelegde selecties en koersen in een afzonderlijke run met een verwijzing
+naar het origineel. Het model en de koersbasis moeten overeenkomen. Er worden
+geen nieuwe koersen opgehaald of selecties opnieuw gerangschikt. `fresh` maakt
+een nieuwe bronselectie en haalt koersen op. Bij een push wordt `cached` gebruikt.
+
+Alleen de notificatiestap ontvangt Telegramsecrets. Zij initialiseert idempotent
+`research_backtest_notices`, met row-level security en ingetrokken publieke
+rechten. De verzendclaim wordt vóór HTTP vastgelegd. Een bevestigde afwijzing mag
+opnieuw geprobeerd worden; een onzekere bezorging vraagt controle om dubbelen te
+voorkomen. De berekening zelf verandert geen schema en gebruikt geen Telegramsecrets.
 
 ```sql
 SELECT run_key,created_at,status,
@@ -67,8 +85,8 @@ Als de volledige kandidatenbaseline niet te reconstrueren is, kan de
 ongewijzigde top 10 afzonderlijk met SPY worden vergeleken. Dat resultaat staat
 onder result.diagnostic_model_vs_SPY. De oorspronkelijke status en uitkomst van
 de volledige vergelijking blijven behouden. Er worden geen modelposities of
-meetperioden verwijderd. Een ontbrekende koers van een modelpositie blokkeert
-ook deze beperkte vergelijking. Dit is geen gerepareerde kandidatenbaseline
+meetperioden verwijderd. Ontbrekende historische modelkoersen laten de
+oorspronkelijke allocatie cash; ook deze uitsluiting staat in de rapportage. Dit is geen gerepareerde kandidatenbaseline
 en geen bewijs dat het model beter kiest dan het hele selectie-universum.
 
 ```sql

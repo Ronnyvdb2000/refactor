@@ -84,7 +84,7 @@ def test_backtest_workflow_and_storage_are_separate_from_live_paper():
     assert 'model.main(' not in source
     assert 'auto_adjust=True' in source
     workflow=(root/'.github/workflows/backtest_parameter.yml').read_text()
-    assert 'TELEGRAM' not in workflow and 'schedule:' not in workflow
+    assert 'python -m analyses.backtest_telegram' in workflow and 'schedule:' not in workflow
     assert "ON CONFLICT" not in (root/'maintenance/sql/research_backtests.sql').read_text()
 
 

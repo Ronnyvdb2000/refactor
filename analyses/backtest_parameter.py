@@ -305,7 +305,14 @@ def main():
     import psycopg2
     key='a_par_10d:'+os.getenv('GITHUB_RUN_ID',datetime.now(timezone.utc).isoformat())
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'],connect_timeout=20) as conn:
-        result=run(conn,key)
+        source=os.getenv('BACKTEST_SOURCE','fresh')
+        if source=='cached':
+            from analyses.backtest_replay import run_cached
+            result=run_cached(conn,key)
+        elif source=='fresh':
+            result=run(conn,key)
+        else:
+            raise ValueError('Onbekende backtestbron')
     print(json.dumps(result,sort_keys=True,allow_nan=False))
     summary=os.getenv('GITHUB_STEP_SUMMARY')
     if summary:
