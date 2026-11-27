@@ -1057,13 +1057,17 @@ def main(argv: list[str] | None = None) -> int:
                 )
 
             if not cfg.geen_db_write:
-                from common.model_archive import record
+                from common.model_archive import record, implementation_hash
                 record(conn, all_scores, model='a_par', version=MODEL_VERSIE,
                        horizon=horizon, mode='prospective', target='forward_return_rank',
                        top_n=cfg.top_n, parameters=gewichten_ruw,
                        selected=gewichten.parameter, train_start=train_start, train_end=train_einde,
                        config={'window': window, 'embargo_days': effectieve_embargo,
-                               'min_ic': cfg.min_ic, 'selection_cutoff': str(score_datum.date())})
+                               'min_ic': cfg.min_ic, 'selection_cutoff': str(score_datum.date()),
+                               'model_config': {k:getattr(cfg,k) for k in ('top_n','min_ic','rolling_dagen','fallback_dagen',
+                                   'embargo_dagen','ic_max_abs','min_datums_ic','max_data_leeftijd')},
+                               'implementation_hash': implementation_hash(),
+                               'explicit_date': cfg.datum})
                 conn.commit()
             schrijf_rapporten(picks, gewichten, horizon)
 

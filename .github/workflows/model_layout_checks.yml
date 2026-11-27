@@ -85,6 +85,10 @@ jobs:
         run: python -m pytest tests/test_catboost.py -q
       - name: Test prospective XGBoost evaluation
         run: python -m pytest tests/test_xgboost_evaluation.py -q
+      - name: Test fixed prospective paper portfolio
+        run: |
+          python -m pip install exchange-calendars==4.13.3
+          python -m pytest tests/test_paper_trial.py -q
       - name: Run complete offline test suite
         run: python -m pytest tests -q
       - name: Validate relocated production model files

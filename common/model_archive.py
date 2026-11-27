@@ -14,6 +14,14 @@ import pandas as pd
 from psycopg2.extras import Json, execute_values
 
 
+def implementation_hash():
+    """Fingerprint the frozen parameter-model implementation and input definitions."""
+    root=Path(__file__).resolve().parents[1]
+    names=['meta_models/a_par_model.py','common/model_inputs.py','common/sel_par_inputs.py',
+           'common/feature_pipeline.py','common/model_archive.py']
+    return hashlib.sha256(b''.join((root/n).read_bytes() for n in names)).hexdigest()
+
+
 def number(value):
     try:
         result = float(value)
