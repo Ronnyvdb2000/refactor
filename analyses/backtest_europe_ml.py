@@ -147,7 +147,7 @@ def recipe_hash():
     return hashlib.sha256(b''.join((root/p).read_bytes() for p in names)).hexdigest()
 
 
-def run(conn,key,horizon=10):
+def run(conn,key,horizon=10,source_key=None):
     horizon=horizon_days(horizon)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute('SELECT pg_try_advisory_lock(741206,44) AS locked')
@@ -157,13 +157,20 @@ def run(conn,key,horizon=10):
             cur.execute('SELECT * FROM public.research_backtests WHERE run_key=%s',(key,))
             existing=cur.fetchone()
             if existing:
+                if source_key and source_key!=existing['config']['parent_run']:
+                    raise ValueError('Deze run heeft al een andere bevroren Europese bron')
                 cur.execute('SELECT * FROM public.research_backtests WHERE run_key=%s',(existing['config']['parent_run'],))
+            elif source_key:
+                cur.execute('SELECT * FROM public.research_backtests WHERE run_key=%s',(source_key,))
             else:
                 cur.execute("SELECT * FROM public.research_backtests WHERE config->>'mode'='historical_europe_parameter' "
-                            "AND config->>'horizon'=%s AND status IN ('complete','pending_final_period') "
+                            "AND config->>'horizon'=%s AND status IN ('complete','pending_final_period','insufficient_history') "
                             'ORDER BY created_at DESC LIMIT 1',(str(horizon),))
             parent=cur.fetchone()
             if not parent:raise ValueError('Geen geldige Europese parameterbron voor deze horizon')
+            if (parent['config'].get('mode')!='historical_europe_parameter' or parent['config']['horizon']!=horizon
+                    or parent.get('status') not in ('complete','pending_final_period','insufficient_history')):
+                raise ValueError('Europese bron heeft een andere horizon, type of onvolledige berekening')
             base=europe.configuration(parent['config']['as_of'],horizon)
             if any(base[k]!=parent['config'][k] for k in ('europe_hash','implementation_hash','currency','benchmark')):
                 raise ValueError('Europese brondefinitie gewijzigd; eerst een nieuwe bronproef')
@@ -231,7 +238,8 @@ def main():
     import psycopg2
     horizon=horizon_days(os.getenv('BACKTEST_HORIZON','10'))
     key=f'europe_ml_{horizon}d:'+os.environ['GITHUB_RUN_ID']
-    with psycopg2.connect(os.environ['SUPABASE_DB_URL'],connect_timeout=20) as conn:result=run(conn,key,horizon)
+    with psycopg2.connect(os.environ['SUPABASE_DB_URL'],connect_timeout=20) as conn:
+        result=run(conn,key,horizon,source_key=os.getenv('EUROPE_SOURCE_RUN_KEY'))
     print(json.dumps(result,allow_nan=False,sort_keys=True),flush=True)
     if os.getenv('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:

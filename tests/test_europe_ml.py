@@ -127,7 +127,7 @@ def test_real_recipes_fit_and_score_without_loading_or_publishing_models(name):
 
 def test_frozen_ranks_precede_evaluation_private_storage_and_parent_is_pinned(monkeypatch):
     frame,meta,anchors=fixture()
-    parent=dict(run_key='euro-parameter-frozen',config=ml.europe.configuration('2026-11-27'),
+    parent=dict(run_key='euro-parameter-frozen',status='complete',config=ml.europe.configuration('2026-11-27'),
                 selection_snapshot=dict(plans=anchors,data_start='2026-07-01',data_end='2026-09-15'))
     original=deepcopy(parent);conn=MagicMock();cur=conn.cursor.return_value.__enter__.return_value
     cur.fetchone.side_effect=[{'locked':True},None,parent]
