@@ -1063,7 +1063,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
 
             if not cfg.geen_db_write:
-                from common.model_archive import record, implementation_hash
+                from common.model_archive import record, implementation_hash, training_label_end
                 record(conn, all_scores, model='a_par', version=MODEL_VERSIE,
                        horizon=horizon, mode='prospective', target='forward_return_rank',
                        top_n=cfg.top_n, parameters=gewichten_ruw,
@@ -1071,6 +1071,7 @@ def main(argv: list[str] | None = None) -> int:
                        config={'window': window, 'embargo_days': effectieve_embargo,
                                'feature_build': context, 'temporal_contract': 1,
                                'training_input_hash': input_fingerprint(training.loc[training[target_kolom].notna()]),
+                               'last_train_label_end': training_label_end(training.loc[training[target_kolom].notna() & (training.datum>=train_start) & (training.datum<=train_einde)],horizon),
                                'min_ic': cfg.min_ic, 'selection_cutoff': str(score_datum.date()),
                                'model_config': {k:getattr(cfg,k) for k in ('top_n','min_ic','rolling_dagen','fallback_dagen',
                                    'embargo_dagen','ic_max_abs','min_datums_ic','max_data_leeftijd')},
