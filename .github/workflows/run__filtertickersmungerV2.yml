@@ -30,12 +30,14 @@ jobs:
       - name: Installeer packages
         run: |
           python -m pip install --upgrade pip
-          pip install yfinance pandas numpy requests
+          pip install -r requirements-paper.txt
 
       - name: Run filter bot
         env:
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          FILTER_AB_CAPTURE: '1'
         run: python -m scripts.bot_041mV2
 
       - name: Opslaan resultaten
