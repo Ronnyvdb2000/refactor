@@ -46,6 +46,7 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Meta-model draaien
@@ -55,7 +56,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
-          python -m meta_models.a_meta_model \
+          python -m maintenance.run_ready meta_models.a_meta_model \
             --min-train-datums "${{ github.event.inputs.min_train_datums || '10' }}" \
             2>&1 | tee meta_model_output.log
 

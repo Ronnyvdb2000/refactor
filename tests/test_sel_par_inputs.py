@@ -74,12 +74,12 @@ def test_manifest_accepts_weekend_friday_snapshot_but_rejects_missing_features(m
     import common.feature_pipeline as pipeline
     monkeypatch.setenv('FEATURE_BUILD_MANIFEST','results/feature_build.json')
     captured=[]
-    monkeypatch.setattr(pipeline,'write_feature_manifest',lambda rows,ratio:captured.append((rows,ratio)))
+    monkeypatch.setattr(pipeline,'write_feature_manifest',lambda rows,ratio,**kwargs:captured.append((rows,ratio)))
     conn=MagicMock()
-    good=dict(ticker='A',datum='2026-11-21',bar_datum='2026-11-20',**{'tech_'+k:1. for k in REQUIRED})
+    good=dict(ticker='A',datum='2026-11-21',bar_datum='2026-11-20',selection_seeded=True,koers_selectiedatum=100.,verrijking_status={'data_review':'confirmed'},**{'tech_'+k:1. for k in REQUIRED})
     bad={**good,'ticker':'B','tech_rsi14':None}
-    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[good]*4+[bad]
-    publish_input_manifest(conn,date(2026,11,21))
+    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[dict(good,ticker=f'T{i}') for i in range(4)]+[bad]
+    publish_input_manifest(conn,date(2026,11,21),required_parts=dict(selection_seed=True,source_scans=True,feature_enrichment=True))
     rows,ratio=captured[0]
     assert [r['status'] for r in rows]==['geschreven']*4+['ontbreekt']
     assert ratio==.80
@@ -89,7 +89,7 @@ def test_snapshot_step_and_release_do_not_rewrite_database_function():
     root=Path(__file__).resolve().parents[1]
     source=(root/'maintenance/refresh_sel_par.py').read_text()
     assert source.index('zaai_sel_par')<source.index('snapshot_sql.read_text')
-    assert source.index('publish_input_manifest(conn, cutoff)')<source.index('invoer_vrijgegeven')
+    assert source.index('context=publish_input_manifest(conn,cutoff,required_parts=parts)')<source.index('invoer_vrijgegeven')
     snapshot=(root/'maintenance/sql/20261122_sel_par_selection_snapshots.sql').read_text()
     assert 'UPDATE public.sel_par' in snapshot
     assert 'FUNCTION' not in snapshot and 'REVOKE' not in snapshot
@@ -102,12 +102,12 @@ def test_latest_date_must_have_coverage_even_when_older_rows_are_complete(monkey
     from maintenance.sel_par_direct import publish_input_manifest,REQUIRED
     monkeypatch.setenv('FEATURE_BUILD_MANIFEST','unused.json')
     conn=MagicMock()
-    good=dict(ticker='A',datum='2026-11-23',bar_datum='2026-11-23',
+    good=dict(ticker='A',datum='2026-11-23',bar_datum='2026-11-23',selection_seeded=True,koers_selectiedatum=100.,verrijking_status={'data_review':'confirmed'},
               **{'tech_'+k:1. for k in REQUIRED})
     bad={**good,'datum':'2026-11-24','bar_datum':'2026-11-24','tech_rsi14':None}
-    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[good]*20+[bad]
+    conn.cursor.return_value.__enter__.return_value.fetchall.return_value=[dict(good,ticker=f'T{i}') for i in range(20)]+[bad]
     with pytest.raises(ValueError,match='Nieuwste selectiedatum'):
-        publish_input_manifest(conn,date(2026,11,24))
+        publish_input_manifest(conn,date(2026,11,24),required_parts=dict(selection_seed=True,source_scans=True,feature_enrichment=True))
 
 
 def test_parameter_model_waits_for_verified_successful_central_run():

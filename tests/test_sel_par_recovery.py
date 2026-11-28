@@ -1,6 +1,8 @@
 from datetime import date
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+import json
+from test_run_manifest import context as release_context, released
 
 import pytest
 from maintenance import refresh_sel_par as refresh
@@ -9,10 +11,20 @@ from maintenance import score_once
 DAY = date(2026, 11, 25)
 
 
+@pytest.fixture(autouse=True)
+def ready_context_file(tmp_path,monkeypatch):
+    path=tmp_path/'feature_build.json'
+    path.write_text(json.dumps(release_context()))
+    monkeypatch.setenv('FEATURE_BUILD_MANIFEST',str(path))
+    for key in ['FEATURE_EXPECTED_RUN_ID','FEATURE_EXPECTED_RUN_ATTEMPT','FEATURE_EXPECTED_SHA']:
+        monkeypatch.delenv(key,raising=False)
+
+
 def db(result, locked=True):
     conn = MagicMock()
     cur = conn.cursor.return_value.__enter__.return_value
-    cur.fetchone.side_effect = [(locked,), (True,), (result,)]
+    value=released(score_once.load_feature_context());value.update(result)
+    cur.fetchone.side_effect = [(locked,), (True,), (value,)]
     cur.rowcount = 1
     return conn, cur
 
@@ -55,7 +67,7 @@ def test_failed_child_is_not_recorded_as_completed():
 def test_unreleased_input_and_concurrent_consumer_cannot_run():
     runner = MagicMock()
     conn, _ = db({'input_released': False})
-    with pytest.raises(RuntimeError, match='niet vrijgegeven'):
+    with pytest.raises(RuntimeError, match='vrijgegeven'):
         score_once.score(conn, DAY, 'a_meta', ['cmd'], runner)
     conn, _ = db({}, locked=False)
     with pytest.raises(RuntimeError, match='al bezig'):
@@ -66,7 +78,8 @@ def test_unreleased_input_and_concurrent_consumer_cannot_run():
 @pytest.mark.parametrize('result,ready', [
     ({}, False), ({'enrichment': {'complete_execution': False}}, False),
     ({'enrichment': {'complete_execution': True}}, False),
-    ({'enrichment': {'complete_execution': True}, 'input_released': True}, True),
+    ({'enrichment': {'complete_execution': True}, 'input_released': True}, False),
+    (released(), True),
 ])
 def test_seed_or_enrichment_alone_is_not_success(result, ready):
     conn = MagicMock()

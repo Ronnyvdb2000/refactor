@@ -125,6 +125,7 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Bot draaien
@@ -169,7 +170,7 @@ jobs:
           echo "  extra flags = $FLAGS"
           echo "============================================================"
 
-          python -m meta_models.a_meta_label_classifier \
+          python -m maintenance.run_ready meta_models.a_meta_label_classifier \
             --horizon "$HORIZON" \
             --threshold "$THRESHOLD" \
             --model "$MODEL" \

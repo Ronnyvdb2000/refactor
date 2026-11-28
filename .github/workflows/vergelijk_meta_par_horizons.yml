@@ -34,12 +34,13 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Vergelijk alle horizons (alleen lezen)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python -m meta_models.vergelijk_meta_par_horizons
+        run: python -m maintenance.run_ready meta_models.vergelijk_meta_par_horizons
       - name: Telegram samenvatting
         if: always()
         continue-on-error: true

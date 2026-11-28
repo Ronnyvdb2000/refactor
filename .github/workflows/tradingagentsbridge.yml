@@ -145,6 +145,7 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Run a_par_model (indien source=par)
@@ -161,7 +162,7 @@ jobs:
           DATE_ARGS=()
           if [ -n "$DATE_ARG" ]; then DATE_ARGS=(--datum "$DATE_ARG"); fi
 
-          python -m meta_models.a_par_model \
+          python -m maintenance.run_ready meta_models.a_par_model \
             --horizons "$HORIZON" \
             --top-n "$TOP_N" \
             "${DATE_ARGS[@]}" \

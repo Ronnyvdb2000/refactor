@@ -54,6 +54,7 @@ jobs:
       - name: Resolve trusted feature build for every invocation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Validate feature build provenance
@@ -70,7 +71,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -o pipefail
-          python -m meta_models.a_meta_model_train --alpha 1.0 --notities "auto-train" \
+          python -m maintenance.run_ready meta_models.a_meta_model_train --alpha 1.0 --notities "auto-train" \
             2>&1 | tee meta_model_train.log
 
       - name: Scoren

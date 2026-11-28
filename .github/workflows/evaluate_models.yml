@@ -46,18 +46,19 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Controleer archief met een actuele parameterberekening na codewijziging
         if: github.event_name == 'push'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python -m meta_models.a_par_model --geen-notify
+        run: python -m maintenance.run_ready meta_models.a_par_model --geen-notify
       - name: Controleer classifierarchief met volledige historische testkandidaten
         if: github.event_name == 'push'
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python -m meta_models.a_meta_label_classifier --horizon 10 --strategieen bot_01kasstr --geen-notify
+        run: python -m maintenance.run_ready meta_models.a_meta_label_classifier --horizon 10 --strategieen bot_01kasstr --geen-notify
       - name: Bewaar beoordeling in Supabase
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

@@ -263,7 +263,7 @@ def enrich(conn, cutoff, max_tickers=2000, budget_minutes=150):
     return report
 
 
-def publish_input_manifest(conn, cutoff):
+def publish_input_manifest(conn, cutoff, *, required_parts):
     """Release scoring only for sufficiently covered, correctly dated sel_par rows."""
     import os
     from psycopg2.extras import RealDictCursor
@@ -271,28 +271,46 @@ def publish_input_manifest(conn, cutoff):
     from common.model_inputs import technical_day
     if not os.environ.get('FEATURE_BUILD_MANIFEST'):
         return
-    columns=','.join('tech_'+name for name in REQUIRED)
+    columns=','.join('p.tech_'+name for name in REQUIRED)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute('SELECT ticker,datum,coalesce(tech_koersdatum::text,datum) bar_datum,'+
-                    columns+" FROM public.sel_par WHERE position('/' in ticker)=0 "
-                    'AND selectiedatum BETWEEN %s AND %s',
+        # The denominator comes from canonical source selections, never just the
+        # successfully copied sel_par subset. Missing seed rows remain pending.
+        cur.execute('SELECT s.ticker,s.datum,p.koers_selectiedatum,p.verrijking_status, '
+                    '(p.ticker IS NOT NULL) AS selection_seeded, '
+                    'coalesce(p.tech_koersdatum::text,p.datum) bar_datum,'+columns+
+                    ' FROM (SELECT DISTINCT ticker,datum FROM public.selecties '
+                    "WHERE position('/' in ticker)=0 AND datum::date BETWEEN %s AND %s) s "
+                    'LEFT JOIN public.sel_par p ON p.ticker=s.ticker AND p.datum=s.datum',
                     (cutoff-timedelta(days=3),cutoff))
         rows=cur.fetchall()
     diagnosis=[]
     coverage={}
+    seen=set()
     for row in rows:
-        ready=all(finite(row['tech_'+key]) is not None for key in REQUIRED)
+        key=(row['ticker'],row['datum'])
+        if key in seen:
+            raise ValueError('Dubbele ticker/peildatum in vrijgave')
+        seen.add(key)
+        ready=row['selection_seeded'] and all(finite(row['tech_'+key]) is not None for key in REQUIRED)
         ready=ready and str(technical_day(row['datum']).date())==row['bar_datum']
+        quote=finite(row['koers_selectiedatum'])
+        ready=ready and quote is not None and quote>0
         diagnosis.append(dict(status='geschreven' if ready else 'ontbreekt',
                               koersdatum=row['bar_datum']))
-        counts=coverage.setdefault(row['datum'],[0,0])
-        counts[0]+=int(ready)
-        counts[1]+=1
+        counts=coverage.setdefault(row['datum'],dict(expected_tickers=0,valid_tickers=0,excluded_tickers=0,pending_tickers=0))
+        counts['expected_tickers']+=1
+        counts['valid_tickers']+=int(ready)
+        status=row.get('verrijking_status') or {}
+        confirmed=row['selection_seeded'] and (ready or bool(status.get('geprobeerd_op') or status.get('data_review')) or quote is None or quote<=0)
+        counts['excluded_tickers']+=int(not ready and confirmed)
+        counts['pending_tickers']+=int(not confirmed)
     if not coverage:
         raise ValueError('Geen recente selecties voor vrijgave van sel_par')
     latest=max(coverage)
-    good,total=coverage[latest]
+    good,total=coverage[latest]['valid_tickers'],coverage[latest]['expected_tickers']
     if good/total < .80:
         raise ValueError(f'Nieuwste selectiedatum {latest}: slechts {good}/{total} bruikbare technische snapshots; geen vrijgave')
     os.environ['FEATURE_SELECTION_CUTOFF']=cutoff.isoformat()
-    write_feature_manifest(diagnosis,.80)
+    return write_feature_manifest(diagnosis,.80,readiness=dict(
+        latest_selection_date=latest, minimum_coverage=.80,
+        coverage_by_selection_date=coverage,required_parts=required_parts))

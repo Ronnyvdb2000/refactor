@@ -101,6 +101,7 @@ jobs:
       - name: Resolve trusted feature build for every invocation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Controleer herkomst van de invoer

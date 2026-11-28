@@ -142,8 +142,10 @@ def test_all_model_workflow_routes_have_required_readiness_before_first_command(
             if not resolvers:continue
             env={**workflow.get('env',{}),**job.get('env',{})}
             assert env['FEATURE_BUILD_REQUIRED']=='1' and env['FEATURE_BUILD_MANIFEST']=='feature-build/feature_build.json'
-            commands=[i for i,s in enumerate(steps) if any(x in s.get('run','') for x in ['-m models.','-m meta_models.','-m maintenance.score_once'])]
+            commands=[i for i,s in enumerate(steps) if any(x in s.get('run','') for x in ['-m maintenance.run_ready','-m maintenance.score_once'])]
             assert commands and resolvers[0]<min(commands)
+            assert steps[resolvers[0]]['env']['SUPABASE_DB_URL']=='${{ secrets.SUPABASE_DB_URL }}'
+            assert not any('-m models.' in s.get('run','') or '-m meta_models.' in s.get('run','') for s in steps)
 
 
 def test_unknown_return_cannot_influence_relative_training_targets():

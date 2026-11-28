@@ -34,12 +34,13 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: LightGBM kandidaat evalueren
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: python -m models.xLightgbmV2_gecontroleerd
+        run: python -m maintenance.run_ready models.xLightgbmV2_gecontroleerd
       - name: Rapport en kandidaten bewaren
         if: always()
         uses: actions/upload-artifact@v4
