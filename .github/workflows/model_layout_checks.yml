@@ -25,7 +25,9 @@ on:
       - 'common/lightgbm_v2_preflight.py'
       - 'maintenance/patch_xgboost_quality.py'
       - 'tests/test_catboost.py'
-      - 'requirements-catboost.txt'
+      - 'requirements*.txt'
+      - 'common/model_definitions.py'
+      - 'common/costs.py'
       - 'tests/test_model*.py'
       - 'tests/test_lightgbm_v2_preflight.py'
       - 'tests/test_patch_xgboost_quality.py'
@@ -63,7 +65,7 @@ jobs:
               raise SystemExit(1)
           PY
       - name: Install offline test dependencies
-        run: python -m pip install pytest pyyaml lightgbm catboost==1.2.8 xgboost-cpu vaderSentiment==3.3.2 -r requirements-analysis.txt
+        run: python -m pip install pytest pyyaml vaderSentiment==3.3.2 -r requirements-analysis.txt -r requirements-ml-research.txt
       - name: Test imports, paths, serialization and model guards
         run: >-
           python -m pytest tests/test_model_layout.py tests/test_model_inputs.py
@@ -121,3 +123,4 @@ jobs:
                           subprocess.run(['bash', '-n'], input=source, text=True, check=True)
               print(f'YAML/shell OK: {name}')
           PY
+

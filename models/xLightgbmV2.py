@@ -76,6 +76,7 @@ OUTPUT (results/)
     lightgbmV2_<h>_test_predictions.json
     lightgbmV2_summary.txt
 """
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 
 from common.temporal_contract import purge_before, purged_training, valid_labels
 from common.sel_par_inputs import sel_par_query, input_columns
@@ -112,9 +113,9 @@ warnings.filterwarnings("ignore")
 
 MODEL_VERSIE = "lightgbmV2"
 
-HORIZONS_DEFAULT = "10d,30d,60d"
+HORIZONS_DEFAULT = ','.join(ML_HORIZONS)
 
-TOP_N_FRACTIE = 0.20
+TOP_N_FRACTIE = TOP_SCORE_FRACTION
 TRIM_FRACTIE = 0.10
 
 TRAIN_FRACTIE = 0.80
@@ -136,31 +137,11 @@ RANDOM_STATE = 42
 RESULTS_DIR = os.environ.get("RESULTS_DIR", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-FEATURE_COLUMNS = [
-    "atr14",
-    "atr14_pct",
-    "rsi14",
-    "ibs",
-    "ma50",
-    "ma200",
-    "pct_from_ma50",
-    "pct_from_ma200",
-    "vol_ratio_20d",
-    "high52w",
-    "pct_from_high52w",
-]
+FEATURE_COLUMNS = list(ML_FEATURES)
 
-FEATURE_COLUMNS_RELATIEF = [
-    "atr14_pct",
-    "rsi14",
-    "ibs",
-    "pct_from_ma50",
-    "pct_from_ma200",
-    "vol_ratio_20d",
-    "pct_from_high52w",
-]
+FEATURE_COLUMNS_RELATIEF = list(RELATIVE_ML_FEATURES)
 
-BASELINE_KOLOM = "pct_from_ma50"
+BASELINE_KOLOM = BASELINE_FEATURE
 
 AUC_VERSCHIL_WAARSCHUWING = 0.10
 
@@ -2444,3 +2425,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

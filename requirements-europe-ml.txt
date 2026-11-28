@@ -1,5 +1,2 @@
 -r requirements-europe.txt
--r requirements-catboost.txt
-xgboost-cpu==3.2.0
-lightgbm==4.7.0
-threadpoolctl==3.6.0
+-r requirements-ml-research.txt

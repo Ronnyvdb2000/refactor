@@ -18,7 +18,7 @@ def implementation_hash():
     """Fingerprint the frozen parameter-model implementation and input definitions."""
     root=Path(__file__).resolve().parents[1]
     names=['meta_models/a_par_model.py','common/model_inputs.py','common/sel_par_inputs.py',
-           'common/feature_pipeline.py','common/model_archive.py','common/temporal_contract.py','common/horizons.py','common/run_manifest.py']
+           'common/feature_pipeline.py','common/model_archive.py','common/temporal_contract.py','common/horizons.py','common/run_manifest.py','common/model_definitions.py','common/costs.py']
     return hashlib.sha256(b''.join((root/n).read_bytes() for n in names)).hexdigest()
 
 
@@ -215,3 +215,4 @@ def archive_meta_fold(conn, test, train, estimator, scaler, features, *, horizon
                  run_key=f'{batch_id}:meta_label:{model_type}:{scope}:{horizon}:{threshold}:{fold}:{outcome_conditioned}')
     conn.commit()
     return ident
+

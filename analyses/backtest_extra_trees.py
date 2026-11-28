@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+from common.reproducibility import source_fingerprint
 
 import numpy as np
 import pandas as pd
@@ -105,7 +106,8 @@ def recipe_hash():
     root=Path(__file__).resolve().parents[1]
     names=['analyses/backtest_extra_trees.py','models/10/extra_trees.py','models/elastic_net.py',
            'analyses/backtest_parameter.py','analyses/paper_trial.py','requirements-elastic-net.txt','requirements-extra-trees.txt']
-    return hashlib.sha256(b''.join((root/name).read_bytes() for name in names)).hexdigest()
+    names += ['common/model_definitions.py','common/costs.py','requirements-paper.txt']
+    return source_fingerprint(root, names)
 
 
 def record_blocked(conn,cur,key,horizon,reason,parent=None):
@@ -226,3 +228,4 @@ def main():
 
 if __name__=='__main__':
     main()
+

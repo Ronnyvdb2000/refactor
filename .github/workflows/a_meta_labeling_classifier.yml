@@ -78,14 +78,7 @@ jobs:
       - name: Dependencies installeren
         run: |
           python -m pip install --upgrade pip
-          pip install \
-            numpy==1.26.4 \
-            pandas==2.2.3 \
-            scipy==1.14.1 \
-            psycopg2-binary==2.9.10 \
-            scikit-learn==1.5.2 \
-            xgboost==2.1.3 \
-            requests
+          python -m pip install -r requirements-xgboost-legacy.txt
 
       - name: Verifieer installaties
         run: |
@@ -199,3 +192,4 @@ jobs:
             tail -n 50 meta_label_output.log >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
+

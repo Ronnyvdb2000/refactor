@@ -1,6 +1,7 @@
 """Matched European ML experiment on the frozen EUR parameter-study source."""
 from importlib import import_module
 from pathlib import Path
+from common.reproducibility import source_fingerprint
 import hashlib
 import json
 import os
@@ -144,7 +145,8 @@ def recipe_hash():
            'models/10/extra_trees.py','models/xgboostV3_gecontroleerd.py','models/xLightgbmV2_gecontroleerd.py',
            'models/catboostV1.py','requirements-europe-ml.txt','requirements-europe.txt',
            'requirements-elastic-net.txt','requirements-catboost.txt']
-    return hashlib.sha256(b''.join((root/p).read_bytes() for p in names)).hexdigest()
+    names += ['common/model_definitions.py','common/costs.py','requirements-paper.txt','requirements-ml-research.txt']
+    return source_fingerprint(root, names)
 
 
 def run(conn,key,horizon=10,source_key=None):
@@ -248,4 +250,5 @@ def main():
 
 
 if __name__=='__main__':main()
+
 

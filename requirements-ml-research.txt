@@ -1,0 +1,5 @@
+# Preserve the existing isolated European comparison runtime.
+-r requirements-catboost.txt
+xgboost-cpu==3.2.0
+lightgbm==4.7.0
+threadpoolctl==3.6.0

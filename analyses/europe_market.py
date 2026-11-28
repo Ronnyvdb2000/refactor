@@ -1,4 +1,5 @@
 """Frozen European universe rules, common sessions and historical EUR conversion."""
+from common.costs import FX_BPS_PER_SIDE
 from datetime import date
 import math
 
@@ -39,7 +40,7 @@ def valid_price(value):
     return isinstance(value,(float,int)) and math.isfinite(value) and value>0
 
 
-def convert(ticker,value,fx,fx_fee_bps=5):
+def convert(ticker,value,fx,fx_fee_bps=FX_BPS_PER_SIDE):
     """No FX forward-fill; GBp/GBX stock quotes must first become GBP units."""
     currency=value.get('currency')
     unit=.01 if currency in ('GBp','GBX') else 1.
@@ -68,3 +69,4 @@ def convert(ticker,value,fx,fx_fee_bps=5):
     return dict(currency='EUR',original_currency=value.get('currency'),unit_factor=unit,
                 fx_ticker=FX.get(currency),fx_fee_bps=fx_fee_bps if currency!='EUR' else 0,
                 bars=rows,missing_conversion_days=missing)
+

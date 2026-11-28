@@ -6,6 +6,7 @@ Gebruikt dezelfde 11 features, horizonlabels en standaard excess-target als
 xLightgbmV2.py. Bewaart kandidaatbestanden in models/lightgbmV2_controle/ en testvoorspellingen
 in het Supabase-modelarchief. Geen notificaties of productiepromotie.
 """
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 
 from common.temporal_contract import purge_before, purged_training, valid_labels, overlap_report, input_fingerprint
 from common.sel_par_inputs import sel_par_query
@@ -20,11 +21,9 @@ import joblib
 import numpy as np
 import pandas as pd
 
-FEATURES = ['atr14','atr14_pct','rsi14','ibs','ma50','ma200','pct_from_ma50',
-            'pct_from_ma200','vol_ratio_20d','high52w','pct_from_high52w']
-RELATIVE = ['atr14_pct','rsi14','ibs','pct_from_ma50','pct_from_ma200',
-            'vol_ratio_20d','pct_from_high52w']
-HORIZONS = ('10d','30d','60d')
+FEATURES = list(ML_FEATURES)
+RELATIVE = list(RELATIVE_ML_FEATURES)
+HORIZONS = ML_HORIZONS
 MIN_TRAIN, MIN_TEST, MIN_DATES = 100, 30, 20
 MIN_PER_DATE = 10
 OUT = Path('models/lightgbmV2_controle')
@@ -189,7 +188,7 @@ def run(df, horizons, target_mode, outdir):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--target', choices=['excess','abs'], default='excess')
-    parser.add_argument('--horizons', default='10d,30d,60d')
+    parser.add_argument('--horizons', default=','.join(ML_HORIZONS))
     parser.add_argument('--csv', help='CSV als alternatief voor Supabase')
     args = parser.parse_args()
     horizons = [x.strip() for x in args.horizons.split(',') if x.strip()]
@@ -214,3 +213,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

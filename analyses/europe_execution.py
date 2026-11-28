@@ -1,4 +1,5 @@
 """EUR execution variant; the existing live USD paper engine is unchanged."""
+from common.costs import execution_rates, bps_fraction
 from datetime import datetime, timezone
 import math
 
@@ -52,8 +53,7 @@ def simulate(snapshot, prices, initial, config, as_of=None):
                             skipped_entries=skipped, unresolved_holding=True)
             if bar.get('split', 0) != 0:
                 return dict(status='corporate_action_review', ticker=t, day=d, nav=[], ending=initial)
-    fee = config['commission_bps'] / 10000
-    slip = config['slippage_bps'] / 10000
+    fee, slip = execution_rates(config)
     nav, ending, trades = [], {}, []
     complete = len(calendar) == config['horizon']
     for book, members in snapshot['books'].items():
@@ -66,7 +66,7 @@ def simulate(snapshot, prices, initial, config, as_of=None):
         if slot > capital + 1e-8:
             raise ValueError('Meer kapitaal gevraagd dan beschikbaar')
         quantities, buy_cost, turnover = {}, {}, 0.0
-        fx_fees={t:prices[t,calendar[0]].get('fx_fee_bps',0)/10000 for t in members}
+        fx_fees={t:bps_fraction(prices[t,calendar[0]].get('fx_fee_bps',0)) for t in members}
         cash = capital - slot * len(members)
         if cash < -1e-7:
             raise ValueError('Negatief saldo bij aankoop')
@@ -105,4 +105,5 @@ def simulate(snapshot, prices, initial, config, as_of=None):
                     purchased=sum(t not in skipped for t in members),
                     invested_budget=initial[book] / (config['top_n'] if book not in ('equal_universe','benchmark') else len(members)) * sum(t not in skipped for t in members))
                     for book,members in snapshot['books'].items()})
+
 

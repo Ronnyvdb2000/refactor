@@ -19,6 +19,7 @@ Belangrijk:
 - Tijdssplit gebeurt op volledige datumgrenzen.
 - Horizonafhankelijke wachtruimte scheidt trainingslabels van de testperiode.
 """
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 
 from common.temporal_contract import purge_before, valid_labels
 from common.sel_par_inputs import sel_par_query
@@ -56,39 +57,15 @@ warnings.filterwarnings(
 MODEL_VERSIE = "xgboostV3"
 MODEL_DIR = "models"
 
-HORIZONS = [
-    "10d",
-    "30d",
-    "60d",
-]
+HORIZONS = list(ML_HORIZONS)
 
-FEATURE_COLUMNS = [
-    "atr14",
-    "atr14_pct",
-    "rsi14",
-    "ibs",
-    "ma50",
-    "ma200",
-    "pct_from_ma50",
-    "pct_from_ma200",
-    "vol_ratio_20d",
-    "high52w",
-    "pct_from_high52w",
-]
+FEATURE_COLUMNS = list(ML_FEATURES)
 
-FEATURE_COLUMNS_RELATIEF = [
-    "atr14_pct",
-    "rsi14",
-    "ibs",
-    "pct_from_ma50",
-    "pct_from_ma200",
-    "vol_ratio_20d",
-    "pct_from_high52w",
-]
+FEATURE_COLUMNS_RELATIEF = list(RELATIVE_ML_FEATURES)
 
-TOP_N_FRACTIE = 0.20
+TOP_N_FRACTIE = TOP_SCORE_FRACTION
 
-BASELINE_KOLOM = "pct_from_ma50"
+BASELINE_KOLOM = BASELINE_FEATURE
 
 AUC_VERSCHIL_WAARSCHUWING = 0.10
 
@@ -1847,3 +1824,4 @@ def train_xgboost3() -> None:
 if __name__ == "__main__":
 
     train_xgboost3()
+

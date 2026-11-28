@@ -1,4 +1,5 @@
 """European A Parameter reconstruction: EUR portfolios and shared European sessions."""
+from common.costs import execution_defaults, execution_rates, FX_BPS_PER_SIDE
 from datetime import date,datetime,timedelta,timezone
 import hashlib
 from importlib.metadata import version
@@ -6,6 +7,7 @@ import json
 import math
 import os
 from pathlib import Path
+from common.reproducibility import source_fingerprint
 import warnings
 
 import pandas as pd
@@ -24,13 +26,14 @@ def configuration(as_of,horizon=10):
     root=Path(__file__).resolve().parents[1]
     files=['analyses/backtest_europe.py','analyses/europe_market.py','analyses/europe_execution.py',
            'requirements-europe.txt','requirements-elastic-net.txt']
+    files += ['common/model_definitions.py','common/costs.py','requirements-paper.txt']
     return {**native.configuration(as_of,horizon),
             'mode':'historical_europe_parameter','currency':'EUR','benchmark':BENCHMARK,
-            'europe_hash':hashlib.sha256(b''.join((root/f).read_bytes() for f in files)).hexdigest(),
+            'europe_hash':source_fingerprint(root, files),
             'universe':'historical European venue and predeclared supported ticker suffix; no future price selection',
             'entry':'first_common_European_session_strictly_after_decision_UTC_date',
             'calendar_policy':'intersection_of_all_predeclared_covered_European_exchanges',
-            'calendars':CALENDARS,'fx_pairs':FX,'fx_fee_bps_each_side':5,
+            'calendars':CALENDARS,'fx_pairs':FX,'fx_fee_bps_each_side':FX_BPS_PER_SIDE,
             'benchmark_policy':'STOXX_Europe_600_ETF_EXSA.DE_same_dates_and_costs_EUR_total_return_proxy',
             'training_policy':'unchanged_global_parameter_IC_on_local_currency_training_returns',
             'library_versions':{name:version(name) for name in ('exchange-calendars','pandas','numpy')},
@@ -120,7 +123,7 @@ def evaluate(plans, saved, as_of, horizon=10, model_books=None):
     names=[*model_books,'equal_universe','benchmark']
     capital=dict.fromkeys(names,100000.)
     nav=[];trades=[];periods=[];closed=0
-    config=dict(currency='EUR',horizon=horizon,top_n=10,commission_bps=5,slippage_bps=10)
+    config=dict(currency='EUR',horizon=horizon,top_n=10,**execution_defaults())
     for snapshot in plans:
         # Explicit research-only complete-case filter; never used for prospective entry.
         snapshot = {**snapshot, 'skipped_entries': {t: dict(reason='incomplete_historical_prices')
@@ -285,4 +288,5 @@ def main():
 
 
 if __name__=='__main__':main()
+
 

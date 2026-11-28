@@ -4,7 +4,8 @@ import hashlib
 import numpy as np
 from sklearn.ensemble import ExtraTreesRegressor
 
-from models.elastic_net import FEATURES
+from common.model_definitions import ML_FEATURES
+FEATURES = list(ML_FEATURES)
 
 RECIPE = dict(n_estimators=300, max_depth=8, min_samples_leaf=10,
               max_features=0.8, bootstrap=False, criterion='squared_error',
@@ -34,3 +35,4 @@ def diagnostics(model):
                 feature_importances=dict(zip(FEATURES,model.feature_importances_.tolist())),
                 importance_method='training_impurity_reduction_not_out_of_sample_evidence',
                 tree_structure_hash=fingerprint.hexdigest())
+

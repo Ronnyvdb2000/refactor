@@ -1,0 +1,6 @@
+# Shared numerical contract for model training, scoring and evaluation.
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.1
+scikit-learn==1.5.2
+joblib==1.4.2

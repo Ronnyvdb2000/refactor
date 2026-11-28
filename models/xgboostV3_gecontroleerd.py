@@ -11,6 +11,7 @@ LET OP: bij een eerste publicatie wordt het model op de embargo-veilige
 trainingsperiode getraind. De testperiode wordt NIET in het productiemodel
 opgenomen. Vergelijking met het bestaande model gebruikt exact dezelfde test.
 """
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 
 from common.temporal_contract import purge_before
 from common.model_publication import publication_gate, check_incumbents
@@ -30,14 +31,11 @@ import xgboost as xgb
 from sklearn.metrics import roc_auc_score
 
 MODEL_VERSIE = 'xgboostV3'
-HORIZONS = ['10d', '30d', '60d']
-FEATURE_COLUMNS = ['atr14', 'atr14_pct', 'rsi14', 'ibs', 'ma50', 'ma200',
-                   'pct_from_ma50', 'pct_from_ma200', 'vol_ratio_20d',
-                   'high52w', 'pct_from_high52w']
-FEATURE_COLUMNS_RELATIEF = ['atr14_pct', 'rsi14', 'ibs', 'pct_from_ma50',
-                             'pct_from_ma200', 'vol_ratio_20d', 'pct_from_high52w']
-BASELINE_KOLOM = 'pct_from_ma50'
-TOP_N_FRACTIE = .20
+HORIZONS = list(ML_HORIZONS)
+FEATURE_COLUMNS = list(ML_FEATURES)
+FEATURE_COLUMNS_RELATIEF = list(RELATIVE_ML_FEATURES)
+BASELINE_KOLOM = BASELINE_FEATURE
+TOP_N_FRACTIE = TOP_SCORE_FRACTION
 MIN_RIJEN_TRAINING = 30
 MIN_RIJEN_TEST = 30
 MIN_TEST_DATUMS = 5
@@ -312,3 +310,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

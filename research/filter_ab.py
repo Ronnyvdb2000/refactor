@@ -3,6 +3,7 @@
 No production universe writes, trades, retrospective fundamentals or fake returns.
 The existing strategies and parameter portfolios are not replaced by this census.
 """
+from common.costs import execution_defaults, execution_rates, FX_BPS_PER_SIDE
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
@@ -43,7 +44,7 @@ def fingerprint(value):
 def protocol():
     a=deepcopy(native.get_criteria('048'));b={**a,'VOL_MIN':0.0}
     return dict(version=STUDY_VERSION,A=a,B=b,horizon=10,top_n=10,initial_cash=100000,
-                commission_bps=5,slippage_bps=10,hold_weeks=native.MAX_WEKEN_BUITEN,
+                **execution_defaults(),hold_weeks=native.MAX_WEKEN_BUITEN,
                 native_hash=hashlib.sha256(Path(native.__file__).read_bytes()).hexdigest(),
                 capture_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 historical_reconstruction_allowed=False,profitability_proven=False)
@@ -283,3 +284,4 @@ def main():
 
 if __name__=='__main__':
     main()
+

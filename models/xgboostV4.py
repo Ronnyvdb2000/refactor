@@ -53,6 +53,7 @@ Belangrijk:
   voor die horizon nog niet mogelijk is.
 - De run faalt alleen als GEEN enkele horizon een model oplevert.
 """
+from common.model_definitions import ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE
 
 from common.temporal_contract import purge_before, valid_labels
 from common.sel_par_inputs import sel_par_query
@@ -90,7 +91,7 @@ warnings.filterwarnings("ignore", message="pandas only supports SQLAlchemy")
 MODEL_VERSIE = "xgboostV4"
 MODEL_DIR = "models"
 VORIGE_VERSIE_VERGELIJK = "xgboostV3"   # voor vergelijking in het bericht
-HORIZONS = ["10d", "30d", "60d"]
+HORIZONS = list(ML_HORIZONS)
 
 # Horizon in HANDELSDAGEN (voor de embargo bij de split)
 HORIZON_HANDELSDAGEN = {"10d": 10, "30d": 30, "60d": 60}
@@ -132,8 +133,8 @@ MIN_FEATURE_DEKKING = 0.50
 MIN_FEATURES_TECHNISCH = 3
 MIN_FEATURES_FUNDAMENTEEL = 3
 
-TOP_N_FRACTIE = 0.20
-BASELINE_KOLOM = "pct_from_ma50"
+TOP_N_FRACTIE = TOP_SCORE_FRACTION
+BASELINE_KOLOM = BASELINE_FEATURE
 AUC_VERSCHIL_WAARSCHUWING = 0.10
 
 MIN_RIJEN_TRAINING = 30
@@ -1166,3 +1167,4 @@ def train_xgboost4() -> None:
 
 if __name__ == "__main__":
     train_xgboost4()
+

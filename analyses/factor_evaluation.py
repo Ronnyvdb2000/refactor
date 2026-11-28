@@ -3,6 +3,7 @@
 Returns are percentages over the frozen horizon, never annualised or compounded
 across overlapping observations. Quantiles are assigned before seeing outcomes.
 """
+from common.costs import (SIGNAL_ROUND_TRIP_BPS, GROSS_SIGNAL_ROUND_TRIP_BPS, ROUND_TRIP_SENSITIVITY_BPS, net_signal_pct)
 import hashlib
 import argparse
 from datetime import datetime,timezone
@@ -25,7 +26,7 @@ def finite(value):
     except (TypeError,ValueError):return None
 
 
-def diagnostics(rows, *, quantiles=5, costs=(0,10,20,40)):
+def diagnostics(rows, *, quantiles=5, costs=ROUND_TRIP_SENSITIVITY_BPS):
     if quantiles<2 or any(finite(c) is None or c<0 for c in costs):
         raise ValueError('Ongeldige kwantielen/kosten')
     frame=pd.DataFrame(rows)
@@ -77,7 +78,7 @@ def diagnostics(rows, *, quantiles=5, costs=(0,10,20,40)):
         quantile_monotonicity=finite(spearmanr(range(quantiles),vals).statistic) if vals and len(set(vals))>1 else None,
         mean_signal_turnover=float(np.mean(turns)) if turns else None,
         turnover_transitions=len(turns),
-        top_quantile_net_sensitivity_pct={str(c):vals[-1]-c/100 for c in costs} if vals else {})
+        top_quantile_net_sensitivity_pct={str(c):net_signal_pct(vals[-1],c) for c in costs} if vals else {})
     return dict(status='evaluated' if complete else 'awaiting_complete_outcomes',summary=summary,cohorts=cohorts,
         evidence='descriptive_only' if blocks>=12 else 'insufficient_disjoint_history',
         policy=dict(equal_date_weight=True,quantiles=quantiles,ties='never_split_equal_scores_by_ticker',
@@ -185,7 +186,7 @@ def build_report(conn,*,source_keys=(),as_of=None):
             portfolio_context={k:source['result'].get(k) for k in
                 ('status','closed_batches','planned_batches','valuation_start','valuation_end','stopped_at')},
             portfolio_costs={k:source['config'].get(k) for k in
-                ('commission_bps','slippage_bps','fx_bps')},
+                ('commission_bps','slippage_bps','fx_fee_bps_each_side')},
             basis='cached adjusted next-open to horizon-close proxy; historical FX conversion; no new prices',
             caveat='historical features may be backfilled; not prospective proof; original portfolio NAV unchanged')
     return dict(schema_version=1,as_of=as_of,analysis_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),archive=results,research=research,excluded_archive_rows=excluded,
@@ -270,4 +271,5 @@ def main():
 
 
 if __name__=='__main__':main()
+
 

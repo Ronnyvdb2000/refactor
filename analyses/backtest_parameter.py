@@ -3,6 +3,7 @@
 Decisions/weights are frozen before fetching execution proxies. Adjusted Yahoo
 OHLC are a total-return research proxy, not contemporaneous executable prices.
 """
+from common.costs import execution_defaults, execution_rates, FX_BPS_PER_SIDE
 from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
@@ -28,7 +29,7 @@ US_VENUES = {'048 Nasdaq/NYSE','056 NYSE int','057 NYSE'}
 def configuration(as_of, horizon=10):
     horizon=horizon_days(horizon)
     return dict(mode='historical_reconstruction', horizon=horizon, top_n=10, as_of=str(as_of),
-                initial_cash=100000., commission_bps=5, slippage_bps=10,
+                initial_cash=100000., **execution_defaults(),
                 implementation_hash=implementation_hash(),
                 backtest_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 model_config=PROTOCOL['model_config'],
@@ -153,7 +154,7 @@ def evaluate(plans, saved, as_of, horizon=10, model_books=None):
     names=[*model_books,'equal_universe','benchmark']
     capital=dict.fromkeys(names,100000.)
     nav=[];trades=[];periods=[];closed=0
-    config={**PROTOCOL,'horizon':horizon,'top_n':10,'commission_bps':5,'slippage_bps':10}
+    config={**PROTOCOL,'horizon':horizon,'top_n':10,**execution_defaults()}
     for snapshot in plans:
         # Explicit research-only complete-case filter; never used for prospective entry.
         snapshot = {**snapshot, 'skipped_entries': {t: dict(reason='incomplete_historical_prices')
@@ -343,3 +344,4 @@ def main():
 
 if __name__=='__main__':
     main()
+

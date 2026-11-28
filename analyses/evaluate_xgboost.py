@@ -4,6 +4,8 @@ Entry: first provider session strictly AFTER the UTC publication date, at adjust
 open. Exit: adjusted close of the Hth session including entry. Today excluded.
 No orders, no DB writes, no inference from selection-day forward_returns.
 """
+from common.model_definitions import ML_HORIZONS
+from common.costs import (SIGNAL_ROUND_TRIP_BPS, GROSS_SIGNAL_ROUND_TRIP_BPS, ROUND_TRIP_SENSITIVITY_BPS, net_signal_pct)
 import argparse
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
@@ -13,7 +15,7 @@ import os
 from pathlib import Path
 import statistics
 
-HORIZONS = {'10d': 10, '30d': 30, '60d': 60}
+HORIZONS = {h: int(h[:-1]) for h in ML_HORIZONS}
 
 
 def outcome(bars, predicted_at, horizon, as_of):
@@ -49,7 +51,7 @@ def outcome(bars, predicted_at, horizon, as_of):
                 exit_price=exit_price, gross_return_pct=100 * (exit_price / entry - 1))
 
 
-def summarize(rows, *, top_n=10, cost_bps=0):
+def summarize(rows, *, top_n=10, cost_bps=GROSS_SIGNAL_ROUND_TRIP_BPS):
     """Rank BEFORE inspecting outcomes. Equal-weight matched daily cohorts only."""
     if top_n < 1 or not math.isfinite(cost_bps) or cost_bps < 0:
         raise ValueError('Invalid top size or round-trip cost')
@@ -74,7 +76,7 @@ def summarize(rows, *, top_n=10, cost_bps=0):
         else:
             def metrics(values):
                 gross = [r['outcome']['gross_return_pct'] for r in values]
-                net = [v - cost_bps / 100 for v in gross]
+                net = [net_signal_pct(v,cost_bps) for v in gross]
                 return dict(n=len(gross), mean_gross_pct=statistics.mean(gross),
                             mean_net_pct=statistics.mean(net), median_gross_pct=statistics.median(gross),
                             win_rate_gross=statistics.mean(v > 0 for v in gross),
@@ -121,7 +123,7 @@ def load_predictions(conn, since):
     return rows, existing
 
 
-def build_report(rows, *, as_of, top_n=10, cost_bps=0, fetch=None):
+def build_report(rows, *, as_of, top_n=10, cost_bps=GROSS_SIGNAL_ROUND_TRIP_BPS, fetch=None):
     import pandas as pd
     if fetch is None:
         import yfinance as yf
@@ -189,7 +191,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--since', type=date.fromisoformat, default=date(2026, 11, 20))
     parser.add_argument('--top', type=int, default=10)
-    parser.add_argument('--cost-bps', type=float, default=0)
+    parser.add_argument('--cost-bps', type=float, default=GROSS_SIGNAL_ROUND_TRIP_BPS)
     parser.add_argument('--output', default='results/xgboost_evaluation.json')
     parser.add_argument('--telegram', action='store_true')
     args = parser.parse_args()
@@ -217,3 +219,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

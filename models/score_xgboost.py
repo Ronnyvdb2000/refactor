@@ -68,6 +68,7 @@ Wijzigingen v1.3 (2026-10-06):
   hulpfunctie bouw_telegram_bericht() zodat de opmaak los staat
   van het verzenden.
 """
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 
 from common.sel_par_inputs import sel_par_query, input_columns
 
@@ -107,11 +108,7 @@ warnings.filterwarnings(
 
 MODEL_VERSIE = "xgboostV3"
 
-HORIZONS = [
-    "10d",
-    "30d",
-    "60d",
-]
+HORIZONS = list(ML_HORIZONS)
 
 TOP_N = int(
     os.getenv("TOP_N", "10")
@@ -169,19 +166,7 @@ MODEL_FILES = {
 # EXACTE FEATURES UIT TRAINING
 # ============================================================
 
-VERWACHTE_FEATURES = [
-    "atr14",
-    "atr14_pct",
-    "rsi14",
-    "ibs",
-    "ma50",
-    "ma200",
-    "pct_from_ma50",
-    "pct_from_ma200",
-    "vol_ratio_20d",
-    "high52w",
-    "pct_from_high52w",
-]
+VERWACHTE_FEATURES = list(ML_FEATURES)
 
 
 # ============================================================
@@ -2282,3 +2267,4 @@ if __name__ == "__main__":
     sys.exit(
         main()
 )
+

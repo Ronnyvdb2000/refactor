@@ -13,7 +13,11 @@ import numpy as np
 import pandas as pd
 
 from common.model_quality_gate import evaluate_candidate
-from models.xLightgbmV2_gecontroleerd import FEATURES, RELATIVE, HORIZONS, SQL
+from common.model_definitions import ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS
+from models.xLightgbmV2_gecontroleerd import SQL
+FEATURES = list(ML_FEATURES)
+RELATIVE = list(RELATIVE_ML_FEATURES)
+HORIZONS = ML_HORIZONS
 from models.xLightgbmV2_gecontroleerd import embargo_days, split
 
 OUT = Path('models/catboostV1_controle')
@@ -221,7 +225,7 @@ def summary_message(report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--csv', help='Lokale invoer in plaats van Supabase')
-    parser.add_argument('--horizons', default='10d,30d,60d')
+    parser.add_argument('--horizons', default=','.join(ML_HORIZONS))
     parser.add_argument('--target', choices=['excess', 'abs'], default='excess')
     parser.add_argument('--telegram', action='store_true')
     args = parser.parse_args()
@@ -254,3 +258,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

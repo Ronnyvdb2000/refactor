@@ -63,16 +63,7 @@ jobs:
 
           python -m pip install --upgrade pip
 
-          pip install \
-            --retries 10 \
-            --timeout 60 \
-            --only-binary=:all: \
-            xgboost==3.2.0 \
-            pandas \
-            scikit-learn \
-            joblib \
-            psycopg2-binary \
-            requests
+          python -m pip install --retries 10 --timeout 60 --only-binary=:all: -r requirements-xgboost.txt
 
       - name: Resolve trusted feature build for every invocation
         env:
@@ -365,3 +356,4 @@ jobs:
           set -euo pipefail
 
           python -m maintenance.score_once xgboost
+

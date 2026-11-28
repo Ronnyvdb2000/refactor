@@ -8,6 +8,7 @@ Belangrijkste wijziging t.o.v. v2.3: Newey-West HAC-correctie op de
 t-toets van de IC-reeks. Dit corrigeert voor de overlappende forward
 returns (autocorrelatie), die de p-waarden anders te optimistisch maakt.
 """
+from common.horizons import SUPPORTED_HORIZONS
 
 from common.sel_par_inputs import sel_par_query
 
@@ -36,7 +37,7 @@ TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 FDR_ALPHA = float(os.environ.get("FDR_ALPHA", "0.05"))
 
-HORIZONS = [5, 10, 20, 30, 60]
+HORIZONS = list(SUPPORTED_HORIZONS)
 PRIMAIRE_HORIZON = 10
 DEFAULT_MIN_DAGEN = 10
 DEFAULT_MIN_PER_DATUM = 15
@@ -412,3 +413,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

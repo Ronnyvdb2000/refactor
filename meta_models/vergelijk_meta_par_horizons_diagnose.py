@@ -3,6 +3,7 @@
 """Read-only walk-forward: strategy-meta vs parameter IC vs MA50, per horizon.
 No DB writes. Each horizon trains only on mature, embargoed outcomes.
 """
+from common.horizons import SUPPORTED_HORIZONS
 
 from common.temporal_contract import purge_before
 from common.sel_par_inputs import sel_par_query
@@ -19,7 +20,7 @@ import pandas as pd
 import psycopg2
 from scipy.stats import spearmanr
 
-HORIZONS = (5, 10, 20, 30, 60)
+HORIZONS = SUPPORTED_HORIZONS
 STRATEGIES = ['bot_00xxxV2', 'bot_00vcp', 'bot_00mr', 'bot_00dm', 'bot_00ms']
 FACTORS = ['atr14_pct', 'rsi14', 'ibs', 'pct_from_ma50', 'pct_from_ma200',
            'vol_ratio_20d', 'pct_from_high52w']
@@ -317,3 +318,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

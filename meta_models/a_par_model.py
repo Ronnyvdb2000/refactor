@@ -99,7 +99,9 @@ from scipy.stats import spearmanr
 
 from common import db_logger
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
-from common.horizons import calendar_embargo
+from common.horizons import calendar_embargo, SUPPORTED_HORIZONS
+from common.model_definitions import parameter_scoring_defaults
+_PARAMETER_DEFAULTS = parameter_scoring_defaults()
 from common.reports import write_csv
 from common.temporal_contract import known_labels, input_fingerprint, label_column
 from common.sel_par_inputs import sel_par_query
@@ -110,17 +112,17 @@ from common.feature_pipeline import load_feature_context, context_summary
 # CONFIGURATIE
 # ============================================================
 
-HORIZONS_DEFAULT = "5d,10d,20d,30d,60d"
-TOP_N_DEFAULT = 10
-MIN_IC_DEFAULT = 0.02
-ROLLING_DAGEN_DEFAULT = 28
-FALLBACK_DAGEN_DEFAULT = 90
-EMBARGO_DAGEN_DEFAULT = 25
-IC_MAX_ABS_DEFAULT = 0.15
-MIN_DATUMS_IC_DEFAULT = 10
+HORIZONS_DEFAULT = ','.join(f'{h}d' for h in SUPPORTED_HORIZONS)
+TOP_N_DEFAULT = _PARAMETER_DEFAULTS['top_n']
+MIN_IC_DEFAULT = _PARAMETER_DEFAULTS['min_ic']
+ROLLING_DAGEN_DEFAULT = _PARAMETER_DEFAULTS['rolling_dagen']
+FALLBACK_DAGEN_DEFAULT = _PARAMETER_DEFAULTS['fallback_dagen']
+EMBARGO_DAGEN_DEFAULT = _PARAMETER_DEFAULTS['embargo_dagen']
+IC_MAX_ABS_DEFAULT = _PARAMETER_DEFAULTS['ic_max_abs']
+MIN_DATUMS_IC_DEFAULT = _PARAMETER_DEFAULTS['min_datums_ic']
 MIN_TICKERS_PER_DATUM = 20
 MIN_PARAMS_VOOR_MODEL = 5
-MAX_DATA_LEEFTIJD_DEFAULT = 5       # v1.4: max leeftijd (dagen) van de nieuwste data
+MAX_DATA_LEEFTIJD_DEFAULT = _PARAMETER_DEFAULTS['max_data_leeftijd']
 STATEMENT_TIMEOUT_MS_DEFAULT = 600_000  # v1.7: 10 minuten DB query-timeout
 
 MODEL_VERSIE = "a_par_model_v1"
@@ -1126,3 +1128,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

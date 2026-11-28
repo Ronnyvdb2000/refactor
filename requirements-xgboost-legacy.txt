@@ -1,0 +1,4 @@
+# V4/meta-label artifacts retain their existing XGBoost runtime.
+-r requirements-numerical.txt
+-r requirements-model-io.txt
+xgboost==2.1.3

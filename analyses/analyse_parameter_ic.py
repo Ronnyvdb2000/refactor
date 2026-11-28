@@ -23,6 +23,7 @@ Output:
   results/parameter_ic_matrix.json   (parameters x horizons)
   Console: top-10 per horizon
 """
+from common.horizons import SUPPORTED_HORIZONS
 
 from common.sel_par_inputs import sel_par_query
 
@@ -36,7 +37,7 @@ import psycopg2
 from scipy.stats import spearmanr
 
 
-HORIZONS = ["5d", "10d", "20d", "30d", "60d"]
+HORIZONS = [f'{h}d' for h in SUPPORTED_HORIZONS]
 TARGET_KOLOM = {h: f"fwd_ret_{h}" for h in HORIZONS}
 RESULTS_DIR = "results"
 
@@ -217,3 +218,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

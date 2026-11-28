@@ -1,0 +1,3 @@
+-r requirements-numerical.txt
+-r requirements-model-io.txt
+lightgbm==4.6.0

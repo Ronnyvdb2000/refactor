@@ -1,4 +1,5 @@
 """Fixed Elastic Net regression recipe for isolated historical research."""
+from common.model_definitions import (ML_FEATURES, RELATIVE_ML_FEATURES, ML_HORIZONS, TOP_SCORE_FRACTION, BASELINE_FEATURE)
 import warnings
 
 import numpy as np
@@ -8,8 +9,7 @@ from sklearn.linear_model import ElasticNet
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-FEATURES = ['atr14','atr14_pct','rsi14','ibs','ma50','ma200','pct_from_ma50',
-            'pct_from_ma200','vol_ratio_20d','high52w','pct_from_high52w']
+FEATURES = list(ML_FEATURES)
 RECIPE = dict(alpha=0.01, l1_ratio=0.5, max_iter=50000, tol=1e-6,
               fit_intercept=True, selection='cyclic')
 
@@ -49,3 +49,4 @@ def diagnostics(model):
         target_scale=float(target.transformer_.scale_[0]),
         nonzero_coefficients=int(np.count_nonzero(reg.coef_)),
         iterations=int(reg.n_iter_), dual_gap=float(reg.dual_gap_))
+

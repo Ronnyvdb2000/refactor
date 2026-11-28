@@ -3,6 +3,7 @@
 Never compounds overlapping daily baskets. No retrospective row is promoted to a
 prospective forecast. Missing outcomes keep the entire cohort incomplete.
 """
+from common.costs import (SIGNAL_ROUND_TRIP_BPS, GROSS_SIGNAL_ROUND_TRIP_BPS, ROUND_TRIP_SENSITIVITY_BPS, net_signal_pct)
 import argparse
 from datetime import datetime, timezone
 from itertools import combinations
@@ -17,7 +18,7 @@ from analyses.evaluate_xgboost import outcome
 from common.model_archive import number
 
 
-def assess(rows, top_n=10, cost_bps=20):
+def assess(rows, top_n=10, cost_bps=SIGNAL_ROUND_TRIP_BPS):
     if top_n<1 or not math.isfinite(cost_bps) or cost_bps<0:
         raise ValueError('Ongeldige top-N of kostenscenario')
     ranked=sorted(rows,key=lambda r:(-float(r['score']),r['ticker']))
@@ -35,12 +36,12 @@ def assess(rows, top_n=10, cost_bps=20):
     ic=None
     if len(ranked)>=3 and len(set(values))>1 and len({r['score'] for r in ranked})>1:
         ic=number(spearmanr([r['score'] for r in ranked],values).statistic)
-    return dict(result,status='complete',top_gross_pct=gross,top_net_pct=gross-cost_bps/100,
+    return dict(result,status='complete',top_gross_pct=gross,top_net_pct=net_signal_pct(gross,cost_bps),
                 win_rate=sum(v>0 for v in top)/len(top),baseline_pct=baseline,
                 excess_pp=gross-baseline,rank_ic=ic)
 
 
-def compare(a,b,top_n=10,cost_bps=20):
+def compare(a,b,top_n=10,cost_bps=SIGNAL_ROUND_TRIP_BPS):
     left={r['ticker']:r for r in a};right={r['ticker']:r for r in b}
     common=sorted(left.keys() & right.keys())
     first=assess([left[t] for t in common],top_n,cost_bps)
@@ -101,7 +102,7 @@ def load(conn):
         return [dict(r) for r in cur.fetchall()]
 
 
-def run(conn, *, as_of=None, cost_bps=20, fetch=None, budget_minutes=70):
+def run(conn, *, as_of=None, cost_bps=SIGNAL_ROUND_TRIP_BPS, fetch=None, budget_minutes=70):
     as_of=as_of or datetime.now(timezone.utc).date()
     rows=load(conn)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -199,7 +200,7 @@ def run(conn, *, as_of=None, cost_bps=20, fetch=None, budget_minutes=70):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--cost-bps',type=float,default=20,help='Round-trip kostenscenario, geen gemeten kosten')
+    parser.add_argument('--cost-bps',type=float,default=SIGNAL_ROUND_TRIP_BPS,help='Round-trip kostenscenario, geen gemeten kosten')
     args=parser.parse_args()
     if not math.isfinite(args.cost_bps) or args.cost_bps<0:
         parser.error('Kostenscenario moet eindig en niet negatief zijn')
@@ -219,3 +220,4 @@ def main():
 
 if __name__=='__main__':
     main()
+
