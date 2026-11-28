@@ -122,6 +122,19 @@ def record(conn, frame, *, model, version, horizon, mode, target, top_n=10,
     return ident
 
 
+def training_label_end(train, horizon):
+    """Observed latest end only; missing legacy metadata is never reconstructed."""
+    from .temporal_contract import label_column
+    column=label_column(horizon)
+    if column not in train:
+        column='label_end'
+    if column not in train or train.empty:
+        return None
+    from .model_inputs import dates
+    values=dates(train[column])
+    return values.max().date().isoformat() if values.notna().all() else None
+
+
 def archive_candidate(frame, *, model, version, horizon, target, train, features, estimator, config=None):
     """Historical test archive, deliberately separate from prospective scoring."""
     db=os.getenv('SUPABASE_DB_URL')
@@ -146,6 +159,7 @@ def archive_candidate(frame, *, model, version, horizon, target, train, features
                       train_start=train.datum.min(),train_end=train.datum.max(),config={**(config or {}), 'model_params': estimator.get_params(),
                               'hash_basis': 'pickle of fitted estimator',
                               'input_hash': input_fingerprint(train), 'feature_build': load_feature_context(),
+                              'last_train_label_end': training_label_end(train,horizon),
                               'test_intervals': overlap_report(frame,horizon)})
 
 
@@ -188,6 +202,7 @@ def archive_meta_fold(conn, test, train, estimator, scaler, features, *, horizon
     fold=day(test.datum.min())
     config={'scope':scope,'threshold_pct':float(threshold),'outcome_conditioned':outcome_conditioned,
             'input_hash':input_fingerprint(train),'feature_build':load_feature_context(),'temporal_contract':1,
+            'last_train_label_end':training_label_end(train,horizon),
             'training_extremes_only':True,
             'comparison_eligible':not outcome_conditioned,'aggregation':'mean probability per ticker/date',
             'n_strategy_signals':len(test),'features':list(features),
