@@ -182,6 +182,10 @@ def build_report(conn,*,source_keys=(),as_of=None):
         research[key]=dict(horizon=source['config']['horizon'],currency=source['config'].get('currency','USD'),
             models={name:diagnostics(rows) for name,rows in research_rows(source,cache,as_of=as_of).items()},
             existing_portfolio_metrics=source['result'].get('books',{}),
+            portfolio_context={k:source['result'].get(k) for k in
+                ('status','closed_batches','planned_batches','valuation_start','valuation_end','stopped_at')},
+            portfolio_costs={k:source['config'].get(k) for k in
+                ('commission_bps','slippage_bps','fx_bps')},
             basis='cached adjusted next-open to horizon-close proxy; historical FX conversion; no new prices',
             caveat='historical features may be backfilled; not prospective proof; original portfolio NAV unchanged')
     return dict(schema_version=1,as_of=as_of,analysis_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),archive=results,research=research,excluded_archive_rows=excluded,
@@ -211,6 +215,31 @@ def markdown(report):
         'Kosten in JSON: vaste round-trip scenario’s per gesloten horizonbasket; geen besparing door alleen naamoverlap verondersteld.',
         'Kwantielen krijgen gelijke datumweging. Onvolledige cohorten tellen niet mee in rendement/IC; selectie gebeurt vóór uitkomstcontrole.',
         'JSON bevat de vijf kwantielrendementen, kostenanalyse, dekking per cohort en niet-overlappende vensters. Geen significantieclaim.'])
+    lines.extend(['','## Bestaande portefeuillebacktests', '',
+        'Netto NAV omvat de kosten van de oorspronkelijke backtest. Dit is een afzonderlijke top-10-portefeuille; Q5-kostenscenario’s hierboven zijn geen NAV.', '',
+        '| Bron | Horizon | Portefeuille | Netto % | Max. drawdown % | Eindwaarde | Gewaardeerd t/m | Gesloten/gepland |',
+        '|---|---:|---|---:|---:|---:|---|---|'])
+    for key, research in report['research'].items():
+        context=research.get('portfolio_context',{})
+        for name, book in research.get('existing_portfolio_metrics',{}).items():
+            lines.append('| '+' | '.join([
+                key.replace('|',' / '),str(research['horizon'])+'d',name.replace('|',' / '),
+                fmt(book.get('net_return_pct')),fmt(book.get('max_drawdown_pct')),
+                fmt(book.get('ending_equity'))+' '+research.get('currency','USD'),
+                str(book.get('valued_through') or '—'),
+                str(context.get('closed_batches','—'))+'/'+str(context.get('planned_batches','—'))])+' |')
+        costs=research.get('portfolio_costs',{})
+        lines.extend(['',f"Bron {key}: status {context.get('status') or 'onbekend'}; kostenconfiguratie (bp): "+
+            ', '.join(f'{k}={v if v is not None else "onbekend"}' for k,v in costs.items())+'.'])
+    lines.extend(['','## IC en monotonie per selectiedatum','',
+        '| Bron/model | Datum | Status | Aantal/rijp | IC | Oplopende kwantielstappen | Signaalturnover | Tussenruimte (dagen) |',
+        '|---|---|---|---:|---:|---:|---:|---:|'])
+    for name, result in groups.items():
+        for cohort in result['cohorts']:
+            lines.append('| '+' | '.join([name.replace('|',' / '),cohort['date'],cohort['status'],
+                str(cohort['n'])+'/'+str(cohort['n_mature']),fmt(cohort['rank_ic']),
+                fmt(cohort.get('adjacent_monotonic_fraction')),fmt(cohort['signal_turnover']),
+                str(cohort['days_since_previous']) if cohort['days_since_previous'] is not None else '—'])+' |')
     return '\n'.join(lines)+'\n'
 
 
@@ -241,3 +270,4 @@ def main():
 
 
 if __name__=='__main__':main()
+

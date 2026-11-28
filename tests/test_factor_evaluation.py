@@ -6,6 +6,28 @@ import pytest
 from analyses.factor_evaluation import diagnostics,research_rows
 
 
+def test_readable_report_includes_actual_nav_and_date_diagnostics():
+    from analyses.factor_evaluation import markdown
+    report=dict(archive={},research={'frozen-run':dict(horizon=5,currency='USD',
+        models={'parameter':diagnostics(rows(1))},
+        existing_portfolio_metrics={'parameter':dict(net_return_pct=-1.79,
+            max_drawdown_pct=-3.,ending_equity=98210.,valued_through='2024-01-08')},
+        portfolio_context=dict(status='pending_final_period',closed_batches=1,planned_batches=2),
+        portfolio_costs=dict(commission_bps=5,slippage_bps=10))})
+    text=markdown(report)
+    assert '-1.790' in text and '98210.000 USD' in text and '1/2' in text
+    assert 'pending_final_period' in text and 'slippage_bps=10' in text
+    assert '2024-01-01 | complete | 10/10 | 1.000' in text
+    assert 'Q5-kostenscenario’s hierboven zijn geen NAV' in text
+
+
+def test_report_handles_absent_portfolio_outcomes_without_inventing_zero():
+    from analyses.factor_evaluation import markdown
+    text=markdown(dict(archive={},research={'empty':dict(horizon=10,models={},existing_portfolio_metrics={})}))
+    assert 'status onbekend' in text
+    assert '0.000' not in text
+
+
 def rows(days=3):
     return [dict(date=str(d.date()),ticker=f'T{i}',score=float(i),status='mature',gross_pct=float(i-5),
                  entry_date=str(d.date()),exit_date=str((d+pd.offsets.BDay(5)).date()))
@@ -125,3 +147,4 @@ def test_training_date_keeps_local_market_day_and_duplicate_quotes_reject():
     assert training_label_end(frame,10)=='2024-01-02'
     source,cache=fixture();cache['T0']['bars'].append(cache['T0']['bars'][0])
     with pytest.raises(ValueError,match='Dubbele koersdatum'):research_rows(source,cache,as_of='2024-01-09')
+

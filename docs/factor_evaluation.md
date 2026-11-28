@@ -50,3 +50,12 @@ modelvergelijking moeten bron, universum, horizon en uitvoeringsbasis gelijk zij
 Extra opbrengst van dit werk is diagnostisch: laat de hele rangschikking een
 patroon zien, blijft Q5 na kosten positief, en hoeveel namen wisselen? Er wordt
 geen extra financieel rendement door deze rapportage zelf gegenereerd.
+
+Het leesbare rapport bevat ook de IC en monotonie per selectiedatum en de
+bestaande netto NAV, maximale drawdown, eindwaarde, waarderingsdatum en het
+aantal gesloten/geplande perioden per portefeuille. Kosteninstellingen en de
+bronstatus staan erbij; ontbrekende metadata blijft onbekend. De portefeuille
+kan een eerdere waarderingsdatum hebben dan de scoreanalyse: vergelijk alleen
+uitkomsten met dezelfde bron, horizon en meetperiode. De Q5-kostenscenario’s
+worden afzonderlijk van de werkelijke portefeuille-NAV getoond.
+
