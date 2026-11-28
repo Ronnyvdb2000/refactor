@@ -79,7 +79,7 @@ def message(row):
     return text
 
 
-def notify(conn, key, token, chat_id, sender=deliver):
+def notify(conn, key, token, chat_id, sender=deliver, formatter=None):
     if not token or not chat_id:
         raise ValueError('Telegraminstellingen ontbreken; geen bericht geclaimd')
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -92,7 +92,7 @@ def notify(conn, key, token, chat_id, sender=deliver):
             row = cur.fetchone()
             if not row:
                 raise ValueError('Deze backtestrun heeft nog geen opgeslagen resultaat')
-            text = message(row)
+            text = (formatter or message)(row)
             fingerprint = hashlib.sha256(text.encode()).hexdigest()
             cur.execute('''INSERT INTO public.research_backtest_notices(run_key,message_hash,message)
                 VALUES(%s,%s,%s) ON CONFLICT(run_key,message_hash) DO NOTHING RETURNING status''',

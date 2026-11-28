@@ -1,0 +1,43 @@
+name: Backtest A Parameter Europa - EUR en Europese kalender
+on:
+  push:
+    branches: [main]
+    paths: ['analyses/backtest_europe.py', 'analyses/europe_market.py', 'analyses/europe_execution.py', '.github/workflows/backtest_europe.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: europe-parameter-backtest
+  cancel-in-progress: false
+  queue: max
+jobs:
+  europe:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: refactor-yahoo-features
+      cancel-in-progress: false
+      queue: max
+    env:
+      BACKTEST_HORIZON: '10'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-paper.txt -r requirements-europe.txt
+      - name: Bereken Europese portefeuilles met historische EUR-conversie
+        id: backtest
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m analyses.backtest_europe
+      - name: Meld Europese proef via Telegram
+        if: ${{ !cancelled() && (steps.backtest.outcome == 'success' || steps.backtest.outcome == 'failure') }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m analyses.backtest_europe_telegram
