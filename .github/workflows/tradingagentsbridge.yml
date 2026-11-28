@@ -60,6 +60,7 @@ on:
     - cron: "0 23 * * *"
 
   push:
+    branches: [main]
     paths:
       - "tradingagents_bridge.py"
       - "requirements-tradingagents.txt"

@@ -165,3 +165,10 @@ def test_local_calendar_helpers_agree_with_common(horizon):
     for helper in [xLightgbmV2.embargo_kalenderdagen,xLightgbmV2_gecontroleerd.embargo_days,
                    xgboostV3_gecontroleerd.embargo_dagen,xgboostV4.embargo_kalenderdagen]:
         assert helper(key)==calendar_embargo(horizon)
+
+
+def test_live_push_routes_do_not_run_from_work_branches():
+    root=Path(__file__).resolve().parents[1]
+    for filename in ['run_02xgboostV4.yml','tradingagentsbridge.yml']:
+        workflow=yaml.load((root/'.github/workflows'/filename).read_text(),Loader=yaml.BaseLoader)
+        assert workflow['on']['push']['branches']==['main']

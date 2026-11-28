@@ -19,6 +19,7 @@ on:
     # Elke zondag om 04:00 UTC (na zaterdag-data, voor maandagmarkt)
     - cron: "0 4 * * 0"
   push:
+    branches: [main]
     paths:
       - "models/xgboostV4.py"
       - ".github/workflows/run_02xgboostV4.yml"
