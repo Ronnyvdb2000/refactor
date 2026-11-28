@@ -3,7 +3,7 @@
 Vanaf studieversie 2 behoudt A de huidige Amerikaanse criteria met 20%
 minimumvolatiliteit. B verandert uitsluitend `VOL_MIN` van 0,20 naar 0.
 De eerdere versie met 35% blijft afzonderlijk bewaard; cyclus-, meldingssleutels
-en toestandsoverdracht zijn gescheiden per studieversie. Canada blijft op 35%. Alle andere drempels, sectoruitzonderingen en de
+en toestandsoverdracht zijn gescheiden per studieversie. Canada gebruikt eveneens 20%; de A/B-proef blijft beperkt tot de drie Amerikaanse lijsten. Alle andere drempels, sectoruitzonderingen en de
 bestaande drie-wekentermijn voor verzwakkende aandelen blijven gelijk.
 De lijsten zijn 048, 056 en 057. Proef C maakt geen deel uit van deze wijziging.
 

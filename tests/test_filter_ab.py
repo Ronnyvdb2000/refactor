@@ -144,11 +144,11 @@ def test_schema_and_workflows_isolate_observations_from_production():
     assert run['env']['FILTER_AB_CAPTURE']=='1'
 
 
-def test_us_twenty_percent_does_not_change_canada_or_other_criteria():
+def test_us_and_canada_twenty_percent_preserve_other_criteria():
     for venue in ('048','056','057'):
         expected={**native.CRITERIA['noordamerika'],'VOL_MIN':.20}
         assert native.get_criteria(venue)==expected
     for venue in ('047','055','058'):
-        assert native.get_criteria(venue)['VOL_MIN']==.35
+        assert native.get_criteria(venue)['VOL_MIN']==.20
     assert native.get_criteria('041')['VOL_MIN']==.20
     assert ab.protocol()['version']==2

@@ -166,7 +166,7 @@ CRITERIA = {
         "ROE_MIN": 0.04,
         "DEBT_MAX": 140.0,
         "MARGE_MIN": 0.03,
-        "VOL_MIN": 0.35,
+        "VOL_MIN": 0.20,
         "VOL_MAX": 0.95,
         "MIN_DAGOMZET": 2_500_000,
     },
@@ -174,8 +174,6 @@ CRITERIA = {
 
 
 def get_criteria(getal: str) -> dict:
-    if getal in ("048", "056", "057"):
-        return {**CRITERIA["noordamerika"], "VOL_MIN": 0.20}
     return CRITERIA["europa"] if getal in EUROPA_BEURZEN else CRITERIA["noordamerika"]
 
 
