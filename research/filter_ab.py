@@ -17,6 +17,7 @@ from psycopg2.extras import Json, RealDictCursor
 
 from scripts import bot_041mV2 as native
 
+STUDY_VERSION=2
 VENUES=('048','056','057')
 INFO_FIELDS=('returnOnEquity','revenueGrowth','profitMargins','debtToEquity','totalDebt','sector',
              'currency','marketCap','freeCashflow','trailingPE','priceToBook','dividendYield',
@@ -41,7 +42,7 @@ def fingerprint(value):
 
 def protocol():
     a=deepcopy(native.get_criteria('048'));b={**a,'VOL_MIN':0.0}
-    return dict(version=1,A=a,B=b,horizon=10,top_n=10,initial_cash=100000,
+    return dict(version=STUDY_VERSION,A=a,B=b,horizon=10,top_n=10,initial_cash=100000,
                 commission_bps=5,slippage_bps=10,hold_weeks=native.MAX_WEKEN_BUITEN,
                 native_hash=hashlib.sha256(Path(native.__file__).read_bytes()).hexdigest(),
                 capture_hash=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
@@ -114,11 +115,11 @@ class Recorder:
         if venue not in VENUES:
             raise ValueError('Alleen de vooraf vastgelegde Amerikaanse lijsten')
         self.conn=conn;self.venue=venue;self.mode=mode;self.errors=0
-        self.key=f"filter_ab:{run_id or os.getenv('FILTER_AB_RUN_ID') or os.environ['GITHUB_RUN_ID']}:{venue}"
+        self.key=f"filter_ab:v{STUDY_VERSION}:{run_id or os.getenv('FILTER_AB_RUN_ID') or os.environ['GITHUB_RUN_ID']}:{venue}"
         self.expected=sorted(set(expected));self.seed_a=deepcopy(seed_a);self.seed_b=deepcopy(seed_a)
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT cycle_key,status,protocol,result FROM public.research_filter_ab_cycles WHERE venue=%s AND mode='weekly' "
-                        "ORDER BY created_at DESC LIMIT 1",(venue,))
+            cur.execute("SELECT cycle_key,status,protocol,result FROM public.research_filter_ab_cycles WHERE venue=%s AND mode='weekly' AND protocol->>'version'=%s "
+                        "ORDER BY created_at DESC LIMIT 1",(venue,str(STUDY_VERSION)))
             previous=cur.fetchone()
             if previous and mode=='weekly':
                 if previous['cycle_key']!=self.key and previous['status']!='complete':
@@ -219,7 +220,7 @@ def notify():
     token=os.getenv('TELEGRAM_TOKEN');chat=os.getenv('TELEGRAM_CHAT_ID')
     if not token or not chat:
         raise ValueError('Telegraminstellingen ontbreken')
-    run_id=os.getenv('FILTER_AB_RUN_ID') or os.environ['GITHUB_RUN_ID'];key='filter_ab:'+run_id
+    run_id=os.getenv('FILTER_AB_RUN_ID') or os.environ['GITHUB_RUN_ID'];key=f'filter_ab:v{STUDY_VERSION}:'+run_id
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'],connect_timeout=20) as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('SELECT venue,mode,status,result FROM public.research_filter_ab_cycles WHERE cycle_key LIKE %s ORDER BY venue',
@@ -228,7 +229,7 @@ def notify():
         if not rows:
             raise ValueError('Geen opgeslagen A/B-observaties voor deze run')
         text=['🧪 Filterproef A/B — dataverzameling',
-              'A: huidige filter. B: dezelfde regels, zonder minimale volatiliteit van 35%.',
+              'A: huidige filter (minimaal 20% volatiliteit). B: dezelfde regels zonder minimumvolatiliteit.',
               'Wekelijkse uitstelregels blijven voor beide varianten gelijk.']
         missing=sorted(set(VENUES)-{r['venue'] for r in rows})
         if missing:
