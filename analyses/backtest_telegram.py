@@ -64,6 +64,8 @@ def message(row):
         lines.append('Nog geen berekend rendement; deze melding bevestigt alleen de voortgang.')
     if row['status']=='insufficient_history':
         lines.append('Te weinig bruikbare trainingshistorie voor deze horizon; geen geldige backtestselecties.')
+    if row['status']=='blocked_source':
+        lines.append(result.get('reason','Benodigde bronproef ontbreekt; geen rendementsberekening.'))
     if row['status']=='insufficient_signal':
         name=result.get('regression_model','Elastic Net')
         lines.append(f'{name} onderscheidt geen aandelen in deze cohorten; geen willekeurige top tien of rendementsclaim.')

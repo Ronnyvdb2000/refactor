@@ -139,12 +139,19 @@ def test_source_is_frozen_before_training_and_retry_keeps_parent(monkeypatch):
     assert not any('ORDER BY created_at' in c.args[0] for c in cur.execute.call_args_list)
 
 
-def test_incompatible_reference_feature_definition_stops_before_writing():
+@pytest.mark.parametrize('parent',[None,dict(run_key='incompatible',config={'features':['different']})])
+def test_missing_or_incompatible_reference_is_reported_without_fitting(parent):
     conn=MagicMock();cur=conn.cursor.return_value.__enter__.return_value
-    cur.fetchone.side_effect=[{'locked':True},None,dict(config={'features':['different']})]
-    with pytest.raises(ValueError,match='kenmerkdefinitie'):
-        et.run(conn,'incompatible-source')
-    assert not any(c.args[0].startswith(('INSERT','UPDATE')) for c in cur.execute.call_args_list)
+    cur.fetchone.side_effect=[{'locked':True},None,parent]
+    result=et.run(conn,'blocked-source')
+    assert result['status']=='blocked_source' and result['books']=={}
+    insert=next(c.args for c in cur.execute.call_args_list if c.args[0].startswith('INSERT'))
+    assert insert[1][4]=='blocked_source'
+    text=message(dict(run_key='blocked-source',status=result['status'],config=insert[1][2].adapted,result=result))
+    assert result['reason'] in text and 'Nog geen berekend rendement' in text
+    cur.reset_mock();cur.fetchone.side_effect=[{'locked':True},dict(status='blocked_source',result=result)]
+    assert et.run(conn,'blocked-source')==result
+    assert not any(c.args[0].startswith('INSERT') for c in cur.execute.call_args_list)
 
 
 def test_workflow_is_serial_and_separates_notification_credentials():

@@ -41,6 +41,9 @@ krijgen geen groter budget. Horizons 5/10/20/30/60 lopen afzonderlijk en één
 voor één, na de bestaande ML/Elastic Net-workflows in dezelfde wachtrij.
 Iedere horizon verstuurt één duurzaam geregistreerde Telegramsamenvatting.
 Runs heten extra_trees_<horizon>d:<Actions-ID>.
+Een ontbrekende of onverenigbare bron geeft blocked_source en een expliciete
+Telegrammelding zonder rendement. Een nieuwe bron vereist vervolgens een nieuwe
+Actions-run; dezelfde geblokkeerde run wordt niet stilzwijgend hergedefinieerd.
 
 Per cohort worden alle scores, trainingshashes, cutoffdatums en boomdiagnostiek
 bewaard: aantallen bomen/nodes, dieptes, structuurhash en impurity-importances.

@@ -1,6 +1,7 @@
 """Isolated Extra Trees regression on frozen Elastic Net comparison inputs."""
 import hashlib
 from importlib import import_module
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -107,6 +108,19 @@ def recipe_hash():
     return hashlib.sha256(b''.join((root/name).read_bytes() for name in names)).hexdigest()
 
 
+def record_blocked(conn,cur,key,horizon,reason,parent=None):
+    config={**configuration(datetime.now(timezone.utc).date(),horizon),
+            'mode':'historical_extra_trees_comparison','comparison_hash':recipe_hash(),
+            'parent_run':parent,'source_unavailable':True}
+    report=dict(status='blocked_source',reason=reason,closed_batches=0,planned_batches=0,
+                books={},horizon=horizon,profitability_proven=False,regression_model='Extra Trees')
+    cur.execute('INSERT INTO public.research_backtests(run_key,source_sha,config,selection_snapshot,status,result) '
+                'VALUES(%s,%s,%s,%s,%s,%s)',
+                (key,os.getenv('GITHUB_SHA'),Json(config),Json({}),'blocked_source',Json(report)))
+    conn.commit()
+    return dict(report,run_key=key)
+
+
 def run(conn,key,horizon=10):
     horizon=horizon_days(horizon)
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
@@ -117,6 +131,8 @@ def run(conn,key,horizon=10):
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute('SELECT config,result,status,selection_snapshot FROM public.research_backtests WHERE run_key=%s',(key,))
             existing=cur.fetchone()
+            if existing and existing['status']=='blocked_source':
+                return dict(existing['result'],run_key=key)
             if existing:
                 cur.execute('SELECT * FROM public.research_backtests WHERE run_key=%s',
                             (existing['config']['parent_run'],))
@@ -126,9 +142,9 @@ def run(conn,key,horizon=10):
                             "ORDER BY created_at DESC LIMIT 1",(str(horizon),))
             parent=cur.fetchone()
             if not parent:
-                raise ValueError('Geen vastgelegde Elastic Net-backtest voor deze horizon')
+                return record_blocked(conn,cur,key,horizon,'Geen bruikbare afgeronde Elastic Net-bronberekening voor deze horizon.')
             if parent['config'].get('features')!=FEATURES:
-                raise ValueError('Elastic Net-bron gebruikt een andere kenmerkdefinitie')
+                return record_blocked(conn,cur,key,horizon,'Elastic Net-bron gebruikt een andere kenmerkdefinitie.',parent['run_key'])
             config={**configuration(parent['config']['as_of'],horizon),
                     'mode':'historical_extra_trees_comparison','parent_run':parent['run_key'],
                     'comparison_hash':recipe_hash(),'features':FEATURES,
@@ -204,7 +220,7 @@ def main():
     if os.getenv('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
             f.write(f'## Extra Trees-vergelijking {horizon} handelsdagen\n\n```json\n'+json.dumps(result,indent=2)+'\n```\n')
-    if result['status'] in ('error','partial'):
+    if result['status'] in ('error','partial','blocked_source'):
         raise SystemExit('Extra Trees-backtest onvolledig; opgeslagen status wordt via Telegram gemeld')
 
 
