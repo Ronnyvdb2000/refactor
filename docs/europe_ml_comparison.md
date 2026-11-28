@@ -57,3 +57,20 @@ verschillende leerdoelen, FX-dagkoersproxies en historische koersuitsluiting
 blijven beperkingen. Meerdere modellen proberen vergroot de kans op een
 toevallige winnaar. profitability_proven blijft false; productie en lopende
 paperproeven worden niet aangepast.
+
+## Overige horizons
+
+De workflow `Backtest Europa - overige horizons en ML` berekent 5, 20, 30 en
+60 dagen na elkaar. Iedere horizon bouwt eerst zijn eigen Europese parameter-
+bron met nieuwe horizonlabels, gewichten, kalender en selecties. De ML-stap
+krijgt daarna expliciet de runsleutel van die bron uit dezelfde Actions-run;
+een willekeurige recentere bron kan deze vergelijking niet vervangen. De
+bestaande 10-daagse proef blijft afzonderlijk beschikbaar.
+
+Alle horizons behouden dezelfde bronselectiehistorie, kosten en datumgrenzen
+voor bekende labels. Door de langere trainingsuitkomsten en het bijbehorende
+embargo kan de beschikbare beleggingsperiode per horizon verschillen. Een
+lange horizon kan nog geen afgesloten periode hebben. Onvoldoende bronhistorie
+levert ook voor ML `insufficient_history` zonder een verzonnen rendement van 0%.
+Een fout bij één horizon annuleert de overige horizons niet. Zowel de Europese
+parameterbron als de gezamenlijke modelvergelijking wordt via Telegram gemeld.
