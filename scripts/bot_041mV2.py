@@ -174,6 +174,8 @@ CRITERIA = {
 
 
 def get_criteria(getal: str) -> dict:
+    if getal in ("048", "056", "057"):
+        return {**CRITERIA["noordamerika"], "VOL_MIN": 0.20}
     return CRITERIA["europa"] if getal in EUROPA_BEURZEN else CRITERIA["noordamerika"]
 
 

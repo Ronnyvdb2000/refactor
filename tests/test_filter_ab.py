@@ -14,7 +14,7 @@ from scripts import bot_041mV2 as native
 NOW=datetime(2026,11,28,5,tzinfo=timezone.utc)
 
 
-def inputs(vol=.2,volume=1_000_000):
+def inputs(vol=.15,volume=1_000_000):
     rng=np.random.default_rng(42)
     close=100*np.exp(np.cumsum(rng.normal(0,vol/np.sqrt(252),252)))
     hist=pd.DataFrame(dict(Open=close,High=close*1.01,Low=close*.99,Close=close,Volume=volume),
@@ -26,7 +26,7 @@ def inputs(vol=.2,volume=1_000_000):
 def test_only_minimum_volatility_changes_and_native_defaults_stay_intact():
     original=deepcopy(native.CRITERIA)
     p=ab.protocol()
-    assert p['A']['VOL_MIN']==.35 and p['B']['VOL_MIN']==0
+    assert p['A']['VOL_MIN']==.20 and p['B']['VOL_MIN']==0
     assert {k for k in p['A'] if p['A'][k]!=p['B'][k]}=={'VOL_MIN'}
     assert p['hold_weeks']==native.MAX_WEKEN_BUITEN==3
     assert native.CRITERIA==original
@@ -36,7 +36,7 @@ def test_quiet_financially_eligible_stock_is_the_intended_single_difference():
     info,hist=inputs()
     r=ab.paired_observation('QUIET',info,hist,now=NOW)
     assert r['available'] and not r['pass_A'] and r['pass_B']
-    assert r['annual_volatility']<.35
+    assert r['annual_volatility']<.20
     assert r['observed_at']==NOW.isoformat() and r['quote_day']=='2026-11-27'
     assert r['features'] and r['info']['returnOnEquity']==.1
 
@@ -142,3 +142,13 @@ def test_schema_and_workflows_isolate_observations_from_production():
     production=yaml.load((root/'.github/workflows/run__filtertickersmungerV2.yml').read_text(),Loader=yaml.BaseLoader)
     run=next(s for s in production['jobs']['filter_tickers']['steps'] if s.get('name')=='Run filter bot')
     assert run['env']['FILTER_AB_CAPTURE']=='1'
+
+
+def test_us_twenty_percent_does_not_change_canada_or_other_criteria():
+    for venue in ('048','056','057'):
+        expected={**native.CRITERIA['noordamerika'],'VOL_MIN':.20}
+        assert native.get_criteria(venue)==expected
+    for venue in ('047','055','058'):
+        assert native.get_criteria(venue)['VOL_MIN']==.35
+    assert native.get_criteria('041')['VOL_MIN']==.20
+    assert ab.protocol()['version']==2
