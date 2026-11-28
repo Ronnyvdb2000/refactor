@@ -106,13 +106,15 @@ def test_late_source_stops_attempt_before_transfer_and_can_recover(monkeypatch):
     assert connect.call_count == 1  # only the completion check, no transfer
 
 
-def test_manual_model_run_keeps_existing_arguments(monkeypatch):
+def test_manual_model_run_requires_readiness_before_child_process(monkeypatch):
     monkeypatch.setenv('GITHUB_EVENT_NAME', 'workflow_dispatch')
+    monkeypatch.delenv('FEATURE_BUILD_MANIFEST', raising=False)
     monkeypatch.setattr('sys.argv', ['score_once', 'a_par', '--geen-notify'])
-    runner = MagicMock(return_value=SimpleNamespace(returncode=0))
+    runner = MagicMock()
     monkeypatch.setattr(score_once.subprocess, 'run', runner)
-    assert score_once.main() == 0
-    assert runner.call_args.args[0][-3:] == ['-m', 'meta_models.a_par_model', '--geen-notify']
+    with pytest.raises(RuntimeError, match='manifest'):
+        score_once.main()
+    runner.assert_not_called()
 
 
 def test_partial_enrichment_can_resume_then_release(monkeypatch, tmp_path):
@@ -157,3 +159,17 @@ def test_refresh_and_scoring_cannot_overlap():
         score_once.score(conn, DAY, 'a_par', ['cmd'], runner)
     runner.assert_not_called()
     assert 'pg_advisory_unlock' in cur.execute.call_args.args[0]
+
+
+def test_ready_manual_model_run_keeps_arguments_and_uses_once_guard(monkeypatch):
+    import psycopg2
+    monkeypatch.setenv('GITHUB_EVENT_NAME','workflow_dispatch')
+    monkeypatch.setenv('SUPABASE_DB_URL','offline')
+    monkeypatch.setattr('sys.argv',['score_once','a_par','--geen-notify'])
+    monkeypatch.setattr(score_once,'load_feature_context',lambda:dict(selection_cutoff='2026-11-20'))
+    monkeypatch.setattr(psycopg2,'connect',MagicMock())
+    guarded=MagicMock(return_value=0)
+    monkeypatch.setattr(score_once,'score',guarded)
+    assert score_once.main()==0
+    assert guarded.call_args.args[1:3]==('2026-11-20','a_par')
+    assert guarded.call_args.args[3][-3:]==['-m','meta_models.a_par_model','--geen-notify']

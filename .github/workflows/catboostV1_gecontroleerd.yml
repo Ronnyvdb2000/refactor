@@ -1,3 +1,7 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: CatBoost V1 - wekelijkse kandidaat-evaluatie
 on:
   schedule:
@@ -14,6 +18,7 @@ on:
         options: [excess, abs]
         default: excess
 permissions:
+  actions: read
   contents: read
 concurrency:
   group: catboostV1-controle-${{ github.ref }}
@@ -30,6 +35,11 @@ jobs:
           python-version: '3.11'
       - name: Dependencies installeren
         run: python -m pip install -r requirements-catboost.txt
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
+
       - name: CatBoost evalueren
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

@@ -5,6 +5,7 @@ No database writes, notifications, or production model updates. Requires the
 repository root as working directory (meta_models.a_par_model and shared common/features.py).
 """
 
+from common.temporal_contract import purge_before
 from common.sel_par_inputs import sel_par_query
 import argparse
 from common.reports import write_json
@@ -42,7 +43,7 @@ def load_data(conn):
       ORDER BY ticker, datum, strategie
     ), f AS (
       SELECT DISTINCT ON (ticker, datum, strategie)
-        ticker, datum, strategie, fwd_ret_10d
+        ticker, datum, strategie, fwd_ret_10d, label_end_10d, labels_review
       FROM forward_returns
       WHERE fwd_ret_10d IS NOT NULL
       ORDER BY ticker, datum, strategie
@@ -55,7 +56,7 @@ def load_data(conn):
       ORDER BY ticker, datum
     )
     SELECT s.ticker, s.datum, s.strategie, s.score,
-           f.fwd_ret_10d, g.atr14, g.atr14_pct, g.rsi14, g.ibs,
+           f.fwd_ret_10d, f.label_end_10d, f.labels_review, g.atr14, g.atr14_pct, g.rsi14, g.ibs,
            g.ma50, g.ma200, g.pct_from_ma50, g.pct_from_ma200,
            g.vol_ratio_20d, g.high52w, g.pct_from_high52w
     FROM s JOIN f ON (s.ticker=f.ticker AND s.datum=f.datum AND s.strategie=f.strategie)
@@ -134,7 +135,7 @@ def run(df, args):
         if day <= cutoff:
             continue
         # Strict calendar embargo: training date must precede test by >15 days.
-        train = df[df["datum"] < day - pd.Timedelta(days=args.embargo)]
+        train = purge_before(df[df["datum"] < day - pd.Timedelta(days=args.embargo)], 10, day)
         test = df[df["datum"] == day].copy()
         if train["datum"].nunique() < args.min_train_dates or len(test) < args.min_test:
             continue

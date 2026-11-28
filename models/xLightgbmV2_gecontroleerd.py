@@ -7,7 +7,9 @@ xLightgbmV2.py. Bewaart kandidaatbestanden in models/lightgbmV2_controle/ en tes
 in het Supabase-modelarchief. Geen notificaties of productiepromotie.
 """
 
+from common.temporal_contract import purge_before, purged_training, valid_labels, overlap_report, input_fingerprint
 from common.sel_par_inputs import sel_par_query
+from common.horizons import calendar_embargo
 import argparse
 import json
 import math
@@ -28,7 +30,8 @@ MIN_PER_DATE = 10
 OUT = Path('models/lightgbmV2_controle')
 SQL = '''WITH fr AS (
  SELECT DISTINCT ON (ticker, datum) ticker, datum,
- fwd_ret_10d, fwd_ret_30d, fwd_ret_60d
+ fwd_ret_10d, fwd_ret_30d, fwd_ret_60d,
+    label_end_10d, label_end_30d, label_end_60d, labels_review
  FROM forward_returns
  ORDER BY ticker, datum,
  ((fwd_ret_10d IS NOT NULL)::int + (fwd_ret_30d IS NOT NULL)::int
@@ -37,13 +40,14 @@ SQL = '''WITH fr AS (
 SELECT gt.ticker, gt.datum, gt.atr14, gt.atr14_pct, gt.rsi14, gt.ibs,
  gt.ma50, gt.ma200, gt.pct_from_ma50, gt.pct_from_ma200,
  gt.vol_ratio_20d, gt.high52w, gt.pct_from_high52w,
- fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d
+ fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d,
+    fr.label_end_10d, fr.label_end_30d, fr.label_end_60d, fr.labels_review
 FROM generieke_technicals gt JOIN fr
  ON gt.ticker = fr.ticker AND gt.datum = fr.datum'''
 
 
 def embargo_days(horizon):
-    return math.ceil(int(horizon[:-1]) * 7 / 5) + 2
+    return calendar_embargo(horizon)
 
 
 def prepare(df, horizon, target_mode):
@@ -62,6 +66,7 @@ def prepare(df, horizon, target_mode):
         work['target'] = (work[label] > median).astype(int)
     else:
         work['target'] = (work[label] > 0).astype(int)
+    work.attrs['target_mode'] = target_mode
     return work
 
 
@@ -72,8 +77,8 @@ def split(work, horizon):
     idx = min(max(int(len(dates) * .8), 1), len(dates)-1)
     start = dates.iloc[idx]
     end_train = start - pd.Timedelta(days=embargo_days(horizon))
-    train = work.loc[work.datum < end_train].copy()
-    test = work.loc[work.datum >= start].copy()
+    train = purged_training(work.loc[work.datum < end_train], horizon, start, target_mode=work.attrs.get('target_mode','abs'))
+    test = work.loc[(work.datum >= start) & valid_labels(work,horizon)].copy()
     if len(train) < MIN_TRAIN or len(test) < MIN_TEST:
         raise ValueError(f'Onvoldoende rijen na embargo: train={len(train)}, test={len(test)}')
     if train.target.nunique() < 2 or test.target.nunique() < 2:
@@ -105,10 +110,13 @@ def top_return(test, probabilities, horizon):
     return model_top, baseline_top, n
 
 
-def assess(auc_full, auc_relative, model_top, baseline_top, test):
+def assess(auc_full, auc_relative, model_top, baseline_top, test, horizon):
     reasons = []
     if len(test) < MIN_TEST or test.datum.nunique() < 5:
-        reasons.append('te weinig onafhankelijke testdatums/rijen')
+        reasons.append('te weinig verschillende testdatums/rijen')
+    evidence = overlap_report(test,horizon)
+    if evidence['unknown_intervals'] or evidence['nonoverlapping_blocks'] < 3:
+        reasons.append('te weinig geldige niet-overlappende testvensters (minimum 3)')
     if not np.isfinite(auc_full) or auc_full < .55:
         reasons.append('AUC < 0.55')
     if not np.isfinite(auc_relative):
@@ -142,12 +150,12 @@ def run(df, horizons, target_mode, outdir):
             full_auc = auc(test.target, probabilities)
             relative_auc = auc(test.target, relative_prob)
             top, base, n = top_return(test, probabilities, horizon)
-            advice, reasons = assess(full_auc, relative_auc, top, base, test)
+            advice, reasons = assess(full_auc, relative_auc, top, base, test, horizon)
             result.update(status='EVALUATED', publish_advice=advice,
                           reasons=reasons, auc=full_auc, auc_relative=relative_auc,
                           top_model=top, top_baseline=base, top_n=n,
-                          n_train=len(train), n_test=len(test),
-                          n_test_dates=int(test.datum.nunique()),
+                          n_train=len(train), n_test=len(test), input_hash=input_fingerprint(train),
+                          n_test_dates=int(test.datum.nunique()), test_intervals=overlap_report(test,horizon),
                           split_date=str(start.date()),
                           last_train_date=str(train.datum.max().date()),
                           embargo_days=embargo_days(horizon))

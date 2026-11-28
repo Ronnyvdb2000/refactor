@@ -1,5 +1,6 @@
 """Manual CatBoost candidate evaluation; no production scoring; test archive in Supabase."""
 
+from common.temporal_contract import label_column, overlap_report, input_fingerprint
 from common.sel_par_inputs import sel_par_query
 import argparse
 import hashlib
@@ -28,7 +29,7 @@ def prepare(df, horizon, target_mode):
     missing = sorted(set(required) - set(df.columns))
     if missing:
         raise ValueError(f'Ontbrekende kolommen: {missing}')
-    work = df[required].copy()
+    work = df[required + [c for c in [label_column(horizon), 'labels_review'] if c in df]].copy()
     work['datum'] = pd.to_datetime(work['datum'], errors='raise', utc=True).dt.normalize()
     if work[['ticker', 'datum']].isna().any().any():
         raise ValueError('Ticker of datum ontbreekt')
@@ -49,6 +50,7 @@ def prepare(df, horizon, target_mode):
         work['target'] = (work[label] > 0).astype(int)
     else:
         raise ValueError('Ongeldig target')
+    work.attrs['target_mode'] = target_mode
     return work
 
 
@@ -152,9 +154,14 @@ def run(df, horizons, target_mode, outdir=OUT):
                               horizon=horizon, target=target_mode, train=train,
                               features=FEATURES, estimator=model,
                               config={'embargo_days': embargo_days(horizon), 'candidate_only': True})
+            evidence = overlap_report(test,horizon)
+            metrics['test_intervals'] = evidence
             assessment = evaluate_candidate(metrics)
+            if evidence['unknown_intervals'] or evidence['nonoverlapping_blocks'] < 3:
+                assessment['issues'].append('Onvoldoende geldige niet-overlappende testvensters (minimum 3)')
+                assessment['publish_advice'] = 'HOLD'
             result.update(
-                status='EVALUATED', **assessment, n_train=len(train),
+                status='EVALUATED', **assessment, n_train=len(train), input_hash=input_fingerprint(train),
                 n_train_dates=int(train.datum.nunique()),
                 split_date=start.date().isoformat(),
                 train_cutoff=cutoff.date().isoformat(),

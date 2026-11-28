@@ -20,6 +20,7 @@ Belangrijk:
 - Horizonafhankelijke wachtruimte scheidt trainingslabels van de testperiode.
 """
 
+from common.temporal_contract import purge_before, valid_labels
 from common.sel_par_inputs import sel_par_query
 
 import os
@@ -123,7 +124,8 @@ WITH fr_dedup AS (
         datum,
         fwd_ret_10d,
         fwd_ret_30d,
-        fwd_ret_60d
+        fwd_ret_60d,
+        label_end_10d, label_end_30d, label_end_60d, labels_review
     FROM forward_returns
     ORDER BY
         ticker,
@@ -151,8 +153,8 @@ SELECT
     gt.pct_from_high52w,
     fr_dedup.fwd_ret_10d,
     fr_dedup.fwd_ret_30d,
-    fr_dedup.fwd_ret_60d
-
+    fr_dedup.fwd_ret_60d,
+    fr_dedup.label_end_10d, fr_dedup.label_end_30d, fr_dedup.label_end_60d, fr_dedup.labels_review
 FROM generieke_technicals gt
 
 JOIN fr_dedup
@@ -1030,7 +1032,7 @@ def train_voor_horizon(
     # die rij mag niet doorlopen in de testperiode. De kalenderbenadering
     # volgt dezelfde horizonregels als de andere modellen in deze repo.
     train_grens = split_datum - pd.Timedelta(days=embargo_dagen)
-    train_df = df_clean[df_clean["datum"] < train_grens].copy()
+    train_df = purge_before(df_clean[df_clean["datum"] < train_grens], horizon, split_datum)
     n_embargo = int(((df_clean["datum"] >= train_grens)
                      & (df_clean["datum"] < split_datum)).sum())
     print(f"[{horizon}] Tijdsscheiding: {embargo_dagen} kalenderdagen; "

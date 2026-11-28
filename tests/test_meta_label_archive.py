@@ -10,7 +10,7 @@ from meta_models.a_meta_label_classifier import walk_forward,walk_forward_per_st
 def data():
     dates=pd.bdate_range('2026-01-01',periods=12)
     return pd.DataFrame([dict(ticker=f'T{i}',strategie='strat',datum=d,
-                             x=float(i),label=float(i>=2),fwd_ret=5 if i>=2 else -5)
+                             label_end=d+pd.offsets.BDay(1),x=float(i),label=float(i>=2),fwd_ret=5 if i>=2 else -5)
                          for d in dates for i in range(4)])
 
 

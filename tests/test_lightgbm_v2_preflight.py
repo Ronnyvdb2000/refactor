@@ -11,6 +11,7 @@ class PreflightTests(unittest.TestCase):
                 r = {'ticker': f'T{j}', 'datum': date}
                 r.update({f: float(j + 1) for f in FEATURES})
                 for h in ('10d','30d','60d'):
+                    r['label_end_'+h] = date + pd.offsets.BDay(int(h[:-1]))
                     r['fwd_ret_'+h] = float((j+i)%5-2)
                 rows.append(r)
         return pd.DataFrame(rows)

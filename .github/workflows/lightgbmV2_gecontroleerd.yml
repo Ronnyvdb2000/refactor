@@ -1,9 +1,15 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: LightGBM V2 gecontroleerd - handmatige proefrun
 
 on:
   workflow_dispatch:
 
 permissions:
+
+  actions: read
   contents: read
 
 concurrency:
@@ -24,7 +30,12 @@ jobs:
           python-version: '3.11'
       - name: Pakketten installeren
         run: |
-          python -m pip install "numpy==1.26.4" "pandas==2.2.3" "scikit-learn==1.5.2" "lightgbm==4.6.0" joblib psycopg2-binary
+          python -m pip install "numpy==1.26.4" "pandas==2.2.3" "scikit-learn==1.5.2" "lightgbm==4.6.0" joblib psycopg2-binary requests
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
+
       - name: LightGBM kandidaat evalueren
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

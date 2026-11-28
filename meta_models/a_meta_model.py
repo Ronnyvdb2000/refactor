@@ -7,6 +7,7 @@ Refactor: gebruikt nu common/ voor alle gedeelde bouwstenen.
 Bouwt een Ridge-regressiemodel met expanding-window walk-forward validatie.
 """
 
+from common.temporal_contract import purge_before
 from common.sel_par_inputs import sel_par_query
 
 from common.horizons import calendar_embargo
@@ -52,7 +53,7 @@ def haal_data(conn, features: List[str]) -> pd.DataFrame:
 
     query = canonical_selecties_sql() + f"""
         SELECT s.ticker, s.datum, s.strategie, {s_lijst}{g_lijst},
-               f.{MODEL_TARGET} AS target
+               f.{MODEL_TARGET} AS target, f.label_end_{MODEL_HORIZON}d, f.labels_review
         FROM s
         JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
@@ -93,6 +94,7 @@ def walk_forward(df: pd.DataFrame, features: List[str],
         test_datum = datums[i]
         cutoff = test_datum - pd.Timedelta(days=calendar_embargo(MODEL_HORIZON))
         train = df[df["datum"] < cutoff].dropna(subset=features + ["target"])
+        train = purge_before(train, MODEL_HORIZON, test_datum)
         if train["datum"].nunique() < min_train_datums:
             continue
         test = df[df["datum"] == test_datum].dropna(subset=features + ["target"])

@@ -17,8 +17,8 @@ jobs:
   score-selecties:
     if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     env:
-      FEATURE_BUILD_MANIFEST: ${{ github.event_name == 'workflow_run' && 'feature-build/feature_build.json' || '' }}
-      FEATURE_BUILD_REQUIRED: ${{ github.event_name == 'workflow_run' && '1' || '0' }}
+      FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+      FEATURE_BUILD_REQUIRED: '1'
       FEATURE_EXPECTED_RUN_ID: ${{ github.event.workflow_run.id }}
       FEATURE_EXPECTED_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
       FEATURE_EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -74,14 +74,10 @@ jobs:
             psycopg2-binary \
             requests
 
-      - name: Download manifest from the successful feature run
-        if: github.event_name == 'workflow_run'
-        uses: actions/download-artifact@v4
-        with:
-          name: feature-build-manifest
-          path: feature-build
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve trusted feature build for every invocation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
 
       - name: Validate feature build provenance
         run: |

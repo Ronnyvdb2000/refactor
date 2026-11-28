@@ -16,7 +16,8 @@ TODAY = '2026-11-15'
 
 def inputs(n=20, day='2026-11-13'):
     return pd.DataFrame(dict(ticker=[f'A{i}' for i in range(n)],strategie='bot',datum=day,
-                             technische_datum=day,x=np.arange(n,dtype=float),y=2.))
+                             technische_datum=day,x=np.arange(n,dtype=float),y=2.,
+                             **{f'label_end_{train.MODEL_HORIZON}d': pd.Timestamp(day)+pd.offsets.BDay(train.MODEL_HORIZON)}))
 
 
 def prepare(df, **kwargs):

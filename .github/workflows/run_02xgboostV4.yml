@@ -1,3 +1,7 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: XGBoostV4 training
 
 on:
@@ -20,6 +24,8 @@ on:
       - ".github/workflows/run_02xgboostV4.yml"
 
 permissions:
+
+  actions: read
   contents: read
 
 concurrency:
@@ -82,6 +88,11 @@ jobs:
             echo "FOUT: SUPABASE_DB_URL secret ontbreekt"
             exit 1
           fi
+
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
 
       - name: Run XGBoostV4 training
         id: train

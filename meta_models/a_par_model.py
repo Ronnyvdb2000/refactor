@@ -101,6 +101,7 @@ from common import db_logger
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
 from common.horizons import calendar_embargo
 from common.reports import write_csv
+from common.temporal_contract import known_labels, input_fingerprint, label_column
 from common.sel_par_inputs import sel_par_query
 from common.feature_pipeline import load_feature_context, context_summary
 
@@ -136,6 +137,7 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 # Kolommen die metadata, prijsniveaus, forward returns of outputvelden bevatten
 # en daarom niet als losse cross-sectionele factor mogen worden meegenomen.
 NIET_FACTOR = {
+    "label_end_5d", "label_end_10d", "label_end_20d", "label_end_30d", "label_end_60d", "labels_review",
     "ticker", "datum", "beurs", "strategie", "bijgewerkt_op", "id",
     "entry_koers", "high52w", "ma50", "ma200", "market_cap",
     "ema8", "ema20",
@@ -336,7 +338,8 @@ def get_data(
     fr AS (
         SELECT DISTINCT ON (ticker, datum)
             ticker, datum,
-            fwd_ret_5d, fwd_ret_10d, fwd_ret_20d, fwd_ret_30d, fwd_ret_60d
+            fwd_ret_5d, fwd_ret_10d, fwd_ret_20d, fwd_ret_30d, fwd_ret_60d,
+            label_end_5d, label_end_10d, label_end_20d, label_end_30d, label_end_60d, labels_review
         FROM forward_returns
         {where_fr}
         ORDER BY ticker, datum
@@ -363,6 +366,7 @@ def get_data(
         f.piotroski_score, f.eps_growth_pct, f.eps_cagr_pct, f.peg_ratio,
         fr.fwd_ret_5d, fr.fwd_ret_10d, fr.fwd_ret_20d,
         fr.fwd_ret_30d, fr.fwd_ret_60d,
+        fr.label_end_5d, fr.label_end_10d, fr.label_end_20d, fr.label_end_30d, fr.label_end_60d, fr.labels_review,
         sel.koers
     FROM tech t
     LEFT JOIN fund f ON f.ticker = t.ticker AND f.datum = t.datum
@@ -959,8 +963,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[{horizon}] scorebasis embargo   : {effectieve_score.date()}")
             print(f"[{horizon}] embargo (effectief)  : {effectieve_embargo}d")
 
+            training = df.copy()
+            training.loc[~known_labels(training, horizon, score_datum), target_kolom] = np.nan
             gewichten, window, train_start, train_einde = ic_met_fallback(
-                df,
+                training,
                 target_kolom,
                 effectieve_score,
                 effectieve_embargo,
@@ -1063,6 +1069,8 @@ def main(argv: list[str] | None = None) -> int:
                        top_n=cfg.top_n, parameters=gewichten_ruw,
                        selected=gewichten.parameter, train_start=train_start, train_end=train_einde,
                        config={'window': window, 'embargo_days': effectieve_embargo,
+                               'feature_build': context, 'temporal_contract': 1,
+                               'training_input_hash': input_fingerprint(training.loc[training[target_kolom].notna()]),
                                'min_ic': cfg.min_ic, 'selection_cutoff': str(score_datum.date()),
                                'model_config': {k:getattr(cfg,k) for k in ('top_n','min_ic','rolling_dagen','fallback_dagen',
                                    'embargo_dagen','ic_max_abs','min_datums_ic','max_data_leeftijd')},

@@ -54,7 +54,9 @@ Belangrijk:
 - De run faalt alleen als GEEN enkele horizon een model oplevert.
 """
 
+from common.temporal_contract import purge_before, valid_labels
 from common.sel_par_inputs import sel_par_query
+from common.horizons import calendar_embargo
 
 import os
 from common.fundamentals import KNOWN_FUNDAMENTALS_SQL
@@ -174,7 +176,8 @@ JOIN_QUERY = f"""
 WITH fr_dedup AS (
     SELECT DISTINCT ON (ticker, datum)
         ticker, datum,
-        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d
+        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d,
+    label_end_10d, label_end_30d, label_end_60d, labels_review
     FROM forward_returns
     ORDER BY
         ticker, datum,
@@ -212,7 +215,8 @@ SELECT
     fd.net_debt_ebitda, fd.payout_pct, fd.analisten_count,
     fd.piotroski_score, fd.eps_growth_pct, fd.eps_cagr_pct, fd.peg_ratio,
     -- Targets
-    fr_dedup.fwd_ret_10d, fr_dedup.fwd_ret_30d, fr_dedup.fwd_ret_60d
+    fr_dedup.fwd_ret_10d, fr_dedup.fwd_ret_30d, fr_dedup.fwd_ret_60d,
+    fr_dedup.label_end_10d, fr_dedup.label_end_30d, fr_dedup.label_end_60d, fr_dedup.labels_review
 FROM generieke_technicals gt
 JOIN fr_dedup
     ON fr_dedup.ticker = gt.ticker
@@ -249,20 +253,8 @@ def _pr(v) -> str:
 
 
 def embargo_kalenderdagen(horizon: str) -> int:
-    """
-    Aantal KALENDERdagen dat voor de split uit de trainset wordt gehaald.
-    Horizon staat in handelsdagen: x 7/5 naar kalenderdagen, +2 dagen marge
-    (feestdagen / weekend rond de splitdatum).
-    """
-    n = HORIZON_HANDELSDAGEN.get(horizon, 0)
-    if n <= 0:
-        return 0
-    return int(np.ceil(n * 7 / 5)) + 2
+    return calendar_embargo(horizon)
 
-
-# ============================================================
-# NOTIFICATIES
-# ============================================================
 
 def send_telegram(tekst: str) -> None:
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
@@ -691,7 +683,7 @@ def train_voor_horizon(df: pd.DataFrame, horizon: str) -> Dict:
 
     # OUDE CODE (zonder embargo), bewust bewaard als documentatie:
     # train_df = df_clean[df_clean["datum"] < split_datum].copy()
-    train_df = df_clean[df_clean["datum"] < embargo_start].copy()
+    train_df = purge_before(df_clean[df_clean["datum"] < embargo_start], horizon, split_datum)
     test_df = df_clean[df_clean["datum"] >= split_datum].copy()
     n_embargo = int(
         ((df_clean["datum"] >= embargo_start)

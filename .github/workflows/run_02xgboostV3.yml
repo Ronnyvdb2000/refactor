@@ -1,3 +1,7 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: XGBoostV3 Model Retraining
 
 on:
@@ -16,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+
+      actions: read
       contents: write
 
     steps:
@@ -102,6 +108,11 @@ jobs:
     # ============================================================
     # 5. TRAINING
     # ============================================================
+    - name: Resolve trusted feature build
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: python -m maintenance.resolve_feature_manifest
+
     - name: Start training script
       env:
         SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

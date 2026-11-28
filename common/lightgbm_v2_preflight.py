@@ -10,6 +10,8 @@ CSV vereist: ticker, datum, 11 FEATURE_COLUMNS en fwd_ret_10d/30d/60d.
 returns als xLightgbmV2.py. Geen schrijfacties naar Supabase.
 """
 
+from common.horizons import calendar_embargo
+from common.temporal_contract import purged_training, label_column
 from common.sel_par_inputs import sel_par_query
 import argparse
 import json
@@ -25,13 +27,13 @@ HORIZONS = ("10d", "30d", "60d")
 SQL = """
 WITH fr AS (
  SELECT DISTINCT ON (ticker, datum) ticker, datum,
-        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d
+        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d, label_end_10d, label_end_30d, label_end_60d, labels_review
  FROM forward_returns ORDER BY ticker, datum
 )
 SELECT gt.ticker, gt.datum, gt.atr14, gt.atr14_pct, gt.rsi14, gt.ibs,
        gt.ma50, gt.ma200, gt.pct_from_ma50, gt.pct_from_ma200,
        gt.vol_ratio_20d, gt.high52w, gt.pct_from_high52w,
-       fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d
+       fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d, fr.label_end_10d, fr.label_end_30d, fr.label_end_60d, fr.labels_review
 FROM generieke_technicals gt JOIN fr
  ON fr.ticker=gt.ticker AND fr.datum=gt.datum
 ORDER BY gt.datum, gt.ticker
@@ -41,11 +43,11 @@ ORDER BY gt.datum, gt.ticker
 def diagnose(df, horizon, target_mode="excess"):
     import pandas as pd
     target = "fwd_ret_" + horizon
-    required = ["ticker", "datum", target, *FEATURES]
+    required = ["ticker", "datum", target, label_column(horizon), *FEATURES]
     missing = [c for c in required if c not in df.columns]
     if missing:
         return {"horizon": horizon, "status": "MISSING_COLUMNS", "missing": missing}
-    work = df[required].copy()
+    work = df[required + (['labels_review'] if 'labels_review' in df else [])].copy()
     work["datum"] = pd.to_datetime(work["datum"], errors="coerce")
     work = work.drop_duplicates(["ticker", "datum"], keep="first")
     for c in [target, *FEATURES]:
@@ -60,7 +62,7 @@ def diagnose(df, horizon, target_mode="excess"):
     elif not work.empty:
         work["target"] = (work[target] > 0).astype(int)
     dates = sorted(work["datum"].unique())
-    embargo_days = math.ceil(int(horizon[:-1]) * 7 / 5) + 2
+    embargo_days = calendar_embargo(horizon)
     result = {"horizon": horizon, "target_mode": target_mode,
               "usable_rows": len(work), "usable_dates": len(dates),
               "embargo_calendar_days": embargo_days,
@@ -71,7 +73,7 @@ def diagnose(df, horizon, target_mode="excess"):
     idx = max(0, int(len(dates) * .8) - 1)
     split = pd.Timestamp(dates[idx])
     cutoff = split - pd.Timedelta(days=embargo_days)
-    train = work.loc[work["datum"] <= cutoff]
+    train = purged_training(work.loc[work["datum"] <= cutoff], horizon, split, target_mode=target_mode)
     test = work.loc[work["datum"] > split]
     result.update(split_date=split.date().isoformat(),
                   train_cutoff=cutoff.date().isoformat(),
