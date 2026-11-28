@@ -1,0 +1,21 @@
+{
+  "manifest_workflows": [
+    "a__meta_model_production.yml",
+    "a__parameter_model_production.yml",
+    "a_meta_labeling_classifier.yml",
+    "a_meta_model.yml",
+    "catboostV1_gecontroleerd.yml",
+    "evaluate_models.yml",
+    "lightgbmV2_gecontroleerd.yml",
+    "run_02XLightGBM V2 Trading.yml",
+    "run_02xgboostV3.yml",
+    "run_02xgboostV4.yml",
+    "score_xgboost.yml",
+    "tradingagentsbridge.yml",
+    "vergelijk_meta_par_10d.yml",
+    "vergelijk_meta_par_horizons.yml",
+    "vergelijk_meta_par_horizons_diagnose.yml",
+    "xgboostV3_gecontroleerd.yml"
+  ],
+  "frozen_snapshot_research": "Historical reconstruction workflows retain pinned archived snapshots and their existing actual-label-date guards. They do not authorize live scoring."
+}

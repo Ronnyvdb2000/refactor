@@ -18,7 +18,7 @@ def implementation_hash():
     """Fingerprint the frozen parameter-model implementation and input definitions."""
     root=Path(__file__).resolve().parents[1]
     names=['meta_models/a_par_model.py','common/model_inputs.py','common/sel_par_inputs.py',
-           'common/feature_pipeline.py','common/model_archive.py']
+           'common/feature_pipeline.py','common/model_archive.py','common/temporal_contract.py','common/horizons.py']
     return hashlib.sha256(b''.join((root/n).read_bytes() for n in names)).hexdigest()
 
 
@@ -129,6 +129,8 @@ def archive_candidate(frame, *, model, version, horizon, target, train, features
         return None  # Offline/CSV experiments do not require a database.
     import psycopg2
     import pickle
+    from .temporal_contract import input_fingerprint, overlap_report
+    from .feature_pipeline import load_feature_context
     importance=pd.DataFrame({'parameter':features,'importance':estimator.feature_importances_})
     with psycopg2.connect(db,connect_timeout=20) as conn:
         frame=frame.copy()
@@ -142,7 +144,9 @@ def archive_candidate(frame, *, model, version, horizon, target, train, features
                       target=target,parameters=importance,kind='importance',
                       model_hash=hashlib.sha256(pickle.dumps(estimator,protocol=5)).hexdigest(),
                       train_start=train.datum.min(),train_end=train.datum.max(),config={**(config or {}), 'model_params': estimator.get_params(),
-                              'hash_basis': 'pickle of fitted estimator'})
+                              'hash_basis': 'pickle of fitted estimator',
+                              'input_hash': input_fingerprint(train), 'feature_build': load_feature_context(),
+                              'test_intervals': overlap_report(frame,horizon)})
 
 
 def archive_xgboost(conn, results, model_files):
@@ -169,6 +173,8 @@ def archive_meta_fold(conn, test, train, estimator, scaler, features, *, horizon
     The original per-signal probabilities remain in meta_label_scores.
     """
     import pickle
+    from .temporal_contract import input_fingerprint
+    from .feature_pipeline import load_feature_context
     grouped=test.groupby(['ticker','datum'],as_index=False).agg(score=('proba','mean'))
     with conn.cursor() as cur:
         cur.execute('SELECT ticker,selectiedatum,koers_selectiedatum FROM public.sel_par '
@@ -181,6 +187,7 @@ def archive_meta_fold(conn, test, train, estimator, scaler, features, *, horizon
     params=pd.DataFrame({'parameter':features,kind:values})
     fold=day(test.datum.min())
     config={'scope':scope,'threshold_pct':float(threshold),'outcome_conditioned':outcome_conditioned,
+            'input_hash':input_fingerprint(train),'feature_build':load_feature_context(),'temporal_contract':1,
             'training_extremes_only':True,
             'comparison_eligible':not outcome_conditioned,'aggregation':'mean probability per ticker/date',
             'n_strategy_signals':len(test),'features':list(features),

@@ -12,7 +12,10 @@ trainingsperiode getraind. De testperiode wordt NIET in het productiemodel
 opgenomen. Vergelijking met het bestaande model gebruikt exact dezelfde test.
 """
 
+from common.temporal_contract import purge_before
+from common.model_publication import publication_gate, check_incumbents
 from common.sel_par_inputs import sel_par_query
+from common.horizons import calendar_embargo
 import datetime as dt
 import math
 import os
@@ -45,7 +48,8 @@ MIN_MODEL_BYTES = 1000
 JOIN_QUERY = '''
 WITH fr_dedup AS (
  SELECT DISTINCT ON (ticker, datum) ticker, datum,
-        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d
+        fwd_ret_10d, fwd_ret_30d, fwd_ret_60d,
+    label_end_10d, label_end_30d, label_end_60d, labels_review
  FROM forward_returns
  ORDER BY ticker, datum,
     ((fwd_ret_10d IS NOT NULL)::int + (fwd_ret_30d IS NOT NULL)::int
@@ -54,15 +58,15 @@ WITH fr_dedup AS (
 SELECT gt.ticker, gt.datum, gt.atr14, gt.atr14_pct, gt.rsi14, gt.ibs,
        gt.ma50, gt.ma200, gt.pct_from_ma50, gt.pct_from_ma200,
        gt.vol_ratio_20d, gt.high52w, gt.pct_from_high52w,
-       fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d
+       fr.fwd_ret_10d, fr.fwd_ret_30d, fr.fwd_ret_60d,
+    fr.label_end_10d, fr.label_end_30d, fr.label_end_60d, fr.labels_review
 FROM generieke_technicals gt JOIN fr_dedup fr
  ON fr.ticker = gt.ticker AND fr.datum = gt.datum
 '''
 
 
 def embargo_dagen(horizon):
-    # Conservatieve kalenderbenadering voor horizon in handelsdagen.
-    return math.ceil(int(horizon[:-1]) * 7 / 5) + 2
+    return calendar_embargo(horizon)
 
 
 def model_path(horizon):
@@ -168,7 +172,7 @@ def train_voor_horizon(df, horizon):
     idx = min(max(int(len(dates) * .8), 1), len(dates) - 1)
     split_date = dates.iloc[idx]
     train_end = split_date - pd.Timedelta(days=embargo_dagen(horizon))
-    train = work[work['datum'] < train_end].copy()
+    train = purge_before(work[work['datum'] < train_end], horizon, split_date)
     test = work[work['datum'] >= split_date].copy()
     print(f'[{horizon}] Train {len(train)} rijen / {train.datum.nunique()} datums '
           f'tot {train_end.date()}, test {len(test)} rijen / '
@@ -193,6 +197,12 @@ def train_voor_horizon(df, horizon):
         print(f'[{horizon}] Bestaand model op dezelfde test: '
               f"AUC={incumbent['auc']:.3f}, top={incumbent['top']:.3f}%")
     reasons = quality_decision(candidate, baseline, relative_auc, test, incumbent)
+    decision = publication_gate(
+        model, version=MODEL_VERSIE, horizon=horizon, target_mode='abs',
+        features=FEATURE_COLUMNS, train=train, test=test.assign(is_profitable=test.is_profitable),
+        metrics=dict(auc=candidate['auc'], auc_relative=relative_auc, top_model=candidate['top'], top_baseline=baseline),
+        incumbent_paths=[model_path(horizon)])
+    reasons.extend(decision['issues'])
     print(f'[{horizon}] Nieuw AUC={candidate["auc"]:.3f}, '
           f'top={candidate["top"]:.3f}%, baseline={baseline:.3f}%, '
           f'relatieve AUC={relative_auc:.3f}')
@@ -201,6 +211,7 @@ def train_voor_horizon(df, horizon):
     if reasons:
         print(f'[{horizon}] NIET GEPUBLICEERD: {note}')
     else:
+        check_incumbents(decision['incumbent_hashes'])
         save_atomic(model, horizon)
     return dict(horizon=horizon, status=status, opmerking=note,
                 n_train=len(train), n_test=len(test),

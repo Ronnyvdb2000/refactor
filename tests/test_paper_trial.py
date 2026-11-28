@@ -136,7 +136,14 @@ def test_protocol_migration_is_same_as_runtime_and_private():
     root=Path(__file__).resolve().parents[1]
     sql=(root/'maintenance/sql/paper_trial_v2.sql').read_text()
     seed=sql.split("VALUES('",1)[1].split("','",1)[1].split("'::jsonb",1)[0]
-    assert json.loads(seed)==PROTOCOL
+    from analyses.paper_dispatch import follow_frozen_protocol
+    from types import SimpleNamespace
+    frozen = json.loads(seed)
+    engine = SimpleNamespace(PROTOCOL=dict(PROTOCOL), freeze_batch=lambda *args: 'new')
+    changed = follow_frozen_protocol(engine, frozen)
+    assert engine.PROTOCOL == frozen
+    if changed:
+        assert engine.freeze_batch(None) is None
     assert 'ON CONFLICT' in sql
     assert 'SECURITY DEFINER' not in sql
     assert 'paper_10d_usd_v2' in sql

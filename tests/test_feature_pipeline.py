@@ -148,8 +148,10 @@ def test_consumers_follow_successful_trusted_build_and_pin_its_manifest():
         assert "conclusion == 'success'" in job['if'] and "head_branch == 'main'" in job['if']
         assert 'head_repository.full_name == github.repository' in job['if']
         assert 'workflow_run.head_sha' in job['steps'][0]['with']['ref']
-        artifact = next(s for s in job['steps'] if s.get('uses') == 'actions/download-artifact@v4')
-        assert artifact['with']['run-id'] == '${{ github.event.workflow_run.id }}'
+        resolver = next(s for s in job['steps'] if 'maintenance.resolve_feature_manifest' in s.get('run',''))
+        assert resolver['env']['GITHUB_TOKEN'] == '${{ secrets.GITHUB_TOKEN }}'
+        assert job['env']['FEATURE_EXPECTED_RUN_ID'] == '${{ github.event.workflow_run.id }}'
+        assert job['env']['FEATURE_BUILD_REQUIRED'] == '1'
         assert job['env']['FEATURE_BUILD_REQUIRED']
     assert 'schedule' not in yaml.load((ROOT/'.github/workflows/score_xgboost.yml').read_text(), Loader=yaml.BaseLoader)['on']
 

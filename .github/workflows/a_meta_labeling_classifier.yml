@@ -1,3 +1,11 @@
+permissions:
+  contents: read
+  actions: read
+
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: A Meta-labeling Classifier
 
 on:
@@ -113,6 +121,11 @@ jobs:
           if [ -z "$EMAIL_USER" ] || [ -z "$EMAIL_PASS" ] || [ -z "$EMAIL_RECEIVER" ]; then
             echo "::warning::E-mail-secrets ontbreken — er wordt geen e-mail verstuurd."
           fi
+
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
 
       - name: Bot draaien
         env:

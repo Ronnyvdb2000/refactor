@@ -8,10 +8,13 @@ Haalt de data op, traint de Ridge-regressie en schrijft de scaler
 en coëfficiënten naar Supabase (tabel meta_model_models).
 """
 
+from common.temporal_contract import purge_before, input_fingerprint, label_column
+from common.feature_pipeline import load_feature_context
 from common.sel_par_inputs import sel_par_query
 
 import os
 import sys
+import json
 import argparse
 import uuid
 from datetime import datetime, timezone
@@ -52,7 +55,7 @@ def haal_training_data(conn, features):
 
     query = canonical_selecties_sql() + f"""
         SELECT s.ticker, s.datum, s.strategie, {s_lijst}{g_lijst},
-               f.{MODEL_TARGET} AS target
+               f.{MODEL_TARGET} AS target, f.label_end_{MODEL_HORIZON}d, f.labels_review
         FROM s
         JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
@@ -86,6 +89,7 @@ def prepare_training(df, features, *, today=None):
     now = pd.Timestamp(today) if today is not None else pd.Timestamp(today_str())
     cutoff = now.normalize() - pd.Timedelta(days=calendar_embargo(MODEL_HORIZON))
     out = out.loc[out.datum.notna() & (out.datum < cutoff)].copy()
+    out = purge_before(out, MODEL_HORIZON, now)
     out = unique_snapshots(out, ["ticker", "datum", "strategie"], [*features, "target"])
     out = cross_sectionele_rank(out, features).dropna(subset=[*features, "target"])
     if len(out) < 200 or out.datum.nunique() < 10:
@@ -143,7 +147,9 @@ def main():
             cur.execute(sel_par_query(insert), (
                 versie, MODEL_HORIZON, features, coefs, mean, std,
                 args.alpha, len(df), int(df["datum"].nunique()),
-                datetime.now(timezone.utc), args.notities or None,
+                datetime.now(timezone.utc), json.dumps(dict(note=args.notities or None,
+                    temporal_contract=1, input_hash=input_fingerprint(df), feature_build=load_feature_context(),
+                    last_label_end=str(pd.to_datetime(df[label_column(MODEL_HORIZON)]).max())), sort_keys=True),
             ))
         conn.commit()
 

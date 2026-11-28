@@ -1,3 +1,7 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: "TradingAgents Bridge — LLM-analyse op VCP of a_par_model picks"
 
 on:
@@ -56,6 +60,7 @@ on:
     - cron: "0 23 * * *"
 
   push:
+    branches: [main]
     paths:
       - "tradingagents_bridge.py"
       - "requirements-tradingagents.txt"
@@ -136,6 +141,11 @@ jobs:
             exit 1
           fi
           echo "Vereiste secrets aanwezig."
+
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
 
       - name: Run a_par_model (indien source=par)
         if: env.SOURCE == 'par'

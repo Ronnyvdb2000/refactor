@@ -49,6 +49,7 @@ Env:
   EMAIL_USER/EMAIL_PASS/EMAIL_RECEIVER (optioneel).
 """
 
+from common.temporal_contract import purge_interval_before
 from common.sel_par_inputs import sel_par_query
 
 from common.horizons import calendar_embargo
@@ -157,7 +158,7 @@ def haal_data(conn, features: List[str], horizon: int) -> pd.DataFrame:
     query = f"""
         SELECT s.ticker, s.datum, s.strategie, s.score,
                {s_lijst}{g_lijst},
-               f.{target} AS fwd_ret
+               f.{target} AS fwd_ret, f.label_end_{horizon}d AS label_end, f.labels_review
         FROM selecties s
         JOIN forward_returns f
           ON s.ticker = f.ticker AND s.datum = f.datum AND s.strategie = f.strategie
@@ -245,6 +246,7 @@ def walk_forward(df: pd.DataFrame, feature_cols: List[str],
             continue
 
         train = df[df["datum"].isin(train_datums)].dropna(subset=feature_cols + ["label"])
+        train = purge_interval_before(train, test_datum)
         test = df[df["datum"] == test_datum].dropna(subset=feature_cols + ["label"])
 
         if len(train) < min_train or len(test) < min_test:

@@ -11,7 +11,8 @@ from common.horizons import calendar_embargo
 def dataset(days, horizon):
     return pd.DataFrame([dict(ticker=f'T{j}', datum=day,
         **{feature: 1.0 for feature in b.FEATURE_COLUMNS},
-        **{f'fwd_ret_{horizon}': 2.0 if j % 2 else -1.0})
+        **{f'fwd_ret_{horizon}': 2.0 if j % 2 else -1.0,
+           f'label_end_{horizon}': day+pd.offsets.BDay(int(horizon[:-1]))})
         for day in days for j in range(40)])
 
 

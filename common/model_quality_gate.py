@@ -57,7 +57,7 @@ def evaluate_candidate(metrics: dict, incumbent: Optional[dict] = None,
     if n_test is None or n_test < policy.min_test_rows:
         issues.append('Te weinig testobservaties')
     if n_dates is None or n_dates < policy.min_test_dates:
-        issues.append('Te weinig onafhankelijke testdatums')
+        issues.append('Te weinig verschillende testdatums')
     if relative is None:
         issues.append('AUC relatief controlemodel ontbreekt')
     elif auc is not None and auc - relative > policy.max_full_vs_relative_auc_gap:

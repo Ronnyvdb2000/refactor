@@ -17,6 +17,7 @@ def data():
     df['ticker'] = np.tile([f'T{i:02}' for i in range(n_tickers)], n_dates)
     df['datum'] = np.repeat(pd.bdate_range('2024-01-01', periods=n_dates), n_tickers)
     for h in cat.HORIZONS:
+        df['label_end_' + h] = df['datum'] + pd.offsets.BDay(int(h[:-1]))
         df['fwd_ret_' + h] = df['rsi14'] * 5 + rng.normal(size=n)
     return df
 
@@ -136,7 +137,7 @@ def test_workflow_is_weekly_with_dispatch_defaults_and_safe_inputs():
     workflow = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
     assert set(workflow['on']) == {'workflow_dispatch', 'schedule'}
     assert workflow['on']['schedule'] == [{'cron': '15 3 * * 0'}]
-    assert workflow['permissions'] == {'contents': 'read'}
+    assert workflow['permissions'] == {'contents': 'read', 'actions': 'read'}
     steps = workflow['jobs']['evaluate']['steps']
     training = next(s for s in steps if s.get('name') == 'CatBoost evalueren')
     assert training['env']['CATBOOST_HORIZONS'] == "${{ inputs.horizons || '10d,30d,60d' }}"

@@ -124,7 +124,8 @@ def test_report_recounts_open_rows_instead_of_counting_partial_updates(monkeypat
 
 def test_meta_walk_forward_uses_only_mature_training_outcomes(monkeypatch):
     days = pd.bdate_range('2026-01-01', periods=100)
-    df = pd.DataFrame([dict(datum=day, x=float(i * 2 + j), target=float(j))
+    df = pd.DataFrame([dict(datum=day, x=float(i * 2 + j), target=float(j),
+                       **{f'label_end_{meta.MODEL_HORIZON}d':day+pd.offsets.BDay(meta.MODEL_HORIZON)})
                        for i, day in enumerate(days) for j in range(2)])
     fits = []
 
@@ -154,7 +155,7 @@ def test_parameter_model_does_not_subtract_horizon_twice(monkeypatch):
         max_data_leeftijd=5, statement_timeout_ms=0, datum='2026-11-13',
         geen_db_write=True, geen_notify=True)
     df = pd.DataFrame(dict(ticker=['A', 'A'], datum=pd.to_datetime(['2026-08-10','2026-11-13']),
-                           koers=[100.,110.], fwd_ret_60d=[5.,np.nan]))
+                           koers=[100.,110.], fwd_ret_60d=[5.,np.nan], label_end_60d=['2026-11-03',None]))
     monkeypatch.setattr(par, 'SUPABASE_DB_URL', 'offline')
     with (
         patch.object(par, 'parse_args', return_value=args),

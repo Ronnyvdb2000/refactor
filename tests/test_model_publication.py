@@ -26,10 +26,10 @@ class Predictor:
 @pytest.fixture
 def setup(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    train = pd.DataFrame(dict(datum=pd.to_datetime(['2023-01-01'] * 100)))
+    train = pd.DataFrame(dict(datum=pd.to_datetime(['2023-01-01'] * 100), label_end_10d=pd.Timestamp('2023-01-16')))
     test = pd.DataFrame([dict(datum=d, signal=.9 if i % 2 else .1,
-                             is_profitable=i % 2, fwd_ret_10d=1 if i % 2 else -1)
-                         for d in pd.date_range('2024-01-01', periods=6) for i in range(10)])
+                             is_profitable=i % 2, fwd_ret_10d=1 if i % 2 else -1, label_end_10d=d+pd.offsets.BDay(10))
+                         for d in pd.date_range('2024-01-01', periods=6, freq='21D') for i in range(10)])
     return dict(version='xgboostV3', horizon='10d', target_mode='abs',
                 features=['signal'], train=train, test=test,
                 metrics=dict(auc=.8, auc_relative=.75, top_model=5., top_baseline=0.),
@@ -42,7 +42,7 @@ def save_old(setup, *, metadata=True, constant=False):
     old = Predictor(constant)
     if metadata:
         old.publication_metadata_ = dict(schema_version=1, version='xgboostV3',
-            horizon='10d', target_mode='abs', features=['signal'], last_train_date='2023-01-01')
+            horizon='10d', target_mode='abs', features=['signal'], last_train_date='2023-01-01', last_train_label_end='2023-01-16')
     joblib.dump(old, path)
     return path, old
 
@@ -114,6 +114,7 @@ def test_actual_trainers_call_gate_and_never_publish_on_hold(name, tmp_path, mon
     else:
         monkeypatch.setattr(module, 'train_model', lambda *a: Predictor())
         monkeypatch.setattr(module, 'evalueer_model', lambda *a: (.5, .49, -1))
+    frame['label_end_10d'] = frame.datum + pd.offsets.BDay(10)
     result = module.train_voor_horizon(frame, '10d')
     assert result['status'] == 'kwaliteit_hold'
     assert 'HOLD' in result['opmerking']
@@ -136,6 +137,7 @@ def test_v4_feature_selection_sees_training_only(tmp_path, monkeypatch):
     monkeypatch.setattr(v4, 'evalueer_model', lambda *a: (.5, .6, 1))
     gate = MagicMock(return_value=dict(publish_advice='HOLD', issues=['test']))
     monkeypatch.setattr(v4, 'publication_gate', gate)
+    frame['label_end_10d'] = frame.datum + pd.offsets.BDay(10)
     v4.train_voor_horizon(frame, '10d')
     assert all(call.args[0].datum.max() < dates[80] for call in select.call_args_list)
     assert 'trailing_pe' not in gate.call_args.kwargs['features']
@@ -152,6 +154,7 @@ def test_real_v3_bootstrap_saves_metadata_and_hold_keeps_the_model(tmp_path, mon
     frame = pd.DataFrame([dict(datum=d, ticker=f'T{i}',
         **{f:float(i % 2) for f in v3.FEATURE_COLUMNS},
         fwd_ret_10d=2. if i % 2 else -1.) for d in dates for i in range(40)])
+    frame['label_end_10d'] = frame.datum + pd.offsets.BDay(10)
     result = v3.train_voor_horizon(frame, '10d')
     assert result['status'] == 'getraind'
     path = Path('models/xgboostV3_10d_model.pkl')
@@ -163,3 +166,22 @@ def test_real_v3_bootstrap_saves_metadata_and_hold_keeps_the_model(tmp_path, mon
     again = v3.train_voor_horizon(frame, '10d')
     assert again['status'] == 'kwaliteit_hold'
     assert path.read_bytes() == before
+
+
+def test_high_auc_with_overlapping_daily_windows_still_holds(setup):
+    test=setup['test'].copy()
+    test['datum']=np.repeat(pd.date_range('2024-01-01',periods=6),10)
+    test['label_end_10d']=test.datum+pd.offsets.BDay(10)
+    decision=publication_gate(Predictor(),**dict(setup,test=test))
+    assert decision['publish_advice']=='HOLD'
+    assert decision['metadata']['test_intervals']['dates']==6
+    assert decision['metadata']['test_intervals']['nonoverlapping_blocks']==1
+    assert any('niet-overlappende' in issue for issue in decision['issues'])
+
+
+def test_actual_late_training_label_blocks_publication_even_with_old_selection_date(setup):
+    train=setup['train'].copy()
+    train.loc[0,'label_end_10d']=setup['test'].datum.min()
+    decision=publication_gate(Predictor(),**dict(setup,train=train))
+    assert decision['publish_advice']=='HOLD'
+    assert any('onbekende labels' in issue for issue in decision['issues'])

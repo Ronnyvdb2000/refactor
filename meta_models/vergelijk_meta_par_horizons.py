@@ -3,6 +3,7 @@
 No DB writes. Each horizon trains only on mature, embargoed outcomes.
 """
 
+from common.temporal_contract import purge_before
 from common.sel_par_inputs import sel_par_query
 import argparse
 from common.reports import write_json
@@ -26,7 +27,7 @@ OUT = Path('results/meta_par_horizons')
 
 
 def load(conn):
-    targets = ', '.join(f'fwd_ret_{h}d' for h in HORIZONS)
+    targets = ', '.join(f'fwd_ret_{h}d' for h in HORIZONS) + ', ' + ', '.join(f'label_end_{h}d' for h in HORIZONS) + ', labels_review'
     gcols = ', '.join(FACTORS)
     query = f'''
     WITH s AS (
@@ -45,6 +46,7 @@ def load(conn):
     )
     SELECT s.ticker, s.datum, s.strategie, s.score,
            {', '.join('f.'+f'fwd_ret_{h}d' for h in HORIZONS)},
+           {', '.join('f.'+f'label_end_{h}d' for h in HORIZONS)}, f.labels_review,
            {', '.join('g.'+c for c in FACTORS)}
     FROM s JOIN f ON s.ticker=f.ticker AND s.datum=f.datum AND s.strategie=f.strategie
     LEFT JOIN g ON s.ticker=g.ticker AND s.datum=g.datum
@@ -142,7 +144,7 @@ def run_horizon(df, horizon, args):
         day = pd.Timestamp(day)
         if day <= cutoff:
             continue
-        train = df[df['datum'] < day - pd.Timedelta(days=embargo)]
+        train = purge_before(df[df['datum'] < day - pd.Timedelta(days=embargo)], horizon, day)
         test = df[df['datum'] == day]
         if train['datum'].nunique() < args.min_train_dates or len(train) < args.min_train or len(test) < args.min_test:
             continue

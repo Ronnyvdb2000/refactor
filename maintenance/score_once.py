@@ -2,7 +2,7 @@
 
 No DDL. A session advisory lock spans the child process. Uncertain attempts are
 NOT automatically repeated: external notifications cannot be transactionally
-committed with PostgreSQL. Manual workflow_dispatch keeps its explicit semantics.
+committed with PostgreSQL. Manual runs use the same readiness and once-per-source checks.
 """
 import argparse
 from datetime import datetime, timezone
@@ -71,11 +71,9 @@ def main():
     parser.add_argument('model', choices=MODELS)
     args, forwarded = parser.parse_known_args()
     command = [sys.executable, '-m', MODELS[args.model], *forwarded]
-    if os.getenv('GITHUB_EVENT_NAME') != 'workflow_run':
-        return subprocess.run(command, check=False).returncode
     context = load_feature_context()
     if context is None:
-        raise RuntimeError('Automatische scoring vereist een bevestigd manifest')
+        raise RuntimeError('Scoring vereist een bevestigd manifest')
     import psycopg2
     with psycopg2.connect(os.environ['SUPABASE_DB_URL'], connect_timeout=30) as conn:
         return score(conn, context['selection_cutoff'], args.model, command)

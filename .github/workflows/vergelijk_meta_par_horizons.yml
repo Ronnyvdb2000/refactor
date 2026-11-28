@@ -1,9 +1,15 @@
+env:
+  FEATURE_BUILD_MANIFEST: feature-build/feature_build.json
+  FEATURE_BUILD_REQUIRED: '1'
+
 name: Vergelijk Meta Strategie vs Parameter vs MA50 - alle horizons
 
 on:
   workflow_dispatch:
 
 permissions:
+
+  actions: read
   contents: read
 
 concurrency:
@@ -25,6 +31,11 @@ jobs:
       - name: Installeer afhankelijkheden
         run: |
           python -m pip install 'numpy==1.26.4' 'pandas==2.2.3' 'scipy==1.14.1' 'psycopg2-binary==2.9.10' 'requests==2.32.3'
+      - name: Resolve trusted feature build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -m maintenance.resolve_feature_manifest
+
       - name: Vergelijk alle horizons (alleen lezen)
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

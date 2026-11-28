@@ -11,6 +11,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
+from .temporal_contract import known_labels, label_column, overlap_report, input_fingerprint
+from .model_inputs import InputUnavailable
+from .feature_pipeline import load_feature_context
 from .horizons import calendar_embargo
 from .model_quality_gate import evaluate_candidate
 
@@ -36,12 +39,25 @@ def publication_gate(model, *, version, horizon, target_mode, features, train, t
     assessment = evaluate_candidate(dict(metrics, n_test=len(test),
                                          n_test_dates=int(test.datum.nunique())))
     issues = assessment['issues']
+    evidence = {}
+    try:
+        evidence = overlap_report(test, horizon)
+        if evidence['unknown_intervals'] or evidence['nonoverlapping_blocks'] < 3:
+            issues.append('Onvoldoende geldige niet-overlappende testvensters (minimum 3)')
+        if not known_labels(train, horizon, test.datum.min()).all():
+            issues.append('Training bevat nog onbekende labels bij teststart')
+    except InputUnavailable as exc:
+        issues.append(str(exc))
     embargo = calendar_embargo(horizon)
     metadata = dict(schema_version=1, version=version, horizon=horizon,
                     target_mode=target_mode, features=list(features),
                     last_train_date=pd.Timestamp(train.datum.max()).isoformat(),
                     split_date=pd.Timestamp(test.datum.min()).isoformat(),
-                    source_sha=os.getenv('GITHUB_SHA', 'local'))
+                    source_sha=os.getenv('GITHUB_SHA', 'local'),
+                    feature_build=load_feature_context(), input_hash=input_fingerprint(train),
+                    temporal_contract=1, test_intervals=evidence,
+                    last_train_label_end=(str(pd.to_datetime(train[label_column(horizon)], errors='coerce').max())
+                                          if label_column(horizon) in train else None))
     model.publication_metadata_ = metadata
     comparisons, hashes = [], {}
     n_top = max(1, int(len(test) * .2))
@@ -60,6 +76,8 @@ def publication_gate(model, *, version, horizon, target_mode, features, train, t
             cutoff = pd.Timestamp(test.datum.min()) - pd.Timedelta(days=embargo)
             if not pd.Timestamp(info['last_train_date']) < cutoff:
                 raise ValueError('bestaand model is niet aantoonbaar buiten deze testperiode getraind')
+            if not info.get('last_train_label_end') or not pd.Timestamp(info['last_train_label_end']) < pd.Timestamp(test.datum.min()):
+                raise ValueError('werkelijke laatste label-einddatum bestaand model ontbreekt of overlapt')
             old_features = list(old.feature_names_in_)
             if old_features != info.get('features') or not set(old_features) <= set(test.columns):
                 raise ValueError('kenmerken bestaand model ontbreken of zijn inconsistent')

@@ -77,7 +77,9 @@ OUTPUT (results/)
     lightgbmV2_summary.txt
 """
 
+from common.temporal_contract import purge_before, purged_training, valid_labels
 from common.sel_par_inputs import sel_par_query, input_columns
+from common.horizons import calendar_embargo
 
 import argparse
 import datetime as dt
@@ -229,12 +231,8 @@ def horizon_dagen(horizon):
 
 
 def embargo_kalenderdagen(horizon):
-    return int(np.ceil(horizon_dagen(horizon) * 7 / 5)) + 2
+    return calendar_embargo(horizon)
 
-
-# ============================================================
-# DATABASE
-# ============================================================
 
 def heeft_kolom(conn, tabel, kolom):
     projection = input_columns(tabel)
@@ -270,7 +268,8 @@ def bouw_query(met_strategie, uitsluiten):
             datum,
             fwd_ret_10d,
             fwd_ret_30d,
-            fwd_ret_60d
+            fwd_ret_60d,
+            label_end_10d, label_end_30d, label_end_60d, labels_review
         FROM forward_returns
         {where}
         {order}
@@ -291,7 +290,8 @@ def bouw_query(met_strategie, uitsluiten):
         gt.pct_from_high52w,
         fr_dedup.fwd_ret_10d,
         fr_dedup.fwd_ret_30d,
-        fr_dedup.fwd_ret_60d
+        fr_dedup.fwd_ret_60d,
+        fr_dedup.label_end_10d, fr_dedup.label_end_30d, fr_dedup.label_end_60d, fr_dedup.labels_review
     FROM generieke_technicals gt
     JOIN fr_dedup
         ON fr_dedup.ticker = gt.ticker
@@ -523,6 +523,7 @@ def prepare_horizon_data(df, horizon, target_mode):
         .reset_index(drop=True)
     )
 
+    work.attrs['target_mode'] = target_mode
     return work
 
 
@@ -587,6 +588,8 @@ def time_split(df, horizon, embargo=True):
         df["datum"] > split_date
     ].copy()
 
+    train_df = purged_training(train_df, horizon, test_df.datum.min(), target_mode=df.attrs.get('target_mode','abs'), min_per_date=MIN_RIJEN_PER_DATUM)
+
     if len(train_df) < MIN_RIJEN_TRAINING:
         raise RuntimeError(
             f"Trainingsset te klein na embargo: "
@@ -644,6 +647,8 @@ def split_validatie(train_df, horizon, embargo=True):
     val_df = train_df[
         train_df["datum"] >= val_start
     ]
+
+    fit_df = purged_training(fit_df, horizon, val_start, target_mode=train_df.attrs.get('target_mode','abs'), min_per_date=MIN_RIJEN_PER_DATUM)
 
     if (
         len(fit_df) < MIN_RIJEN_TRAINING
@@ -1232,9 +1237,12 @@ def train_horizon(
         n_full
     )
 
+    full_training = purged_training(work, horizon, pd.Timestamp.now(tz='UTC'), target_mode=target_mode, min_per_date=MIN_RIJEN_PER_DATUM)
+    if len(full_training) < MIN_RIJEN_TRAINING or full_training.target.nunique() < 2:
+        raise RuntimeError('Onvoldoende bekende labels voor het volledige model')
     model_full.fit(
-        work[FEATURE_COLUMNS],
-        work["target"],
+        full_training[FEATURE_COLUMNS],
+        full_training["target"],
     )
 
     bundle = {

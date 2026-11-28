@@ -725,6 +725,16 @@ DEFINITIONS = {
   "generieke_fundamentals": "__sp_fundamentals AS (\nSELECT p.ticker,\np.datum,\np.fund_market_cap AS market_cap,\np.fund_trailing_pe AS trailing_pe,\np.fund_price_to_book AS price_to_book,\np.fund_dividend_yield AS dividend_yield,\np.fund_current_ratio AS current_ratio,\np.fund_revenue_growth_pct AS revenue_growth_pct,\np.fund_fcf_yield AS fcf_yield,\np.fund_fcf_years AS fcf_years,\np.fund_fcf_growing AS fcf_growing,\np.fund_fcf_consistent AS fcf_consistent,\np.fund_net_debt_ebitda AS net_debt_ebitda,\np.fund_payout_pct AS payout_pct,\np.fund_analisten_count AS analisten_count,\np.fund_piotroski_score AS piotroski_score,\np.fund_eps_growth_pct AS eps_growth_pct,\np.fund_eps_cagr_pct AS eps_cagr_pct,\np.fund_peg_ratio AS peg_ratio,\np.fund_bijgewerkt_op AS bijgewerkt_op FROM public.sel_par p\nWHERE p.verrijking_status->>'invoer_vrijgegeven'='true' AND p.fundamentals_aanwezig AND p.fundamentals_tijdig_bekend\n AND (p.fund_observatiedatum IS NULL OR p.fund_observatiedatum<=p.selectiedatum)\n)",
   "forward_returns": "__sp_returns AS (\nSELECT p.ticker,\np.datum,\ns.strategie,\np.beurs,\np.koers_selectiedatum AS entry_koers,\np.koers_5d AS fwd_close_5d,\np.koers_10d AS fwd_close_10d,\np.koers_20d AS fwd_close_20d,\np.rendement_5d_pct AS fwd_ret_5d,\np.rendement_10d_pct AS fwd_ret_10d,\np.rendement_20d_pct AS fwd_ret_20d,\np.forward_bijgewerkt_op AS bijgewerkt_op,\np.koers_30d AS fwd_close_30d,\np.rendement_30d_pct AS fwd_ret_30d,\np.koers_60d AS fwd_close_60d,\np.rendement_60d_pct AS fwd_ret_60d\nFROM public.sel_par p CROSS JOIN LATERAL unnest(p.strategieen) s(strategie)\nWHERE p.verrijking_status->>'invoer_vrijgegeven'='true' AND p.koers_selectiedatum>0 AND p.koers_selectiedatum<'Infinity'::float8\n)"
 }
+# Actual observed label dates travel with every forward-return projection.
+# Keep source dates as text: the temporal contract rejects malformed/unknown dates.
+for _h in (5,10,20,30,60):
+    SCHEMAS['forward_returns'].append([f'label_end_{_h}d','text'])
+    DEFINITIONS['forward_returns']=DEFINITIONS['forward_returns'].replace(
+        '\nFROM public.sel_par p',f",\np.koersdatums->>'{_h}' AS label_end_{_h}d\nFROM public.sel_par p")
+SCHEMAS['forward_returns'].append(['labels_review','text'])
+DEFINITIONS['forward_returns']=DEFINITIONS['forward_returns'].replace(
+    '\nFROM public.sel_par p',",\np.verrijking_status->>'labels_review' AS labels_review\nFROM public.sel_par p")
+
 ALIASES = dict(selecties='__sp_selecties',generieke_technicals='__sp_technicals',
                generieke_fundamentals='__sp_fundamentals',forward_returns='__sp_returns')
 _SOURCE = re.compile(r'\b(FROM|JOIN)\s+(?:public\.)?('+'|'.join(ALIASES)+r')\b',re.I)
@@ -743,7 +753,15 @@ def sel_par_query(query):
     rewritten=_SOURCE.sub(replace,query)
     if not used:
         return query
-    prefix=',\n'.join(DEFINITIONS[key] for key in ALIASES if key in used)
+    from .feature_pipeline import load_feature_context
+    context = load_feature_context()
+    definitions = [DEFINITIONS[key] for key in ALIASES if key in used]
+    if context:
+        cutoff = context['selection_cutoff']  # validated ISO date, never raw SQL input
+        definitions = [definition.replace('FROM public.sel_par p',
+                       f"FROM (SELECT * FROM public.sel_par WHERE datum::date <= DATE '{cutoff}') p")
+                       for definition in definitions]
+    prefix=',\n'.join(definitions)
     body=rewritten.lstrip()
     if re.match(r'WITH\s+RECURSIVE\b',body,re.I):
         raise ValueError('Recursive input queries require an explicit sel_par projection')
