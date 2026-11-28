@@ -55,7 +55,7 @@ def test_valid_inputs_and_safe_date_arguments_reach_both_commands(tmp_path):
     assert result.returncode==0,result.stderr
     bindir=tmp_path/'bin';bindir.mkdir()
     fake=bindir/'python'
-    fake.write_text('#!'+sys.executable+'\nimport json,sys\nfrom pathlib import Path\nargs=sys.argv[1:]\nif args[0]=="-u": args=args[1:]\nif args[0]=="-m": args=args[1:]\nPath(args[0]+".args").write_text(json.dumps(args[1:]))\n')
+    fake.write_text('#!'+sys.executable+'\nimport json,sys\nfrom pathlib import Path\nargs=sys.argv[1:]\nif args[0]=="-u": args=args[1:]\nif args[0]=="-m": args=args[1:]\nif args[0]=="maintenance.run_ready": args=args[1:]\nPath(args[0]+".args").write_text(json.dumps(args[1:]))\n')
     fake.chmod(0o755)
     env=environment(PATH=str(bindir)+os.pathsep+os.environ['PATH'],DATE_ARG='2026-11-06')
     for name in ['Run a_par_model (indien source=par)','Run TradingAgents bridge']:

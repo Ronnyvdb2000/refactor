@@ -121,20 +121,46 @@ def completed_refresh(conn, cutoff):
         cur.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s', (cutoff,))
         row = cur.fetchone()
     result = row[0] if row else {}
-    return result if (result.get('enrichment', {}).get('complete_execution') is True
-                      and result.get('input_released') is True) else None
+    from common.run_manifest import validate_stored
+    context=result.get('run_manifest')
+    if not context or context.get('selection_cutoff') != cutoff.isoformat():
+        return None
+    try:
+        return validate_stored(result,context)
+    except (ValueError,RuntimeError):
+        return None
 
 
 def release_input(conn, cutoff):
+    """Publish the central release atomically, after all checks and row updates."""
     from maintenance.sel_par_direct import publish_input_manifest
-    publish_input_manifest(conn, cutoff)  # Recheck existing quality/provenance gates.
+    from common.run_manifest import manifest_hash, sources_ready
+    from psycopg2.extras import Json
+    with conn.cursor() as cur:
+        cur.execute('SELECT pg_try_advisory_xact_lock(741206,11)')
+        if not cur.fetchone()[0]:
+            raise RuntimeError('Scoring of verrijking is bezig; geen vrijgave')
+        cur.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s FOR UPDATE',(cutoff,))
+        row=cur.fetchone()
+    result=row[0] if row else {}
+    sources=result.get('bronruns')
+    parts=dict(selection_seed=bool(row),
+               source_scans=sources_ready(sources),
+               feature_enrichment=result.get('enrichment',{}).get('complete_execution') is True)
+    if not all(parts.values()):
+        raise RuntimeError('Brononderdelen zijn nog niet volledig bevestigd; geen vrijgave')
+    context=publish_input_manifest(conn,cutoff,required_parts=parts)
+    if context is None:
+        raise RuntimeError('Featuremanifest ontbreekt; geen vrijgave')
     with conn.cursor() as cursor:
         cursor.execute("UPDATE public.sel_par SET verrijking_status=verrijking_status || "
-                       "'{\"invoer_vrijgegeven\":true}'::jsonb WHERE selectiedatum<=%s "
-                       "AND coalesce(verrijking_status->>'invoer_vrijgegeven','false')<>'true'",
-                       (cutoff,))
-        cursor.execute("UPDATE public.sel_par_runs SET resultaat=resultaat || "
-                       "'{\"input_released\":true}'::jsonb WHERE selecties_tot=%s", (cutoff,))
+                       "jsonb_build_object('invoer_vrijgegeven',true) WHERE selectiedatum<=%s "
+                       "AND coalesce(verrijking_status->>'invoer_vrijgegeven','false')<>'true'",(cutoff,))
+        cursor.execute('UPDATE public.sel_par_runs SET resultaat=resultaat || %s WHERE selecties_tot=%s',
+                       (Json(dict(input_released=True,data_ready=True,run_manifest=context,
+                                  manifest_hash=manifest_hash(context))),cutoff))
+        if cursor.rowcount != 1:
+            raise RuntimeError('Dagregistratie ontbreekt; vrijgave teruggedraaid')
 
 
 def main():
@@ -186,7 +212,7 @@ def main():
                            (cutoff, args.force, Json(report)))
             result = cursor.fetchone()[0]
             cursor.execute("UPDATE public.sel_par_runs SET resultaat=resultaat || %s WHERE selecties_tot=%s",
-                           (Json({'input_released': False, 'scoring': scoring}), cutoff))
+                           (Json({'input_released': False, 'data_ready': False, 'run_manifest': None, 'manifest_hash': None, 'scoring': scoring}), cutoff))
             # Preserve strategy-specific inputs inside sel_par for all readers.
             # This is ordinary row enrichment; no production function/schema change.
             snapshot_sql = ROOT / 'maintenance/sql/20261122_sel_par_selection_snapshots.sql'
@@ -200,7 +226,8 @@ def main():
                 raise RuntimeError('Een directe sel_par-verrijking is al bezig')
         try:
             result['enrichment'] = enrich(conn, cutoff, max_tickers=args.max_tickers)
-            result['pipeline_version'] = 2
+            result['pipeline_version'] = 3
+            result['bronruns'] = report
             with conn.cursor() as cursor:
                 cursor.execute('UPDATE public.sel_par_runs SET voltooid_op=clock_timestamp(), '
                                'resultaat=resultaat || %s WHERE selecties_tot=%s', (Json(result),cutoff))

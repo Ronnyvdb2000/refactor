@@ -32,8 +32,11 @@ def load_feature_context(*, now=None):
         return None
     try:
         context = json.loads(Path(path).read_text(encoding='utf-8'))
-        if context['schema_version'] != 1 or context['status'] != 'ready':
+        if context['schema_version'] not in (1,2) or context['status'] != 'ready':
             raise ValueError()
+        if context['schema_version'] == 2:
+            from .run_manifest import validate_release
+            validate_release(context)
         cutoff = date.fromisoformat(context['selection_cutoff'])
         stamp = datetime.fromisoformat(context['generated_at'])
         current = now or datetime.now(timezone.utc)
@@ -84,7 +87,7 @@ def restrict_to_feature_cutoff(frame, column, context):
     return result
 
 
-def write_feature_manifest(diagnosis, minimum_ratio):
+def write_feature_manifest(diagnosis, minimum_ratio, *, readiness=None):
     path = os.environ.get('FEATURE_BUILD_MANIFEST', '').strip()
     if not path:
         return
@@ -100,6 +103,10 @@ def write_feature_manifest(diagnosis, minimum_ratio):
                    source_run_attempt=os.environ.get('GITHUB_RUN_ATTEMPT', '1'),
                    source_sha=os.environ.get('GITHUB_SHA', ''), rows_written=len(written),
                    rows_by_date=dict(sorted(Counter(r['koersdatum'] for r in written).items())))
+    if readiness is not None:
+        context.update(schema_version=2,data_ready=True,readiness=readiness)
+        from .run_manifest import validate_release
+        validate_release(context)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_suffix('.tmp')
     temporary.write_text(json.dumps(context, indent=2), encoding='utf-8')
@@ -107,3 +114,4 @@ def write_feature_manifest(diagnosis, minimum_ratio):
     # Fail the build rather than distributing invalid provenance.
     load_feature_context()
     print('[pipeline] ' + context_summary(context), flush=True)
+    return context

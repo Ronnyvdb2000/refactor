@@ -78,6 +78,14 @@ def main():
     context = load_feature_context()
     if context is None:
         raise ValueError('Geen bevestigd manifest')
+    from common.run_manifest import ready_input
+    import psycopg2
+    conn=psycopg2.connect(os.environ['SUPABASE_DB_URL'],connect_timeout=30)
+    try:
+        with ready_input(conn,context):
+            pass
+    finally:
+        conn.close()
     if os.getenv('GITHUB_ENV'):
         with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as output:
             for key, env in [('source_run_id','FEATURE_EXPECTED_RUN_ID'), ('source_run_attempt','FEATURE_EXPECTED_RUN_ATTEMPT'), ('source_sha','FEATURE_EXPECTED_SHA')]:

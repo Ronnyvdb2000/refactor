@@ -93,12 +93,13 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: Run XGBoostV4 training
         id: train
         run: |
-          python -m models.xgboostV4
+          python -m maintenance.run_ready models.xgboostV4
 
       - name: Controle XGBoostV4 modellen
         if: always()

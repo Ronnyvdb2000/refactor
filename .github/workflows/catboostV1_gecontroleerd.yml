@@ -38,6 +38,7 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: CatBoost evalueren
@@ -47,7 +48,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CATBOOST_HORIZONS: ${{ inputs.horizons || '10d,30d,60d' }}
           CATBOOST_TARGET: ${{ inputs.target || 'excess' }}
-        run: python -m models.catboostV1 --horizons "$CATBOOST_HORIZONS" --target "$CATBOOST_TARGET" --telegram
+        run: python -m maintenance.run_ready models.catboostV1 --horizons "$CATBOOST_HORIZONS" --target "$CATBOOST_TARGET" --telegram
       - name: Rapporten en toegelaten kandidaten bewaren
         if: always()
         uses: actions/upload-artifact@v4

@@ -11,6 +11,7 @@ import subprocess
 import sys
 
 from common.feature_pipeline import load_feature_context
+from common.run_manifest import assert_ready
 
 MODELS = {'a_par': 'meta_models.a_par_model',
           'a_meta': 'meta_models.a_meta_model_score',
@@ -19,6 +20,9 @@ MODELS = {'a_par': 'meta_models.a_par_model',
 
 def score(conn, cutoff, model, command, runner=subprocess.run):
     from psycopg2.extras import Json
+    context=load_feature_context()
+    if context is None or context['selection_cutoff'] != str(cutoff):
+        raise RuntimeError('Bevestigd manifest voor deze selectiedag ontbreekt')
     lock = sorted(MODELS).index(model) + 20
     with conn.cursor() as cur:
         cur.execute('SELECT pg_try_advisory_lock(741206,%s)', (lock,))
@@ -31,11 +35,8 @@ def score(conn, cutoff, model, command, runner=subprocess.run):
             shared = cur.fetchone()[0]
             if not shared:
                 raise RuntimeError('sel_par wordt nog bijgewerkt; probeer later opnieuw')
-            cur.execute('SELECT resultaat FROM public.sel_par_runs WHERE selecties_tot=%s', (cutoff,))
-            row = cur.fetchone()
-        if not row or row[0].get('input_released') is not True:
-            raise RuntimeError('Selectiedag is nog niet vrijgegeven')
-        previous = row[0].get('scoring', {}).get(model, {})
+        released=assert_ready(conn,context)
+        previous = released.get('scoring', {}).get(model, {})
         if previous.get('status') == 'completed':
             print(f'{model}: {cutoff} al gescoord; geen nieuwe scores of berichten', flush=True)
             return 0

@@ -111,6 +111,7 @@ jobs:
     - name: Resolve trusted feature build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
       run: python -m maintenance.resolve_feature_manifest
 
     - name: Start training script
@@ -125,7 +126,7 @@ jobs:
         EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
 
       run: |
-        python -m models.xgboostV3
+        python -m maintenance.run_ready models.xgboostV3
 
     # ============================================================
     # 6. MODEL VALIDATIE

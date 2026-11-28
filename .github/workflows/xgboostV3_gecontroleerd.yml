@@ -38,6 +38,7 @@ jobs:
       - name: Resolve trusted feature build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: python -m maintenance.resolve_feature_manifest
 
       - name: XGBoost V3 gecontroleerd uitvoeren
@@ -48,7 +49,7 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-        run: python -m models.xgboostV3_gecontroleerd
+        run: python -m maintenance.run_ready models.xgboostV3_gecontroleerd
 
       - name: Modelbestanden bewaren als artifact
         if: always()
