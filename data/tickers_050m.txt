@@ -1,17 +1,17 @@
 # MASTERLIJST 050 — Zurich
-# Laatste update: 22/11/2026
+# Laatste update: 28/11/2026
 # Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
-ABBN.SW          | opname:2026-08-22 | ROE:31.3% | Debt:50.8 | Marge:13.6% | Vol:30.4% | Omzet:185,155,175 | Trend:onder | actief
-BSLN.SW          | opname:2026-08-22 | ROE:39.5% | Debt:51.4 | Marge:21.2% | Vol:29.2% | Omzet:2,044,572 | Trend:boven | actief
-LAND.SW          | opname:2026-11-22 | ROE:7.5% | Debt:39.3 | Marge:7.0% | Vol:35.2% | Omzet:4,224,274 | Trend:boven | actief
-LEHN.SW          | opname:2026-11-22 | ROE:15.3% | Debt:62.6 | Marge:7.1% | Vol:57.2% | Omzet:1,260,325 | Trend:boven | actief
-MED.SW           | opname:2026-07-19 | ROE:5.7% | Debt:73.5 | Marge:4.9% | Vol:36.2% | Omzet:734,767 | Trend:boven | actief
-MOVE.SW          | opname:2026-08-22 | ROE:17.0% | Debt:66.4 | Marge:10.9% | Vol:29.8% | Omzet:2,930,696 | Trend:onder | actief
-PGHN.SW          | opname:2026-08-22 | ROE:75.4% | Debt:192.8 | Marge:48.0% | Vol:33.7% | Omzet:87,756,032 | Trend:onder | actief
-SKAN.SW          | opname:2026-07-19 | ROE:20.2% | Debt:104.1 | Marge:8.3% | Vol:36.6% | Omzet:1,891,927 | Trend:boven | actief
+ABBN.SW          | opname:2026-08-22 | ROE:31.3% | Debt:50.8 | Marge:13.6% | Vol:31.2% | Omzet:185,612,583 | Trend:onder | actief
+BSLN.SW          | opname:2026-08-22 | ROE:39.5% | Debt:51.4 | Marge:21.2% | Vol:29.2% | Omzet:2,038,118 | Trend:boven | actief
+LAND.SW          | opname:2026-11-22 | ROE:7.5% | Debt:39.3 | Marge:7.0% | Vol:35.7% | Omzet:4,216,901 | Trend:boven | actief
+LEHN.SW          | opname:2026-11-22 | ROE:15.3% | Debt:62.6 | Marge:7.1% | Vol:57.6% | Omzet:1,237,038 | Trend:boven | actief
+MED.SW           | opname:2026-07-19 | ROE:5.7% | Debt:73.5 | Marge:4.9% | Vol:36.1% | Omzet:755,248 | Trend:boven | actief
+MOVE.SW          | opname:2026-08-22 | ROE:17.0% | Debt:66.4 | Marge:10.9% | Vol:29.8% | Omzet:2,947,330 | Trend:onder | actief
+PGHN.SW          | opname:2026-08-22 | ROE:75.4% | Debt:192.8 | Marge:48.0% | Vol:33.7% | Omzet:88,020,520 | Trend:onder | actief
+SKAN.SW          | opname:2026-07-19 | ROE:20.2% | Debt:104.1 | Marge:8.3% | Vol:36.3% | Omzet:1,874,597 | Trend:boven | actief
 BANB.SW          | opname:2026-07-19 | ROE:10.6% | Debt:14.4 | Marge:21.0% | Vol:38.8% | Omzet:8,500,807 | Trend:? | zwakker | weken_buiten:2
 BOSN.SW          | opname:2026-07-19 | ROE:23.4% | Debt:91.4 | Marge:8.0% | Vol:30.5% | Omzet:2,774,614 | Trend:? | zwakker | weken_buiten:2
 CFR.SW           | opname:2026-08-16 | ROE:15.0% | Debt:56.0 | Marge:15.5% | Vol:30.6% | Omzet:145,653,241 | Trend:? | zwakker | weken_buiten:2
@@ -33,7 +33,7 @@ BCHN.SW          | opname:2026-08-22 | ROE:31.4% | Debt:42.1 | Marge:10.4% | Vol
 BEAN.SW          | opname:2026-07-26 | ROE:35.2% | Debt:21.0 | Marge:16.6% | Vol:40.9% | Omzet:18,561,086 | Trend:? | verwijderd | verwijderd:2026-10-18
 BRKN.SW          | opname:2026-08-22 | ROE:61.3% | Debt:35.1 | Marge:5.5% | Vol:22.4% | Omzet:2,344,976 | Trend:? | verwijderd | verwijderd:2026-09-06
 CFT.SW           | opname:2026-08-22 | ROE:30.8% | Debt:47.7 | Marge:12.7% | Vol:26.2% | Omzet:1,136,252 | Trend:? | verwijderd | verwijderd:2026-09-06
-CLTN.SW          | opname:2026-08-22 | ROE:16.0% | Debt:64.3 | Marge:6.3% | Vol:29.9% | Omzet:180,914 | Trend:onder | verwijderd | verwijderd:2026-09-06
+CLTN.SW          | opname:2026-08-22 | ROE:16.0% | Debt:64.3 | Marge:6.3% | Vol:29.5% | Omzet:173,770 | Trend:boven | verwijderd | verwijderd:2026-09-06
 DESN.SW          | opname:2026-08-22 | ROE:9.9% | Debt:11.9 | Marge:23.5% | Vol:33.2% | Omzet:1,666,661 | Trend:? | verwijderd | verwijderd:2026-09-06
 EMMN.SW          | opname:2026-08-22 | ROE:21.9% | Debt:103.0 | Marge:4.8% | Vol:18.1% | Omzet:3,790,525 | Trend:? | verwijderd | verwijderd:2026-09-06
 FHZN.SW          | opname:2026-08-22 | ROE:11.7% | Debt:59.0 | Marge:25.0% | Vol:22.1% | Omzet:11,242,653 | Trend:? | verwijderd | verwijderd:2026-09-06

@@ -1,12 +1,13 @@
 # MASTERLIJST 058 — TSXV
-# Laatste update: 22/11/2026
-# Nitro Criteria: ROE>4% | Debt<140 (niet voor financials/nutsbedrijven/vastgoed) | Marge>3% | Vol 35%-95% | Omzet>€2,500,000
+# Laatste update: 28/11/2026
+# Nitro Criteria: ROE>4% | Debt<140 (niet voor financials/nutsbedrijven/vastgoed) | Marge>3% | Vol 20%-95% | Omzet>€2,500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
-LMN.V            | opname:2026-08-22 | ROE:13.7% | Debt:58.9 | Marge:12.9% | Vol:55.3% | Omzet:3,990,294 | Trend:? | actief
-AFM.V            | opname:2026-08-22 | ROE:58.5% | Debt:8.7 | Marge:25.9% | Vol:57.2% | Omzet:1,472,206 | Trend:? | zwakker | weken_buiten:2
-ARTG.V           | opname:2026-08-22 | ROE:53.5% | Debt:44.4 | Marge:40.1% | Vol:52.9% | Omzet:13,642,048 | Trend:? | zwakker | weken_buiten:2
-LGN.V            | opname:2026-08-22 | ROE:11.3% | Debt:36.4 | Marge:18.7% | Vol:40.6% | Omzet:808,314 | Trend:? | zwakker | weken_buiten:2
-MKO.V            | opname:2026-08-22 | ROE:36.6% | Debt:21.9 | Marge:25.1% | Vol:51.9% | Omzet:1,333,525 | Trend:? | zwakker | weken_buiten:2
-MMY.V            | opname:2026-10-31 | ROE:36.1% | Debt:8.5 | Marge:41.5% | Vol:63.6% | Omzet:527,454 | Trend:? | zwakker | weken_buiten:2
+ARTG.V           | opname:2026-08-22 | ROE:49.9% | Debt:41.5 | Marge:40.7% | Vol:52.9% | Omzet:13,516,173 | Trend:onder | actief
+LMN.V            | opname:2026-08-22 | ROE:13.4% | Debt:52.4 | Marge:11.5% | Vol:50.8% | Omzet:3,737,800 | Trend:boven | actief
+TOI.V            | opname:2026-11-28 | ROE:28.0% | Debt:61.0 | Marge:8.1% | Vol:41.4% | Omzet:8,917,830 | Trend:onder | actief
+AFM.V            | opname:2026-08-22 | ROE:65.1% | Debt:6.6 | Marge:27.9% | Vol:58.6% | Omzet:1,514,690 | Trend:onder | verwijderd | verwijderd:2026-11-28
+LGN.V            | opname:2026-08-22 | ROE:8.9% | Debt:41.4 | Marge:13.4% | Vol:39.8% | Omzet:930,735 | Trend:boven | verwijderd | verwijderd:2026-11-28
+MKO.V            | opname:2026-08-22 | ROE:44.3% | Debt:19.8 | Marge:29.2% | Vol:53.8% | Omzet:1,365,816 | Trend:onder | verwijderd | verwijderd:2026-11-28
+MMY.V            | opname:2026-10-31 | ROE:36.1% | Debt:8.5 | Marge:41.5% | Vol:64.4% | Omzet:506,431 | Trend:onder | verwijderd | verwijderd:2026-11-28

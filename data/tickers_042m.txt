@@ -1,87 +1,87 @@
 # MASTERLIJST 042 — Parijs
-# Laatste update: 22/11/2026
+# Laatste update: 28/11/2026
 # Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
-AC.PA            | opname:2026-05-08 | ROE:8.0% | Debt:106.7 | Marge:5.8% | Vol:29.3% | Omzet:36,608,006 | Trend:boven | actief
-ACA.PA           | opname:2026-11-08 | ROE:9.3% | Debt:n.v.t. | Marge:26.0% | Vol:21.1% | Omzet:76,597,068 | Trend:onder | actief
-AIR.PA           | opname:2026-05-08 | ROE:23.5% | Debt:51.5 | Marge:8.0% | Vol:30.4% | Omzet:219,856,158 | Trend:onder | actief
-AM.PA            | opname:2026-05-04 | ROE:15.7% | Debt:3.1 | Marge:11.3% | Vol:29.2% | Omzet:17,472,109 | Trend:onder | actief
-ARG.PA           | opname:2026-05-04 | ROE:11.1% | Debt:88.7 | Marge:102.8% | Vol:24.6% | Omzet:1,368,132 | Trend:onder | actief
-ATE.PA           | opname:2026-08-02 | ROE:6.2% | Debt:12.2 | Marge:3.3% | Vol:46.2% | Omzet:4,943,746 | Trend:boven | actief
-BB.PA            | opname:2026-11-08 | ROE:6.9% | Debt:19.4 | Marge:5.7% | Vol:20.2% | Omzet:1,714,957 | Trend:boven | actief
-BIM.PA           | opname:2026-05-08 | ROE:11.2% | Debt:9.8 | Marge:11.6% | Vol:30.6% | Omzet:13,388,320 | Trend:boven | actief
-BN.PA            | opname:2026-05-08 | ROE:12.2% | Debt:98.5 | Marge:7.1% | Vol:23.9% | Omzet:97,836,634 | Trend:boven | actief
-BNP.PA           | opname:2026-11-08 | ROE:10.9% | Debt:n.v.t. | Marge:26.6% | Vol:27.6% | Omzet:202,174,993 | Trend:onder | actief
-CAP.PA           | opname:2026-05-04 | ROE:12.2% | Debt:87.5 | Marge:5.9% | Vol:39.4% | Omzet:68,309,882 | Trend:boven | actief
-CDA.PA           | opname:2026-06-28 | ROE:10.6% | Debt:112.3 | Marge:8.2% | Vol:27.8% | Omzet:888,641 | Trend:onder | actief
-CDI.PA           | opname:2026-05-08 | ROE:17.1% | Debt:55.3 | Marge:5.7% | Vol:30.6% | Omzet:2,981,856 | Trend:onder | actief
-COV.PA           | opname:2026-05-08 | ROE:8.5% | Debt:83.1 | Marge:55.9% | Vol:22.2% | Omzet:7,776,177 | Trend:onder | actief
-DBG.PA           | opname:2026-05-08 | ROE:11.9% | Debt:72.6 | Marge:3.8% | Vol:34.8% | Omzet:1,447,371 | Trend:onder | actief
-DG.PA            | opname:2026-05-08 | ROE:16.3% | Debt:120.7 | Marge:6.7% | Vol:23.7% | Omzet:105,394,609 | Trend:onder | actief
-DIM.PA           | opname:2026-07-06 | ROE:7.7% | Debt:52.6 | Marge:10.6% | Vol:39.2% | Omzet:16,519,611 | Trend:boven | actief
-DSY.PA           | opname:2026-05-04 | ROE:14.9% | Debt:28.6 | Marge:21.3% | Vol:40.7% | Omzet:50,172,655 | Trend:boven | actief
-EL.PA            | opname:2026-11-08 | ROE:6.7% | Debt:38.4 | Marge:8.5% | Vol:34.1% | Omzet:136,594,518 | Trend:onder | actief
-ELIS.PA          | opname:2026-05-08 | ROE:10.7% | Debt:138.7 | Marge:7.7% | Vol:23.9% | Omzet:8,308,452 | Trend:onder | actief
-ENGI.PA          | opname:2026-11-08 | ROE:12.2% | Debt:143.8 | Marge:6.0% | Vol:22.6% | Omzet:105,349,919 | Trend:onder | actief
-ENX.PA           | opname:2026-05-04 | ROE:17.2% | Debt:60.1 | Marge:36.2% | Vol:22.7% | Omzet:35,700,226 | Trend:boven | actief
-ERF.PA           | opname:2026-05-08 | ROE:11.3% | Debt:96.1 | Marge:7.2% | Vol:27.3% | Omzet:20,774,689 | Trend:boven | actief
-EXA.PA           | opname:2026-10-31 | ROE:31.2% | Debt:120.8 | Marge:15.5% | Vol:57.1% | Omzet:8,332,877 | Trend:boven | actief
-EXENS.PA         | opname:2026-05-04 | ROE:12.7% | Debt:59.8 | Marge:6.0% | Vol:45.8% | Omzet:5,813,051 | Trend:onder | actief
-FII.PA           | opname:2026-05-08 | ROE:8.7% | Debt:44.8 | Marge:8.9% | Vol:36.6% | Omzet:2,251,640 | Trend:boven | actief
-GLE.PA           | opname:2026-11-08 | ROE:9.6% | Debt:n.v.t. | Marge:25.6% | Vol:34.9% | Omzet:140,040,026 | Trend:onder | actief
-GTT.PA           | opname:2026-05-04 | ROE:79.6% | Debt:16.6 | Marge:55.4% | Vol:26.8% | Omzet:19,405,337 | Trend:onder | actief
-HO.PA            | opname:2026-05-04 | ROE:19.4% | Debt:69.5 | Marge:6.6% | Vol:30.0% | Omzet:64,425,650 | Trend:onder | actief
-IPN.PA           | opname:2026-05-04 | ROE:11.4% | Debt:20.4 | Marge:11.9% | Vol:29.8% | Omzet:16,693,020 | Trend:boven | actief
-IPS.PA           | opname:2026-05-04 | ROE:11.9% | Debt:41.8 | Marge:6.9% | Vol:37.7% | Omzet:2,686,692 | Trend:onder | actief
-ITP.PA           | opname:2026-05-04 | ROE:17.1% | Debt:18.0 | Marge:13.7% | Vol:29.8% | Omzet:1,600,368 | Trend:boven | actief
-LR.PA            | opname:2026-05-04 | ROE:19.0% | Debt:97.0 | Marge:13.1% | Vol:31.8% | Omzet:81,850,774 | Trend:onder | actief
-MAU.PA           | opname:2026-05-04 | ROE:35.3% | Debt:10.6 | Marge:74.8% | Vol:42.7% | Omzet:1,850,666 | Trend:onder | actief
-MC.PA            | opname:2026-05-04 | ROE:16.6% | Debt:53.3 | Marge:13.7% | Vol:27.1% | Omzet:253,373,603 | Trend:onder | actief
-MMT.PA           | opname:2026-05-08 | ROE:6.9% | Debt:8.3 | Marge:7.9% | Vol:25.7% | Omzet:1,604,418 | Trend:onder | actief
-OR.PA            | opname:2026-05-04 | ROE:19.4% | Debt:49.3 | Marge:13.9% | Vol:25.2% | Omzet:143,647,186 | Trend:boven | actief
-PLNW.PA          | opname:2026-05-04 | ROE:28.1% | Debt:8.7 | Marge:27.3% | Vol:40.0% | Omzet:1,689,491 | Trend:boven | actief
-PUB.PA           | opname:2026-05-04 | ROE:16.2% | Debt:51.9 | Marge:9.2% | Vol:28.2% | Omzet:53,775,136 | Trend:boven | actief
-RBT.PA           | opname:2026-05-04 | ROE:16.6% | Debt:39.7 | Marge:11.8% | Vol:23.2% | Omzet:1,093,972 | Trend:boven | actief
-RCO.PA           | opname:2026-06-21 | ROE:4.1% | Debt:39.8 | Marge:8.4% | Vol:35.9% | Omzet:3,414,279 | Trend:boven | actief
-RI.PA            | opname:2026-05-08 | ROE:7.6% | Debt:76.6 | Marge:12.8% | Vol:30.2% | Omzet:48,912,351 | Trend:boven | actief
-RMS.PA           | opname:2026-05-04 | ROE:25.5% | Debt:12.0 | Marge:28.0% | Vol:33.1% | Omzet:146,930,815 | Trend:onder | actief
-RUI.PA           | opname:2026-05-08 | ROE:12.0% | Debt:82.0 | Marge:4.6% | Vol:21.2% | Omzet:5,436,238 | Trend:boven | actief
-RXL.PA           | opname:2026-11-08 | ROE:12.6% | Debt:107.0 | Marge:3.4% | Vol:30.7% | Omzet:24,302,467 | Trend:onder | actief
-SAF.PA           | opname:2026-05-04 | ROE:27.5% | Debt:33.7 | Marge:11.6% | Vol:35.3% | Omzet:188,555,910 | Trend:onder | actief
-SAN.PA           | opname:2026-11-08 | ROE:5.7% | Debt:27.1 | Marge:8.2% | Vol:23.2% | Omzet:175,584,469 | Trend:boven | actief
-SCR.PA           | opname:2026-05-08 | ROE:12.8% | Debt:51.2 | Marge:5.2% | Vol:20.7% | Omzet:14,788,114 | Trend:boven | actief
-SGO.PA           | opname:2026-05-08 | ROE:11.0% | Debt:66.3 | Marge:5.8% | Vol:30.2% | Omzet:86,904,066 | Trend:onder | actief
-SOP.PA           | opname:2026-05-08 | ROE:14.6% | Debt:65.1 | Marge:5.2% | Vol:43.2% | Omzet:7,364,342 | Trend:boven | actief
-STMPA.PA         | opname:2026-07-26 | ROE:3.0% | Debt:18.7 | Marge:3.8% | Vol:56.8% | Omzet:118,027,502 | Trend:onder | actief
-SU.PA            | opname:2026-05-04 | ROE:18.6% | Debt:84.1 | Marge:11.3% | Vol:36.1% | Omzet:249,620,578 | Trend:onder | actief
-TE.PA            | opname:2026-05-08 | ROE:12.3% | Debt:75.4 | Marge:3.6% | Vol:33.3% | Omzet:14,411,755 | Trend:onder | actief
-TEP.PA           | opname:2026-05-08 | ROE:11.4% | Debt:120.4 | Marge:4.7% | Vol:49.7% | Omzet:19,612,507 | Trend:boven | actief
-TKO.PA           | opname:2026-08-09 | ROE:7.4% | Debt:57.0 | Marge:34.7% | Vol:29.0% | Omzet:815,565 | Trend:onder | actief
-TRI.PA           | opname:2026-05-08 | ROE:12.3% | Debt:9.0 | Marge:6.8% | Vol:32.0% | Omzet:2,292,554 | Trend:onder | actief
-TTE.PA           | opname:2026-05-04 | ROE:17.8% | Debt:46.1 | Marge:10.5% | Vol:23.5% | Omzet:305,571,877 | Trend:boven | actief
-VCT.PA           | opname:2026-05-08 | ROE:10.2% | Debt:55.1 | Marge:7.2% | Vol:33.9% | Omzet:2,724,605 | Trend:onder | actief
-VIRP.PA          | opname:2026-05-04 | ROE:13.6% | Debt:29.7 | Marge:10.4% | Vol:23.1% | Omzet:1,603,462 | Trend:boven | actief
-VK.PA            | opname:2026-05-04 | ROE:12.7% | Debt:39.5 | Marge:7.8% | Vol:38.4% | Omzet:16,141,893 | Trend:onder | actief
-VU.PA            | opname:2026-05-04 | ROE:76.7% | Debt:9.8 | Marge:17.0% | Vol:54.2% | Omzet:8,081,560 | Trend:boven | actief
-WAVE.PA          | opname:2026-05-04 | ROE:12.3% | Debt:2.9 | Marge:8.6% | Vol:51.4% | Omzet:898,322 | Trend:onder | actief
-EN.PA            | opname:2026-11-08 | ROE:6.0% | Debt:103.9 | Marge:1.4% | Vol:21.5% | Omzet:32,563,582 | Trend:onder | zwakker | weken_buiten:1
-74SW.PA          | opname:2026-05-08 | ROE:11.4% | Debt:52.0 | Marge:8.5% | Vol:34.4% | Omzet:397,485 | Trend:onder | verwijderd | verwijderd:2026-11-01
-AI.PA            | opname:2026-06-07 | ROE:14.0% | Debt:63.3 | Marge:13.1% | Vol:17.8% | Omzet:146,837,452 | Trend:boven | verwijderd | verwijderd:2026-07-19
+AC.PA            | opname:2026-05-08 | ROE:8.0% | Debt:106.7 | Marge:5.8% | Vol:29.5% | Omzet:36,727,739 | Trend:boven | actief
+ACA.PA           | opname:2026-11-08 | ROE:9.3% | Debt:n.v.t. | Marge:26.0% | Vol:21.1% | Omzet:76,690,565 | Trend:onder | actief
+AIR.PA           | opname:2026-05-08 | ROE:23.5% | Debt:51.5 | Marge:8.0% | Vol:30.6% | Omzet:219,422,408 | Trend:boven | actief
+AM.PA            | opname:2026-05-04 | ROE:15.7% | Debt:3.1 | Marge:11.3% | Vol:29.2% | Omzet:17,340,795 | Trend:boven | actief
+ARG.PA           | opname:2026-05-04 | ROE:11.1% | Debt:88.7 | Marge:102.8% | Vol:24.4% | Omzet:1,283,393 | Trend:boven | actief
+ATE.PA           | opname:2026-08-02 | ROE:6.2% | Debt:12.2 | Marge:3.3% | Vol:46.2% | Omzet:4,881,579 | Trend:boven | actief
+BB.PA            | opname:2026-11-08 | ROE:6.9% | Debt:19.4 | Marge:5.7% | Vol:20.1% | Omzet:1,700,830 | Trend:boven | actief
+BIM.PA           | opname:2026-05-08 | ROE:11.2% | Debt:9.8 | Marge:11.6% | Vol:30.6% | Omzet:13,313,467 | Trend:boven | actief
+BN.PA            | opname:2026-05-08 | ROE:12.2% | Debt:98.5 | Marge:7.1% | Vol:23.8% | Omzet:97,772,840 | Trend:boven | actief
+BNP.PA           | opname:2026-11-08 | ROE:10.9% | Debt:n.v.t. | Marge:26.6% | Vol:27.8% | Omzet:201,207,593 | Trend:onder | actief
+CAP.PA           | opname:2026-05-04 | ROE:12.2% | Debt:87.5 | Marge:5.9% | Vol:39.3% | Omzet:68,072,901 | Trend:boven | actief
+CDA.PA           | opname:2026-06-28 | ROE:10.6% | Debt:112.3 | Marge:8.2% | Vol:26.9% | Omzet:878,137 | Trend:onder | actief
+CDI.PA           | opname:2026-05-08 | ROE:17.1% | Debt:55.3 | Marge:5.7% | Vol:30.8% | Omzet:3,021,861 | Trend:onder | actief
+COV.PA           | opname:2026-05-08 | ROE:8.5% | Debt:83.1 | Marge:55.9% | Vol:22.3% | Omzet:7,801,554 | Trend:onder | actief
+DBG.PA           | opname:2026-05-08 | ROE:11.9% | Debt:72.6 | Marge:3.8% | Vol:34.9% | Omzet:1,440,519 | Trend:onder | actief
+DG.PA            | opname:2026-05-08 | ROE:16.3% | Debt:120.7 | Marge:6.7% | Vol:23.7% | Omzet:104,706,744 | Trend:onder | actief
+DIM.PA           | opname:2026-07-06 | ROE:7.7% | Debt:52.6 | Marge:10.6% | Vol:39.0% | Omzet:16,479,964 | Trend:boven | actief
+DSY.PA           | opname:2026-05-04 | ROE:14.9% | Debt:28.6 | Marge:21.3% | Vol:40.7% | Omzet:50,968,481 | Trend:boven | actief
+EL.PA            | opname:2026-11-08 | ROE:6.7% | Debt:38.4 | Marge:8.5% | Vol:34.0% | Omzet:134,766,990 | Trend:onder | actief
+ELIS.PA          | opname:2026-05-08 | ROE:10.7% | Debt:138.7 | Marge:7.7% | Vol:23.8% | Omzet:8,224,865 | Trend:boven | actief
+ENGI.PA          | opname:2026-11-08 | ROE:12.2% | Debt:143.8 | Marge:6.0% | Vol:22.7% | Omzet:104,934,679 | Trend:boven | actief
+ENX.PA           | opname:2026-05-04 | ROE:17.2% | Debt:60.1 | Marge:36.2% | Vol:22.8% | Omzet:35,271,641 | Trend:boven | actief
+ERF.PA           | opname:2026-05-08 | ROE:11.3% | Debt:96.1 | Marge:7.2% | Vol:27.5% | Omzet:21,121,163 | Trend:boven | actief
+EXA.PA           | opname:2026-10-31 | ROE:31.2% | Debt:120.8 | Marge:15.5% | Vol:56.5% | Omzet:8,247,644 | Trend:boven | actief
+EXENS.PA         | opname:2026-05-04 | ROE:12.7% | Debt:59.8 | Marge:6.0% | Vol:45.9% | Omzet:5,837,050 | Trend:onder | actief
+FII.PA           | opname:2026-05-08 | ROE:8.7% | Debt:44.8 | Marge:8.9% | Vol:36.7% | Omzet:2,247,443 | Trend:boven | actief
+GLE.PA           | opname:2026-11-08 | ROE:9.6% | Debt:n.v.t. | Marge:25.6% | Vol:35.2% | Omzet:138,567,501 | Trend:onder | actief
+GTT.PA           | opname:2026-05-04 | ROE:79.6% | Debt:16.6 | Marge:55.4% | Vol:26.9% | Omzet:19,513,321 | Trend:onder | actief
+HO.PA            | opname:2026-05-04 | ROE:19.4% | Debt:69.5 | Marge:6.6% | Vol:29.8% | Omzet:63,970,462 | Trend:onder | actief
+IPN.PA           | opname:2026-05-04 | ROE:11.4% | Debt:20.4 | Marge:11.9% | Vol:29.8% | Omzet:16,704,965 | Trend:boven | actief
+IPS.PA           | opname:2026-05-04 | ROE:11.9% | Debt:41.8 | Marge:6.9% | Vol:37.8% | Omzet:2,673,203 | Trend:boven | actief
+ITP.PA           | opname:2026-05-04 | ROE:17.1% | Debt:18.0 | Marge:13.7% | Vol:29.6% | Omzet:1,616,652 | Trend:boven | actief
+LR.PA            | opname:2026-05-04 | ROE:19.0% | Debt:97.0 | Marge:13.1% | Vol:32.7% | Omzet:81,769,477 | Trend:onder | actief
+MAU.PA           | opname:2026-05-04 | ROE:35.3% | Debt:10.6 | Marge:74.8% | Vol:42.5% | Omzet:1,852,366 | Trend:onder | actief
+MC.PA            | opname:2026-05-04 | ROE:16.6% | Debt:53.3 | Marge:13.7% | Vol:27.3% | Omzet:252,542,095 | Trend:onder | actief
+MMT.PA           | opname:2026-05-08 | ROE:6.9% | Debt:8.3 | Marge:7.9% | Vol:25.8% | Omzet:1,594,334 | Trend:onder | actief
+OR.PA            | opname:2026-05-04 | ROE:19.4% | Debt:49.3 | Marge:13.9% | Vol:25.0% | Omzet:143,891,259 | Trend:boven | actief
+PLNW.PA          | opname:2026-05-04 | ROE:28.1% | Debt:8.7 | Marge:27.3% | Vol:39.9% | Omzet:1,672,565 | Trend:boven | actief
+PUB.PA           | opname:2026-05-04 | ROE:16.2% | Debt:51.9 | Marge:9.2% | Vol:28.1% | Omzet:53,291,932 | Trend:boven | actief
+RBT.PA           | opname:2026-05-04 | ROE:16.6% | Debt:39.7 | Marge:11.8% | Vol:22.7% | Omzet:996,313 | Trend:boven | actief
+RCO.PA           | opname:2026-06-21 | ROE:3.7% | Debt:36.1 | Marge:7.6% | Vol:37.8% | Omzet:3,493,981 | Trend:boven | actief
+RI.PA            | opname:2026-05-08 | ROE:7.6% | Debt:76.6 | Marge:12.8% | Vol:29.8% | Omzet:47,228,142 | Trend:boven | actief
+RMS.PA           | opname:2026-05-04 | ROE:25.5% | Debt:12.0 | Marge:28.0% | Vol:33.1% | Omzet:146,697,961 | Trend:onder | actief
+RUI.PA           | opname:2026-05-08 | ROE:12.0% | Debt:82.0 | Marge:4.6% | Vol:21.2% | Omzet:5,431,424 | Trend:boven | actief
+RXL.PA           | opname:2026-11-08 | ROE:12.6% | Debt:107.0 | Marge:3.4% | Vol:31.3% | Omzet:24,242,047 | Trend:onder | actief
+SAF.PA           | opname:2026-05-04 | ROE:27.5% | Debt:33.7 | Marge:11.6% | Vol:35.4% | Omzet:188,376,506 | Trend:onder | actief
+SAN.PA           | opname:2026-11-08 | ROE:5.7% | Debt:27.1 | Marge:8.2% | Vol:25.6% | Omzet:181,980,768 | Trend:boven | actief
+SCR.PA           | opname:2026-05-08 | ROE:12.8% | Debt:51.2 | Marge:5.2% | Vol:20.8% | Omzet:14,779,209 | Trend:boven | actief
+SGO.PA           | opname:2026-05-08 | ROE:11.0% | Debt:66.3 | Marge:5.8% | Vol:30.0% | Omzet:86,391,940 | Trend:onder | actief
+SOP.PA           | opname:2026-05-08 | ROE:14.6% | Debt:65.1 | Marge:5.2% | Vol:43.3% | Omzet:7,367,899 | Trend:boven | actief
+STMPA.PA         | opname:2026-07-26 | ROE:3.0% | Debt:18.7 | Marge:3.8% | Vol:58.7% | Omzet:118,608,962 | Trend:onder | actief
+SU.PA            | opname:2026-05-04 | ROE:18.6% | Debt:84.1 | Marge:11.3% | Vol:36.7% | Omzet:249,948,603 | Trend:onder | actief
+TE.PA            | opname:2026-05-08 | ROE:12.3% | Debt:75.4 | Marge:3.6% | Vol:33.7% | Omzet:14,345,986 | Trend:boven | actief
+TEP.PA           | opname:2026-05-08 | ROE:11.4% | Debt:120.4 | Marge:4.7% | Vol:49.5% | Omzet:18,726,061 | Trend:boven | actief
+TKO.PA           | opname:2026-08-09 | ROE:7.4% | Debt:57.0 | Marge:34.7% | Vol:29.1% | Omzet:820,238 | Trend:onder | actief
+TRI.PA           | opname:2026-05-08 | ROE:13.2% | Debt:6.0 | Marge:7.5% | Vol:27.9% | Omzet:2,331,316 | Trend:onder | actief
+TTE.PA           | opname:2026-05-04 | ROE:17.8% | Debt:46.1 | Marge:10.5% | Vol:23.5% | Omzet:304,399,461 | Trend:boven | actief
+VCT.PA           | opname:2026-05-08 | ROE:10.2% | Debt:55.1 | Marge:7.2% | Vol:33.7% | Omzet:2,728,173 | Trend:boven | actief
+VIRP.PA          | opname:2026-05-04 | ROE:13.6% | Debt:29.7 | Marge:10.4% | Vol:23.3% | Omzet:1,606,268 | Trend:boven | actief
+VK.PA            | opname:2026-05-04 | ROE:12.7% | Debt:39.5 | Marge:7.8% | Vol:38.6% | Omzet:16,502,714 | Trend:onder | actief
+VU.PA            | opname:2026-05-04 | ROE:76.7% | Debt:9.8 | Marge:17.0% | Vol:55.0% | Omzet:8,123,069 | Trend:boven | actief
+WAVE.PA          | opname:2026-05-04 | ROE:12.3% | Debt:2.9 | Marge:8.6% | Vol:51.5% | Omzet:900,103 | Trend:onder | actief
+EN.PA            | opname:2026-11-08 | ROE:6.0% | Debt:103.9 | Marge:1.4% | Vol:21.6% | Omzet:32,503,735 | Trend:onder | zwakker | weken_buiten:2
+74SW.PA          | opname:2026-05-08 | ROE:11.4% | Debt:52.0 | Marge:8.5% | Vol:34.3% | Omzet:423,364 | Trend:onder | verwijderd | verwijderd:2026-11-01
+AI.PA            | opname:2026-06-07 | ROE:14.0% | Debt:63.3 | Marge:13.1% | Vol:17.8% | Omzet:147,266,981 | Trend:boven | verwijderd | verwijderd:2026-07-19
 ALPAT.PA         | opname:2026-05-04 | ROE:5.9% | Debt:37.2 | Marge:41.5% | Vol:59.0% | Omzet:2,314 | Trend:onder | verwijderd | verwijderd:2026-05-10
-ANTIN.PA         | opname:2026-05-04 | ROE:21.5% | Debt:14.0 | Marge:35.9% | Vol:26.8% | Omzet:338,234 | Trend:onder | verwijderd | verwijderd:2026-11-01
-BASS.PA          | opname:2026-05-08 | ROE:12.3% | Debt:118.7 | Marge:6.0% | Vol:33.5% | Omzet:159,667 | Trend:onder | verwijderd | verwijderd:2026-11-01
-CBE.PA           | opname:2026-05-04 | ROE:16.6% | Debt:39.7 | Marge:11.8% | Vol:30.9% | Omzet:9,936 | Trend:onder | verwijderd | verwijderd:2026-05-10
-CS.PA            | opname:2026-05-08 | ROE:14.9% | Debt:119.4 | Marge:10.4% | Vol:18.3% | Omzet:139,365,780 | Trend:boven | verwijderd | verwijderd:2026-07-19
-ELEC.PA          | opname:2026-05-17 | ROE:20.8% | Debt:2.9 | Marge:10.8% | Vol:30.5% | Omzet:359,366 | Trend:onder | verwijderd | verwijderd:2026-11-01
-IAM.PA           | opname:2026-05-04 | ROE:28.6% | Debt:86.0 | Marge:14.2% | Vol:78.3% | Omzet:1,995 | Trend:boven | verwijderd | verwijderd:2026-05-10
-LOUP.PA          | opname:2026-07-05 | ROE:13.3% | Debt:27.6 | Marge:4.4% | Vol:19.0% | Omzet:580,545 | Trend:onder | verwijderd | verwijderd:2026-11-01
-NEX.PA           | opname:2026-05-08 | ROE:9.8% | Debt:115.8 | Marge:1.0% | Vol:37.5% | Omzet:19,898,402 | Trend:onder | verwijderd | verwijderd:2026-08-09
-NRO.PA           | opname:2026-05-10 | ROE:15.3% | Debt:9.6 | Marge:6.2% | Vol:26.7% | Omzet:358,156 | Trend:boven | verwijderd | verwijderd:2026-11-01
-SK.PA            | opname:2026-06-21 | ROE:4.9% | Debt:105.5 | Marge:1.5% | Vol:37.2% | Omzet:3,249,766 | Trend:onder | verwijderd | verwijderd:2026-07-05
-TFI.PA           | opname:2026-05-08 | ROE:5.4% | Debt:10.0 | Marge:4.7% | Vol:19.9% | Omzet:1,714,407 | Trend:onder | verwijderd | verwijderd:2026-07-19
-URW.PA           | opname:2026-10-31 | ROE:8.6% | Debt:108.1 | Marge:44.6% | Vol:18.5% | Omzet:30,993,337 | Trend:onder | verwijderd | verwijderd:2026-11-01
-VETO.PA          | opname:2026-05-24 | ROE:10.7% | Debt:2.0 | Marge:11.9% | Vol:31.4% | Omzet:419,367 | Trend:boven | verwijderd | verwijderd:2026-11-01
-VIL.PA           | opname:2026-05-24 | ROE:25.3% | Debt:60.1 | Marge:10.4% | Vol:26.3% | Omzet:244,557 | Trend:boven | verwijderd | verwijderd:2026-11-01
-VIRI.PA          | opname:2026-05-08 | ROE:0.4% | Debt:91.7 | Marge:0.5% | Vol:55.7% | Omzet:4,371,574 | Trend:onder | verwijderd | verwijderd:2026-08-30
+ANTIN.PA         | opname:2026-05-04 | ROE:21.5% | Debt:14.0 | Marge:35.9% | Vol:26.8% | Omzet:336,424 | Trend:onder | verwijderd | verwijderd:2026-11-01
+BASS.PA          | opname:2026-05-08 | ROE:12.3% | Debt:118.7 | Marge:6.0% | Vol:33.5% | Omzet:157,072 | Trend:onder | verwijderd | verwijderd:2026-11-01
+CBE.PA           | opname:2026-05-04 | ROE:16.6% | Debt:39.7 | Marge:11.8% | Vol:30.9% | Omzet:10,045 | Trend:onder | verwijderd | verwijderd:2026-05-10
+CS.PA            | opname:2026-05-08 | ROE:14.9% | Debt:119.4 | Marge:10.4% | Vol:18.4% | Omzet:138,288,367 | Trend:boven | verwijderd | verwijderd:2026-07-19
+ELEC.PA          | opname:2026-05-17 | ROE:20.8% | Debt:2.9 | Marge:10.8% | Vol:30.1% | Omzet:355,375 | Trend:onder | verwijderd | verwijderd:2026-11-01
+IAM.PA           | opname:2026-05-04 | ROE:28.6% | Debt:86.0 | Marge:14.2% | Vol:78.2% | Omzet:2,107 | Trend:boven | verwijderd | verwijderd:2026-05-10
+LOUP.PA          | opname:2026-07-05 | ROE:12.5% | Debt:25.4 | Marge:4.1% | Vol:18.4% | Omzet:592,857 | Trend:onder | verwijderd | verwijderd:2026-11-01
+NEX.PA           | opname:2026-05-08 | ROE:9.8% | Debt:115.8 | Marge:1.0% | Vol:38.3% | Omzet:20,006,145 | Trend:onder | verwijderd | verwijderd:2026-08-09
+NRO.PA           | opname:2026-05-10 | ROE:15.3% | Debt:9.6 | Marge:6.2% | Vol:26.7% | Omzet:357,476 | Trend:boven | verwijderd | verwijderd:2026-11-01
+SK.PA            | opname:2026-06-21 | ROE:4.9% | Debt:105.5 | Marge:1.5% | Vol:37.1% | Omzet:3,244,197 | Trend:onder | verwijderd | verwijderd:2026-07-05
+TFI.PA           | opname:2026-05-08 | ROE:5.4% | Debt:10.0 | Marge:4.7% | Vol:19.8% | Omzet:1,705,169 | Trend:onder | verwijderd | verwijderd:2026-07-19
+URW.PA           | opname:2026-10-31 | ROE:8.6% | Debt:108.1 | Marge:44.6% | Vol:18.6% | Omzet:30,824,703 | Trend:onder | verwijderd | verwijderd:2026-11-01
+VETO.PA          | opname:2026-05-24 | ROE:10.7% | Debt:2.0 | Marge:11.9% | Vol:31.5% | Omzet:424,898 | Trend:boven | verwijderd | verwijderd:2026-11-01
+VIL.PA           | opname:2026-05-24 | ROE:25.3% | Debt:60.1 | Marge:10.4% | Vol:26.1% | Omzet:243,240 | Trend:boven | verwijderd | verwijderd:2026-11-01
+VIRI.PA          | opname:2026-05-08 | ROE:0.4% | Debt:91.7 | Marge:0.5% | Vol:55.7% | Omzet:4,290,439 | Trend:onder | verwijderd | verwijderd:2026-08-30

@@ -1,5 +1,5 @@
 # MASTERLIJST 051 — Warschau
-# Laatste update: 22/11/2026
+# Laatste update: 28/11/2026
 # Nitro Criteria: ROE>3% | Debt<150 (niet voor financials/nutsbedrijven/vastgoed) | Marge>2% | Vol 20%-80% | Omzet>€500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]

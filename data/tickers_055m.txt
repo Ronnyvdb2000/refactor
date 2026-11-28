@@ -1,6 +1,6 @@
 # MASTERLIJST 055 — CSE
-# Laatste update: 22/11/2026
-# Nitro Criteria: ROE>4% | Debt<140 (niet voor financials/nutsbedrijven/vastgoed) | Marge>3% | Vol 35%-95% | Omzet>€2,500,000
+# Laatste update: 28/11/2026
+# Nitro Criteria: ROE>4% | Debt<140 (niet voor financials/nutsbedrijven/vastgoed) | Marge>3% | Vol 20%-95% | Omzet>€2,500,000
 # Trend (EMA200) is enkel informatief en geen filter.
 # Kolommen: ticker | opname | ROE | Debt | Marge | Vol | Omzet | Trend | status [| weken_buiten] [| verwijderd]
 # --------------------------------------------------------------------------------
