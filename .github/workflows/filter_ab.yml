@@ -1,0 +1,47 @@
+name: Filterproef A-B - waarnemingen en dekking
+on:
+  push:
+    branches: [main]
+    paths: ['research/filter_ab.py', '.github/workflows/filter_ab.yml']
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['filter_tickers MRA Nitro']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: filter-ab-observations
+  cancel-in-progress: false
+  queue: max
+jobs:
+  observe:
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || (github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: refactor-yahoo-full
+      cancel-in-progress: false
+      queue: max
+    env:
+      FILTER_AB_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-paper.txt
+      - name: Begin met een vooraf bepaalde steekproef van 60 aandelen
+        if: github.event_name != 'workflow_run'
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m research.filter_ab sample --limit 60
+      - name: Meld vastgelegde A-B-waarnemingen en ontbrekende dekking
+        if: ${{ !cancelled() }}
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m research.filter_ab notify

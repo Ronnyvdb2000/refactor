@@ -371,10 +371,13 @@ def batch_download(tickers: list) -> dict:
 
 
 # ── Fundamentele check ────────────────────────────────────────────────────────
-def check_fundamenteel(ticker: str, crit: dict) -> tuple:
+def check_fundamenteel(ticker: str, crit: dict, *, info=None, capture=None) -> tuple:
     try:
-        t_obj = yf.Ticker(ticker)
-        info = t_obj.info
+        if info is None:
+            t_obj = yf.Ticker(ticker)
+            info = t_obj.info
+        if capture is not None:
+            capture['info'] = info
         if not info or "returnOnEquity" not in info:
             return False, {}, "geen_fundamentele_data"
         roe = info.get("returnOnEquity", 0) or 0
@@ -625,6 +628,14 @@ def scan_lijst(getal: str) -> dict:
     # ── 3. Scanlijst + master + OHLCV ─────────────────────────────────────────
     te_scannen = [t for t in tickers if t not in delisted]
     master = laad_master(getal)
+    # Read-only sidecar for the production inputs; it cannot change this master.
+    ab = None
+    if os.getenv('FILTER_AB_CAPTURE') == '1' and getal in ('048','056','057'):
+        try:
+            from research.filter_ab import Recorder
+            ab = Recorder.open(getal, te_scannen, master, mode='weekly')
+        except Exception:
+            print('[A/B] Registratie niet beschikbaar; actieve filter gaat verder.')
     ohlcv = batch_download(te_scannen)
 
     # WIJZIGING 5: enkel "geen data" (None) gaat de delisted-cache in, met datum.
@@ -634,6 +645,9 @@ def scan_lijst(getal: str) -> dict:
     fout_tickers = {t for t, df in ohlcv.items() if isinstance(df, str)}
     for t in nieuw_delisted:
         delisted[t] = vandaag_iso
+    if ab:
+        for ticker in sorted(nieuw_delisted | fout_tickers):
+            ab.observe_safe(ticker, {}, None, applied=False, blocked=ticker in nieuw_delisted)
     sla_delisted_op(getal, delisted)
     if fout_tickers:
         print(f"  ⚠️  {len(fout_tickers)} tickers overgeslagen door download-fout")
@@ -647,10 +661,13 @@ def scan_lijst(getal: str) -> dict:
     for ticker in actief:
         print(f"  {ticker:<16} ", end="", flush=True)
 
-        fund_ok, fund_metrics, fund_reden = check_fundamenteel(ticker, crit)
+        fund_capture = {} if ab else None
+        fund_ok, fund_metrics, fund_reden = check_fundamenteel(ticker, crit, capture=fund_capture)
         time.sleep(SLEEP_INFO)
 
         if "geen_fundamentele_data" in fund_reden:
+            if ab:
+                ab.observe_safe(ticker, (fund_capture or {}).get('info', {}), ohlcv.get(ticker), applied=False)
             print("❓ Geen data")
             tellers["geen_data"].append(ticker)
             continue
@@ -662,6 +679,8 @@ def scan_lijst(getal: str) -> dict:
             master, ticker, door_filter,
             {**fund_metrics, "Vol": vol_str, "Omzet": omzet_str, "Trend": trend}
         )
+        if ab:
+            ab.observe_safe(ticker, (fund_capture or {}).get('info', {}), ohlcv.get(ticker), applied=True)
 
         if door_filter:
             print(f"✅ ROE:{fund_metrics.get('ROE','')} Debt:{fund_metrics.get('Debt','')} "
@@ -674,6 +693,8 @@ def scan_lijst(getal: str) -> dict:
     # ── 5. Opslaan ────────────────────────────────────────────────────────────
     sla_master_op(getal, master, naam)
     export = sla_export_op(getal, master, set(delisted))
+    if ab:
+        ab.finish_safe(export, set(delisted))
 
     return {
         "getal": getal, "naam": naam, "tellers": tellers, "export": export,
