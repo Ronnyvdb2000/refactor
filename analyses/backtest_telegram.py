@@ -10,7 +10,8 @@ from common.horizons import horizon_days
 
 LABELS={**LABELS,'xgboostV3:walk_forward_abs':'XGBoost V3 (onderzoek)',
         'lightgbmV2:walk_forward_abs':'LightGBM V2 (onderzoek)',
-        'catboostV1:walk_forward_abs':'CatBoost V1 (onderzoek)'}
+        'catboostV1:walk_forward_abs':'CatBoost V1 (onderzoek)',
+        'elastic_net:walk_forward_return_v1':'Elastic Net (onderzoek)'}
 
 
 def message(row):
@@ -30,9 +31,12 @@ def message(row):
         lines.append(f"Werkelijke beleggingsperiode: {result['valuation_start']} t/m {result['valuation_end']}")
     if result.get('comparison_scope')=='matched_common_feature_universe':
         lines.append('Zelfde instapdatums en kandidaten; ML gebruikt 11 technische kenmerken, A Parameter behoudt zijn eigen factoren.')
-        lines.append('ML opnieuw getraind op bekende historie; doel positief rendement. A Parameter hier op hetzelfde universum.')
+        if result.get('ml_target')=='adjusted_return_percentage_points':
+            lines.append('Elastic Net schat rendement; schaling en training uitsluitend op bekende historie. A Parameter op hetzelfde universum.')
+        else:
+            lines.append('ML opnieuw getraind op bekende historie; doel positief rendement. A Parameter hier op hetzelfde universum.')
         if result.get('skipped_cohorts'):
-            lines.append(f"Overgeslagen instapmomenten wegens onvoldoende bekende invoer: {len(result['skipped_cohorts'])}.")
+            lines.append(f"Overgeslagen instapmomenten (onvoldoende invoer of onderscheidend signaal): {len(result['skipped_cohorts'])}.")
     for book, value in result.get('books', {}).items():
         lines.extend(['', LABELS.get(book, book),
                       f"Netto rendement incl. cash: {number(value['net_return_pct']):+.2f}%",
@@ -56,6 +60,8 @@ def message(row):
         lines.append('Nog geen berekend rendement; deze melding bevestigt alleen de voortgang.')
     if row['status']=='insufficient_history':
         lines.append('Te weinig bruikbare trainingshistorie voor deze horizon; geen geldige backtestselecties.')
+    if row['status']=='insufficient_signal':
+        lines.append('Elastic Net onderscheidt geen aandelen in deze cohorten; geen willekeurige top tien of rendementsclaim.')
     if row['status'] != 'complete':
         lines.append('Onvolledige run: bovenstaande cijfers zijn tussentijds.')
     lines.extend(['', 'Historisch onderzoek; geen echte aankopen. Rendement is nog niet bewezen.',
